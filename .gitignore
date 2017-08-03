@@ -1,3 +1,7 @@
+/.idea
+/out
+TPort.iml
+
 *.class
 
 # Mobile Tools for Java (J2ME)

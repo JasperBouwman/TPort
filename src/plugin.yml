@@ -1,0 +1,8 @@
+main: com.spaceman.tport.Main
+version: 1.0
+name: tport
+author: The_Spaceman
+
+commands:
+  tport:
+    description: tport
