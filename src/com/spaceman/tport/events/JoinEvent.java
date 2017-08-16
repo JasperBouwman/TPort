@@ -54,5 +54,4 @@ public class JoinEvent implements Listener {
             p.saveConfig();
         }
     }
-
 }

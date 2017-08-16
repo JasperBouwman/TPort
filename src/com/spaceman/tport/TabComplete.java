@@ -19,217 +19,6 @@ public class TabComplete implements TabCompleter {
     // tport add
     // tport edit
     private static final List<String> TABCOMPLETE_EDIT = new ArrayList<>();
-
-    //    @Override
-//    public java.util.List<String> onTabComplete(CommandSender sender, Command
-//            cmd, String CommandLabel, String[] args) {
-//        if (args.length >= 5) {
-//            List<String> list = new ArrayList<>();
-//            return list;
-//        }
-//        if (cmd.getName().equalsIgnoreCase("tport")) {
-//            if (sender instanceof Player) {
-//                Player player = (Player) sender;
-//                if (args.length == 1) {
-//                    List<String> list = new ArrayList<>();
-//
-//                    list.add("add");
-//                    list.add("remove");
-//                    list.add("edit");
-//                    list.add("whitelist");
-//                    list.add("help");
-//                    list.add("open");
-//                    list.add("extra");
-//                    return list;
-//                } else if (args.length == 2) {
-//
-//                    if (args[0].equalsIgnoreCase("edit")) {
-//                        List<String> list = new ArrayList<>();
-//
-//                        if (!p.getConfig().contains("tport." + player.getName() + ".items")) {
-//                            return list;
-//                        }
-//
-//                        for (String s : p.getConfig().getConfigurationSection("tport." +
-//                                player.getName() + ".items")
-//                                .getKeys(false)) {
-//
-//                            ItemStack item = p.getConfig()
-//                                    .getItemStack("tport." + player.getName() + ".items." + s + ".item");
-//                            String name = item.getItemMeta().getDisplayName();
-//                            list.add(name);
-//                        }
-//                        return list;
-//                    } else if (args[0].equalsIgnoreCase("remove")) {
-//
-//                        List<String> list = new ArrayList<String>();
-//
-//                        if (!p.getConfig().contains("tport." + player.getName() + ".items")) {
-//                            return list;
-//                        }
-//
-//                        for (String s : p.getConfig().getConfigurationSection("tport." +
-//                                player.getName() + ".items")
-//                                .getKeys(false)) {
-//
-//                            ItemStack item = p.getConfig()
-//                                    .getItemStack("tport." + player.getName() + ".items." + s + ".item");
-//                            String name = item.getItemMeta().getDisplayName();
-//                            list.add(name);
-//                        }
-//
-//                        return list;
-//
-//                    } else if (args[0].equalsIgnoreCase("add") ||
-//                            args[0].equalsIgnoreCase("help")) {
-//                        List<String> list = new ArrayList<String>();
-//                        return list;
-//                    } else if (args[0].equalsIgnoreCase("whitelist")) {
-//
-//                        List<String> list = new ArrayList<String>();
-//
-//                        if (!p.getConfig().contains("tport." + player.getName() + ".items")) {
-//                            return list;
-//                        }
-//                        for (String s : p.getConfig().getConfigurationSection("tport." +
-//                                player.getName() + ".items")
-//                                .getKeys(false)) {
-//
-//                            ItemStack item = p.getConfig()
-//                                    .getItemStack("tport." + player.getName() + ".items." + s + ".item");
-//                            String name = item.getItemMeta().getDisplayName();
-//                            list.add(name);
-//                        }
-//                        return list;
-//                    } else if (args[0].equalsIgnoreCase("extra")) {
-//                        List<String> list = new ArrayList<String>();
-//                        list.add("whitelist");
-//                        list.add("item");
-//                        list.add("tp");
-//                        return list;
-//                    }
-//
-//                } else if (args.length == 3) {
-//
-//                    if (args[0].equalsIgnoreCase("edit")) {
-//
-//                        List<String> list = new ArrayList<>();
-//
-//                        list.add("lore");
-//                        list.add("name");
-//                        list.add("item");
-//                        list.add("private");
-//                        list.add("location");
-//
-//                        return list;
-//
-//                    } else if (args[0].equalsIgnoreCase("whitelist")) {
-//
-//                        List<String> list = new ArrayList<>();
-//
-//                        list.add("add");
-//                        list.add("remove");
-//                        list.add("list");
-//
-//                        return list;
-//
-//                    } else if (args[0].equalsIgnoreCase("add") ||
-//                            args[0].equalsIgnoreCase("remove")
-//                            || args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("open")
-//                            || args[1].equalsIgnoreCase("item")) {
-//                        List<String> list = new ArrayList<>();
-//                        return list;
-//                    } else if (args[1].equalsIgnoreCase("whitelist")) {
-//                        List<String> list = new ArrayList<>();
-//
-//                        list.add("add");
-//                        list.add("remove");
-//                        list.add("list");
-//
-//                        return list;
-//                    } else if (args[1].equalsIgnoreCase("tp")) {
-//                        List<String> list = new ArrayList<>();
-//
-//                        list.add("on");
-//                        list.add("off");
-//                        return list;
-//                    }
-//
-//                } else if (args.length == 4) {
-//
-//                    if (args[2].equalsIgnoreCase("lore")) {
-//
-//                        List<String> list = new ArrayList<>();
-//
-//                        list.add("set");
-//                        list.add("remove");
-//                        return list;
-//
-//                    } else if (args[2].equalsIgnoreCase("private")) {
-//
-//                        List<String> list = new ArrayList<>();
-//
-//                        list.add("true");
-//                        list.add("false");
-//                        return list;
-//
-//                    } else if (args[2].equalsIgnoreCase("item") ||
-//                            args[2].equalsIgnoreCase("name")
-//                            || args[2].equalsIgnoreCase("location") ||
-//                            args[1].equalsIgnoreCase("item")
-//                            || args[1].equalsIgnoreCase("tp") || args[2].equalsIgnoreCase("list")) {
-//                        List<String> list = new ArrayList<>();
-//                        return list;
-//
-//                    } else if (args[2].equalsIgnoreCase("remove") &&
-//                            args[0].equalsIgnoreCase("whitelist")) {
-//
-//                        List<String> list = new ArrayList<>();
-//
-//                        if (!p.getConfig().contains("tport." + player.getName() + ".items")) {
-//                            return list;
-//                        }
-//
-//                        for (String s : p.getConfig().getConfigurationSection("tport." +
-//                                player.getName() + ".items")
-//                                .getKeys(false)) {
-//
-//                            ItemStack item = p.getConfig()
-//                                    .getItemStack("tport." + player.getName() + ".items." + s + ".item");
-//                            String name = item.getItemMeta().getDisplayName();
-//                            if (name.equalsIgnoreCase(args[1])) {
-//                                ArrayList<String> players = (ArrayList<String>)
-//                                        p.getConfig().getStringList(
-//                                                "tport." + player.getName() + ".items." + s + ".private.players");
-//                                list.addAll(players);
-//                            }
-//                        }
-//                        return list;
-//                    } else if (args[0].equalsIgnoreCase("add") ||
-//                            args[0].equalsIgnoreCase("remove")
-//                            || args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("open")) {
-//                        List<String> list = new ArrayList<>();
-//                        return list;
-//                    } else if (args[2].equalsIgnoreCase("list") &&
-//                            args[0].equalsIgnoreCase("whitelist")) {
-//                        List<String> list = new ArrayList<>();
-//                        return list;
-//
-//                    } else if (args[2].equalsIgnoreCase("remove") &&
-//                            args[1].equalsIgnoreCase("whitelist")) {
-//
-//
-//                        List<String> list = p.getConfig().getStringList("tport." +
-//                                player.getName() + ".tp.players");
-//                        list.addAll(list);
-//
-//                        return list;
-//                    }
-//                }
-//            }
-//        }
-//        return null;
-//    }
     private static final List<String> TABCOMPLETE_EDIT_TPORT = new ArrayList<>();
     private static final List<String> TABCOMPLETE_EDIT_LORE = new ArrayList<>();
     private static final List<String> TABCOMPLETE_EDIT_PRIVATE = new ArrayList<>();
@@ -242,6 +31,7 @@ public class TabComplete implements TabCompleter {
     // tport help
     // tport open
     private static final List<String> TABCOMPLETE_OPEN = new ArrayList<>();
+    private static final List<String> TABCOMPLETE_OPEN_ITEM = new ArrayList<>();
     // tport remove
     private static final List<String> TABCOMPLETE_REMOVE = new ArrayList<>();
     // tport whitelist
@@ -249,16 +39,12 @@ public class TabComplete implements TabCompleter {
     private static final List<String> TABCOMPLETE_WHITELIST_TPORT = new ArrayList<>();
     private static final List<String> TABCOMPLETE_WHITELIST_ADD = new ArrayList<>();
     private static final List<String> TABCOMPLETE_WHITELIST_REMOVE = new ArrayList<>();
-    private static List<String> TABCOMPLETE_OPEN_ITEM = new ArrayList<>();
     private static List<String> l = new ArrayList<>();
     private Main p;
 
-    public TabComplete(Main instance) {
+    TabComplete(Main instance) {
         p = instance;
     }
-//    private static final List<String> TABCOMPLETE_ADD_SET = ImmutableList.of("1", "2");
-//    private static final List<String> TABCOMPLETE_ADD = l;
-//    private static final List<String> TABCOMPLETE_DAY_NIGHT = ImmutableList.of("1.1", "1.2");
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command arg1, String arg2, String[] args) {
@@ -273,13 +59,6 @@ public class TabComplete implements TabCompleter {
         } else {
             listPopulator(player, null);
         }
-//		if (args.length == 1)
-//			return (List<String>) StringUtil.copyPartialMatches(args[0], TABCOMPLETE_ADD_SET,
-//					new ArrayList<String>(TABCOMPLETE_ADD_SET.size()));
-//		if ((args.length == 2) && (args[0].equalsIgnoreCase("set"))) {
-//			return (List<String>) StringUtil.copyPartialMatches(args[1], TABCOMPLETE_DAY_NIGHT,
-//					new ArrayList<String>(TABCOMPLETE_DAY_NIGHT.size()));
-//		}
 
         if (args.length == 1) {
             return StringUtil.copyPartialMatches(args[0], TABCOMPLETE,
