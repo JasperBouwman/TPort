@@ -31,8 +31,6 @@ public class InventoryClick implements Listener {
         Player player = (Player) e.getWhoClicked();
         Inventory inv = e.getInventory();
 
-        System.out.println(e.getRawSlot() + " " + inv.getSize());
-
         ItemStack item = e.getCurrentItem();
         if (item == null) {
             return;
