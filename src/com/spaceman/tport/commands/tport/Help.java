@@ -134,7 +134,7 @@ public class Help extends CmdHandler {
                         "{\\\"text\\\":\\\"/tport whitelist home list\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
                         "{\\\"text\\\":\\\"this will show the whitelist list of that TPort\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"]" +
 
-                        ",\"title\":\"The TPort Help Book\",\"author\":\"The TPort Authors\"}";
+                        ",\"title\":\"The TPort Help Book\",\"author\":\"The_Spaceman\"}";
 
         try {
             stack = Bukkit.getUnsafe().modifyItemStack(stack, json.replaceAll("%player%", player.getName()));
@@ -161,6 +161,7 @@ public class Help extends CmdHandler {
             Object nmsPlayer = player.getClass().getMethod("getHandle").invoke(player);
             //get player connection
             Object connection = nmsPlayer.getClass().getField("playerConnection").get(nmsPlayer);
+
             Class<?> packetDataSerializer = Class.forName("net.minecraft.server." + version + ".PacketDataSerializer");
             Constructor<?> packetDataSerializerConstructor = packetDataSerializer.getConstructor(ByteBuf.class);
 
