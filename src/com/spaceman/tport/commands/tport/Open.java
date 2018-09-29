@@ -9,17 +9,13 @@ import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
-import static com.spaceman.tport.events.InventoryClick.*;
+import static com.spaceman.tport.TPortInventories.openTPortGUI;
+import static com.spaceman.tport.events.InventoryClick.tpPlayerToTPort;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
 
@@ -61,39 +57,50 @@ public class Open extends CmdHandler {
         }
         if (args.length == 3) {
             boolean b = true;
-            for (int i = 0; i < 7; i++) {
-                if (tportData.getConfig().contains("tport." + newPlayerUUID + ".items." + i + ".item")) {
-                    ItemStack items = tportData.getConfig().getItemStack("tport." + newPlayerUUID + ".items." + i + ".item");
-                    if (args[2].equals(items.getItemMeta().getDisplayName())) {
 
-                        if (tportData.getConfig().getString("tport." + newPlayerUUID + ".items." + i + ".private.statement").equals("true")) {
+            if (tportData.getConfig().contains("tport." + newPlayerUUID + ".items")) {
+                for (String i : tportData.getConfig().getConfigurationSection("tport." + newPlayerUUID + ".items").getKeys(false)) {
+                    if (tportData.getConfig().contains("tport." + newPlayerUUID + ".items." + i + ".item")) {
+//                        ItemStack items = tportData.getConfig().getItemStack("tport." + newPlayerUUID + ".items." + i + ".item");
+                        if (args[2].equals(tportData.getConfig().getString("tport." + newPlayerUUID + ".items." + i + ".name"))) {
 
-                            ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
-                                    .getStringList("tport." + newPlayerUUID + ".items." + i + ".private.players");
-                            if (!list.contains(player.getUniqueId().toString())) {
-                                player.sendMessage(ChatColor.RED + "You are not whitelisted to this private TPort");
+                            if (!newPlayerUUID.equals(player.getUniqueId().toString())) {
+
+                                if (tportData.getConfig().getString("tport." + newPlayerUUID + ".items." + i + ".private.statement").equals("on")) {
+
+                                    ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
+                                            .getStringList("tport." + newPlayerUUID + ".items." + i + ".private.players");
+                                    if (!list.contains(player.getUniqueId().toString())) {
+                                        player.sendMessage(ChatColor.RED + "You are not whitelisted to this private TPort");
+                                        return;
+                                    }
+                                } else if (tportData.getConfig().getString("tport." + newPlayerUUID + ".items." + i + ".private.statement").equals("online")) {
+                                    if (Bukkit.getPlayer(UUID.fromString(newPlayerUUID)) == null) {
+                                        player.sendMessage(ChatColor.RED + "You can't teleport to this teleport, " + ChatColor.DARK_RED + newPlayerName + ChatColor.RED + " has set this TPort to 'online'");
+                                        return;
+                                    }
+                                }
+                            }
+
+                            player.closeInventory();
+
+                            Location l = Main.getLocation("tport." + newPlayerUUID + ".items." + i + ".location");
+
+                            if (l == null) {
+                                player.sendMessage("§cThe world for this location has not been found");
                                 return;
                             }
-                        }
+                            tpPlayerToTPort(player, l, args[2], newPlayerUUID);
 
-                        player.closeInventory();
-
-                        Location l = Main.getLocation("tport." + newPlayerUUID + ".items." + i + ".location");
-
-                        if (l == null) {
-                            player.sendMessage("§cThe world for this location has not been found");
-                            return;
-                        }
-                        teleportPlayer(player, l);
-
-                        Message message = new Message();
-                        message.addText("Teleported to ", ChatColor.DARK_AQUA);
-                        message.addText(textComponent(items.getItemMeta().getDisplayName(),
-                                ChatColor.BLUE, ClickEvent.runCommand("/tport open " + args[1] + " " + items.getItemMeta().getDisplayName())));
-                        message.sendMessage(player);
+                            Message message = new Message();
+                            message.addText("Teleported to ", ChatColor.DARK_AQUA);
+                            message.addText(textComponent(args[2],
+                                    ChatColor.BLUE, ClickEvent.runCommand("/tport open " + args[1] + " " + args[2])));
+                            message.sendMessage(player);
 
 //                        player.sendMessage("§3Teleported to §9" + items.getItemMeta().getDisplayName());
-                        b = false;
+                            b = false;
+                        }
                     }
                 }
             }
@@ -107,54 +114,7 @@ public class Open extends CmdHandler {
             return;
         }
 
-        Inventory invc = Bukkit.createInventory(null, 9, "TPort: " + newPlayerName);
-        for (int i = 0; i < 7; i++) {
-
-            if (newPlayerUUID.equals(player.getUniqueId().toString())) {
-                invc.setItem(i, tportData.getConfig().getItemStack("tport." + newPlayerUUID + ".items." + i + ".item"));
-            } else if (tportData.getConfig().contains("tport." + newPlayerUUID + ".items." + i)) {
-                if (tportData.getConfig().getString("tport." + newPlayerUUID + ".items." + i + ".private.statement").equals("false")) {
-
-                    invc.setItem(i, tportData.getConfig().getItemStack("tport." + newPlayerUUID + ".items." + i + ".item"));
-
-                } else if (tportData.getConfig().getString("tport." + newPlayerUUID + ".items." + i + ".private.statement").equals("true")) {
-
-                    ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
-                            .getStringList("tport." + newPlayerUUID + ".items." + i + ".private.players");
-                    if (list.contains(player.getUniqueId().toString())) {
-                        invc.setItem(i, tportData.getConfig().getItemStack("tport." + newPlayerUUID + ".items." + i + ".item"));
-                    }
-                }
-            }
-            ItemStack back = new ItemStack(Material.BARRIER);
-            ItemMeta metaback = back.getItemMeta();
-            metaback.setDisplayName(BACK);
-            back.setItemMeta(metaback);
-            invc.setItem(8, back);
-
-            ItemStack warp = new ItemStack(Material.PLAYER_HEAD);
-            SkullMeta skin = (SkullMeta) warp.getItemMeta();
-            skin.setOwningPlayer(Bukkit.getOfflinePlayer(UUID.fromString(newPlayerUUID)));
-
-            if (tportData.getConfig().getString("tport." + newPlayerUUID + ".tp.statement").equals("off")) {
-
-                ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
-                        .getStringList("tport." + newPlayerUUID + "tp.players");
-
-                if (list.contains(player.getUniqueId().toString())) {
-                    skin.setDisplayName(WARP + PlayerUUID.getPlayerName(newPlayerUUID));
-                } else {
-                    skin.setDisplayName(TPOFF);
-                }
-            } else if (Bukkit.getPlayer(UUID.fromString(newPlayerUUID)) != null) {
-                skin.setDisplayName(WARP + PlayerUUID.getPlayerName(newPlayerUUID));
-            } else {
-                skin.setDisplayName(OFFLINE);
-            }
-            warp.setItemMeta(skin);
-            invc.setItem(7, warp);
-        }
-        player.openInventory(invc);
+        openTPortGUI(newPlayerName, newPlayerUUID, player);
 
     }
 }

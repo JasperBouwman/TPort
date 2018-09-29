@@ -13,7 +13,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import static com.spaceman.tport.events.InventoryClick.TPortSize;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
 
@@ -22,7 +24,7 @@ public class Add extends CmdHandler {
     @Override
     public void run(String[] args, Player player) {
 
-        // tport add <TPort name> [lore of item]
+        // tport add <TPort name> [lore of TPort]
 
         if (args.length == 1) {
             player.sendMessage("§cUse: §4/tport add <TPort name> [lore of TPort]");
@@ -37,13 +39,15 @@ public class Add extends CmdHandler {
             String playerUUID = player.getUniqueId().toString();
 
             // looks if name is used
-            for (int i = 0; i < 10; i++) {
-                if (tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
-                    ItemStack item = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + i + ".item");
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta.getDisplayName().equalsIgnoreCase(args[1])) {
-                        player.sendMessage("§cThis TPort name is used");
-                        return;
+            if (tportData.getConfig().contains("tport." + playerUUID + ".items")) {
+                for (String i : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
+                    if (tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
+//                        ItemStack item = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + i + ".item");
+//                        ItemMeta meta = item.getItemMeta();
+                        if (args[1].equalsIgnoreCase(tportData.getConfig().getString("tport." + playerUUID + ".items." + i + ".name"))) {
+                            player.sendMessage("§cThis TPort name is used");
+                            return;
+                        }
                     }
                 }
             }
@@ -62,21 +66,22 @@ public class Add extends CmdHandler {
             // }
 
             // set new item
-            for (int i = 0; i < 9; i++) {
-                if (i == 8) {
+            for (int i = 0; i < TPortSize + 1; i++) {
+                if (i == TPortSize) {
                     player.sendMessage("§cYour TPort list is full, remove an old one");
                     return;
                 } else if (!tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
                     ItemStack item = new ItemStack(player.getInventory().getItemInMainHand());
-                    ItemMeta meta = item.getItemMeta();
-                    meta.setDisplayName(args[1]);
-                    item.setItemMeta(meta);
+//                    ItemMeta meta = item.getItemMeta();
+//                    meta.setDisplayName(args[1]);
+//                    item.setItemMeta(meta);
                     Location l = player.getLocation();
+                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".name", args[1]);
                     tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".item", item);
 //                    p.getConfig().set("tport." + player.getName() + ".items." + i + ".location", l);
                     Main.saveLocation("tport." + playerUUID + ".items." + i + ".location", l);
 
-                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".private.statement", false);
+                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".private.statement", "off");
                     ArrayList<String> list = new ArrayList<>();
                     list.add(playerUUID);
                     tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".private.players", list);
@@ -104,9 +109,9 @@ public class Add extends CmdHandler {
             // looks if name is used
             for (int i = 0; i < 10; i++) {
                 if (tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
-                    ItemStack item = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + i + ".item");
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta.getDisplayName().equalsIgnoreCase(args[1])) {
+//                    ItemStack item = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + i + ".item");
+//                    ItemMeta meta = item.getItemMeta();
+                    if (args[1].equalsIgnoreCase(tportData.getConfig().getString("tport." + playerUUID + ".items." + i + ".name"))) {
                         player.sendMessage("§cThis TPort name is used");
                         return;
                     }
@@ -114,32 +119,30 @@ public class Add extends CmdHandler {
             }
 
             // set new item
-            for (int i = 0; i < 9; i++) {
-                if (i == 8) {
+            for (int i = 0; i < TPortSize + 1; i++) {
+                if (i == TPortSize) {
                     player.sendMessage("§cYour TPort list is full, remove an old one");
                     return;
                 } else if (!tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
                     ItemStack item = new ItemStack(player.getInventory().getItemInMainHand());
                     ItemMeta meta = item.getItemMeta();
-                    meta.setDisplayName(args[1]);
-                    ArrayList<String> list = new ArrayList<>();
+//                    meta.setDisplayName(args[1]);
 
                     StringBuilder lore = new StringBuilder(args[2]);
                     for (int ii = 3; ii <= args.length - 1; ii++) {
                         lore.append(" ").append(args[ii]);
                     }
-                    list.add(lore.toString());
+
+                    ArrayList<String> list = new ArrayList<>(Arrays.asList(lore.toString().split("\\\\n")));
 
                     meta.setLore(list);
                     item.setItemMeta(meta);
                     Location l = player.getLocation();
                     tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".item", item);
-//                    p.getConfig().set("tport." + player.getName() + ".items." + i + ".location", l);
+                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".name", args[1]);
                     Main.saveLocation("tport." + playerUUID + ".items." + i + ".location", l);
-                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".private.statement", false);
-                    ArrayList<String> list1 = new ArrayList<>();
-                    list1.add(playerUUID);
-                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".private.players", list1);
+                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".private.statement", "off");
+                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".private.players", new ArrayList<>());
 
                     Message message = new Message();
                     message.addText("Successfully added the TPort ", ChatColor.DARK_AQUA);
@@ -148,7 +151,7 @@ public class Add extends CmdHandler {
 
                     player.getInventory().setItem(player.getInventory().getHeldItemSlot(), new ItemStack(Material.AIR));
                     tportData.saveConfig();
-                    return;
+//                    return;
                 }
             }
         }

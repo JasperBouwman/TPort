@@ -8,6 +8,7 @@ public class Own extends CmdHandler {
 
     @Override
     public void run(String[] args, Player player) {
+        //tport own [TPort name]
         if (args.length == 1) {
             TPort.open.run(new String[]{"open", player.getName()}, player);
         } else if (args.length == 2) {

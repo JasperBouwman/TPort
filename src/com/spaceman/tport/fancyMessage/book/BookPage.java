@@ -1,7 +1,6 @@
 package com.spaceman.tport.fancyMessage.book;
 
 import com.spaceman.tport.fancyMessage.TextComponent;
-import com.sun.istack.internal.NotNull;
 import org.bukkit.ChatColor;
 
 import java.util.ArrayList;
@@ -11,25 +10,29 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 
 public class BookPage {
 
+    private int pageNumber;
+
     private ArrayList<TextComponent> text = new ArrayList<>();
 
-    public BookPage() {
+    private BookPage(int pageNumber) {
+        this.pageNumber = pageNumber;
     }
 
-    public BookPage(TextComponent text) {
+    private BookPage(TextComponent text, int pageNumber) {
         this.text.add(text);
+        this.pageNumber = pageNumber;
     }
 
-    public static BookPage newBookPage() {
-        return new BookPage();
+    static BookPage newBookPage(int pageNumber) {
+        return new BookPage(pageNumber);
     }
 
-    public static BookPage newBookPage(TextComponent text) {
-        return new BookPage(text);
+    static BookPage newBookPage(TextComponent text, int pageNumber) {
+        return new BookPage(text, pageNumber);
     }
 
-    public void addText(TextComponent text, TextComponent... followUp) {
-        this.text.add(text);
+    public void addText(TextComponent textComponent, TextComponent... followUp) {
+        this.text.add(textComponent);
         this.text.addAll(Arrays.asList(followUp));
     }
 
@@ -41,10 +44,11 @@ public class BookPage {
         this.text.add(textComponent(simpleText, color));
     }
 
-
     public ArrayList<TextComponent> getText() {
         return text;
     }
 
+    public int getPageNumber() {
+        return pageNumber + 1;
+    }
 }
-

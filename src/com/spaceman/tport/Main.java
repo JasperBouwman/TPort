@@ -58,25 +58,16 @@ public class Main extends JavaPlugin {
     }
 
     public void onEnable() {
+
         /*
-         * changelog:
+         * changelog 1.13.1 update:
          *
-         * better text
-         * /tport removePlayer <player name>
-         * /tport compass [player name] [TPort name]
-         *      works if compass is in ItemFrame
-         * /tport own [TPort name]
-         * /tport whitelist <TPort name> <add:remove> <player name>     -->   /tport edit <TPort name> whitelist <add:remove> <players names...>
-         * /tport whitelist <TPort name> list                           -->   /tport edit <TPort name> whitelist list
-         * horse friendly
-         * zombie horse friendly
-         * skeleton horse friendly
-         * pig friendly
-         * llama friendly
-         * username change friendly
-         * whitelists are sometimes cleared on plugin update
-         * removed /tport extra item
+         * fixed bugs:
+         * when TPort private is set to 'online' players in whitelist could not teleport to TPort
+         *
          */
+
+        new GettingFiles(this);
 
         getCommand("tport").setExecutor(new TPort());
         getCommand("tport").setTabCompleter(new TabComplete());
@@ -86,7 +77,6 @@ public class Main extends JavaPlugin {
         pm.registerEvents(new CompassEvents(), this);
         pm.registerEvents(new JoinEvent(this), this);
 
-        new GettingFiles(this);
 
         boolean tmp = !getFiles("TPortData").getConfig().contains("tport");
         for (Player player : Bukkit.getOnlinePlayers()) {

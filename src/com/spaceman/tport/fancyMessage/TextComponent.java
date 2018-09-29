@@ -28,7 +28,7 @@ public class TextComponent {
     }
 
     public static TextComponent textComponent(String text, Attribute... attribute) {
-        return new TextComponent(text, "white", null, null, attribute);
+        return new TextComponent(text, null, null, null, attribute);
     }
 
     public static TextComponent textComponent(String text, String color, Attribute... attribute) {

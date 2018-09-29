@@ -45,7 +45,9 @@ public class RemovePlayer extends CmdHandler {
         if (tportData.getConfig().contains("tport." + newPlayerUUID)) {
             tportData.getConfig().set("tport." + newPlayerUUID, null);
             tportData.saveConfig();
-            player.sendMessage("§3Successfully removed " + newPlayerName + "from TPort");
+            player.sendMessage("§3Successfully removed " + newPlayerName + "from the TPort plugin");
+        } else {
+            player.sendMessage(ChatColor.RED + "This player is not registered in the TPort plugin");
         }
     }
 }

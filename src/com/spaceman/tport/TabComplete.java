@@ -5,12 +5,11 @@ import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.block.Biome;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +18,16 @@ import java.util.Set;
 import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
 
 public class TabComplete implements TabCompleter {
+
+    private List<String> copyContaining(String s, List<String> fullList) {
+        ArrayList<String> list = new ArrayList<>();
+        for (String ss : fullList) {
+            if (ss.toLowerCase().contains(s.toLowerCase())) {
+                list.add(ss);
+            }
+        }
+        return list;
+    }
 
     // tport
     private static final List<String> TABCOMPLETE = new ArrayList<>();
@@ -32,11 +41,10 @@ public class TabComplete implements TabCompleter {
     private static final List<String> TABCOMPLETE_EDIT_TPORT_WHITELIST_ADD = new ArrayList<>();
     private static final List<String> TABCOMPLETE_EDIT_TPORT_WHITELIST_REMOVE = new ArrayList<>();
     // tport extra
-    private static final List<String> TABCOMPLETE_EXTRA = new ArrayList<>();
-    private static final List<String> TABCOMPLETE_EXTRA_TP = new ArrayList<>();
-    private static final List<String> TABCOMPLETE_EXTRA_WHITELIST = new ArrayList<>();
-    private static final List<String> TABCOMPLETE_EXTRA_WHITELIST_REMOVE = new ArrayList<>();
-    private static final List<String> TABCOMPLETE_EXTRA_WHITELIST_ADD = new ArrayList<>();
+    private static final List<String> TABCOMPLETE_PLTP = new ArrayList<>();
+    private static final List<String> TABCOMPLETE_PLTP_WHITELIST = new ArrayList<>();
+    private static final List<String> TABCOMPLETE_PLTP_WHITELIST_REMOVE = new ArrayList<>();
+    private static final List<String> TABCOMPLETE_PLTP_WHITELIST_ADD = new ArrayList<>();
     // tport help
     // tport open
     private static final List<String> TABCOMPLETE_OPEN = new ArrayList<>();
@@ -47,14 +55,16 @@ public class TabComplete implements TabCompleter {
     private static final List<String> TABCOMPLETE_REMOVE = new ArrayList<>();
     // tport removePlayer
     private static final List<String> TABCOMPLETE_REMOVEPLAYER = new ArrayList<>();
-
-    private static List<String> l = new ArrayList<>();
+    // tport biomeTP
+    private static final List<String> TABCOMPLETE_BIOMETP = new ArrayList<>();
+    // tport featureTP
+    private static final List<String> TABCOMPLETE_FEATURETP = new ArrayList<>();
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command arg1, String arg2, String[] args) {
 
         if (!(sender instanceof Player)) {
-            return l;
+            return new ArrayList<>();
         }
 
         Player player = (Player) sender;
@@ -65,56 +75,66 @@ public class TabComplete implements TabCompleter {
         }
 
         if (args.length == 1) {
-            return StringUtil.copyPartialMatches(args[0], TABCOMPLETE,
-                    new ArrayList<>(TABCOMPLETE.size()));
+//            return StringUtil.copyPartialMatches(args[0], TABCOMPLETE,
+//                    new ArrayList<>(TABCOMPLETE.size()));
+            return copyContaining(args[0], TABCOMPLETE);
         }
         // tport edit
         if (args.length == 2) {
             if (args[0].equalsIgnoreCase("edit")) {
-                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_EDIT, new ArrayList<>(TABCOMPLETE_EDIT.size()));
+//                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_EDIT, new ArrayList<>(TABCOMPLETE_EDIT.size()));
+                return copyContaining(args[1], TABCOMPLETE_EDIT);
             }
         } else if (args.length == 3) {
             if (args[0].equalsIgnoreCase("edit")) {
-                return StringUtil.copyPartialMatches(args[2], TABCOMPLETE_EDIT_TPORT, new ArrayList<>(TABCOMPLETE_EDIT_TPORT.size()));
+//                return StringUtil.copyPartialMatches(args[2], TABCOMPLETE_EDIT_TPORT, new ArrayList<>(TABCOMPLETE_EDIT_TPORT.size()));
+                return copyContaining(args[2], TABCOMPLETE_EDIT_TPORT);
             }
         } else if (args.length == 4) {
             if (args[2].equalsIgnoreCase("lore")) {
-                return StringUtil.copyPartialMatches(args[3], TABCOMPLETE_EDIT_LORE, new ArrayList<>(TABCOMPLETE_EDIT_LORE.size()));
+//                return StringUtil.copyPartialMatches(args[3], TABCOMPLETE_EDIT_LORE, new ArrayList<>(TABCOMPLETE_EDIT_LORE.size()));
+                return copyContaining(args[3], TABCOMPLETE_EDIT_LORE);
             } else if (args[2].equalsIgnoreCase("private")) {
-                return StringUtil.copyPartialMatches(args[3], TABCOMPLETE_EDIT_PRIVATE, new ArrayList<>(TABCOMPLETE_EDIT_PRIVATE.size()));
+//                return StringUtil.copyPartialMatches(args[3], TABCOMPLETE_EDIT_PRIVATE, new ArrayList<>(TABCOMPLETE_EDIT_PRIVATE.size()));
+                return copyContaining(args[3], TABCOMPLETE_EDIT_PRIVATE);
             } else if (args[2].equalsIgnoreCase("whitelist")) {
-                return StringUtil.copyPartialMatches(args[3], TABCOMPLETE_EDIT_TPORT_WHITELIST, new ArrayList<>(TABCOMPLETE_EDIT_TPORT_WHITELIST.size()));
+//                return StringUtil.copyPartialMatches(args[3], TABCOMPLETE_EDIT_TPORT_WHITELIST, new ArrayList<>(TABCOMPLETE_EDIT_TPORT_WHITELIST.size()));
+                return copyContaining(args[3], TABCOMPLETE_EDIT_TPORT_WHITELIST);
             }
         } else if (args.length == 5) {
             if (args[2].equalsIgnoreCase("whitelist")) {
                 if (args[3].equalsIgnoreCase("add")) {
-                    return StringUtil.copyPartialMatches(args[4], TABCOMPLETE_EDIT_TPORT_WHITELIST_ADD, new ArrayList<>(TABCOMPLETE_EDIT_TPORT_WHITELIST_ADD.size()));
+//                    return StringUtil.copyPartialMatches(args[4], TABCOMPLETE_EDIT_TPORT_WHITELIST_ADD, new ArrayList<>(TABCOMPLETE_EDIT_TPORT_WHITELIST_ADD.size()));
+                    return copyContaining(args[4], TABCOMPLETE_EDIT_TPORT_WHITELIST_ADD);
                 } else if (args[3].equalsIgnoreCase("remove")) {
                     TABCOMPLETE_EDIT_TPORT_WHITELIST_REMOVE.remove(player.getName());
-                    return StringUtil.copyPartialMatches(args[4], TABCOMPLETE_EDIT_TPORT_WHITELIST_REMOVE, new ArrayList<>(TABCOMPLETE_EDIT_TPORT_WHITELIST_REMOVE.size()));
+//                    return StringUtil.copyPartialMatches(args[4], TABCOMPLETE_EDIT_TPORT_WHITELIST_REMOVE, new ArrayList<>(TABCOMPLETE_EDIT_TPORT_WHITELIST_REMOVE.size()));
+                    return copyContaining(args[4], TABCOMPLETE_EDIT_TPORT_WHITELIST_REMOVE);
                 }
             }
         }
 
-        // tport extra
+        // tport PLTP
         if (args.length == 2) {
-            if (args[0].equalsIgnoreCase("extra")) {
-                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_EXTRA, new ArrayList<>(TABCOMPLETE_EXTRA.size()));
+            if (args[0].equalsIgnoreCase("PLTP")) {
+//                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_PLTP, new ArrayList<>(TABCOMPLETE_PLTP.size()));
+                return copyContaining(args[1], TABCOMPLETE_PLTP);
             }
         } else if (args.length == 3) {
-            if (args[0].equalsIgnoreCase("extra")) {
-                if (args[1].equalsIgnoreCase("tp")) {
-                    return StringUtil.copyPartialMatches(args[2], TABCOMPLETE_EXTRA_TP, new ArrayList<>(TABCOMPLETE_EXTRA_TP.size()));
-                } else if (args[1].equalsIgnoreCase("whitelist")) {
-                    return StringUtil.copyPartialMatches(args[2], TABCOMPLETE_EXTRA_WHITELIST, new ArrayList<>(TABCOMPLETE_EXTRA_WHITELIST.size()));
+            if (args[0].equalsIgnoreCase("PLTP")) {
+                if (args[1].equalsIgnoreCase("whitelist")) {
+//                    return StringUtil.copyPartialMatches(args[2], TABCOMPLETE_PLTP_WHITELIST, new ArrayList<>(TABCOMPLETE_PLTP_WHITELIST.size()));
+                    return copyContaining(args[2], TABCOMPLETE_PLTP_WHITELIST);
                 }
             }
         } else if (args.length == 4) {
-            if (args[0].equalsIgnoreCase("extra")) {
+            if (args[0].equalsIgnoreCase("PLTP")) {
                 if (args[1].equalsIgnoreCase("whitelist") && args[2].equalsIgnoreCase("remove")) {
-                    return StringUtil.copyPartialMatches(args[3], TABCOMPLETE_EXTRA_WHITELIST_REMOVE, new ArrayList<>(TABCOMPLETE_EXTRA_WHITELIST_REMOVE.size()));
+//                    return StringUtil.copyPartialMatches(args[3], TABCOMPLETE_PLTP_WHITELIST_REMOVE, new ArrayList<>(TABCOMPLETE_PLTP_WHITELIST_REMOVE.size()));
+                    return copyContaining(args[3], TABCOMPLETE_PLTP_WHITELIST_REMOVE);
                 } else if (args[1].equalsIgnoreCase("whitelist") && args[2].equalsIgnoreCase("add")) {
-                    return StringUtil.copyPartialMatches(args[3], TABCOMPLETE_EXTRA_WHITELIST_ADD, new ArrayList<>(TABCOMPLETE_EXTRA_WHITELIST_ADD.size()));
+//                    return StringUtil.copyPartialMatches(args[3], TABCOMPLETE_PLTP_WHITELIST_ADD, new ArrayList<>(TABCOMPLETE_PLTP_WHITELIST_ADD.size()));
+                    return copyContaining(args[3], TABCOMPLETE_PLTP_WHITELIST_ADD);
                 }
             }
         }
@@ -122,49 +142,74 @@ public class TabComplete implements TabCompleter {
         // tport open
         if (args.length == 2) {
             if (args[0].equalsIgnoreCase("open")) {
-                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_OPEN, new ArrayList<>(TABCOMPLETE_OPEN.size()));
+//                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_OPEN, new ArrayList<>(TABCOMPLETE_OPEN.size()));
+                return copyContaining(args[1], TABCOMPLETE_OPEN);
             }
 
         }
         //tport open <player>
         else if (args.length == 3) {
             if (args[0].equalsIgnoreCase("open")) {
-                return StringUtil.copyPartialMatches(args[2], TABCOMPLETE_OPEN_ITEM, new ArrayList<>(TABCOMPLETE_OPEN_ITEM.size()));
+//                return StringUtil.copyPartialMatches(args[2], TABCOMPLETE_OPEN_ITEM, new ArrayList<>(TABCOMPLETE_OPEN_ITEM.size()));
+                return copyContaining(args[2], TABCOMPLETE_OPEN_ITEM);
             }
         }
 
         //tport own
         if (args.length == 2) {
             if (args[0].equalsIgnoreCase("own")) {
-                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_OWN, new ArrayList<>(TABCOMPLETE_OWN.size()));
+//                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_OWN, new ArrayList<>(TABCOMPLETE_OWN.size()));
+                return copyContaining(args[1], TABCOMPLETE_OWN);
             }
         }
 
         // tport compass
         if (args.length == 2) {
             if (args[0].equalsIgnoreCase("compass")) {
-                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_OPEN, new ArrayList<>(TABCOMPLETE_OPEN.size()));
+//                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_OPEN, new ArrayList<>(TABCOMPLETE_OPEN.size()));
+                return copyContaining(args[1], TABCOMPLETE_OPEN);
             }
 
         }
         //tport compass <player>
         else if (args.length == 3) {
             if (args[0].equalsIgnoreCase("compass")) {
-                return StringUtil.copyPartialMatches(args[2], TABCOMPLETE_OPEN_ITEM, new ArrayList<>(TABCOMPLETE_OPEN_ITEM.size()));
+//                return StringUtil.copyPartialMatches(args[2], TABCOMPLETE_OPEN_ITEM, new ArrayList<>(TABCOMPLETE_OPEN_ITEM.size()));
+                return copyContaining(args[2], TABCOMPLETE_OPEN_ITEM);
             }
         }
 
         //tport remove
         if (args.length == 2) {
             if (args[0].equalsIgnoreCase("remove")) {
-                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_REMOVE, new ArrayList<>(TABCOMPLETE_REMOVE.size()));
+//                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_REMOVE, new ArrayList<>(TABCOMPLETE_REMOVE.size()));
+                return copyContaining(args[1], TABCOMPLETE_REMOVE);
             }
         }
 
         //tport removePlayer
         if (args.length == 2) {
-            if (args[0].equalsIgnoreCase("removePlayer")) {
-                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_REMOVEPLAYER, new ArrayList<>(TABCOMPLETE_REMOVEPLAYER.size()));
+            if (player.isOp()) {
+                if (args[0].equalsIgnoreCase("removePlayer")) {
+//                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_REMOVEPLAYER, new ArrayList<>(TABCOMPLETE_REMOVEPLAYER.size()));
+                    return copyContaining(args[1], TABCOMPLETE_REMOVEPLAYER);
+                }
+            }
+        }
+
+        //tport biomeTP
+        if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("biomeTP")) {
+//                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_BIOMETP, new ArrayList<>(TABCOMPLETE_BIOMETP.size()));
+                return copyContaining(args[1], TABCOMPLETE_BIOMETP);
+            }
+        }
+
+        //tport biomeTP
+        if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("featureTP")) {
+//                return StringUtil.copyPartialMatches(args[1], TABCOMPLETE_FEATURETP, new ArrayList<>(TABCOMPLETE_FEATURETP.size()));
+                return copyContaining(args[1], TABCOMPLETE_FEATURETP);
             }
         }
 
@@ -183,6 +228,7 @@ public class TabComplete implements TabCompleter {
         }
         return newList;
     }
+
     private List<String> uuidToName(List<String> list) {
 
         ArrayList<String> newList = new ArrayList<>();
@@ -207,11 +253,10 @@ public class TabComplete implements TabCompleter {
         TABCOMPLETE_EDIT_TPORT_WHITELIST_ADD.clear();
         TABCOMPLETE_EDIT_TPORT_WHITELIST_REMOVE.clear();
         TABCOMPLETE_OWN.clear();
-        TABCOMPLETE_EXTRA.clear();
-        TABCOMPLETE_EXTRA_TP.clear();
-        TABCOMPLETE_EXTRA_WHITELIST.clear();
-        TABCOMPLETE_EXTRA_WHITELIST_REMOVE.clear();
-        TABCOMPLETE_EXTRA_WHITELIST_ADD.clear();
+        TABCOMPLETE_PLTP.clear();
+        TABCOMPLETE_PLTP_WHITELIST.clear();
+        TABCOMPLETE_PLTP_WHITELIST_REMOVE.clear();
+        TABCOMPLETE_PLTP_WHITELIST_ADD.clear();
         TABCOMPLETE_OPEN.clear();
         TABCOMPLETE_OPEN_ITEM.clear();
         TABCOMPLETE_REMOVE.clear();
@@ -230,15 +275,30 @@ public class TabComplete implements TabCompleter {
 
         // tport
         TABCOMPLETE.add("add");
+        TABCOMPLETE.add("back");
         TABCOMPLETE.add("compass");
+        TABCOMPLETE.add("PLTP");
         TABCOMPLETE.add("edit");
-        TABCOMPLETE.add("extra");
         TABCOMPLETE.add("help");
         TABCOMPLETE.add("open");
         TABCOMPLETE.add("own");
         TABCOMPLETE.add("remove");
+        TABCOMPLETE.add("biomeTP");
+        TABCOMPLETE.add("featureTP");
+//        TABCOMPLETE.add("log");
         if (player.isOp()) {
             TABCOMPLETE.add("removePlayer");
+        }
+
+        // tport biomeTP
+        for (Biome biome : Biome.values()) {
+            TABCOMPLETE_BIOMETP.add(biome.toString());
+        }
+        TABCOMPLETE_BIOMETP.add("random");
+
+        //tport featureTP
+        for (TPortInventories.FeaturesTypes feature : TPortInventories.FeaturesTypes.values()) {
+            TABCOMPLETE_FEATURETP.add(feature.toString());
         }
 
         // tport edit
@@ -246,8 +306,7 @@ public class TabComplete implements TabCompleter {
             return;
         }
         for (String s : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
-            ItemStack item = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + s + ".item");
-            String name = item.getItemMeta().getDisplayName();
+            String name = tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".name");
             TABCOMPLETE_EDIT.add(name);
         }
         // tport edit <TPort>
@@ -255,13 +314,15 @@ public class TabComplete implements TabCompleter {
         TABCOMPLETE_EDIT_TPORT.add("lore");
         TABCOMPLETE_EDIT_TPORT.add("name");
         TABCOMPLETE_EDIT_TPORT.add("private");
+        TABCOMPLETE_EDIT_TPORT.add("item");
         TABCOMPLETE_EDIT_TPORT.add("whitelist");
         // tport edit <TPort> lore
         TABCOMPLETE_EDIT_LORE.add("remove");
         TABCOMPLETE_EDIT_LORE.add("set");
         // tport edit <TPort> private
-        TABCOMPLETE_EDIT_PRIVATE.add("true");
-        TABCOMPLETE_EDIT_PRIVATE.add("false");
+        TABCOMPLETE_EDIT_PRIVATE.add("on");
+        TABCOMPLETE_EDIT_PRIVATE.add("off");
+        TABCOMPLETE_EDIT_PRIVATE.add("online");
         // tport edit <TPort name> whitelist
         TABCOMPLETE_EDIT_TPORT_WHITELIST.add("add");
         TABCOMPLETE_EDIT_TPORT_WHITELIST.add("list");
@@ -274,9 +335,7 @@ public class TabComplete implements TabCompleter {
         // tport whitelist <TPort> remove
         if (tportData.getConfig().contains("tport." + playerUUID + ".items")) {
             for (String s : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
-
-                ItemStack item = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + s + ".item");
-                String name = item.getItemMeta().getDisplayName();
+                String name = tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".name");
                 if (name.equalsIgnoreCase(argOne)) {
                     List<String> players = tportData.getConfig().getStringList("tport." + playerUUID + ".items." + s + ".private.players");
                     TABCOMPLETE_EDIT_TPORT_WHITELIST_REMOVE.addAll(uuidToName((players)));
@@ -284,22 +343,20 @@ public class TabComplete implements TabCompleter {
             }
         }
 
-        //tport extra
-        TABCOMPLETE_EXTRA.add("tp");
-        TABCOMPLETE_EXTRA.add("whitelist");
-        //tport extra tp
-        TABCOMPLETE_EXTRA_TP.add("on");
-        TABCOMPLETE_EXTRA_TP.add("off");
-        //tport extra whitelist
-        TABCOMPLETE_EXTRA_WHITELIST.add("add");
-        TABCOMPLETE_EXTRA_WHITELIST.add("list");
-        TABCOMPLETE_EXTRA_WHITELIST.add("remove");
-        //tport extra whitelist remove
-        TABCOMPLETE_EXTRA_WHITELIST_REMOVE.addAll(tportData.getConfig().getStringList("tport." + playerUUID + ".tp.players"));
-        //tport extra whitelist add
+        //tport PLTP
+        TABCOMPLETE_PLTP.add("on");
+        TABCOMPLETE_PLTP.add("off");
+        TABCOMPLETE_PLTP.add("whitelist");
+        //tport PLTP whitelist
+        TABCOMPLETE_PLTP_WHITELIST.add("list");
+        TABCOMPLETE_PLTP_WHITELIST.add("add");
+        TABCOMPLETE_PLTP_WHITELIST.add("remove");
+        //tport PLTP whitelist remove
+        TABCOMPLETE_PLTP_WHITELIST_REMOVE.addAll(tportData.getConfig().getStringList("tport." + playerUUID + ".tp.players"));
+        //tport PLTP whitelist add
         for (OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-            TABCOMPLETE_EXTRA_WHITELIST_ADD.add(p.getName());
-            TABCOMPLETE_EXTRA_WHITELIST_ADD.removeAll(TABCOMPLETE_EXTRA_WHITELIST_REMOVE);
+            TABCOMPLETE_PLTP_WHITELIST_ADD.add(p.getName());
+            TABCOMPLETE_PLTP_WHITELIST_ADD.removeAll(TABCOMPLETE_PLTP_WHITELIST_REMOVE);
         }
 
         // tport open
@@ -307,17 +364,16 @@ public class TabComplete implements TabCompleter {
         // tport open <player>
         if (tportData.getConfig().contains("tport." + argOneUUID + ".items")) {
             for (String s : tportData.getConfig().getConfigurationSection("tport." + argOneUUID + ".items").getKeys(false)) {
-                ItemStack is = tportData.getConfig().getItemStack("tport." + argOneUUID + ".items." + s + ".item");
-                if (is.hasItemMeta()) {
+                String name = tportData.getConfig().getString("tport." + argOneUUID + ".items." + s + ".name");
 
-                    if (tportData.getConfig().getString("tport." + argOneUUID + ".items." + s + ".private.statement").equals("true")) {
-                        ArrayList<String> list = (ArrayList<String>) tportData.getConfig().getStringList("tport." + argOneUUID + ".items." + s + ".private.players");
-                        if (list.contains(player.getUniqueId().toString())) {
-                            TABCOMPLETE_OPEN_ITEM.add(is.getItemMeta().getDisplayName());
-                        }
-                    } else {
-                        TABCOMPLETE_OPEN_ITEM.add(is.getItemMeta().getDisplayName());
+                if (tportData.getConfig().getString("tport." + argOneUUID + ".items." + s + ".private.statement").equals("true")) {
+                    ArrayList<String> list = (ArrayList<String>) tportData.getConfig().getStringList("tport." + argOneUUID + ".items." + s + ".private.players");
+                    if (list.contains(player.getUniqueId().toString())) {
+                        TABCOMPLETE_OPEN_ITEM.add(name);
                     }
+                } else {
+                    TABCOMPLETE_OPEN_ITEM.add(name);
+
                 }
             }
         }
@@ -325,17 +381,15 @@ public class TabComplete implements TabCompleter {
         //tport own
         if (tportData.getConfig().contains("tport." + playerUUID + ".items")) {
             for (String s : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
-                ItemStack is = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + s + ".item");
-                if (is.hasItemMeta()) {
+                String name = tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".name");
 
-                    if (tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".private.statement").equals("true")) {
-                        ArrayList<String> list = (ArrayList<String>) tportData.getConfig().getStringList("tport." + playerUUID + ".items." + s + ".private.players");
-                        if (list.contains(player.getUniqueId().toString())) {
-                            TABCOMPLETE_OWN.add(is.getItemMeta().getDisplayName());
-                        }
-                    } else {
-                        TABCOMPLETE_OWN.add(is.getItemMeta().getDisplayName());
+                if (tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".private.statement").equals("true")) {
+                    ArrayList<String> list = (ArrayList<String>) tportData.getConfig().getStringList("tport." + playerUUID + ".items." + s + ".private.players");
+                    if (list.contains(player.getUniqueId().toString())) {
+                        TABCOMPLETE_OWN.add(name);
                     }
+                } else {
+                    TABCOMPLETE_OWN.add(name);
                 }
             }
         }
@@ -343,7 +397,7 @@ public class TabComplete implements TabCompleter {
         // tport remove
         if (tportData.getConfig().contains("tport." + playerUUID + ".items")) {
             for (String s : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
-                TABCOMPLETE_REMOVE.add(tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + s + ".item").getItemMeta().getDisplayName());
+                TABCOMPLETE_REMOVE.add(tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".name"));
             }
         }
 

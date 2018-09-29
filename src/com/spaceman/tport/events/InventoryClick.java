@@ -1,6 +1,7 @@
 package com.spaceman.tport.events;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.commands.tport.Back;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fileHander.Files;
@@ -9,79 +10,139 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.entity.*;
+import org.bukkit.block.Biome;
+import org.bukkit.entity.Boat;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
-import static com.spaceman.tport.commands.TPort.getHead;
+import static com.spaceman.tport.TPortInventories.*;
+import static com.spaceman.tport.commands.TPort.pltp;
+import static com.spaceman.tport.commands.tport.Back.prevTPort;
+import static com.spaceman.tport.commands.tport.Back.tpBack;
+import static com.spaceman.tport.commands.tport.BiomeTP.biomeTP;
+import static com.spaceman.tport.commands.tport.FeatureTP.featureTP;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
 
 public class InventoryClick implements Listener {
 
-    public static String BACK = "Back";
+    public static final int TPortSize = 24;
     public static String NEXT = ChatColor.DARK_AQUA + "Next";
-    public static String TPOFF = "Player tp is off";
-    public static String WARP = "Warp to ";
-    public static String OFFLINE = "Player is not online";
-    private static String PREVIOUS = ChatColor.DARK_AQUA + "Previous";
+    public static String BACK = ChatColor.YELLOW + "Back";
+    public static String TPOFF = ChatColor.YELLOW + "Player tp is off";
+    public static String WARP = ChatColor.YELLOW + "Warp to ";
+    public static String OFFLINE = ChatColor.YELLOW + "Player is not online";
+    public static ItemMeta SET_TP_ON = getItemMeta(ChatColor.YELLOW + "Set PLTP on", "When clicking this Player Teleportation will be turned on");
+    public static ItemMeta SET_TP_OFF = getItemMeta(ChatColor.YELLOW + "Set PLTP off", "When clicking this Player Teleportation will be turned off");
+    public static String PREVIOUS = ChatColor.DARK_AQUA + "Previous";
 
-    @SuppressWarnings("deprecation")
+    private static ItemMeta getItemMeta(String name, String lore) {
+        ItemStack is = new ItemStack(Material.STONE);
+        ItemMeta im = is.getItemMeta();
+        im.setDisplayName(name);
+        im.setLore(Arrays.asList(lore.split("\n")));
+        return im;
+    }
+
+    private static boolean testHeadOn(ItemStack itemStack) {
+        if (itemStack.hasItemMeta()) {
+            ItemMeta im = itemStack.getItemMeta();
+            return im.getDisplayName().equals(SET_TP_ON.getDisplayName()) && im.getLore().equals(SET_TP_ON.getLore());
+        }
+        return false;
+    }
+
+    private static boolean testHeadOff(ItemStack itemStack) {
+        if (itemStack.hasItemMeta()) {
+            ItemMeta im = itemStack.getItemMeta();
+            return im.getDisplayName().equals(SET_TP_OFF.getDisplayName()) && im.getLore().equals(SET_TP_OFF.getLore());
+        }
+        return false;
+    }
+
+    private static void tpPlayerToPlayer(Player player, Player toPlayer) {
+        prevTPort.put(player.getUniqueId(), new Back.PrevTPort(null, player.getLocation(), toPlayer.getUniqueId().toString()));
+        teleportPlayer(player, toPlayer.getLocation());
+    }
+
+    public static void tpPlayerToTPort(Player player, Location location, String tPort, String tPortOwner) {
+        prevTPort.put(player.getUniqueId(), new Back.PrevTPort(tPort, player.getLocation(), tPortOwner));
+        teleportPlayer(player, location);
+    }
+
     public static void teleportPlayer(Player player, Location l) {
-        if (player.getVehicle() instanceof Horse) {
-            Horse horseEntity = (Horse) player.getVehicle();
-            player.teleport(l);
-            horseEntity.teleport(l);
-            horseEntity.setPassenger(player);
-            return;
-        }
-        if (player.getVehicle() instanceof SkeletonHorse) {
-            SkeletonHorse horseEntity = (SkeletonHorse) player.getVehicle();
-            player.teleport(l);
-            horseEntity.teleport(l);
-            horseEntity.setPassenger(player);
-            return;
-        }
-        if (player.getVehicle() instanceof ZombieHorse) {
-            ZombieHorse horseEntity = (ZombieHorse) player.getVehicle();
-            player.teleport(l);
-            horseEntity.teleport(l);
-            horseEntity.setPassenger(player);
-            return;
-        }
-        if (player.getVehicle() instanceof Pig) {
-            Pig horseEntity = (Pig) player.getVehicle();
-            player.teleport(l);
-            horseEntity.teleport(l);
-            horseEntity.setPassenger(player);
-            return;
-        }
-        if (player.getVehicle() instanceof Llama) {
-            Llama horseEntity = (Llama) player.getVehicle();
-            player.teleport(l);
-            horseEntity.teleport(l);
-            horseEntity.setPassenger(player);
-            return;
-        }
-//        if (player.getVehicle() instanceof Boat) { //todo
-//            Boat horseEntity = (Boat) player.getVehicle();
-//            player.teleport(l);
-//            horseEntity.teleport(l);
-//            horseEntity.setPassenger(player);
-//            return;
-//        }
 
+        ArrayList<LivingEntity> livingEntityO = new ArrayList<>();
+        for (Entity e : player.getWorld().getEntities()) {
+            if (e instanceof LivingEntity) {
+                LivingEntity livingEntity = (LivingEntity) e;
+                if (livingEntity.isLeashed()) {
+                    if (livingEntity.getLeashHolder() instanceof Player) {
+                        if (livingEntity.getLeashHolder().getUniqueId().equals(player.getUniqueId())) {
+                            livingEntityO.add(livingEntity);
+                        }
+                    }
+                }
+            }
+        }
+
+        LivingEntity ridingEntity = null;
+        Boat boat = null;
+        Entity tmpEntity = null;
+        if (player.getVehicle() instanceof LivingEntity) {
+            ridingEntity = (LivingEntity) player.getVehicle();
+        } else if (player.getVehicle() instanceof Boat) {
+            boat = (Boat) player.getVehicle();
+            if (boat.getPassengers().size() > 1) {
+                tmpEntity = boat.getPassengers().get(1);
+            }
+        }
 
         player.teleport(l);
+
+        try {
+            if (ridingEntity != null) {
+                ridingEntity.teleport(player);
+                ridingEntity.addPassenger(player);
+            } else if (boat != null) {
+                if (!livingEntityO.isEmpty()) {
+                    for (LivingEntity e : livingEntityO) {
+                        e.setLeashHolder(null);
+                    }
+                }
+                if (tmpEntity != null) {
+                    tmpEntity.teleport(player);
+                    boat.teleport(player);
+                    boat.addPassenger(player);
+                    boat.addPassenger(tmpEntity);
+                } else {
+                    boat.teleport(player);
+                    boat.addPassenger(player);
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        for (LivingEntity e : livingEntityO) {
+            try {
+                e.teleport(player);
+                e.setLeashHolder(player);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
     }
 
     @EventHandler
@@ -89,6 +150,10 @@ public class InventoryClick implements Listener {
     public void onInventoryClick(InventoryClickEvent e) {
         Player player = (Player) e.getWhoClicked();
         Inventory inv = e.getInventory();
+
+        if (e.getRawSlot() > inv.getSize()) {
+            return;
+        }
 
         ItemStack item = e.getCurrentItem();
         if (item == null) {
@@ -108,348 +173,339 @@ public class InventoryClick implements Listener {
 
         if (inv.getTitle().startsWith("Choose a player")) {
 
-            if (e.getRawSlot() > inv.getSize()) {
-                return;
-            }
-
             String playerUUID = player.getUniqueId().toString();
 
             if (meta.getDisplayName().equals(NEXT)) {
-
-                int b = tportData.getConfig().getInt("tport." + playerUUID + ".gui");
-                int c = 0;
-                b = b + 7;
-                int i = 10;
-
-                tportData.getConfig().set("tport." + playerUUID + ".gui", b);
-                tportData.saveConfig();
-
-                Inventory inve = Bukkit.createInventory(null, 45, "Choose a player (" + (b + 8) / 7 + ")");
-
-                for (String ss : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
-
-                    if (!(c <= b)) {
-
-                        tportData.getConfig().set("tport." + playerUUID + ".gui", b);
-
-                        if (i >= 35) {
-                            ItemStack items = new ItemStack(Material.HOPPER);
-                            ItemMeta metas = items.getItemMeta();
-                            metas.setDisplayName(NEXT);
-                            items.setItemMeta(metas);
-                            inve.setItem(44, items);
-
-                            tportData.getConfig().set("tport." + playerUUID + ".gui", b);
-                            tportData.saveConfig();
-                            break;
-                        }
-
-                        if (i == 17 || i == 26) {
-                            i = i + 2;
-                        }
-                        if (!(i == 44)) {
-//                            inve.setItem(i, tportData.getConfig().getItemStack("tport." + ss + ".item"));
-                            inve.setItem(i, getHead(UUID.fromString(ss)));
-                            i++;
-
-                            ItemStack itemsa = new ItemStack(Material.TALL_GRASS, 1, (byte) 2);
-                            ItemMeta metasa = itemsa.getItemMeta();
-                            metasa.setDisplayName(PREVIOUS);
-                            itemsa.setItemMeta(metasa);
-                            inve.setItem(8, itemsa);
-
-                        }
-                    } else {
-                        c++;
-                    }
-                }
-                player.openInventory(inve);
-
+//                int b = tportData.getConfig().getInt("tport." + playerUUID + ".gui");
+//                int c = 0;
+//                b = b + 7;
+//                int i = 10;
+//
+//                tportData.getConfig().set("tport." + playerUUID + ".gui", b);
+//                tportData.saveConfig();
+//
+//                Inventory inve = Bukkit.createInventory(null, 45, "Choose a player (" + (b + 8) / 7 + ")");
+//
+//                for (String ss : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
+//
+//                    if (!(c <= b)) {
+//
+//                        tportData.getConfig().set("tport." + playerUUID + ".gui", b);
+//
+//                        if (i >= 35) {
+//                            ItemStack items = new ItemStack(Material.HOPPER);
+//                            ItemMeta metas = items.getItemMeta();
+//                            metas.setDisplayName(NEXT);
+//                            items.setItemMeta(metas);
+//                            inve.setItem(44, items);
+//
+//                            tportData.getConfig().set("tport." + playerUUID + ".gui", b);
+//                            tportData.saveConfig();
+//                            break;
+//                        }
+//
+//                        if (i == 17 || i == 26) {
+//                            i = i + 2;
+//                        }
+//                        if (!(i == 44)) {
+//                            inve.setItem(i, getHead(UUID.fromString(ss)));
+//                            i++;
+//
+//                            ItemStack itemsa = new ItemStack(Material.FERN);
+//                            ItemMeta metasa = itemsa.getItemMeta();
+//                            metasa.setDisplayName(PREVIOUS);
+//                            itemsa.setItemMeta(metasa);
+//                            inve.setItem(8, itemsa);
+//
+//                        }
+//                    } else {
+//                        c++;
+//                    }
+//                }
+//                player.openInventory(inve);
+                openMainTPortGUI(player, Integer.parseInt(inv.getTitle().replace("Choose a player ", "").replace("(", "").replace(")", "")));
             }
 
             if (meta.getDisplayName().equals(PREVIOUS)) {
-                int b = tportData.getConfig().getInt("tport." + playerUUID + ".gui");
-                int c = 0;
-                b = b - 7;
-                int i = 10;
-                Inventory inve = Bukkit.createInventory(null, 45, "Choose a player (" + (b + 8) / 7 + ")");
-
-                for (String ss : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
-
-                    if (!(c <= b)) {
-
-                        if (!(b == -1)) {
-                            ItemStack itemsa = new ItemStack(Material.TALL_GRASS, 1, (byte) 2);
-                            ItemMeta metasa = itemsa.getItemMeta();
-                            metasa.setDisplayName(PREVIOUS);
-                            itemsa.setItemMeta(metasa);
-                            inve.setItem(8, itemsa);
-                        }
-
-                        if (i >= 35) {
-                            ItemStack items = new ItemStack(Material.HOPPER);
-                            ItemMeta metas = items.getItemMeta();
-                            metas.setDisplayName(NEXT);
-                            items.setItemMeta(metas);
-                            inve.setItem(44, items);
-
-                            tportData.getConfig().set("tport." + playerUUID + ".gui", b);
-                            tportData.saveConfig();
-                            break;
-                        }
-
-                        if (i == 17 || i == 26) {
-                            i = i + 2;
-                        }
-                        if (!(i == 44)) {
-//                            inve.setItem(i, tportData.getConfig().getItemStack("tport." + ss + ".item"));
-                            inve.setItem(i, getHead(UUID.fromString(ss)));
-                            i++;
-
-                        }
-                    } else {
-                        c++;
-                    }
-                }
-                player.openInventory(inve);
-
+//                int b = tportData.getConfig().getInt("tport." + playerUUID + ".gui");
+//                int c = 0;
+//                b = b - 7;
+//                int i = 10;
+//                Inventory inve = Bukkit.createInventory(null, 45, "Choose a player (" + (b + 8) / 7 + ")");
+//
+//                for (String ss : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
+//
+//                    if (!(c <= b)) {
+//
+//                        if (!(b == -1)) {
+//                            ItemStack itemsa = new ItemStack(Material.FERN);
+//                            ItemMeta metasa = itemsa.getItemMeta();
+//                            metasa.setDisplayName(PREVIOUS);
+//                            itemsa.setItemMeta(metasa);
+//                            inve.setItem(8, itemsa);
+//                        }
+//
+//                        if (i >= 35) {
+//                            ItemStack items = new ItemStack(Material.HOPPER);
+//                            ItemMeta metas = items.getItemMeta();
+//                            metas.setDisplayName(NEXT);
+//                            items.setItemMeta(metas);
+//                            inve.setItem(44, items);
+//
+//                            tportData.getConfig().set("tport." + playerUUID + ".gui", b);
+//                            tportData.saveConfig();
+//                            break;
+//                        }
+//
+//                        if (i == 17 || i == 26) {
+//                            i = i + 2;
+//                        }
+//                        if (!(i == 44)) {
+//                            inve.setItem(i, getHead(UUID.fromString(ss)));
+//                            i++;
+//
+//                        }
+//                    } else {
+//                        c++;
+//                    }
+//                }
+//                player.openInventory(inve);
+                openMainTPortGUI(player, Integer.parseInt(inv.getTitle().replace("Choose a player ", "").replace("(", "").replace(")", "")) - 2);
             }
 
-            Inventory invc = Bukkit.createInventory(null, 9, "TPort: " + meta.getDisplayName());
-
+            e.setCancelled(true);
             for (String s : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
-
                 if (meta.getDisplayName().equals(PlayerUUID.getPlayerName(s))) {
-
-                    for (int i = 0; i < 7; i++) {
-
-                        if (s.equals(playerUUID)) {
-                            invc.setItem(i, tportData.getConfig().getItemStack("tport." + s + ".items." + i + ".item"));
-                        } else if (tportData.getConfig().contains("tport." + s + ".items." + i)) {
-
-                            if (tportData.getConfig().getString("tport." + s + ".items." + i + ".private.statement")
-                                    .equals("false")) {
-
-                                invc.setItem(i, tportData.getConfig().getItemStack("tport." + s + ".items." + i + ".item"));
-
-                            } else if (tportData.getConfig().getString("tport." + s + ".items." + i + ".private.statement")
-                                    .equals("true")) {
-
-                                ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
-                                        .getStringList("tport." + s + ".items." + i + ".private.players");
-                                if (list.contains(player.getName())) {
-                                    invc.setItem(i, tportData.getConfig().getItemStack("tport." + s + ".items." + i + ".item"));
-                                }
-                            }
-                        }
-                        ItemStack back = new ItemStack(Material.BARRIER);
-                        ItemMeta metaback = back.getItemMeta();
-                        metaback.setDisplayName(BACK);
-                        back.setItemMeta(metaback);
-                        invc.setItem(8, back);
-
-                        ItemStack warp = new ItemStack(Material.PLAYER_HEAD);
-                        SkullMeta skin = (SkullMeta) warp.getItemMeta();
-                        skin.setOwningPlayer(Bukkit.getOfflinePlayer(UUID.fromString(s)));
-                        String newPlayerName = PlayerUUID.getPlayerName(s);
-
-                        if (tportData.getConfig().getString("tport." + s + ".tp.statement").equals("off")) {
-
-                            ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
-                                    .getStringList("tport." + s + ".tp.players");
-
-                            if (!list.contains(playerUUID)) {
-                                skin.setDisplayName(TPOFF);
-                            } else {
-                                skin.setDisplayName(WARP + PlayerUUID.getPlayerName(s));
-                            }
-                        } else if (Bukkit.getPlayer(UUID.fromString(s)) != null) {
-                            skin.setDisplayName(WARP + PlayerUUID.getPlayerName(s));
-                        } else {
-                            skin.setDisplayName(OFFLINE);
-                        }
-                        warp.setItemMeta(skin);
-                        invc.setItem(7, warp);
-
-                    }
-                    e.setCancelled(true);
-                    player.openInventory(invc);
-
-                } else {
-                    e.setCancelled(true);
+                    mainTPortGUIPage.put(player.getUniqueId(), Integer.parseInt(inv.getTitle().replace("Choose a player ", "").replace("(", "").replace(")", "")) - 1);
+                    openTPortGUI(meta.getDisplayName(), s, player);
+                    return;
                 }
             }
 
         } else if (inv.getTitle().startsWith("TPort: ")) {
+            e.setCancelled(true);
 
             for (String s : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
 
                 if (inv.getTitle().equals("TPort: " + PlayerUUID.getPlayerName(s))) {
 
-                    if (e.getRawSlot() > inv.getSize()) {
-                        return;
-                    }
-
                     String playerUUID = player.getUniqueId().toString();
 
                     if (item.getType().equals(Material.BARRIER)) {
                         if (meta.getDisplayName().equals(BACK)) {
-                            if (e.getSlot() == 8) {
-
-                                int b = tportData.getConfig().getInt("tport." + playerUUID + ".gui");
-                                int c = 0;
-                                int i = 10;
-
-                                int size = 45;
-                                Set l = tportData.getConfig().getConfigurationSection("tport").getKeys(false);
-                                if (l.size() < 8) {
-                                    size = 27;
-                                } else if (l.size() < 15) {
-                                    size = 36;
-                                }
-
-                                Inventory inve = Bukkit.createInventory(null, size,
-                                        "Choose a player (" + (b + 8) / 7 + ")");
-
-                                for (String ss : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
-
-                                    if (!(c <= b)) {
-
-                                        if (i >= 35) {
-                                            ItemStack items = new ItemStack(Material.HOPPER);
-                                            ItemMeta metas = items.getItemMeta();
-                                            metas.setDisplayName(NEXT);
-                                            items.setItemMeta(metas);
-                                            inve.setItem(44, items);
-
-                                            tportData.getConfig().set("tport." + playerUUID + ".gui", b);
-                                            tportData.saveConfig();
-                                            break;
-                                        }
-
-                                        if (i == 17 || i == 26) {
-                                            i = i + 2;
-                                        }
-                                        if (!(i == 44)) {
-//                                            inve.setItem(i, tportData.getConfig().getItemStack("tport." + ss + ".item"));
-                                            inve.setItem(i, getHead(UUID.fromString(ss)));
-                                            i++;
-
-                                            if (!tportData.getConfig().get("tport." + playerUUID + ".gui").equals(-1)) {
-
-                                                ItemStack itemsa = new ItemStack(Material.TALL_GRASS, 1, (byte) 2);
-                                                ItemMeta metasa = itemsa.getItemMeta();
-                                                metasa.setDisplayName(PREVIOUS);
-                                                itemsa.setItemMeta(metasa);
-                                                inve.setItem(8, itemsa);
-                                            }
-                                        }
-                                    } else {
-                                        c++;
-                                    }
-                                }
-                                player.openInventory(inve);
-
+                            if (e.getSlot() == 26) {
+//                                int b = tportData.getConfig().getInt("tport." + playerUUID + ".gui");
+//                                int c = 0;
+//                                int i = 10;
+//
+//                                int size = 45;
+//                                Set l = tportData.getConfig().getConfigurationSection("tport").getKeys(false);
+//                                if (l.size() < 8) {
+//                                    size = 27;
+//                                } else if (l.size() < 15) {
+//                                    size = 36;
+//                                }
+//
+//                                Inventory inve = Bukkit.createInventory(null, size,
+//                                        "Choose a player (" + (b + 8) / 7 + ")");
+//
+//                                for (String ss : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
+//
+//                                    if (!(c <= b)) {
+//
+//                                        if (i >= 35) {
+//                                            ItemStack items = new ItemStack(Material.HOPPER);
+//                                            ItemMeta metas = items.getItemMeta();
+//                                            metas.setDisplayName(NEXT);
+//                                            items.setItemMeta(metas);
+//                                            inve.setItem(44, items);
+//
+//                                            tportData.getConfig().set("tport." + playerUUID + ".gui", b);
+//                                            tportData.saveConfig();
+//                                            break;
+//                                        }
+//
+//                                        if (i == 17 || i == 26) {
+//                                            i = i + 2;
+//                                        }
+//                                        if (!(i == 44)) {
+//                                            inve.setItem(i, getHead(UUID.fromString(ss)));
+//                                            i++;
+//
+//                                            if (!tportData.getConfig().get("tport." + playerUUID + ".gui").equals(-1)) {
+//
+//                                                ItemStack itemsa = new ItemStack(Material.FERN);
+//                                                ItemMeta metasa = itemsa.getItemMeta();
+//                                                metasa.setDisplayName(PREVIOUS);
+//                                                itemsa.setItemMeta(metasa);
+//                                                inve.setItem(8, itemsa);
+//                                            }
+//                                        }
+//                                    } else {
+//                                        c++;
+//                                    }
+//                                }
+//                                player.openInventory(inve);
+                                openMainTPortGUI(player, mainTPortGUIPage.getOrDefault(playerUUID, 0));
                             } else {
                                 e.setCancelled(true);
+                            }
+                        }
+                    }
+
+                    if (item.getType().equals(Material.ELYTRA)) {
+                        if (e.getSlot() == 17) {
+                            e.setCancelled(true);
+                            List<String> lore = meta.getLore();
+                            if (e.getAction().equals(InventoryAction.PICKUP_HALF)) {
+                                openBiomeTP(player, 0);
+                            } else if (e.getAction().equals(InventoryAction.PICKUP_ALL)) {
+                                int i = tpBack(player);
+                                if (i != 1) {
+//                                    openTPortGUI(null, null, player);
+                                    openTPortGUI(PlayerUUID.getPlayerName(s), s, player);
+                                }
+                            } else if (e.getAction().equals(InventoryAction.CLONE_STACK) || e.getAction().equals(InventoryAction.UNKNOWN)) {
+                                openFeatureTP(player, 0);
                             }
                         }
                     }
 
                     if (item.getType().equals(Material.PLAYER_HEAD)) {
-                        if (meta.getDisplayName().equals(OFFLINE) || meta.getDisplayName().equals(TPOFF)) {
+                        if (e.getSlot() == 8) {
+                            if (meta.getDisplayName().equals(OFFLINE) || meta.getDisplayName().equals(TPOFF)) {
+                                e.setCancelled(true);
 
-                            if (Bukkit.getPlayerExact(inv.getTitle().replaceAll("TPort:", "").trim()) != null) {
-                                Player warp = Bukkit.getPlayerExact(inv.getTitle().replaceAll("TPort:", "").trim());
-//                                player.teleport(warp.getLocation());
-                                teleportPlayer(player, warp.getLocation());
-                                player.sendMessage("§3Teleported to §9" + warp.getName());
-                            }
+                                if (tportData.getConfig().getString("tport." + s + ".tp.statement").equals("off")) {
 
-                            e.setCancelled(true);
-                        } else if (meta.getDisplayName().equals(WARP + PlayerUUID.getPlayerName(s))) {
-                            if (Bukkit.getPlayer(UUID.fromString(s)) == null) {
+                                    ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
+                                            .getStringList("tport." + s + "tp.players");
 
-                                Inventory invc = Bukkit.createInventory(null, 9, "Tport: " + PlayerUUID.getPlayerName(s));
-                                for (int i = 0; i < 7; i++) {
-
-                                    if (s.equals(playerUUID)) {
-                                        invc.setItem(i,
-                                                tportData.getConfig().getItemStack("tport." + s + ".items." + i + ".item"));
-                                    } else if (tportData.getConfig().contains("tport." + s + ".items." + i)) {
-
-                                        if (tportData.getConfig().getString("tport." + s + ".items." + i + ".private.statement")
-                                                .equals("false")) {
-
-                                            invc.setItem(i,
-                                                    tportData.getConfig().getItemStack("tport." + s + ".items." + i + ".item"));
-
-                                        } else if (tportData.getConfig()
-                                                .getString("tport." + s + ".items." + i + ".private.statement")
-                                                .equals("true")) {
-
-                                            ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
-                                                    .getStringList("tport." + s + ".items." + i + ".private.players");
-                                            if (list.contains(player.getName())) {
-                                                invc.setItem(i, tportData.getConfig()
-                                                        .getItemStack("tport." + s + ".items." + i + ".item"));
-                                            }
+                                    if (list.contains(player.getUniqueId().toString())) {
+                                        if (Bukkit.getPlayerExact(inv.getTitle().replaceAll("TPort:", "").trim()) != null) {
+                                            Player warp = Bukkit.getPlayerExact(inv.getTitle().replaceAll("TPort:", "").trim());
+                                            tpPlayerToPlayer(player, warp);
+                                            player.sendMessage("§3Teleported to §9" + warp.getName());
                                         }
-                                    }
-                                    ItemStack back = new ItemStack(Material.BARRIER);
-                                    ItemMeta metaback = back.getItemMeta();
-                                    metaback.setDisplayName(BACK);
-                                    back.setItemMeta(metaback);
-                                    invc.setItem(8, back);
-
-                                    ItemStack warp = new ItemStack(Material.PLAYER_HEAD);
-                                    SkullMeta skin = (SkullMeta) warp.getItemMeta();
-                                    skin.setOwningPlayer(Bukkit.getOfflinePlayer(UUID.fromString(s)));
-
-                                    if (Bukkit.getPlayerExact(s) != null) {
-                                        skin.setDisplayName(WARP + PlayerUUID.getPlayerName(s));
                                     } else {
-                                        skin.setDisplayName(OFFLINE);
+                                        openTPortGUI(PlayerUUID.getPlayerName(s), s, player);
                                     }
-                                    warp.setItemMeta(skin);
-                                    invc.setItem(7, warp);
-
                                 }
-                                e.setCancelled(true);
-                                player.openInventory(invc);
 
-                            } else {
-                                Player warp = Bukkit.getPlayer(UUID.fromString(s));
+                            } else if (meta.getDisplayName().equals(WARP + PlayerUUID.getPlayerName(s))) {
+                                if (Bukkit.getPlayer(UUID.fromString(s)) == null) {
+                                    openTPortGUI(PlayerUUID.getPlayerName(s), s, player);
+                                    e.setCancelled(true);
+                                } else {
+                                    Player warp = Bukkit.getPlayer(UUID.fromString(s));
+                                    e.setCancelled(true);
+                                    tpPlayerToPlayer(player, warp);
+                                    player.sendMessage("§3Teleported to §9" + warp.getName());
+                                }
+                            } else if (testHeadOn(item)) {
                                 e.setCancelled(true);
-//                                player.teleport(warp.getLocation());
-                                teleportPlayer(player, warp.getLocation());
-                                player.sendMessage("§3Teleported to §9" + warp.getName());
+                                pltp.run(new String[]{"PLTP", "on"}, player);
+                                openTPortGUI(player.getName(), playerUUID, player);
+                            } else if (testHeadOff(item)) {
+                                e.setCancelled(true);
+                                pltp.run(new String[]{"PLTP", "off"}, player);
+                                openTPortGUI(player.getName(), playerUUID, player);
                             }
                         }
                     }
 
-                    for (int i = 0; i < 7; i++) {
+                    for (int i = 0; i < TPortSize; i++) {
                         if (tportData.getConfig().contains("tport." + s + ".items." + i + ".item")) {
-                            ItemStack items = tportData.getConfig().getItemStack("tport." + s + ".items." + i + ".item");
-                            if (meta.getDisplayName().equals(items.getItemMeta().getDisplayName())) {
-                                if (e.getSlot() == 0 || e.getSlot() == 1 || e.getSlot() == 2 || e.getSlot() == 3
-                                        || e.getSlot() == 4 || e.getSlot() == 5 || e.getSlot() == 6) {
-                                    e.setCancelled(true);
-                                    player.closeInventory();
+//                            ItemStack items = tportData.getConfig().getItemStack("tport." + s + ".items." + i + ".item");
+                            String tportName = tportData.getConfig().getString("tport." + s + ".items." + i + ".name");
+                            if (meta.getDisplayName().equals(tportName)) {
+//                                if (e.getSlot() == 0 || e.getSlot() == 1 || e.getSlot() == 2 || e.getSlot() == 3
+//                                        || e.getSlot() == 4 || e.getSlot() == 5 || e.getSlot() == 6) {
+                                if (e.getSlot() >= 0 && e.getSlot() < 8 ||
+                                        e.getSlot() >= 9 && e.getSlot() < 17 ||
+                                        e.getSlot() >= 18 && e.getSlot() < 26) {
 
-                                    Location l = Main.getLocation("tport." + s + ".items." + i + ".location");
+                                    if (e.getAction().equals(InventoryAction.PICKUP_HALF)) {
+                                        e.setCancelled(true);
+                                        if (player.getName().equals(PlayerUUID.getPlayerName(s))) {
 
-                                    if (l == null) {
-                                        player.sendMessage("§cThe world for this location is not found");
-                                        return;
+                                            switch (tportData.getConfig().getString("tport." + s + ".items." + i + ".private.statement")) {
+                                                case "off":
+                                                    tportData.getConfig().set("tport." + s + ".items." + i + ".private.statement", "on");
+                                                    tportData.saveConfig();
+                                                    player.sendMessage("§3TPort " + ChatColor.BLUE + meta.getDisplayName() + ChatColor.DARK_AQUA + " is now private");
+                                                    break;
+                                                case "on":
+                                                    tportData.getConfig().set("tport." + s + ".items." + i + ".private.statement", "online");
+                                                    tportData.saveConfig();
+                                                    player.sendMessage("§3TPort " + ChatColor.BLUE + meta.getDisplayName() + ChatColor.DARK_AQUA + " is now open only if you are online");
+                                                    break;
+                                                case "online":
+                                                    tportData.getConfig().set("tport." + s + ".items." + i + ".private.statement", "off");
+                                                    tportData.saveConfig();
+                                                    player.sendMessage("§3TPort " + ChatColor.BLUE + meta.getDisplayName() + ChatColor.DARK_AQUA + " is now open");
+                                                    break;
+                                            }
+
+//                                            if (tportData.getConfig().getBoolean("tport." + s + ".items." + i + ".private.statement")) {
+//                                                tportData.getConfig().set("tport." + s + ".items." + i + ".private.statement", false);
+//                                                tportData.saveConfig();
+//                                                player.sendMessage("§3TPort " + ChatColor.BLUE + meta.getDisplayName() + ChatColor.DARK_AQUA + " is now open");
+//                                            } else {
+//                                                tportData.getConfig().set("tport." + s + ".items." + i + ".private.statement", true);
+//                                                tportData.saveConfig();
+//                                                player.sendMessage("§3TPort " + ChatColor.BLUE + meta.getDisplayName() + ChatColor.DARK_AQUA + " is now private");
+//                                            }
+                                            openTPortGUI(player.getName(), playerUUID, player);
+                                        } else {
+                                            player.sendMessage(ChatColor.RED + "You can't edit this TPort");
+                                        }
+
+                                    } else {
+                                        e.setCancelled(true);
+
+                                        switch (tportData.getConfig().getString("tport." + s + ".items." + i + ".private.statement")) {
+                                            case "off":
+                                                break;
+                                            case "on":
+                                                if (!s.equals(playerUUID)) {
+                                                    ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
+                                                            .getStringList("tport." + s + ".items." + i + ".private.players");
+                                                    if (!list.contains(player.getUniqueId().toString())) {
+                                                        return;
+                                                    }
+                                                }
+                                                break;
+                                            case "online":
+                                                if (Bukkit.getPlayer(UUID.fromString(s)) == null) {
+                                                    ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
+                                                            .getStringList("tport." + s + ".items." + i + ".private.players");
+                                                    if (!list.contains(player.getUniqueId().toString())) {
+                                                        return;
+                                                    }
+                                                }
+                                                break;
+                                            default:
+                                                return;
+                                        }
+
+                                        player.closeInventory();
+
+                                        Location l = Main.getLocation("tport." + s + ".items." + i + ".location");
+
+                                        if (l == null) {
+                                            player.sendMessage("§cThe world for this location is not found");
+                                            return;
+                                        }
+                                        tpPlayerToTPort(player, l, meta.getDisplayName(), s);
+
+
+                                        Message message = new Message();
+                                        message.addText("Teleported to ", ChatColor.DARK_AQUA);
+                                        message.addText(textComponent(tportName,
+                                                ChatColor.BLUE, ClickEvent.runCommand("/tport open " + PlayerUUID.getPlayerName(s) + " " + tportName)));
+                                        message.sendMessage(player);
                                     }
-                                    teleportPlayer(player, l);
-
-                                    Message message = new Message();
-                                    message.addText("Teleported to ", ChatColor.DARK_AQUA);
-                                    message.addText(textComponent(items.getItemMeta().getDisplayName(),
-                                            ChatColor.BLUE, ClickEvent.runCommand("/tport open " + PlayerUUID.getPlayerName(s) + " " + items.getItemMeta().getDisplayName())));
-                                    message.sendMessage(player);
                                 } else {
                                     e.setCancelled(true);
                                 }
@@ -458,6 +514,64 @@ public class InventoryClick implements Listener {
                     }
                 }
             }
+        } else if (inv.getTitle().startsWith("Select a Biome ")) {
+
+            if (e.getSlot() == 8) {
+                openBiomeTP(player, Integer.parseInt(inv.getTitle().replace("Select a Biome ", "").replace("(", "").replace(")", "")) - 2);
+            } else if (e.getSlot() == inv.getSize() - 1) {
+                openBiomeTP(player, Integer.parseInt(inv.getTitle().replace("Select a Biome ", "").replace("(", "").replace(")", "")));
+            } else {
+
+                if (e.getSlot() % 9 != 0 && e.getSlot() % 9 != 8) {
+                    e.setCancelled(true);
+                    Biome biome;
+                    try {
+                        biome = Biome.valueOf(meta.getDisplayName());
+                    } catch (IllegalArgumentException iae) {
+                        player.sendMessage(ChatColor.RED + "Biome " + ChatColor.DARK_RED + meta.getDisplayName() + ChatColor.RED + " does not exist");
+                        return;
+                    }
+                    biomeTP(player, biome);
+                } else if (e.getSlot() == 18) {
+                    Random random = new Random();
+                    int x = random.nextInt(6000000) - 3000000;
+                    int z = random.nextInt(6000000) - 3000000;
+//                    player.teleport(player.getWorld().getHighestBlockAt(x, z).getLocation().add(0.5, 0, 0.5));
+                    teleportPlayer(player, player.getWorld().getHighestBlockAt(x, z).getLocation().add(0.5, 0, 0.5));
+                    player.sendMessage(ChatColor.DARK_AQUA + "Teleported to a random location");
+
+                } else if (e.getSlot() == 26) {
+                    openMainTPortGUI(player, 0);
+                }
+
+            }
+
+
+        } else if (inv.getTitle().startsWith("Select a Feature ")) {
+
+            if (e.getSlot() == 8) {
+                openFeatureTP(player, Integer.parseInt(inv.getTitle().replace("Select a Feature ", "").replace("(", "").replace(")", "")) - 2);
+            } else if (e.getSlot() == inv.getSize() - 1) {
+                openFeatureTP(player, Integer.parseInt(inv.getTitle().replace("Select a Feature ", "").replace("(", "").replace(")", "")));
+            } else {
+
+                if (e.getSlot() % 9 != 0 && e.getSlot() % 9 != 8) {
+                    e.setCancelled(true);
+                    FeaturesTypes featuresType;
+                    try {
+                        featuresType = FeaturesTypes.valueOf(meta.getDisplayName());
+                    } catch (IllegalArgumentException iae) {
+                        player.sendMessage(ChatColor.RED + "Feature " + ChatColor.DARK_RED + meta.getDisplayName() + ChatColor.RED + " does not exist");
+                        return;
+                    }
+                    featureTP(player, featuresType);
+                } else if (e.getSlot() == 26) {
+                    openMainTPortGUI(player, 0);
+                }
+
+            }
+
+
         }
     }
 }

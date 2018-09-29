@@ -26,6 +26,9 @@ public class ClickEvent {
     public static ClickEvent changePage(String value) {
         return new ClickEvent(CHANGE_PAGE, value);
     }
+    public static ClickEvent changePage(int value) {
+        return new ClickEvent(CHANGE_PAGE, String.valueOf(value));
+    }
 
     public static ClickEvent openUrl(String value) {
         return new ClickEvent(OPEN_URL, value);

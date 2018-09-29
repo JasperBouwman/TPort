@@ -3,6 +3,8 @@ package com.spaceman.tport.commands.tport;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.commands.CmdHandler;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.Bukkit;
@@ -13,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
@@ -22,12 +25,13 @@ public class Edit extends CmdHandler {
     @Override
     public void run(String[] args, Player player) {
 
-        // tport edit <TPort name> lore set <lore>
+        // tport edit <TPort name> lore set <lore...>
         // tport edit <TPort name> lore remove
-        // tport edit <TPort name> name <name of item>
+        // tport edit <TPort name> name <new TPort name>
         // tport edit <TPort name> item
         // tport edit <TPort name> location
-        // tport edit <TPort name> private [true:false]
+        // tport edit <TPort name> private
+        // tport edit <TPort name> private [on:off:online]
         // tport edit <TPort name> whitelist <add:remove> <players names...>
         // tport edit <TPort name> whitelist list
 
@@ -45,26 +49,31 @@ public class Edit extends CmdHandler {
         }
 
         boolean nameb = false;
+
         for (String s : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
 
             ItemStack item = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + s + ".item");
             ItemMeta meta = item.getItemMeta();
-            String name = meta.getDisplayName();
+            String name = tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".name");
             if (name.equalsIgnoreCase(args[1])) {
 
                 if (args[2].equalsIgnoreCase("lore")) {
                     if (args.length == 3) {
-                        player.sendMessage("§cUse: §4/tport edit " + args[1] + " lore <new lore of item>");
+                        player.sendMessage("§cUse: §4/tport edit " + args[1] + " lore set:remove <lore...>");
                         return;
                     }
                     if (args[3].equalsIgnoreCase("set")) {
+                        if (args.length < 5) {
+                            player.sendMessage(ChatColor.RED + "§cUse: §4/tport edit <TPort name> lore set <lore...>");
+                            return;
+                        }
 
-                        ArrayList<String> list = new ArrayList<>();
                         StringBuilder lore = new StringBuilder(args[4]);
                         for (int ii = 5; ii <= args.length - 1; ii++) {
                             lore.append(" ").append(args[ii]);
                         }
-                        list.add(lore.toString());
+                        ArrayList<String> list = new ArrayList<>(Arrays.asList(lore.toString().split("\\\\n")));
+
                         meta.setLore(list);
                         item.setItemMeta(meta);
                         tportData.getConfig().set("tport." + playerUUID + ".items." + s + ".item", item);
@@ -85,15 +94,13 @@ public class Edit extends CmdHandler {
                             return;
                         }
                     } else {
-                        player.sendMessage("§cUse: §4/tport edit <TPort name> lore set <lore of TPort§c or§4 /tport edit <TPort> lore remove");
+                        player.sendMessage("§cUse: §4/tport edit <TPort name> lore set <lore...>§c or§4 /tport edit <TPort> lore remove");
                         return;
                     }
-                } else if (args[2].equalsIgnoreCase("name")) {
+                }
+                else if (args[2].equalsIgnoreCase("name")) {
                     if (args.length == 4) {
-
-                        meta.setDisplayName(args[3]);
-                        item.setItemMeta(meta);
-                        tportData.getConfig().set("tport." + playerUUID + ".items." + s + ".item", item);
+                        tportData.getConfig().set("tport." + playerUUID + ".items." + s + ".name", args[3]);
                         tportData.saveConfig();
                         player.sendMessage("§3New name set to " + args[3]);
                         return;
@@ -101,7 +108,8 @@ public class Edit extends CmdHandler {
                         player.sendMessage("§cUse: §4/tport edit " + args[1] + " name <new TPort name>");
                         return;
                     }
-                } else if (args[2].equalsIgnoreCase("item")) {
+                }
+                else if (args[2].equalsIgnoreCase("item")) {
                     if (args.length == 3) {
                         ItemStack newItem = new ItemStack(player.getInventory().getItemInMainHand());
 
@@ -111,22 +119,28 @@ public class Edit extends CmdHandler {
                         }
 
                         ItemMeta newMeta = newItem.getItemMeta();
-                        newMeta.setDisplayName(name);
                         newMeta.setLore(meta.getLore());
                         newItem.setItemMeta(newMeta);
 
-                        player.getInventory().setItemInMainHand(tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + s + ".item"));
+                        ItemStack oldStack = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + s + ".item");
+                        player.getInventory().setItemInMainHand(oldStack);
 
                         tportData.getConfig().set("tport." + playerUUID + ".items." + s + ".item", newItem);
                         tportData.saveConfig();
 
-                        player.sendMessage("§3New item set to " + newItem.getType());
+                        Message message = new Message();
+                        message.addText(TextComponent.textComponent("§3New item for TPort "));
+                        message.addText(TextComponent.textComponent(name, ChatColor.BLUE, ClickEvent.runCommand("/tport own " + name)));
+                        message.addText(TextComponent.textComponent(" set to ", ChatColor.DARK_AQUA));
+                        message.addText(TextComponent.textComponent(newItem.getType().toString(), ChatColor.BLUE));
+                        message.sendMessage(player);
                         return;
                     } else {
                         player.sendMessage("§cUse: §4/tport edit <TPort name> item");
                         return;
                     }
-                } else if (args[2].equalsIgnoreCase("location")) {
+                }
+                else if (args[2].equalsIgnoreCase("location")) {
                     if (args.length == 3) {
                         Location l = player.getLocation();
 //                        tportData.getConfig().set("tport." + player.getName() + ".items." + s + ".location", l);
@@ -137,7 +151,8 @@ public class Edit extends CmdHandler {
                         player.sendMessage("§cUse: §4/tport edit <TPort name> location");
                         return;
                     }
-                } else if (args[2].equalsIgnoreCase("whitelist")) {
+                }
+                else if (args[2].equalsIgnoreCase("whitelist")) {
 
                     ArrayList<String> list = (ArrayList<String>) tportData.getConfig().getStringList("tport." + playerUUID + ".items." + s + ".private.players");
 
@@ -146,8 +161,8 @@ public class Edit extends CmdHandler {
                         Message message = new Message();
                         boolean color = false;
                         boolean first = true;
-                        message.addText("Players in the whitelist of the TPort " + ChatColor.DARK_GREEN + args[1] + ChatColor.GREEN + ":", ChatColor.GREEN);
-                        message.addText(ChatColor.BLUE + (list.size() > 0 ? list.get(0) : ""));
+                        message.addText("Players in the whitelist of the TPort " + ChatColor.DARK_GREEN + args[1] + ChatColor.GREEN + ": ", ChatColor.GREEN);
+                        message.addText(PlayerUUID.getPlayerName((list.size() > 0 ? list.get(0) : "")), ChatColor.BLUE);
 
                         for (String tmp : list) {
                             if (first) {
@@ -158,10 +173,10 @@ public class Edit extends CmdHandler {
                             message.addText(",", ChatColor.GREEN);
 
                             if (color) {
-                                message.addText(tmp, ChatColor.BLUE);
+                                message.addText(PlayerUUID.getPlayerName(tmp), ChatColor.BLUE);
                                 color = false;
                             } else {
-                                message.addText(tmp, ChatColor.DARK_BLUE);
+                                message.addText(PlayerUUID.getPlayerName(tmp), ChatColor.DARK_BLUE);
                                 color = true;
                             }
                         }
@@ -276,24 +291,45 @@ public class Edit extends CmdHandler {
                     player.sendMessage("§cUse: §4/tport whitelist <TPort name> <add:remove:list>");
                     return;
 
-                } else if (args[2].equalsIgnoreCase("private")) {
+                }
+                else if (args[2].equalsIgnoreCase("private")) {
                     if (args.length != 4) {
+                        if (args.length == 3) {
+                            boolean b = tportData.getConfig().getBoolean("tport." + playerUUID + ".items." + s + ".private.statement");
+                            if (!b) {
+                                player.sendMessage("§3This TPort is open");
+                                return;
+                            } else {
+                                player.sendMessage("§3This TPort is private");
+                                return;
+                            }
+                        }
                         player.sendMessage("§cUse: §4/tport edit <TPort name> private <true:false>");
                         return;
                     }
-                    if (args[3].equalsIgnoreCase("true")) {
-                        tportData.getConfig().set("tport." + playerUUID + ".items." + s + ".private.statement", "true");
+                    if (args[3].equalsIgnoreCase("on")) {
+                        tportData.getConfig().set("tport." + playerUUID + ".items." + s + ".private.statement", "on");
                         tportData.saveConfig();
-                        player.sendMessage("§3This TPort is now private");
+                        player.sendMessage("§3TPort " + ChatColor.BLUE + name + ChatColor.DARK_AQUA + " is now private");
                         return;
-                    } else if (args[3].equalsIgnoreCase("false")) {
-                        tportData.getConfig().set("tport." + playerUUID + ".items." + s + ".private.statement", "false");
+                    } else if (args[3].equalsIgnoreCase("off")) {
+                        tportData.getConfig().set("tport." + playerUUID + ".items." + s + ".private.statement", "off");
                         tportData.saveConfig();
-                        player.sendMessage("§3This TPort is now open");
+                        player.sendMessage("§3TPort " + ChatColor.BLUE + name + ChatColor.DARK_AQUA + " is now open");
+                        return;
+                    } else if (args[3].equalsIgnoreCase("online")) {
+                        tportData.getConfig().set("tport." + playerUUID + ".items." + s + ".private.statement", "online");
+                        tportData.saveConfig();
+                        player.sendMessage("§3TPort " + ChatColor.BLUE + name + ChatColor.DARK_AQUA + " is now open only if you are online");
+                        return;
+
+                    } else {
+                        player.sendMessage("§cUse: §4/tport edit <TPort name> private <on:off:online>");
                         return;
                     }
 
-                } else {
+                }
+                else {
                     player.sendMessage("§cUse: §4/tport edit <TPort name> <lore:name:item:location:private:whitelist>");
                     return;
                 }
@@ -301,6 +337,7 @@ public class Edit extends CmdHandler {
                 nameb = true;
             }
         }
+
 
         if (nameb) {
             player.sendMessage("§cNo TPort found called §4" + args[1]);

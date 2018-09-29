@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -118,17 +119,13 @@ public class CompassEvents implements Listener {
     @SuppressWarnings("unused")
     public void click(PlayerInteractEvent e) {
 
-        if (e.getAction().equals(Action.RIGHT_CLICK_AIR) ||
-
-                (e.getAction().equals(Action.RIGHT_CLICK_BLOCK) &&
-
-                        (!isSpecialBlock(e.getClickedBlock()) || e.getPlayer().isSneaking()))) {
+        if (e.getAction().equals(Action.RIGHT_CLICK_AIR) || (e.getAction().equals(Action.RIGHT_CLICK_BLOCK)
+                && (e.getPlayer().isSneaking() || !isSpecialBlock(e.getClickedBlock())))
+                && e.getHand().equals(EquipmentSlot.OFF_HAND)) {
 
             ItemStack is = e.getPlayer().getInventory().getItemInMainHand();
             if (openCompass(e.getPlayer(), is)) {
                 e.setCancelled(true);
-
-
             }
         }
     }
@@ -175,8 +172,7 @@ public class CompassEvents implements Listener {
                 return true;
         }
 
-        return block.getType().toString().endsWith("BED") || block.getType().toString().endsWith("TRAPDOOR") || block.getType().toString().endsWith("BUTTON");
+        return block.getType().toString().endsWith("BED") || block.getType().toString().endsWith("TRAPDOOR") || block.getType().toString().endsWith("BUTTON") || block.getType().toString().endsWith("SHULKER_BOX");
 
     }
-
 }

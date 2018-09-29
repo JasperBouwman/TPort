@@ -7,59 +7,61 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.UUID;
 
 import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
 
-public class Extra extends CmdHandler {
+public class PLTP extends CmdHandler {
 
     @Override
     public void run(String[] args, Player player) {
 
-        // tport extra tp [on:off]
-        // tport extra whitelist list
-        // tport extra whitelist [add:remove] <playername>
+        // tport PLTP [on:off]
+        // tport PLTP whitelist list
+        // tport PLTP whitelist [add:remove] <playername>
 
         if (args.length == 1) {
-            player.sendMessage("§cUse: §4/tport extra <tp:whitelist>");
+            player.sendMessage("§cUse: §4/tport PLTP <on:off:whitelist>");
             return;
         }
 
         Files tportData = getFiles("TPortData");
         String playerUUID = player.getUniqueId().toString();
 
-        if (args[1].equalsIgnoreCase("tp")) {
+        if (args[1].equalsIgnoreCase("on")) {
 
-            if (args.length != 3) {
-                player.sendMessage("§cUse: §4/tport extra tp [true:false]");
+            if (args.length != 2) {
+                player.sendMessage("§cUse: §4/tport PLTP [on:off]");
                 return;
             }
 
-            if (args[2].equalsIgnoreCase("on")) {
-
-                if (tportData.getConfig().getString("tport." + playerUUID + ".tp.statement").equals("on")) {
-                    player.sendMessage("§cThis is already set to on");
-                    return;
-                }
-
-                player.sendMessage("§3Successfully set to on");
-                tportData.getConfig().set("tport." + playerUUID + ".tp.statement", "on");
-                tportData.saveConfig();
-
-            } else if (args[2].equalsIgnoreCase("off")) {
-
-                if (tportData.getConfig().getString("tport." + playerUUID + ".tp.statement").equals("off")) {
-                    player.sendMessage("§cThis is already set to off");
-                    return;
-                }
-
-                player.sendMessage("§3Successfully set to off");
-                tportData.getConfig().set("tport." + playerUUID + ".tp.statement", "off");
-                tportData.saveConfig();
-
+            if (tportData.getConfig().getString("tport." + playerUUID + ".tp.statement").equals("on")) {
+                player.sendMessage("§cThis is already set PLTP to on");
+                return;
             }
+
+            player.sendMessage("§3Successfully set to on");
+            tportData.getConfig().set("tport." + playerUUID + ".tp.statement", "on");
+            tportData.saveConfig();
+
+
+        } else if (args[1].equalsIgnoreCase("off")) {
+
+            if (args.length != 2) {
+                player.sendMessage("§cUse: §4/tport PLTP [on:off]");
+                return;
+            }
+
+            if (tportData.getConfig().getString("tport." + playerUUID + ".tp.statement").equals("off")) {
+                player.sendMessage("§cThis is already set PLTP to off");
+                return;
+            }
+
+            player.sendMessage("§3Successfully set to off");
+            tportData.getConfig().set("tport." + playerUUID + ".tp.statement", "off");
+            tportData.saveConfig();
+
         } else if (args[1].equalsIgnoreCase("whitelist")) {
 
             if (args.length == 3) {
@@ -85,7 +87,7 @@ public class Extra extends CmdHandler {
             }
 
             if (args.length != 4) {
-                player.sendMessage("§cUse: §4/tport extra whitelist [add:remove] <playername>");
+                player.sendMessage("§cUse: §4/tport PLTP whitelist [add:remove] <playername> §cor §4/tport PLTP whitelist list");
                 return;
             }
 
@@ -173,10 +175,10 @@ public class Extra extends CmdHandler {
                     removePlayer.sendMessage("§3You are removed in the main whitelist of §9" + player.getName());
                 }
             } else {
-                player.sendMessage("§cUse: §4/tport extra whitelist [add:remove] <playername>");
+                player.sendMessage("§cUse: §4/tport PLTP whitelist [add:remove] <playername> §cor §4/tport PLTP whitelist list");
             }
         } else {
-            player.sendMessage("§cUse: §4/tport extra <tp:whitelist>");
+            player.sendMessage("§cUse: §4/tport PLTP <on:off:whitelist>");
         }
     }
 }

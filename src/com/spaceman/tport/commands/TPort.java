@@ -1,7 +1,6 @@
 package com.spaceman.tport.commands;
 
 import com.spaceman.tport.commands.tport.*;
-import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -10,36 +9,37 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
-import static com.spaceman.tport.events.InventoryClick.NEXT;
-import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
+import static com.spaceman.tport.TPortInventories.openMainTPortGUI;
 
 public class TPort implements CommandExecutor {
 
     private List<CmdHandler> actions = new ArrayList<>();
     public static Open open;
+    public static PLTP pltp;
 
     public TPort() {
         open = new Open();
+        pltp = new PLTP();
 
         actions.add(new Add());
         actions.add(new Edit());
-        actions.add(new Extra());
+        actions.add(pltp);
         actions.add(new Help());
         actions.add(open);
         actions.add(new Remove());
         actions.add(new RemovePlayer());
         actions.add(new Compass());
         actions.add(new Own());
+        actions.add(new Back());
+        actions.add(new BiomeTP());
+        actions.add(new FeatureTP());
     }
 
     public static ItemStack getHead(UUID uuid) {
@@ -55,7 +55,7 @@ public class TPort implements CommandExecutor {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         meta.setOwningPlayer(Bukkit.getOfflinePlayer(player.getUniqueId()));
-        meta.setDisplayName(PlayerUUID.getPlayerName(player.getName()));
+        meta.setDisplayName(player.getName());
         item.setItemMeta(meta);
         return item;
     }
@@ -63,57 +63,38 @@ public class TPort implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String string, String[] strings) {
 
+        // tport add <TPort name> [lore of TPort]
+        // tport compass [player] [TPort name]
+        // tport edit <TPort name> lore set <lore>
+        // tport edit <TPort name> lore remove
+        // tport edit <TPort name> name <new TPort name>
+        // tport edit <TPort name> item
+        // tport edit <TPort name> location
+        // tport edit <TPort name> private
+        // tport edit <TPort name> private [true:false]
+        // tport edit <TPort name> whitelist <add:remove> <players names...>
+        // tport edit <TPort name> whitelist list
+        // tport PLTP tp [on:off]
+        // tport PLTP whitelist list
+        // tport PLTP whitelist <add:remove> <playername>
+        // tport help
+        // tport open <playername> [TPort name]
+        // tport own [TPort name]
+        // tport remove <TPort name>
+        // tport removePlayer <playerName>
+        // tport back
+        // tport biomeTP
+        // tport biomeTP [biomeTP mode]
+
         if (!(commandSender instanceof Player)) {
             commandSender.sendMessage("You have to be a player to use this command");
             return false;
         }
 
         Player player = (Player) commandSender;
-        Files tportData = getFiles("TPortData");
 
         if (strings.length == 0) {
-            int d = -1;
-            tportData.getConfig().set("tport." + player.getUniqueId().toString() + ".gui", d);
-            tportData.saveConfig();
-
-            Set l = tportData.getConfig().getConfigurationSection("tport").getKeys(false);
-
-            int size = 45;
-
-            if (l.size() < 8) {
-                size = 27;
-            } else if (l.size() < 15) {
-                size = 36;
-            }
-
-            Inventory inv = Bukkit.createInventory(null, size, "Choose a player (1)");
-            int i = 10;
-
-            for (String s : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
-
-                if (i >= 35) {
-                    ItemStack item = new ItemStack(Material.HOPPER);
-                    ItemMeta meta = item.getItemMeta();
-                    meta.setDisplayName(NEXT);
-                    item.setItemMeta(meta);
-                    inv.setItem(44, item);
-
-                    tportData.getConfig().set("tport." + player.getUniqueId().toString() + ".gui", d);
-                    tportData.saveConfig();
-                    break;
-                }
-
-                if (i == 17 || i == 26) {
-                    i = i + 2;
-                }
-                if (!(i == 44)) {
-//                    inv.setItem(i, tportData.getConfig().getItemStack("tport." + s + ".item"));
-                    inv.setItem(i, getHead(UUID.fromString(s)));
-                    i++;
-                }
-            }
-            player.openInventory(inv);
-
+            openMainTPortGUI(player, 0);
         } else {
 
             for (CmdHandler action : this.actions) {
