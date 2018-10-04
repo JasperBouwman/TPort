@@ -5,6 +5,7 @@ import com.spaceman.tport.commands.CmdHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fileHander.Files;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -107,13 +108,15 @@ public class Add extends CmdHandler {
             String playerUUID = player.getUniqueId().toString();
 
             // looks if name is used
-            for (int i = 0; i < 10; i++) {
-                if (tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
-//                    ItemStack item = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + i + ".item");
-//                    ItemMeta meta = item.getItemMeta();
-                    if (args[1].equalsIgnoreCase(tportData.getConfig().getString("tport." + playerUUID + ".items." + i + ".name"))) {
-                        player.sendMessage("§cThis TPort name is used");
-                        return;
+            if (tportData.getConfig().contains("tport." + playerUUID + ".items")) {
+                for (String i : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
+                    if (tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
+//                        ItemStack item = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + i + ".item");
+//                        ItemMeta meta = item.getItemMeta();
+                        if (args[1].equalsIgnoreCase(tportData.getConfig().getString("tport." + playerUUID + ".items." + i + ".name"))) {
+                            player.sendMessage("§cThis TPort name is used");
+                            return;
+                        }
                     }
                 }
             }
@@ -124,8 +127,12 @@ public class Add extends CmdHandler {
                     player.sendMessage("§cYour TPort list is full, remove an old one");
                     return;
                 } else if (!tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
-                    ItemStack item = new ItemStack(player.getInventory().getItemInMainHand());
+                    ItemStack item = player.getInventory().getItemInMainHand().clone();
                     ItemMeta meta = item.getItemMeta();
+                    if (meta == null) {
+                        meta = Bukkit.getItemFactory().getItemMeta(item.getType());
+                    }
+                    System.out.println("another test");
 //                    meta.setDisplayName(args[1]);
 
                     StringBuilder lore = new StringBuilder(args[2]);
@@ -151,7 +158,7 @@ public class Add extends CmdHandler {
 
                     player.getInventory().setItem(player.getInventory().getHeldItemSlot(), new ItemStack(Material.AIR));
                     tportData.saveConfig();
-//                    return;
+                    return;
                 }
             }
         }
