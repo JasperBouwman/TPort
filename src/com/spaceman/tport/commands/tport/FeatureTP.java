@@ -6,6 +6,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import static com.spaceman.tport.Main.Cooldown.cooldownFeatureTP;
+import static com.spaceman.tport.Main.Cooldown.updateFeatureTPCooldown;
 import static com.spaceman.tport.TPortInventories.openFeatureTP;
 import static com.spaceman.tport.events.InventoryClick.teleportPlayer;
 
@@ -16,24 +18,32 @@ public class FeatureTP extends CmdHandler {
         if (args.length == 1) {
             openFeatureTP(player, 0);
         } else {
-            TPortInventories.FeaturesTypes biome;
+
+            long cooldown = cooldownFeatureTP(player);
+            if (cooldown / 1000 > 0) {
+                player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
+                return;
+            }
+
+            TPortInventories.FeaturesTypes featuresType;
             try {
-                biome = TPortInventories.FeaturesTypes.valueOf(args[1]);
+                featuresType = TPortInventories.FeaturesTypes.valueOf(args[1]);
             } catch (IllegalArgumentException iae) {
                 player.sendMessage(ChatColor.RED + "Feature " + args[1] + " does not exist");
                 return;
             }
-            featureTP(player, biome);
+            featureTP(player, featuresType);
         }
     }
 
     public static void featureTP(Player player, TPortInventories.FeaturesTypes featuresType) {
         Location featureLoc = featureFinder(player.getLocation(), featuresType);
         if (featureLoc == null) {
-            player.sendMessage(ChatColor.RED + "Could not fine a " + ChatColor.DARK_RED + featuresType.name() + ChatColor.RED + " nearby");
+            player.sendMessage(ChatColor.RED + "Could not find a " + ChatColor.DARK_RED + featuresType.name() + ChatColor.RED + " nearby");
         } else {
             featureLoc.setY(player.getWorld().getHighestBlockYAt(featureLoc.getBlockX(), featureLoc.getBlockZ()));
             teleportPlayer(player, featureLoc);
+            updateFeatureTPCooldown(player);
         }
     }
 

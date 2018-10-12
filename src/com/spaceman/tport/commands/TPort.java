@@ -40,6 +40,7 @@ public class TPort implements CommandExecutor {
         actions.add(new Back());
         actions.add(new BiomeTP());
         actions.add(new FeatureTP());
+        actions.add(new Reload());
     }
 
     public static ItemStack getHead(UUID uuid) {
@@ -84,7 +85,10 @@ public class TPort implements CommandExecutor {
         // tport removePlayer <playerName>
         // tport back
         // tport biomeTP
-        // tport biomeTP [biomeTP mode]
+        // tport biomeTP [biome]
+        // tport featureTP
+        // tport featureTP [featureType]
+        // tport reload
 
         if (!(commandSender instanceof Player)) {
             commandSender.sendMessage("You have to be a player to use this command");
@@ -95,6 +99,7 @@ public class TPort implements CommandExecutor {
 
         if (strings.length == 0) {
             openMainTPortGUI(player, 0);
+
         } else {
 
             for (CmdHandler action : this.actions) {

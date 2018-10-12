@@ -5,11 +5,8 @@ import com.spaceman.tport.fancyMessage.book.Book;
 import com.spaceman.tport.fancyMessage.book.BookPage;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import static com.spaceman.tport.events.InventoryClick.NEXT;
 import static com.spaceman.tport.events.InventoryClick.PREVIOUS;
@@ -20,142 +17,7 @@ public class Help extends CmdHandler {
 
     @Override
     public void run(String[] args, Player player) {
-        if (args.length == 2) {
-            openB(player);
-        } else {
-            openMainBook(player);
-        }
-    }
-
-
-    @SuppressWarnings("deprecation")
-    private void openB(Player player) {
-        String json =
-                "{pages:[\"[\\\"\\\",{\\\"text\\\":\\\"Welcome in the \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"TPort \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"help book,\\\\nin here you can find all the usages and help for all the commands.\\\\nyou can click in the register in the commands to go to the right page.\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\"these are all the sub-commands, all are explained of the usage and what they do.\\\\nextra info: <between there is necessary> [there are optional] \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"change_page\\\",\\\"value\\\":\\\"3\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"pages: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"3\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\", \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"4\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"/tport add \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"change_page\\\",\\\"value\\\":\\\"5\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"page: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"5\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"/tport edit \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"change_page\\\",\\\"value\\\":\\\"6\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"pages: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"6\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\", \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"7\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\", \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"8\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"/tport extra \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"change_page\\\",\\\"value\\\":\\\"9\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"pages: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"9\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\", \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"10\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\", \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"11\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"/tport open \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"change_page\\\",\\\"value\\\":\\\"12\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"page: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"12\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"/tport remove \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"change_page\\\",\\\"value\\\":\\\"13\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"page: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"13\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"/tport whitelist\\\",\\\"color\\\":\\\"blue\\\",\\\"clickEvent\\\":{\\\"action\\\":\\\"change_page\\\",\\\"value\\\":\\\"14\\\"},\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"pages: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"14\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\", \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"15\\\",\\\"color\\\":\\\"blue\\\"}]}}}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\" /tport \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"usage: \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"this opens the TPort player list, when in this list you click on a playerhead and that takes you to their TPort list. click on an item to go to the location.\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\"when you click on their head you will teleport to that player when he/she is online. the barrier item will take you back the the TPort player list, use the hopper and fern to scroll through all the players\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\" /tport add \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"usage: \\\\n \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport add <TPort> [lore of TPort]\\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport add home this is my home\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"what this does is it adds the location of where you are standing in your TPort list. the lore is something like the comment of that TPort. the name is 1 word, the lore can be more\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\" /tport edit \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"usage: \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport edit <lore:name:item:location:private>\\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"you can edit a TPort using this.\\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport edit <TPort> lore set <new lore of TPort> \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport edit home lore set this is my old home\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"this will edit the lore of the item\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\" /tport edit <TPort> lore remove \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport edit home lore remove\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"this will remove the lore of the item \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport edit <TPort>  name <new name> \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport edit home name oldHome\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"this will change the name of the TPort \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport edit <TPort> item \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport edit home item\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"this will edit the item material to the item material in your main hand\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\" /tport edit <TPort> location \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport edit home location\\\",\\\"color\\\":\\\"blue\\\"}]}}}" +
-                        ",{\\\"text\\\":\\\"this will edit the location of the TPort \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport edit <TPort> private <true:false> \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport edit home private true\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"this will set the TPort to private or not, people that are in the whitelist are still able to teleport to that location.\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\" /tport extra \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"usage: \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport extra <item:tp:whitelist>\\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"this will edit some extra functions.\\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport extra item \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"this will set your item in the TPort player list. note: there is no undo.\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\" /tport extra tp <on:off> \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"this will toggle the ability to let players teleport to you, players in your whitelist are still able to. \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport extra whitelist list \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"this shows all the players in your player teleportation whitelist.\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\" /tport extra whitelist add <player name> \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport extra whitelist add %player%\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"this adds a player in your player teleportation whitelist \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport extra whitelist remove <player name> \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport extra whitelist remove %player%\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"this removes a player in your player teleportation whitelist.\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\" /tport open \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"usage: \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport open <player name> [TPort] \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"examples: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"\\\\n/tport open %player%\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"\\\\n/tport open %player% home\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"this will open the TPort list of the selected player, when giving a TPort you will directly teleport to that location.\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\" /tport remove \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"usage: \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport remove <TPort> \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport remove home\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"this will remove the TPort from your TPort list.\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\" /tport whitelist \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"usage: \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport whitelist <TPort> <add:remove:list> \\\\n\\\",\\\"color\\\":\\\"blue\\\"}," +
-                        "{\\\"text\\\":\\\"this will edit the whitelist of that TPort \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport whitelist <TPort> add <player name> \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport whitelist home add %player%\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"this will add the player in your whitelist\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"," +
-
-                        "\"[\\\"\\\",{\\\"text\\\":\\\" /tport whitelist <TPort> remove <player name> \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport whitelist home remove %player%\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"this will remove the player in your whitelist \\\\n\\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\" /tport whitelist <TPort> list \\\\n\\\",\\\"color\\\":\\\"blue\\\",\\\"hoverEvent\\\":{\\\"action\\\":\\\"show_text\\\",\\\"value\\\":{\\\"text\\\":\\\"\\\",\\\"extra\\\":[{\\\"text\\\":\\\"example: \\\",\\\"color\\\":\\\"dark_aqua\\\"}," +
-                        "{\\\"text\\\":\\\"/tport whitelist home list\\\",\\\"color\\\":\\\"blue\\\"}]}}}," +
-                        "{\\\"text\\\":\\\"this will show the whitelist list of that TPort\\\",\\\"color\\\":\\\"dark_aqua\\\"}]\"]" +
-
-                        ",\"title\":\"The TPort Help Book\",\"author\":\"The_Spaceman\"}";
-
-        try {
-            ItemStack stack = new ItemStack(Material.WRITTEN_BOOK);
-            stack = Bukkit.getUnsafe().modifyItemStack(stack, json.replaceAll("%player%", player.getName()));
-            player.getInventory().addItem(stack);
-        } catch (Throwable ignored) {
-        }
+        openMainBook(player);
     }
 
     private void openMainBook(Player player) {
@@ -171,6 +33,8 @@ public class Help extends CmdHandler {
         BookPage aboutP6 = book.createPage();
         BookPage aboutP7 = book.createPage();
         BookPage aboutP8 = book.createPage();
+        BookPage aboutP9 = book.createPage();
+        BookPage aboutP10 = book.createPage();
         BookPage commandPage1 = book.createPage();
         BookPage commandPage2 = book.createPage();
         BookPage commandPage3 = book.createPage();
@@ -190,6 +54,7 @@ public class Help extends CmdHandler {
         BookPage cp13 = book.createPage();
         BookPage cp14 = book.createPage();
         BookPage cp15 = book.createPage();
+        BookPage cp16 = book.createPage();
         BookPage author1 = book.createPage();
         BookPage author2 = book.createPage();
 
@@ -213,9 +78,9 @@ public class Help extends CmdHandler {
 
         aboutP2.addText(textComponent("Choose a player", ChatColor.DARK_AQUA));
         aboutP2.addText(textComponent("\n\nIn this inventory you can select a player. All players that have been online after the install of TPort are in this inventory." +
-                " When clicking a player head you will open their TPort gui. When not all players can be displayed a hopper called '" + NEXT  + ChatColor.BLUE +
+                " When clicking a player head you will open their TPort gui. When not all players can be displayed a hopper called '" + NEXT + ChatColor.BLUE +
                 "' will", ChatColor.BLUE));
-        aboutP3.addText(textComponent("appear. Click on the hopper to show the next line of players. The fern called '" + PREVIOUS + ChatColor.BLUE +  "' will go back 1 line. This inventory is called" +
+        aboutP3.addText(textComponent("appear. Click on the hopper to show the next line of players. The fern called '" + PREVIOUS + ChatColor.BLUE + "' will go back 1 line. This inventory is called" +
                 " the ", ChatColor.BLUE));
         aboutP3.addText(textComponent("Main TPort gui", ChatColor.DARK_PURPLE));
         aboutP3.addText(textComponent("\n\nTPort: <player name>", ChatColor.DARK_AQUA));
@@ -235,9 +100,19 @@ public class Help extends CmdHandler {
         aboutP7.addText(textComponent("\n\nIn this inventory you can select a biome to use as a random teleporter, when selecting a biome the plugin is trying 100 times to find your selected biome." +
                 " When not found you will be notified. When succeed you will teleport to that biome.", ChatColor.BLUE));
 
-        aboutP8.addText(textComponent("Select a Feature"));
+        aboutP8.addText(textComponent("Select a Feature", ChatColor.DARK_AQUA));
         aboutP8.addText(textComponent("\n\nIn this inventory you can select a feature to teleport to, when selecting a feature the plugin search the selected feature." +
                 " When not found you will be notified. When succeed you will teleport to that feature.", ChatColor.BLUE));
+
+        aboutP9.addText(textComponent("Cooldown", ChatColor.DARK_AQUA));
+        aboutP9.addText(textComponent("\n\nThis feature adds cooldowns to the teleport features of TPort. You can edit the cooldowns in the TPortConfig.yml file in the plugins folder of the server", ChatColor.BLUE));
+
+        aboutP10.addText(textComponent("When setting the value to another cooldown name those will be linked, and when setting the value to 'permission' the cooldown time is the given permission of the player" +
+                ". this way you can give each player/group a separate cooldown, the permission is 'TPort.", ChatColor.BLUE));
+        aboutP10.addText(textComponent("<cooldown>", ChatColor.BLUE, hoverEvent(textComponent("The cooldown name, mind that the cooldowns are case sensitive", ChatColor.DARK_AQUA))));
+        aboutP10.addText(textComponent(".", ChatColor.BLUE));
+        aboutP10.addText(textComponent("X", ChatColor.BLUE, hoverEvent(textComponent("The X is the cooldown time in milliseconds", ChatColor.DARK_AQUA))));
+        aboutP10.addText(textComponent("'", ChatColor.BLUE));
 
         HoverEvent commandTitleHoverEvent = hoverEvent("");
         commandTitleHoverEvent.addText(textComponent("Command arguments between ", ChatColor.BLUE));
@@ -274,8 +149,9 @@ public class Help extends CmdHandler {
         commandPage4.addText(textComponent("\n/tport back", ChatColor.BLUE, ClickEvent.changePage(cp13.getPageNumber()), hoverEvent(textComponent("Page: " + cp13.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage4.addText(textComponent("\n/tport biomeTP", ChatColor.DARK_GREEN, ClickEvent.changePage(cp15.getPageNumber()), hoverEvent(textComponent("Page: " + cp15.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage4.addText(textComponent("\n/tport biomeTP [biome]", ChatColor.BLUE, ClickEvent.changePage(cp15.getPageNumber()), hoverEvent(textComponent("Page: " + cp15.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage4.addText(textComponent("\n/tport featureTP", ChatColor.DARK_GREEN, ClickEvent.changePage(cp15.getPageNumber()), hoverEvent(textComponent("Page: " + cp15.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage4.addText(textComponent("\n/tport featureTP [featureType]", ChatColor.BLUE, ClickEvent.changePage(cp15.getPageNumber()), hoverEvent(textComponent("Page: " + cp15.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage4.addText(textComponent("\n/tport featureTP", ChatColor.DARK_GREEN, ClickEvent.changePage(cp16.getPageNumber()), hoverEvent(textComponent("Page: " + cp16.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage4.addText(textComponent("\n/tport featureTP [featureType]", ChatColor.BLUE, ClickEvent.changePage(cp16.getPageNumber()), hoverEvent(textComponent("Page: " + cp16.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage4.addText(textComponent("\n/tport reload", ChatColor.BLUE, ClickEvent.changePage(cp16.getPageNumber()), hoverEvent(textComponent("Page: " + cp16.getPageNumber(), ChatColor.DARK_AQUA))));
 
         cp1.addText(textComponent("/tport add <TPort name> [lore of TPort]", ChatColor.DARK_AQUA));
         cp1.addText(textComponent("\n\nUse this command to create a new TPort. It will take the item from your main hand and that item will be used to display the TPort in your TPort gui." +
@@ -351,6 +227,13 @@ public class Help extends CmdHandler {
         cp15.addText(textComponent("\n\nOpen biomeTP gui", ChatColor.BLUE));
         cp15.addText(textComponent("\n\n/tport biomeTP <biome>", ChatColor.DARK_AQUA));
         cp15.addText(textComponent("\n\nTeleport to a random location or biome", ChatColor.BLUE));
+
+        cp16.addText(textComponent("/tport featureTP", ChatColor.DARK_AQUA));
+        cp16.addText(textComponent("\n\nOpen featureTP gui", ChatColor.BLUE));
+        cp16.addText(textComponent("\n\n/tport featureTP <featureType>", ChatColor.DARK_AQUA));
+        cp16.addText(textComponent("\n\nTeleport to a the given feature", ChatColor.BLUE));
+        cp16.addText(textComponent("\n\n/tport reload", ChatColor.DARK_AQUA));
+        cp16.addText(textComponent("\n\nreloads the TPorts and config", ChatColor.BLUE));
 
         author1.addText(textComponent("About the author", ChatColor.DARK_AQUA));
         author1.addText(textComponent("\n\nI'm ", ChatColor.BLUE));

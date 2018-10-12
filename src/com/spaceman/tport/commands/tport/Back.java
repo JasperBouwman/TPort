@@ -7,12 +7,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
+import static com.spaceman.tport.Main.Cooldown.cooldownBack;
+import static com.spaceman.tport.Main.Cooldown.updateBackCooldown;
 import static com.spaceman.tport.events.InventoryClick.teleportPlayer;
 import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
 
@@ -87,16 +88,23 @@ public class Back extends CmdHandler {
                 return 2;
             }
         }
-        return 3;
+        return 4;
     }
 
     @Override
     public void run(String[] args, Player player) {
         //tport back
 
+        long cooldown = cooldownBack(player);
+        if (cooldown / 1000 > 0) {
+            player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
+            return;
+        }
+
         switch (tpBack(player)) {
             case 1:
                 player.sendMessage(ChatColor.DARK_AQUA + "Teleported back");
+                updateBackCooldown(player);
                 return;
             case 2:
                 player.sendMessage(ChatColor.RED + "Player not online anymore");
@@ -106,11 +114,13 @@ public class Back extends CmdHandler {
                 return;
             case 4:
                 player.sendMessage(ChatColor.RED + "Could not teleport you back");
+                return;
             case 0:
+                player.sendMessage(ChatColor.RED + "No previous location known");
+                return;
             default:
         }
     }
-
 
     @SuppressWarnings("WeakerAccess")
     public static class PrevTPort {

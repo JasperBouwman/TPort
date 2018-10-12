@@ -25,6 +25,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 
+import static com.spaceman.tport.Main.Cooldown.*;
 import static com.spaceman.tport.TPortInventories.*;
 import static com.spaceman.tport.commands.TPort.pltp;
 import static com.spaceman.tport.commands.tport.Back.prevTPort;
@@ -176,100 +177,10 @@ public class InventoryClick implements Listener {
             String playerUUID = player.getUniqueId().toString();
 
             if (meta.getDisplayName().equals(NEXT)) {
-//                int b = tportData.getConfig().getInt("tport." + playerUUID + ".gui");
-//                int c = 0;
-//                b = b + 7;
-//                int i = 10;
-//
-//                tportData.getConfig().set("tport." + playerUUID + ".gui", b);
-//                tportData.saveConfig();
-//
-//                Inventory inve = Bukkit.createInventory(null, 45, "Choose a player (" + (b + 8) / 7 + ")");
-//
-//                for (String ss : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
-//
-//                    if (!(c <= b)) {
-//
-//                        tportData.getConfig().set("tport." + playerUUID + ".gui", b);
-//
-//                        if (i >= 35) {
-//                            ItemStack items = new ItemStack(Material.HOPPER);
-//                            ItemMeta metas = items.getItemMeta();
-//                            metas.setDisplayName(NEXT);
-//                            items.setItemMeta(metas);
-//                            inve.setItem(44, items);
-//
-//                            tportData.getConfig().set("tport." + playerUUID + ".gui", b);
-//                            tportData.saveConfig();
-//                            break;
-//                        }
-//
-//                        if (i == 17 || i == 26) {
-//                            i = i + 2;
-//                        }
-//                        if (!(i == 44)) {
-//                            inve.setItem(i, getHead(UUID.fromString(ss)));
-//                            i++;
-//
-//                            ItemStack itemsa = new ItemStack(Material.FERN);
-//                            ItemMeta metasa = itemsa.getItemMeta();
-//                            metasa.setDisplayName(PREVIOUS);
-//                            itemsa.setItemMeta(metasa);
-//                            inve.setItem(8, itemsa);
-//
-//                        }
-//                    } else {
-//                        c++;
-//                    }
-//                }
-//                player.openInventory(inve);
                 openMainTPortGUI(player, Integer.parseInt(inv.getTitle().replace("Choose a player ", "").replace("(", "").replace(")", "")));
             }
 
             if (meta.getDisplayName().equals(PREVIOUS)) {
-//                int b = tportData.getConfig().getInt("tport." + playerUUID + ".gui");
-//                int c = 0;
-//                b = b - 7;
-//                int i = 10;
-//                Inventory inve = Bukkit.createInventory(null, 45, "Choose a player (" + (b + 8) / 7 + ")");
-//
-//                for (String ss : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
-//
-//                    if (!(c <= b)) {
-//
-//                        if (!(b == -1)) {
-//                            ItemStack itemsa = new ItemStack(Material.FERN);
-//                            ItemMeta metasa = itemsa.getItemMeta();
-//                            metasa.setDisplayName(PREVIOUS);
-//                            itemsa.setItemMeta(metasa);
-//                            inve.setItem(8, itemsa);
-//                        }
-//
-//                        if (i >= 35) {
-//                            ItemStack items = new ItemStack(Material.HOPPER);
-//                            ItemMeta metas = items.getItemMeta();
-//                            metas.setDisplayName(NEXT);
-//                            items.setItemMeta(metas);
-//                            inve.setItem(44, items);
-//
-//                            tportData.getConfig().set("tport." + playerUUID + ".gui", b);
-//                            tportData.saveConfig();
-//                            break;
-//                        }
-//
-//                        if (i == 17 || i == 26) {
-//                            i = i + 2;
-//                        }
-//                        if (!(i == 44)) {
-//                            inve.setItem(i, getHead(UUID.fromString(ss)));
-//                            i++;
-//
-//                        }
-//                    } else {
-//                        c++;
-//                    }
-//                }
-//                player.openInventory(inve);
                 openMainTPortGUI(player, Integer.parseInt(inv.getTitle().replace("Choose a player ", "").replace("(", "").replace(")", "")) - 2);
             }
 
@@ -282,7 +193,8 @@ public class InventoryClick implements Listener {
                 }
             }
 
-        } else if (inv.getTitle().startsWith("TPort: ")) {
+        }
+        else if (inv.getTitle().startsWith("TPort: ")) {
             e.setCancelled(true);
 
             for (String s : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
@@ -294,58 +206,6 @@ public class InventoryClick implements Listener {
                     if (item.getType().equals(Material.BARRIER)) {
                         if (meta.getDisplayName().equals(BACK)) {
                             if (e.getSlot() == 26) {
-//                                int b = tportData.getConfig().getInt("tport." + playerUUID + ".gui");
-//                                int c = 0;
-//                                int i = 10;
-//
-//                                int size = 45;
-//                                Set l = tportData.getConfig().getConfigurationSection("tport").getKeys(false);
-//                                if (l.size() < 8) {
-//                                    size = 27;
-//                                } else if (l.size() < 15) {
-//                                    size = 36;
-//                                }
-//
-//                                Inventory inve = Bukkit.createInventory(null, size,
-//                                        "Choose a player (" + (b + 8) / 7 + ")");
-//
-//                                for (String ss : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
-//
-//                                    if (!(c <= b)) {
-//
-//                                        if (i >= 35) {
-//                                            ItemStack items = new ItemStack(Material.HOPPER);
-//                                            ItemMeta metas = items.getItemMeta();
-//                                            metas.setDisplayName(NEXT);
-//                                            items.setItemMeta(metas);
-//                                            inve.setItem(44, items);
-//
-//                                            tportData.getConfig().set("tport." + playerUUID + ".gui", b);
-//                                            tportData.saveConfig();
-//                                            break;
-//                                        }
-//
-//                                        if (i == 17 || i == 26) {
-//                                            i = i + 2;
-//                                        }
-//                                        if (!(i == 44)) {
-//                                            inve.setItem(i, getHead(UUID.fromString(ss)));
-//                                            i++;
-//
-//                                            if (!tportData.getConfig().get("tport." + playerUUID + ".gui").equals(-1)) {
-//
-//                                                ItemStack itemsa = new ItemStack(Material.FERN);
-//                                                ItemMeta metasa = itemsa.getItemMeta();
-//                                                metasa.setDisplayName(PREVIOUS);
-//                                                itemsa.setItemMeta(metasa);
-//                                                inve.setItem(8, itemsa);
-//                                            }
-//                                        }
-//                                    } else {
-//                                        c++;
-//                                    }
-//                                }
-//                                player.openInventory(inve);
                                 openMainTPortGUI(player, mainTPortGUIPage.getOrDefault(playerUUID, 0));
                             } else {
                                 e.setCancelled(true);
@@ -360,11 +220,35 @@ public class InventoryClick implements Listener {
                             if (e.getAction().equals(InventoryAction.PICKUP_HALF)) {
                                 openBiomeTP(player, 0);
                             } else if (e.getAction().equals(InventoryAction.PICKUP_ALL)) {
-                                int i = tpBack(player);
-                                if (i != 1) {
-//                                    openTPortGUI(null, null, player);
-                                    openTPortGUI(PlayerUUID.getPlayerName(s), s, player);
+                                long cooldown = cooldownBack(player);
+                                if (cooldown / 1000 > 0) {
+                                    player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
+                                    return;
                                 }
+                                int i = tpBack(player);
+
+                                switch (i) {
+                                    case 1:
+                                        updateBackCooldown(player);
+                                        break;
+                                    case 2:
+                                        player.sendMessage(ChatColor.RED + "Player not online anymore");
+                                        openTPortGUI(PlayerUUID.getPlayerName(s), s, player);
+                                        break;
+                                    case 3:
+                                        player.sendMessage(ChatColor.RED + "You are not whitelisted anymore");
+                                        openTPortGUI(PlayerUUID.getPlayerName(s), s, player);
+                                        break;
+                                    default:
+                                        player.sendMessage(ChatColor.RED + "Could not teleport you back");
+                                        openTPortGUI(PlayerUUID.getPlayerName(s), s, player);
+                                        break;
+                                }
+//                                if (i != 1) {
+//                                    openTPortGUI(PlayerUUID.getPlayerName(s), s, player);
+//                                } else {
+//                                    updateBackCooldown(player);
+//                                }
                             } else if (e.getAction().equals(InventoryAction.CLONE_STACK) || e.getAction().equals(InventoryAction.UNKNOWN)) {
                                 openFeatureTP(player, 0);
                             }
@@ -384,8 +268,14 @@ public class InventoryClick implements Listener {
                                     if (list.contains(player.getUniqueId().toString())) {
                                         if (Bukkit.getPlayerExact(inv.getTitle().replaceAll("TPort:", "").trim()) != null) {
                                             Player warp = Bukkit.getPlayerExact(inv.getTitle().replaceAll("TPort:", "").trim());
+                                            long cooldown = cooldownPlayerTP(player);
+                                            if (cooldown / 1000 > 0) {
+                                                player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
+                                                return;
+                                            }
                                             tpPlayerToPlayer(player, warp);
                                             player.sendMessage("§3Teleported to §9" + warp.getName());
+                                            updatePlayerTPCooldown(player);
                                         }
                                     } else {
                                         openTPortGUI(PlayerUUID.getPlayerName(s), s, player);
@@ -399,8 +289,14 @@ public class InventoryClick implements Listener {
                                 } else {
                                     Player warp = Bukkit.getPlayer(UUID.fromString(s));
                                     e.setCancelled(true);
+                                    long cooldown = cooldownPlayerTP(player);
+                                    if (cooldown / 1000 > 0) {
+                                        player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
+                                        return;
+                                    }
                                     tpPlayerToPlayer(player, warp);
                                     player.sendMessage("§3Teleported to §9" + warp.getName());
+                                    updatePlayerTPCooldown(player);
                                 }
                             } else if (testHeadOn(item)) {
                                 e.setCancelled(true);
@@ -416,11 +312,8 @@ public class InventoryClick implements Listener {
 
                     for (int i = 0; i < TPortSize; i++) {
                         if (tportData.getConfig().contains("tport." + s + ".items." + i + ".item")) {
-//                            ItemStack items = tportData.getConfig().getItemStack("tport." + s + ".items." + i + ".item");
                             String tportName = tportData.getConfig().getString("tport." + s + ".items." + i + ".name");
                             if (meta.getDisplayName().equals(tportName)) {
-//                                if (e.getSlot() == 0 || e.getSlot() == 1 || e.getSlot() == 2 || e.getSlot() == 3
-//                                        || e.getSlot() == 4 || e.getSlot() == 5 || e.getSlot() == 6) {
                                 if (e.getSlot() >= 0 && e.getSlot() < 8 ||
                                         e.getSlot() >= 9 && e.getSlot() < 17 ||
                                         e.getSlot() >= 18 && e.getSlot() < 26) {
@@ -447,15 +340,6 @@ public class InventoryClick implements Listener {
                                                     break;
                                             }
 
-//                                            if (tportData.getConfig().getBoolean("tport." + s + ".items." + i + ".private.statement")) {
-//                                                tportData.getConfig().set("tport." + s + ".items." + i + ".private.statement", false);
-//                                                tportData.saveConfig();
-//                                                player.sendMessage("§3TPort " + ChatColor.BLUE + meta.getDisplayName() + ChatColor.DARK_AQUA + " is now open");
-//                                            } else {
-//                                                tportData.getConfig().set("tport." + s + ".items." + i + ".private.statement", true);
-//                                                tportData.saveConfig();
-//                                                player.sendMessage("§3TPort " + ChatColor.BLUE + meta.getDisplayName() + ChatColor.DARK_AQUA + " is now private");
-//                                            }
                                             openTPortGUI(player.getName(), playerUUID, player);
                                         } else {
                                             player.sendMessage(ChatColor.RED + "You can't edit this TPort");
@@ -463,6 +347,12 @@ public class InventoryClick implements Listener {
 
                                     } else {
                                         e.setCancelled(true);
+
+                                        long cooldown = cooldownTPortTP(player);
+                                        if (cooldown / 1000 > 0) {
+                                            player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
+                                            return;
+                                        }
 
                                         switch (tportData.getConfig().getString("tport." + s + ".items." + i + ".private.statement")) {
                                             case "off":
@@ -489,16 +379,16 @@ public class InventoryClick implements Listener {
                                                 return;
                                         }
 
-                                        player.closeInventory();
 
                                         Location l = Main.getLocation("tport." + s + ".items." + i + ".location");
 
                                         if (l == null) {
-                                            player.sendMessage("§cThe world for this location is not found");
+                                            player.sendMessage("§cThe world for this location has not been found");
                                             return;
                                         }
+                                        player.closeInventory();
                                         tpPlayerToTPort(player, l, meta.getDisplayName(), s);
-
+                                        updateTPortTPCooldown(player);
 
                                         Message message = new Message();
                                         message.addText("Teleported to ", ChatColor.DARK_AQUA);
@@ -514,7 +404,8 @@ public class InventoryClick implements Listener {
                     }
                 }
             }
-        } else if (inv.getTitle().startsWith("Select a Biome ")) {
+        }
+        else if (inv.getTitle().startsWith("Select a Biome ")) {
 
             if (e.getSlot() == 8) {
                 openBiomeTP(player, Integer.parseInt(inv.getTitle().replace("Select a Biome ", "").replace("(", "").replace(")", "")) - 2);
@@ -524,6 +415,7 @@ public class InventoryClick implements Listener {
 
                 if (e.getSlot() % 9 != 0 && e.getSlot() % 9 != 8) {
                     e.setCancelled(true);
+
                     Biome biome;
                     try {
                         biome = Biome.valueOf(meta.getDisplayName());
@@ -531,8 +423,19 @@ public class InventoryClick implements Listener {
                         player.sendMessage(ChatColor.RED + "Biome " + ChatColor.DARK_RED + meta.getDisplayName() + ChatColor.RED + " does not exist");
                         return;
                     }
+
+                    long cooldown = cooldownBiomeTP(player);
+                    if (cooldown / 1000 > 0) {
+                        player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
+                        return;
+                    }
                     biomeTP(player, biome);
                 } else if (e.getSlot() == 18) {
+                    long cooldown = cooldownBiomeTP(player);
+                    if (cooldown / 1000 > 0) {
+                        player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
+                        return;
+                    }
                     Random random = new Random();
                     int x = random.nextInt(6000000) - 3000000;
                     int z = random.nextInt(6000000) - 3000000;
@@ -547,7 +450,8 @@ public class InventoryClick implements Listener {
             }
 
 
-        } else if (inv.getTitle().startsWith("Select a Feature ")) {
+        }
+        else if (inv.getTitle().startsWith("Select a Feature ")) {
 
             if (e.getSlot() == 8) {
                 openFeatureTP(player, Integer.parseInt(inv.getTitle().replace("Select a Feature ", "").replace("(", "").replace(")", "")) - 2);
@@ -562,6 +466,11 @@ public class InventoryClick implements Listener {
                         featuresType = FeaturesTypes.valueOf(meta.getDisplayName());
                     } catch (IllegalArgumentException iae) {
                         player.sendMessage(ChatColor.RED + "Feature " + ChatColor.DARK_RED + meta.getDisplayName() + ChatColor.RED + " does not exist");
+                        return;
+                    }
+                    long cooldown = cooldownFeatureTP(player);
+                    if (cooldown / 1000 > 0) {
+                        player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
                         return;
                     }
                     featureTP(player, featuresType);

@@ -30,5 +30,4 @@ public class Compass extends CmdHandler {
         player.sendMessage(ChatColor.BLUE + "Right-click with the with compass to activate it\n" +
                 "When sneaking you can open chests and other blocks");
     }
-
 }

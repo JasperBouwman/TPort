@@ -8,12 +8,15 @@ import java.util.HashMap;
 public class GettingFiles {
 
     private static HashMap<String, Files> list;
+    public static Main main;
 
     public GettingFiles(Main main) {
+        GettingFiles.main = main;
 
         list = new HashMap<>();
 
         list.put("TPortData", new Files(main, "TPortData.yml"));
+        list.put("TPortConfig", new Files(main, "TPortConfig.yml"));
     }
 
     public static Files getFiles(String file) {

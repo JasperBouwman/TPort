@@ -285,6 +285,7 @@ public class TabComplete implements TabCompleter {
         TABCOMPLETE.add("remove");
         TABCOMPLETE.add("biomeTP");
         TABCOMPLETE.add("featureTP");
+        TABCOMPLETE.add("reload");
 //        TABCOMPLETE.add("log");
         if (player.isOp()) {
             TABCOMPLETE.add("removePlayer");

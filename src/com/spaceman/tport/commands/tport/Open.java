@@ -14,6 +14,8 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.UUID;
 
+import static com.spaceman.tport.Main.Cooldown.cooldownTPortTP;
+import static com.spaceman.tport.Main.Cooldown.updateTPortTPCooldown;
 import static com.spaceman.tport.TPortInventories.openTPortGUI;
 import static com.spaceman.tport.events.InventoryClick.tpPlayerToTPort;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
@@ -64,6 +66,12 @@ public class Open extends CmdHandler {
 //                        ItemStack items = tportData.getConfig().getItemStack("tport." + newPlayerUUID + ".items." + i + ".item");
                         if (args[2].equals(tportData.getConfig().getString("tport." + newPlayerUUID + ".items." + i + ".name"))) {
 
+                            long cooldown = cooldownTPortTP(player);
+                            if (cooldown / 1000 > 0) {
+                                player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
+                                return;
+                            }
+
                             if (!newPlayerUUID.equals(player.getUniqueId().toString())) {
 
                                 if (tportData.getConfig().getString("tport." + newPlayerUUID + ".items." + i + ".private.statement").equals("on")) {
@@ -91,6 +99,7 @@ public class Open extends CmdHandler {
                                 return;
                             }
                             tpPlayerToTPort(player, l, args[2], newPlayerUUID);
+                            updateTPortTPCooldown(player);
 
                             Message message = new Message();
                             message.addText("Teleported to ", ChatColor.DARK_AQUA);
