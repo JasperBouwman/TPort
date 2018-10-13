@@ -132,7 +132,6 @@ public class Add extends CmdHandler {
                     if (meta == null) {
                         meta = Bukkit.getItemFactory().getItemMeta(item.getType());
                     }
-                    System.out.println("another test");
 //                    meta.setDisplayName(args[1]);
 
                     StringBuilder lore = new StringBuilder(args[2]);
