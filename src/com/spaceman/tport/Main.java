@@ -70,6 +70,8 @@ public class Main extends JavaPlugin {
 
         /*
          * changelog 1.13.3 update:
+         * fixes /tport edit <TPort name> private
+         * added: /tport edit <TPort name> move <slot>
          *
          */
 

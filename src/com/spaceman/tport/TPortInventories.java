@@ -38,7 +38,6 @@ public class TPortInventories {
             }
             lore.add("");
         }
-//        lore.add(ChatColor.GRAY + "Private: " +  (true? ChatColor.GREEN + "true" : ChatColor.RED + "false"));
         switch (tportData.getConfig().getString(path + ".private.statement")) {
             case "off":
                 lore.add(ChatColor.GRAY + "Private: " + ChatColor.RED + "off");

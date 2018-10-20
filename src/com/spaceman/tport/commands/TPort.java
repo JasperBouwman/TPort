@@ -99,7 +99,6 @@ public class TPort implements CommandExecutor {
 
         if (strings.length == 0) {
             openMainTPortGUI(player, 0);
-
         } else {
 
             for (CmdHandler action : this.actions) {
