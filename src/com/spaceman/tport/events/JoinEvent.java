@@ -3,6 +3,7 @@ package com.spaceman.tport.events;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.fileHander.GettingFiles;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -15,9 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 
-import static com.spaceman.tport.events.CompassEvents.giveCompass;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
 
 public class JoinEvent implements Listener {
 
@@ -29,7 +28,7 @@ public class JoinEvent implements Listener {
 
     public static void setData(Main p, Player player) {
 
-        Files tportData = getFiles("TPortData");
+        Files tportData = GettingFiles.getFile("TPortData");
         String playerUUID = player.getUniqueId().toString();
 
         if (!tportData.getConfig().contains("tport." + playerUUID)) {
@@ -132,13 +131,11 @@ public class JoinEvent implements Listener {
                 tportData.getConfig().set("tport." + playerUUID + ".item", null);
                 tportData.saveConfig();
 
-                giveCompass(player);
             } else {
                 tportData.getConfig().set("tport." + playerUUID + ".gui", -1);
                 tportData.getConfig().set("tport." + playerUUID + ".tp.statement", "on");
                 tportData.getConfig().set("tport." + playerUUID + ".tp.players", new ArrayList<>());
                 tportData.saveConfig();
-                giveCompass(player);
             }
         }
     }

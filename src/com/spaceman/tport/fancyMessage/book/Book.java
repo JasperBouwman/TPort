@@ -26,6 +26,7 @@ public class Book {
         this.author = author;
         this.defaultChatColor = "BLACK";
     }
+
     public Book(String title, String author, ChatColor defaultColor) {
         this.title = title;
         this.author = author;
@@ -89,15 +90,14 @@ public class Book {
 
             if (Integer.parseInt(version.split("_")[1]) > 12) {
                 Constructor<?> minecraftKeyConstructor = Class.forName("net.minecraft.server." + version + ".MinecraftKey").getConstructor(String.class);
-
+    
                 Constructor packetPlayOutCustomPayloadConstructor = packetPlayOutCustomPayload.getConstructor(
                         Class.forName("net.minecraft.server." + version + ".MinecraftKey"), Class.forName("net.minecraft.server." + version + ".PacketDataSerializer"));
-
+    
                 connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + version + ".Packet"))
                         .invoke(connection, packetPlayOutCustomPayloadConstructor.newInstance(minecraftKeyConstructor.newInstance("minecraft:book_open"),
                                 packetDataSerializerConstructor.newInstance(buf)));
             } else {
-
                 Constructor packetPlayOutCustomPayloadConstructor = packetPlayOutCustomPayload.getConstructor(String.class,
                         Class.forName("net.minecraft.server." + version + ".PacketDataSerializer"));
 
@@ -106,11 +106,11 @@ public class Book {
             }
         } catch (Exception ex) {
             player.getInventory().setItem(slot, old);
-            player.getInventory().addItem(book);
             ex.printStackTrace();
             return;
         }
         player.getInventory().setItem(slot, old);
+        player.getInventory().addItem(book);
     }
 
     public void openBook(Player player) {

@@ -1,23 +1,27 @@
 package com.spaceman.tport.fancyMessage;
 
-
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import org.bukkit.ChatColor;
 
 public class TextComponent {
-
-    private String text;
-
-    private String color;
-
-    private Attribute[] attributes;
-
-    private ClickEvent clickEvent;
-    private HoverEvent hoverEvent;
+    /*
+     * text types:
+     * text
+     * keybind
+     * translate
+     * */
 
     public final static String APOSTROPHE = "\\\\\\\"";
     public final static String NEW_LINE = "\n";
+
+    private String type = "text";
+    private String text;
+    private String color;
+    private String insertion = null;
+    private Attribute[] attributes;
+    private ClickEvent clickEvent;
+    private HoverEvent hoverEvent;
 
     private TextComponent(String text, String color, ClickEvent clickEvent, HoverEvent hoverEvent, Attribute... attribute) {
         this.text = text;
@@ -63,15 +67,6 @@ public class TextComponent {
         return new TextComponent(text, color.name().toLowerCase(), clickEvent, hoverEvent, attribute);
     }
 
-    public void setClickEvent(ClickEvent clickEvent) {
-        this.clickEvent = clickEvent;
-    }
-
-    public void setHoverEvent(HoverEvent hoverEvent) {
-        this.hoverEvent = hoverEvent;
-    }
-
-
     public void clearEvents() {
         this.clickEvent = null;
         this.hoverEvent = null;
@@ -93,8 +88,16 @@ public class TextComponent {
         return clickEvent;
     }
 
+    public void setClickEvent(ClickEvent clickEvent) {
+        this.clickEvent = clickEvent;
+    }
+
     public HoverEvent getHoverEvent() {
         return hoverEvent;
+    }
+
+    public void setHoverEvent(HoverEvent hoverEvent) {
+        this.hoverEvent = hoverEvent;
     }
 
     public boolean hasClickEvent() {
@@ -103,5 +106,23 @@ public class TextComponent {
 
     public boolean hasHoverEvent() {
         return hoverEvent != null;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public TextComponent setType(String type) {
+        this.type = type;
+        return this;
+    }
+
+    public String getInsertion() {
+        return insertion;
+    }
+
+    public TextComponent setInsertion(String insertion) {
+        this.insertion = insertion;
+        return this;
     }
 }

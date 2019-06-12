@@ -1,8 +1,11 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.commands.CmdHandler;
+import com.spaceman.tport.Permissions;
+import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.fileHander.GettingFiles;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -12,12 +15,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
-import static com.spaceman.tport.Main.Cooldown.cooldownBack;
-import static com.spaceman.tport.Main.Cooldown.updateBackCooldown;
 import static com.spaceman.tport.events.InventoryClick.teleportPlayer;
-import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
 
-public class Back extends CmdHandler {
+public class Back extends SubCommand {
+
     public static HashMap<UUID, PrevTPort> prevTPort = new HashMap<>();
 
     public static int tpBack(Player player) {
@@ -34,10 +35,10 @@ public class Back extends CmdHandler {
         }
 
         PrevTPort prev = prevTPort.get(player.getUniqueId());
-        Files tportData = getFiles("TPortData");
+        Files tportData = GettingFiles.getFile("TPortData");
         if (prev.getL() != null) {
 
-            prevTPort.put(player.getUniqueId(), new PrevTPort(prev.getTportName(), null, prev.getToPlayerUUID()));
+            prevTPort.put(player.getUniqueId(), new PrevTPort(prev.getTportName(), null, prev.getToPlayerUUID(), prev.getDeathLoc()));
             teleportPlayer(player, prev.getL());
             return 1;
 
@@ -65,7 +66,7 @@ public class Back extends CmdHandler {
                     }
 
 
-                    prevTPort.put(player.getUniqueId(), new PrevTPort(prev.getTportName(), player.getLocation(), prev.getToPlayerUUID()));
+                    prevTPort.put(player.getUniqueId(), new PrevTPort(prev.getTportName(), player.getLocation(), prev.getToPlayerUUID(), null));
                     teleportPlayer(player, Main.getLocation("tport." + prev.getToPlayerUUID() + ".items." + i + ".location"));
                     return 1;
                 }
@@ -81,12 +82,16 @@ public class Back extends CmdHandler {
                         return 3;
                     }
                 }
-                prevTPort.put(player.getUniqueId(), new PrevTPort(null, player.getLocation(), prev.getToPlayerUUID()));
+                prevTPort.put(player.getUniqueId(), new PrevTPort(null, player.getLocation(), prev.getToPlayerUUID(), null));
                 teleportPlayer(player, toPlayer.getLocation());
                 return 1;
             } else {
                 return 2;
             }
+        } else if (prev.deathLoc != null) {
+            prevTPort.put(player.getUniqueId(), new PrevTPort(null, player.getLocation(), null, prev.getDeathLoc()));
+            teleportPlayer(player, prev.getDeathLoc());
+            return 1;
         }
         return 4;
     }
@@ -95,7 +100,11 @@ public class Back extends CmdHandler {
     public void run(String[] args, Player player) {
         //tport back
 
-        long cooldown = cooldownBack(player);
+        if (!Permissions.hasPermission(player, "TPort.command.back")) {
+            return;
+        }
+
+        long cooldown = CooldownManager.Back.getTime(player);
         if (cooldown / 1000 > 0) {
             player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
             return;
@@ -104,7 +113,8 @@ public class Back extends CmdHandler {
         switch (tpBack(player)) {
             case 1:
                 player.sendMessage(ChatColor.DARK_AQUA + "Teleported back");
-                updateBackCooldown(player);
+//                updateBackCooldown(player);
+                CooldownManager.Back.update(player);
                 return;
             case 2:
                 player.sendMessage(ChatColor.RED + "Player not online anymore");
@@ -125,17 +135,19 @@ public class Back extends CmdHandler {
     @SuppressWarnings("WeakerAccess")
     public static class PrevTPort {
         private String tportName;
-        private Location l;
+        private Location backLoc;
         private String toPlayerUUID;
+        private Location deathLoc;
 
-        public PrevTPort(String tportName, Location l, String toPlayerUUID) {
+        public PrevTPort(String tportName, Location backLoc, String toPlayerUUID, Location deathLoc) {
             this.tportName = tportName;
-            this.l = l;
+            this.backLoc = backLoc;
             this.toPlayerUUID = toPlayerUUID;
+            this.deathLoc = deathLoc;
         }
 
         public Location getL() {
-            return l;
+            return backLoc;
         }
 
         public String getToPlayerUUID() {
@@ -144,6 +156,10 @@ public class Back extends CmdHandler {
 
         public String getTportName() {
             return tportName;
+        }
+    
+        public Location getDeathLoc() {
+            return deathLoc;
         }
     }
 }

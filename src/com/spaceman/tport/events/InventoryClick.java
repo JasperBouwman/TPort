@@ -1,10 +1,14 @@
 package com.spaceman.tport.events;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.Permissions;
 import com.spaceman.tport.commands.tport.Back;
+import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.fileHander.GettingFiles;
+import com.spaceman.tport.logbook.Logbook;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -25,7 +29,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 
-import static com.spaceman.tport.Main.Cooldown.*;
 import static com.spaceman.tport.TPortInventories.*;
 import static com.spaceman.tport.commands.TPort.pltp;
 import static com.spaceman.tport.commands.tport.Back.prevTPort;
@@ -33,10 +36,9 @@ import static com.spaceman.tport.commands.tport.Back.tpBack;
 import static com.spaceman.tport.commands.tport.BiomeTP.biomeTP;
 import static com.spaceman.tport.commands.tport.FeatureTP.featureTP;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
 
 public class InventoryClick implements Listener {
-
+    
     public static final int TPortSize = 24;
     public static String NEXT = ChatColor.DARK_AQUA + "Next";
     public static String BACK = ChatColor.YELLOW + "Back";
@@ -46,7 +48,7 @@ public class InventoryClick implements Listener {
     public static ItemMeta SET_TP_ON = getItemMeta(ChatColor.YELLOW + "Set PLTP on", "When clicking this Player Teleportation will be turned on");
     public static ItemMeta SET_TP_OFF = getItemMeta(ChatColor.YELLOW + "Set PLTP off", "When clicking this Player Teleportation will be turned off");
     public static String PREVIOUS = ChatColor.DARK_AQUA + "Previous";
-
+    
     private static ItemMeta getItemMeta(String name, String lore) {
         ItemStack is = new ItemStack(Material.STONE);
         ItemMeta im = is.getItemMeta();
@@ -54,7 +56,7 @@ public class InventoryClick implements Listener {
         im.setLore(Arrays.asList(lore.split("\n")));
         return im;
     }
-
+    
     private static boolean testHeadOn(ItemStack itemStack) {
         if (itemStack.hasItemMeta()) {
             ItemMeta im = itemStack.getItemMeta();
@@ -62,7 +64,7 @@ public class InventoryClick implements Listener {
         }
         return false;
     }
-
+    
     private static boolean testHeadOff(ItemStack itemStack) {
         if (itemStack.hasItemMeta()) {
             ItemMeta im = itemStack.getItemMeta();
@@ -70,19 +72,19 @@ public class InventoryClick implements Listener {
         }
         return false;
     }
-
-    private static void tpPlayerToPlayer(Player player, Player toPlayer) {
-        prevTPort.put(player.getUniqueId(), new Back.PrevTPort(null, player.getLocation(), toPlayer.getUniqueId().toString()));
+    
+    public static void tpPlayerToPlayer(Player player, Player toPlayer) {
+        prevTPort.put(player.getUniqueId(), new Back.PrevTPort(null, player.getLocation(), toPlayer.getUniqueId().toString(), null));
         teleportPlayer(player, toPlayer.getLocation());
     }
-
+    
     public static void tpPlayerToTPort(Player player, Location location, String tPort, String tPortOwner) {
-        prevTPort.put(player.getUniqueId(), new Back.PrevTPort(tPort, player.getLocation(), tPortOwner));
+        prevTPort.put(player.getUniqueId(), new Back.PrevTPort(tPort, player.getLocation(), tPortOwner, null));
         teleportPlayer(player, location);
     }
-
+    
     public static void teleportPlayer(Player player, Location l) {
-
+        
         ArrayList<LivingEntity> livingEntityO = new ArrayList<>();
         for (Entity e : player.getWorld().getEntities()) {
             if (e instanceof LivingEntity) {
@@ -96,7 +98,7 @@ public class InventoryClick implements Listener {
                 }
             }
         }
-
+        
         LivingEntity ridingEntity = null;
         Boat boat = null;
         Entity tmpEntity = null;
@@ -108,9 +110,9 @@ public class InventoryClick implements Listener {
                 tmpEntity = boat.getPassengers().get(1);
             }
         }
-
+        
         player.teleport(l);
-
+        
         try {
             if (ridingEntity != null) {
                 ridingEntity.teleport(player);
@@ -134,7 +136,7 @@ public class InventoryClick implements Listener {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-
+        
         for (LivingEntity e : livingEntityO) {
             try {
                 e.teleport(player);
@@ -143,66 +145,69 @@ public class InventoryClick implements Listener {
                 ex.printStackTrace();
             }
         }
-
+        
     }
-
+    
     @EventHandler
     @SuppressWarnings("unused")
     public void onInventoryClick(InventoryClickEvent e) {
         Player player = (Player) e.getWhoClicked();
         Inventory inv = e.getInventory();
-
+        String invTitle = e.getView().getTitle();
+        
         if (e.getRawSlot() > inv.getSize()) {
             return;
         }
-
+        
         ItemStack item = e.getCurrentItem();
         if (item == null) {
             return;
         }
-
+        
         ItemMeta meta = item.getItemMeta();
-
+        
         if (meta == null) {
             return;
         }
         if (meta.getDisplayName() == null) {
             return;
         }
-
-        Files tportData = getFiles("TPortData");
-
-        if (inv.getTitle().startsWith("Choose a player")) {
-
+        
+        Files tportData = GettingFiles.getFile("TPortData");
+        
+        if (invTitle.startsWith("Choose a player")) {
+            
             String playerUUID = player.getUniqueId().toString();
-
+    
+            String pageNumber = invTitle.replace("Choose a player ", "").replace("(", "").replace(")", "");
             if (meta.getDisplayName().equals(NEXT)) {
-                openMainTPortGUI(player, Integer.parseInt(inv.getTitle().replace("Choose a player ", "").replace("(", "").replace(")", "")));
+                openMainTPortGUI(player, Integer.parseInt(pageNumber));
             }
-
+            
             if (meta.getDisplayName().equals(PREVIOUS)) {
-                openMainTPortGUI(player, Integer.parseInt(inv.getTitle().replace("Choose a player ", "").replace("(", "").replace(")", "")) - 2);
+                openMainTPortGUI(player, Integer.parseInt(pageNumber) - 2);
             }
-
+            
             e.setCancelled(true);
             for (String s : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
                 if (meta.getDisplayName().equals(PlayerUUID.getPlayerName(s))) {
-                    mainTPortGUIPage.put(player.getUniqueId(), Integer.parseInt(inv.getTitle().replace("Choose a player ", "").replace("(", "").replace(")", "")) - 1);
+                    mainTPortGUIPage.put(player.getUniqueId(), Integer.parseInt(pageNumber) - 1);
                     openTPortGUI(meta.getDisplayName(), s, player);
                     return;
                 }
             }
-
+            
         }
-        else if (inv.getTitle().startsWith("TPort: ")) {
+        else if (invTitle.startsWith("TPort: ")) {
             e.setCancelled(true);
-
+            
             for (String s : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
-
-                if (inv.getTitle().equals("TPort: " + PlayerUUID.getPlayerName(s))) {
-
+                
+                if (invTitle.equals("TPort: " + PlayerUUID.getPlayerName(s))) {
+                    
                     String playerUUID = player.getUniqueId().toString();
-
+                    
+                    //back
                     if (item.getType().equals(Material.BARRIER)) {
                         if (meta.getDisplayName().equals(BACK)) {
                             if (e.getSlot() == 26) {
@@ -212,24 +217,32 @@ public class InventoryClick implements Listener {
                             }
                         }
                     }
-
+                    
+                    //tp back, biomeTP and featureTP
                     if (item.getType().equals(Material.ELYTRA)) {
                         if (e.getSlot() == 17) {
                             e.setCancelled(true);
                             List<String> lore = meta.getLore();
                             if (e.getAction().equals(InventoryAction.PICKUP_HALF)) {
+                                if (!Permissions.hasPermission(player, "TPort.command.biomeTP")) {
+                                    return;
+                                }
                                 openBiomeTP(player, 0);
                             } else if (e.getAction().equals(InventoryAction.PICKUP_ALL)) {
-                                long cooldown = cooldownBack(player);
+                                if (!Permissions.hasPermission(player, "TPort.command.back")) {
+                                    return;
+                                }
+                                
+                                long cooldown = CooldownManager.Back.getTime(player);
                                 if (cooldown / 1000 > 0) {
                                     player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
                                     return;
                                 }
                                 int i = tpBack(player);
-
+                                
                                 switch (i) {
                                     case 1:
-                                        updateBackCooldown(player);
+                                        CooldownManager.Back.update(player);
                                         break;
                                     case 2:
                                         player.sendMessage(ChatColor.RED + "Player not online anymore");
@@ -250,38 +263,49 @@ public class InventoryClick implements Listener {
 //                                    updateBackCooldown(player);
 //                                }
                             } else if (e.getAction().equals(InventoryAction.CLONE_STACK) || e.getAction().equals(InventoryAction.UNKNOWN)) {
+                                if (!Permissions.hasPermission(player, "TPort.command.featureTP")) {
+                                    return;
+                                }
                                 openFeatureTP(player, 0);
                             }
                         }
                     }
-
+                    
+                    //tp player
                     if (item.getType().equals(Material.PLAYER_HEAD)) {
                         if (e.getSlot() == 8) {
                             if (meta.getDisplayName().equals(OFFLINE) || meta.getDisplayName().equals(TPOFF)) {
                                 e.setCancelled(true);
-
+                                
                                 if (tportData.getConfig().getString("tport." + s + ".tp.statement").equals("off")) {
-
+                                    
                                     ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
-                                            .getStringList("tport." + s + "tp.players");
-
+                                            .getStringList("tport." + s + ".tp.players");
+                                    
                                     if (list.contains(player.getUniqueId().toString())) {
-                                        if (Bukkit.getPlayerExact(inv.getTitle().replaceAll("TPort:", "").trim()) != null) {
-                                            Player warp = Bukkit.getPlayerExact(inv.getTitle().replaceAll("TPort:", "").trim());
-                                            long cooldown = cooldownPlayerTP(player);
+                                        if (Bukkit.getPlayerExact(invTitle.replaceAll("TPort:", "").trim()) != null) {
+                                            
+                                            if (!Permissions.hasPermission(player, "TPort.pltp.tp")) {
+                                                return;
+                                            }
+                                            
+                                            long cooldown = CooldownManager.PlayerTP.getTime(player);
                                             if (cooldown / 1000 > 0) {
                                                 player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
                                                 return;
                                             }
+                                            
+                                            Player warp = Bukkit.getPlayerExact(invTitle.replaceAll("TPort:", "").trim());
+                                            
                                             tpPlayerToPlayer(player, warp);
                                             player.sendMessage("§3Teleported to §9" + warp.getName());
-                                            updatePlayerTPCooldown(player);
+                                            CooldownManager.PlayerTP.update(player);
                                         }
                                     } else {
                                         openTPortGUI(PlayerUUID.getPlayerName(s), s, player);
                                     }
                                 }
-
+                                
                             } else if (meta.getDisplayName().equals(WARP + PlayerUUID.getPlayerName(s))) {
                                 if (Bukkit.getPlayer(UUID.fromString(s)) == null) {
                                     openTPortGUI(PlayerUUID.getPlayerName(s), s, player);
@@ -289,14 +313,17 @@ public class InventoryClick implements Listener {
                                 } else {
                                     Player warp = Bukkit.getPlayer(UUID.fromString(s));
                                     e.setCancelled(true);
-                                    long cooldown = cooldownPlayerTP(player);
+                                    if (!Permissions.hasPermission(player, "TPort.pltp.tp")) {
+                                        return;
+                                    }
+                                    long cooldown = CooldownManager.PlayerTP.getTime(player);
                                     if (cooldown / 1000 > 0) {
                                         player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
                                         return;
                                     }
                                     tpPlayerToPlayer(player, warp);
                                     player.sendMessage("§3Teleported to §9" + warp.getName());
-                                    updatePlayerTPCooldown(player);
+                                    CooldownManager.PlayerTP.update(player);
                                 }
                             } else if (testHeadOn(item)) {
                                 e.setCancelled(true);
@@ -309,7 +336,8 @@ public class InventoryClick implements Listener {
                             }
                         }
                     }
-
+                    
+                    //tp TPort
                     for (int i = 0; i < TPortSize; i++) {
                         if (tportData.getConfig().contains("tport." + s + ".items." + i + ".item")) {
                             String tportName = tportData.getConfig().getString("tport." + s + ".items." + i + ".name");
@@ -317,11 +345,14 @@ public class InventoryClick implements Listener {
                                 if (e.getSlot() >= 0 && e.getSlot() < 8 ||
                                         e.getSlot() >= 9 && e.getSlot() < 17 ||
                                         e.getSlot() >= 18 && e.getSlot() < 26) {
-
+                                    
                                     if (e.getAction().equals(InventoryAction.PICKUP_HALF)) {
                                         e.setCancelled(true);
                                         if (player.getName().equals(PlayerUUID.getPlayerName(s))) {
-
+                                            if (!Permissions.hasPermission(player, "TPort.command.edit.private")) {
+                                                return;
+                                            }
+                                            
                                             switch (tportData.getConfig().getString("tport." + s + ".items." + i + ".private.statement")) {
                                                 case "off":
                                                     tportData.getConfig().set("tport." + s + ".items." + i + ".private.statement", "on");
@@ -339,21 +370,28 @@ public class InventoryClick implements Listener {
                                                     player.sendMessage("§3TPort " + ChatColor.BLUE + meta.getDisplayName() + ChatColor.DARK_AQUA + " is now open");
                                                     break;
                                             }
-
+                                            
                                             openTPortGUI(player.getName(), playerUUID, player);
                                         } else {
                                             player.sendMessage(ChatColor.RED + "You can't edit this TPort");
                                         }
-
+                                        
                                     } else {
                                         e.setCancelled(true);
-
-                                        long cooldown = cooldownTPortTP(player);
+                                        
+                                        if (!Permissions.hasPermission(player, "TPort.command.open", false)) {
+                                            if (Permissions.hasPermission(player, "TPort.basic", false)) {
+                                                Permissions.sendNoPermMessage(player, "TPort.command.open", "TPort.basic");
+                                                return;
+                                            }
+                                        }
+                                        
+                                        long cooldown = CooldownManager.TPortTP.getTime(player);
                                         if (cooldown / 1000 > 0) {
                                             player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
                                             return;
                                         }
-
+                                        
                                         switch (tportData.getConfig().getString("tport." + s + ".items." + i + ".private.statement")) {
                                             case "off":
                                                 break;
@@ -378,18 +416,20 @@ public class InventoryClick implements Listener {
                                             default:
                                                 return;
                                         }
-
-
+                                        
+                                        
                                         Location l = Main.getLocation("tport." + s + ".items." + i + ".location");
-
+                                        
                                         if (l == null) {
                                             player.sendMessage("§cThe world for this location has not been found");
                                             return;
                                         }
                                         player.closeInventory();
                                         tpPlayerToTPort(player, l, meta.getDisplayName(), s);
-                                        updateTPortTPCooldown(player);
-
+                                        //todo log
+                                        Logbook.log(UUID.fromString(s), tportName, player.getUniqueId());
+                                        CooldownManager.TPortTP.update(player);
+                                        
                                         Message message = new Message();
                                         message.addText("Teleported to ", ChatColor.DARK_AQUA);
                                         message.addText(textComponent(tportName,
@@ -405,17 +445,18 @@ public class InventoryClick implements Listener {
                 }
             }
         }
-        else if (inv.getTitle().startsWith("Select a Biome ")) {
-
+        else if (invTitle.startsWith("Select a Biome ")) {
+    
+            String pageNumber = invTitle.replace("Select a Biome ", "").replace("(", "").replace(")", "");
             if (e.getSlot() == 8) {
-                openBiomeTP(player, Integer.parseInt(inv.getTitle().replace("Select a Biome ", "").replace("(", "").replace(")", "")) - 2);
+                openBiomeTP(player, Integer.parseInt(pageNumber) - 2);
             } else if (e.getSlot() == inv.getSize() - 1) {
-                openBiomeTP(player, Integer.parseInt(inv.getTitle().replace("Select a Biome ", "").replace("(", "").replace(")", "")));
+                openBiomeTP(player, Integer.parseInt(pageNumber));
             } else {
-
+                
                 if (e.getSlot() % 9 != 0 && e.getSlot() % 9 != 8) {
                     e.setCancelled(true);
-
+                    
                     Biome biome;
                     try {
                         biome = Biome.valueOf(meta.getDisplayName());
@@ -423,15 +464,22 @@ public class InventoryClick implements Listener {
                         player.sendMessage(ChatColor.RED + "Biome " + ChatColor.DARK_RED + meta.getDisplayName() + ChatColor.RED + " does not exist");
                         return;
                     }
-
-                    long cooldown = cooldownBiomeTP(player);
+                    if (!Permissions.hasPermission(player, "TPort.command.biomeTP." + biome)) {
+                        return;
+                    }
+                    
+                    long cooldown = CooldownManager.BiomeTP.getTime(player);
                     if (cooldown / 1000 > 0) {
                         player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
                         return;
                     }
                     biomeTP(player, biome);
                 } else if (e.getSlot() == 18) {
-                    long cooldown = cooldownBiomeTP(player);
+                    e.setCancelled(true);
+                    if (!Permissions.hasPermission(player, "TPort.command.biomeTP.random")) {
+                        return;
+                    }
+                    long cooldown = CooldownManager.BiomeTP.getTime(player);
                     if (cooldown / 1000 > 0) {
                         player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
                         return;
@@ -439,48 +487,48 @@ public class InventoryClick implements Listener {
                     Random random = new Random();
                     int x = random.nextInt(6000000) - 3000000;
                     int z = random.nextInt(6000000) - 3000000;
-//                    player.teleport(player.getWorld().getHighestBlockAt(x, z).getLocation().add(0.5, 0, 0.5));
                     teleportPlayer(player, player.getWorld().getHighestBlockAt(x, z).getLocation().add(0.5, 0, 0.5));
                     player.sendMessage(ChatColor.DARK_AQUA + "Teleported to a random location");
-
+                    
                 } else if (e.getSlot() == 26) {
                     openMainTPortGUI(player, 0);
                 }
-
             }
-
-
         }
-        else if (inv.getTitle().startsWith("Select a Feature ")) {
-
+        else if (invTitle.startsWith("Select a Feature ")) {
+    
+            String pageNumber = invTitle.replace("Select a Feature ", "").replace("(", "").replace(")", "");
             if (e.getSlot() == 8) {
-                openFeatureTP(player, Integer.parseInt(inv.getTitle().replace("Select a Feature ", "").replace("(", "").replace(")", "")) - 2);
+                openFeatureTP(player, Integer.parseInt(pageNumber) - 2);
             } else if (e.getSlot() == inv.getSize() - 1) {
-                openFeatureTP(player, Integer.parseInt(inv.getTitle().replace("Select a Feature ", "").replace("(", "").replace(")", "")));
+                openFeatureTP(player, Integer.parseInt(pageNumber));
             } else {
-
+                
                 if (e.getSlot() % 9 != 0 && e.getSlot() % 9 != 8) {
                     e.setCancelled(true);
-                    FeaturesTypes featuresType;
+                    FeatureTypes featureType;
                     try {
-                        featuresType = FeaturesTypes.valueOf(meta.getDisplayName());
+                        featureType = FeatureTypes.valueOf(meta.getDisplayName());
                     } catch (IllegalArgumentException iae) {
                         player.sendMessage(ChatColor.RED + "Feature " + ChatColor.DARK_RED + meta.getDisplayName() + ChatColor.RED + " does not exist");
                         return;
                     }
-                    long cooldown = cooldownFeatureTP(player);
+                    if (!Permissions.hasPermission(player, "TPort.command.featureTP." + featureType)) {
+                        return;
+                    }
+                    long cooldown = CooldownManager.FeatureTP.getTime(player);
                     if (cooldown / 1000 > 0) {
                         player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
                         return;
                     }
-                    featureTP(player, featuresType);
+                    featureTP(player, featureType);
                 } else if (e.getSlot() == 26) {
                     openMainTPortGUI(player, 0);
                 }
-
+                
             }
-
-
+            
+            
         }
     }
 }

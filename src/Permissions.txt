@@ -1,0 +1,54 @@
+Permissions:
+
+To enable set in TPortConfig.yml permissions.enabled to true
+To disable set in TPortConfig.yml permissions.enabled to false
+
+Permissions can work with trees. (names PermissionStrip)
+To disable set in TPortConfig.yml permissions.strip to false
+To enable set in TPortConfig.yml permissions.strip to true
+* What is PermissionStrip -> Example: permission TPort.command.example
+* If player has the permission 'TPort' -> player has permission of all permissions starting with 'TPort'
+* If player has the permission 'TPort.command' -> player has permission of all permissions starting with 'TPort.command'
+* If player has the permission 'TPort.command.example' -> player has permission to 'TPort.command.example'
+
+* All permissions (works only with permissionStrip enabled)                                                   TPort
+* All non admin commands (works only with permissionStrip enabled)                                            TPort.command
+* All compass usages  (works only with permissionStrip enabled)                                               TPort.compass
+* Use of compass                                                                                              TPort.compass.use
+* Teleport to player                                                                                          TPort.pltp.tp
+
+/tport                                                                                                        TPort.open                                  || TPort.basic
+/tport add <TPort name> [lore of TPort]                                                                       TPort.command.add.<X>                       || TPort.basic
+    TPort.command.add.<X> overrules all other permissions
+/tport compass [player] [TPort name]                                                                          TPort.command.compass.create                || TPort.compass.create
+/tport edit <TPort name> lore set <lore>                                                                      TPort.command.edit.lore                     || TPort.basic
+/tport edit <TPort name> lore remove                                                                          TPort.command.edit.lore                     || TPort.basic
+/tport edit <TPort name> name <new TPort name>                                                                TPort.command.edit.name                     || TPort.basic
+/tport edit <TPort name> item                                                                                 TPort.command.edit.item                     || TPort.basic
+/tport edit <TPort name> location                                                                             TPort.command.edit.location                 || TPort.basic
+/tport edit <TPort name> private                                                                              TPort.command.edit.private
+/tport edit <TPort name> private [on:off:online]                                                              TPort.command.edit.private
+    also quick edit in own TPort gui ^
+/tport edit <TPort name> whitelist <add:remove> <players names...>                                            TPort.command.edit.whitelist
+/tport edit <TPort name> whitelist list                                                                       TPort.command.edit.whitelist
+/tport edit <TPort name> move <slot>                                                                          TPort.command.edit.move                     || TPort.basic
+/tport PLTP [on:off]                                                                                          TPort.command.pltp                          || TPort.basic
+    also quick edit in own TPort gui ^
+/tport PLTP whitelist list                                                                                    TPort.command.pltp                          || TPort.basic
+/tport PLTP whitelist <add:remove> <playername>                                                               TPort.command.pltp                          || TPort.basic
+/tport PLTP tp <player>                                                                                       (TPort.command.pltp                          || TPort.basic) && TPort.pltp.tp
+/tport help                                                                                                   TPort.command.help                          || TPort.basic
+/tport open <playername> [TPort name]                                                                         TPort.command.open                          || TPort.basic
+    also using a TPort in a TPort gui
+/tport own [TPort name]                                                                                       TPort.command.own AND TPort.command.open    || TPort.basic
+/tport remove <TPort name>                                                                                    TPort.command.remove                        || TPort.basic
+/tport removePlayer <playerName>                                                                              TPort.admin.removePlayer
+/tport back                                                                                                   TPort.command.back
+/tport biomeTP                                                                                                TPort.command.biomeTP
+/tport biomeTP [biome]                                                                                        TPort.command.biomeTP.<biome>
+/tport biomeTP random                                                                                         TPort.command.biomeTP.random
+/tport featureTP                                                                                              TPort.command.featureTP
+/tport featureTP [featureType]                                                                                tport.command.featureTP.<featureType>
+/tport reload                                                                                                 TPort.admin.reload
+/tport cooldown <cooldown>                                                                                    TPort.command.cooldown
+/tport cooldown <cooldown> <value>                                                                            TPort.command.cooldown.set                  || TPort.admin.cooldown

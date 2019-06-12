@@ -1,6 +1,7 @@
 package com.spaceman.tport;
 
 import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
@@ -18,14 +19,13 @@ import java.util.*;
 import static com.spaceman.tport.commands.TPort.getHead;
 import static com.spaceman.tport.commands.tport.Back.prevTPort;
 import static com.spaceman.tport.events.InventoryClick.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
 
 public class TPortInventories {
 
     public static HashMap<UUID, Integer> mainTPortGUIPage = new HashMap<>();
 
     private static ItemStack toTPortItem(String path) {
-        Files tportData = getFiles("TPortData");
+        Files tportData = GettingFiles.getFile("TPortData");
         ItemStack is = tportData.getConfig().getItemStack(path + ".item").clone();
         ItemMeta im = is.getItemMeta();
 
@@ -71,43 +71,17 @@ public class TPortInventories {
         Validate.notNull(newPlayerUUID, "The newPlayerUUID can not be null");
         Validate.notNull(player, "The player can not be null");
 
-        Files tportData = getFiles("TPortData");
+        Files tportData = GettingFiles.getFile("TPortData");
         Inventory inv = Bukkit.createInventory(null, 27, "TPort: " + newPlayerName);
         int slotOffset = 0;
-        for (int i = 0; i < TPortSize + 1; i++) {
+        for (int i = 0; i <= TPortSize; i++) {
 
-            if (i == 8 || i == 17) {
+            if (i == 8 || i == 16/*16 because of the slot+slotOffset*/) {
                 slotOffset++;
-                continue;
             }
 
-//            if (newPlayerUUID.equals(player.getUniqueId().toString())) {
-//                if (tportData.getConfig().contains("tport." + newPlayerUUID + ".items." + (i - slotOffset) + ".item")) {
-////                    inv.setItem(i, tportData.getConfig().getItemStack("tport." + newPlayerUUID + ".items." + (i - slotOffset) + ".item"));
-//                    inv.setItem(i, toTPortItem("tport." + newPlayerUUID + ".items." + (i - slotOffset)));
-//                }
-//            } else if (tportData.getConfig().contains("tport." + newPlayerUUID + ".items." + (i - slotOffset))) {
-//                switch (tportData.getConfig().getString("tport." + newPlayerUUID + ".items." + (i - slotOffset) + ".private.statement")) {
-//                    case "off":
-//                        inv.setItem(i, toTPortItem("tport." + newPlayerUUID + ".items." + (i - slotOffset)));
-//                        break;
-//                    case "on":
-//                        ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
-//                                .getStringList("tport." + newPlayerUUID + ".items." + (i - slotOffset) + ".private.players");
-//                        if (list.contains(player.getUniqueId().toString())) {
-//                            inv.setItem(i, toTPortItem("tport." + newPlayerUUID + ".items." + (i - slotOffset)));
-//                        }
-//                        break;
-//                    case "online":
-//                        if (Bukkit.getPlayer(UUID.fromString(newPlayerUUID)) != null) {
-//                            inv.setItem(i, toTPortItem("tport." + newPlayerUUID + ".items." + (i - slotOffset)));
-//                        }
-//                        break;
-//                }
-//            }
-
-            if (tportData.getConfig().contains("tport." + newPlayerUUID + ".items." + (i - slotOffset) + ".item")) {
-                inv.setItem(i, toTPortItem("tport." + newPlayerUUID + ".items." + (i - slotOffset)));
+            if (tportData.getConfig().contains("tport." + newPlayerUUID + ".items." + i + ".item")) {
+                inv.setItem(i + slotOffset, toTPortItem("tport." + newPlayerUUID + ".items." + i));
             }
 
             ItemStack back = new ItemStack(Material.BARRIER);
@@ -179,14 +153,14 @@ public class TPortInventories {
     public static void openBiomeTP(Player player, int page) {
 
         int x = Biome.values().length;
-        int y = 3;
+        int pageLength = 3;
         while (x % 7 != 0) {
             x++;
         }
         x += ((x + (9 - x % 9)) / 9) * 2;
 
-        if (x > y * 7) {
-            x = y * 9;
+        if (x > pageLength * 7) {
+            x = pageLength * 9;
         }
         x += 18;
 
@@ -214,6 +188,8 @@ public class TPortInventories {
             String b = biome.toString();
             if (b.contains("SNOWY")) {
                 inv.setItem(i, createStack(b, Material.SNOW));
+            } else if (b.contains("BAMBOO_JUNGLE") || b.equalsIgnoreCase("BAMBOO_JUNGLE")) {
+                inv.setItem(i, createStack(b, Material.SUGAR_CANE));
             } else if (b.contains("FROZEN")) {
                 inv.setItem(i, createStack(b, Material.ICE));
             } //override biome
@@ -268,7 +244,7 @@ public class TPortInventories {
             i++;
         }
 
-        if ((page + y) * 7 < Biome.values().length) {
+        if ((page + pageLength) * 7 < Biome.values().length) {
             inv.setItem(x - 1, createStack(NEXT, Material.HOPPER));
         }
         if (page != 0) {
@@ -280,7 +256,7 @@ public class TPortInventories {
     }
 
     public static void openFeatureTP(Player player, int page) {
-        int x = FeaturesTypes.values().length;
+        int x = FeatureTypes.values().length;
         int y = 3;
         while (x % 7 != 0) {
             x++;
@@ -298,7 +274,7 @@ public class TPortInventories {
         int a = page * 7;
         int i = 10;
 
-        for (FeaturesTypes feature : FeaturesTypes.values()) {
+        for (FeatureTypes feature : FeatureTypes.values()) {
 
             if (a != 0) {
                 a--;
@@ -318,7 +294,7 @@ public class TPortInventories {
             i++;
         }
 
-        if ((page + y) * 7 < FeaturesTypes.values().length) {
+        if ((page + y) * 7 < FeatureTypes.values().length) {
             inv.setItem(x - 1, createStack(NEXT, Material.HOPPER));
         }
         if (page != 0) {
@@ -330,7 +306,7 @@ public class TPortInventories {
     }
 
     public static void openMainTPortGUI(Player player, int page) {
-        Files tportData = getFiles("TPortData");
+        Files tportData = GettingFiles.getFile("TPortData");
         Set<String> l = tportData.getConfig().getConfigurationSection("tport").getKeys(false);
 
         int y = 3;
@@ -386,7 +362,7 @@ public class TPortInventories {
 
     }
 
-    public enum FeaturesTypes {
+    public enum FeatureTypes {
         Buried_Treasure(new ItemStack(Material.CHEST)),
         Desert_Pyramid(new ItemStack(Material.SAND)),
         EndCity(new ItemStack(Material.END_STONE)),
@@ -394,9 +370,10 @@ public class TPortInventories {
         Igloo(new ItemStack(Material.SNOW_BLOCK)),
         Jungle_Pyramid(new ItemStack(Material.MOSSY_COBBLESTONE)),
         Mansion(new ItemStack(Material.DARK_OAK_WOOD)),
-        Minecraft(new ItemStack(Material.STONE)),
+        Mineshaft(new ItemStack(Material.STONE)),
         Monument(new ItemStack(Material.PRISMARINE_BRICKS)),
         Ocean_Ruin(new ItemStack(Material.WATER_BUCKET)),
+        Pillager_Outpost(new ItemStack(Material.CROSSBOW)),
         Shipwreck(new ItemStack(Material.OAK_BOAT)),
         Stronghold(new ItemStack(Material.END_PORTAL_FRAME)),
         Swamp_Hut(new ItemStack(Material.VINE)),
@@ -404,7 +381,7 @@ public class TPortInventories {
 
         private ItemStack itemStack;
 
-        FeaturesTypes(ItemStack itemStack) {
+        FeatureTypes(ItemStack itemStack) {
             this.itemStack = itemStack;
         }
 

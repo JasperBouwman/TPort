@@ -1,9 +1,5 @@
 package com.spaceman.tport.fancyMessage.events;
 
-import org.bukkit.Bukkit;
-
-import java.util.UUID;
-
 public class ClickEvent {
 
     public final static String RUN_COMMAND = "run_command";
@@ -30,6 +26,7 @@ public class ClickEvent {
     public static ClickEvent changePage(String value) {
         return new ClickEvent(CHANGE_PAGE, value);
     }
+
     public static ClickEvent changePage(int value) {
         return new ClickEvent(CHANGE_PAGE, String.valueOf(value));
     }
@@ -50,4 +47,3 @@ public class ClickEvent {
         return value;
     }
 }
-

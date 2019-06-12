@@ -7,19 +7,17 @@ import java.util.HashMap;
 
 public class GettingFiles {
 
-    private static HashMap<String, Files> list;
-    public static Main main;
+    private static HashMap<String, Files> list = new HashMap<>();
 
-    public GettingFiles(Main main) {
-        GettingFiles.main = main;
+    public static void loadFiles() {
 
         list = new HashMap<>();
 
-        list.put("TPortData", new Files(main, "TPortData.yml"));
-        list.put("TPortConfig", new Files(main, "TPortConfig.yml"));
+        list.put("TPortData", new Files(Main.getInstance(), "TPortData.yml"));
+        list.put("TPortConfig", new Files(Main.getInstance(), "TPortConfig.yml"));
     }
 
-    public static Files getFiles(String file) {
+    public static Files getFile(String file) {
         return list.getOrDefault(file.replace(".yml", ""), null);
     }
 

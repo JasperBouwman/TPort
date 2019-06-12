@@ -2,6 +2,7 @@ package com.spaceman.tport;
 
 import com.google.common.collect.ImmutableList;
 import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -16,7 +17,6 @@ import java.util.List;
 import java.util.Set;
 
 import static com.spaceman.tport.events.InventoryClick.TPortSize;
-import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
 
 public class TabComplete implements TabCompleter {
 
@@ -245,7 +245,7 @@ public class TabComplete implements TabCompleter {
         TABCOMPLETE_REMOVE.clear();
         TABCOMPLETE_REMOVEPLAYER.clear();
 
-        Files tportData = getFiles("TPortData");
+        Files tportData = GettingFiles.getFile("TPortData");
 
         String playerUUID = player.getUniqueId().toString();
         String argOneUUID = PlayerUUID.getPlayerUUID(argOne);
@@ -281,7 +281,7 @@ public class TabComplete implements TabCompleter {
         TABCOMPLETE_BIOMETP.add("random");
 
         //tport featureTP
-        for (TPortInventories.FeaturesTypes feature : TPortInventories.FeaturesTypes.values()) {
+        for (TPortInventories.FeatureTypes feature : TPortInventories.FeatureTypes.values()) {
             TABCOMPLETE_FEATURETP.add(feature.toString());
         }
 

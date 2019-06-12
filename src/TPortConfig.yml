@@ -1,8 +1,12 @@
-TPortTPCooldown: 3000           # cooldown of teleporting to a TPort
-BackCooldown: TPortTPCooldown   # cooldown of teleporting back
-PlayerTPCooldown: 3000          # cooldown of teleporting to a player
-FeatureTPCooldown: 3000         # cooldown of teleporting to a feature
-BiomeTPCooldown: 3000           # cooldown of teleporting to a biome
+cooldown:
+  TPortTP: 3000           # cooldown of teleporting to a TPort
+  Back: TPortTP           # cooldown of teleporting back
+  PlayerTP: 3000          # cooldown of teleporting to a player
+  FeatureTP: 3000         # cooldown of teleporting to a feature
+  BiomeTP: 3000           # cooldown of teleporting to a biome
+Permissions:
+  enabled: false
+  strip: true
 
 # each number is in milliseconds. 3000ms is 3 seconds.
 # you can use another cooldown to link each other. Just use another cooldown

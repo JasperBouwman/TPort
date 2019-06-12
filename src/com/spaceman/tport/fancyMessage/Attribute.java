@@ -6,7 +6,7 @@ public enum Attribute {
     BOLD,
     OBFUSCATED,
     STRIKETHROUGH,
-    UNDERLINE;
+    UNDERLINE
 
 }
 

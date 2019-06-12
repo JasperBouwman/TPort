@@ -1,20 +1,37 @@
 package com.spaceman.tport.commands.tport;
 
+import com.spaceman.tport.Permissions;
+import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
-import com.spaceman.tport.commands.CmdHandler;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
+public class RemovePlayer extends SubCommand {
 
-public class RemovePlayer extends CmdHandler {
+    @Override
+    public List<String> tabList(Player player, String[] args) {
+        ArrayList<String> list = new ArrayList<>();
+        if (player.isOp()) {
+            Files tportData = GettingFiles.getFile("TPortData");
+            for (String s : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
+                list.add(PlayerUUID.getPlayerName(s));
+            }
+        }
+        return list;
+    }
 
     @Override
     public void run(String[] args, Player player) {
         //tport removePlayer <playerName>
+
+        if (!Permissions.hasPermission(player, "TPort.admin.removePlayer")) {
+            return;
+        }
 
         if (!player.isOp()) {
             player.sendMessage(ChatColor.RED + "You must be an OP to use this");
@@ -24,7 +41,7 @@ public class RemovePlayer extends CmdHandler {
             player.sendMessage(ChatColor.RED + "Usage: /tport removePlayer <player name>");
             return;
         }
-        Files tportData = getFiles("TPortData");
+        Files tportData = GettingFiles.getFile("TPortData");
 
         String newPlayerName = args[1];
         String newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);

@@ -54,4 +54,8 @@ public class HoverEvent {
     public ArrayList<TextComponent> getText() {
         return text;
     }
+
+    public void removeLast() {
+        this.text.remove(text.size() - 1);
+    }
 }

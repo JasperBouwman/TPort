@@ -54,6 +54,10 @@ public class Message {
         addText(textComponent(simpleText, color));
     }
 
+    public void addMessage(Message message) {
+        this.components.addAll(message.getText());
+    }
+
     public void addWhiteSpace() {
         addText(" ");
     }
@@ -150,6 +154,12 @@ public class Message {
 
     }
 
+    public void broadcast() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            this.sendMessage(player);
+        }
+    }
+
     public enum TitleTypes {
         TITLE,
         ACTIONBAR,
@@ -196,9 +206,11 @@ public class Message {
                     translate.append("[\"\",");
                 }
 
-                translate.append(String.format("{\"text\":\"%s\",\"color\":\"%s\"%s%s%s}",
+                translate.append(String.format("{\"" + textComponent.getType() + "\":\"%s\",\"color\":\"%s\"%s%s%s%s}",
                         textComponent.getText(),
                         textComponent.getColor(),
+
+                        textComponent.getInsertion() == null ? "" : ",\"insertion\":\"" + textComponent.getInsertion() + "\"",
 
                         translateAttributes2(textComponent),
 

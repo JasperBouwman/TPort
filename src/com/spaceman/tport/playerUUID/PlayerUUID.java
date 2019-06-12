@@ -11,8 +11,9 @@ import java.util.UUID;
 public class PlayerUUID {
 
     public static String getPlayerName(String uuid) {
+        if (uuid == null) return null;
         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(UUID.fromString(uuid));
-        if (offlinePlayer == null) {
+        if (!offlinePlayer.hasPlayedBefore()) {
             return null;
         }
         return offlinePlayer.getName();

@@ -1,6 +1,7 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.commands.CmdHandler;
+import com.spaceman.tport.Permissions;
+import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.book.Book;
 import com.spaceman.tport.fancyMessage.book.BookPage;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
@@ -13,10 +14,18 @@ import static com.spaceman.tport.events.InventoryClick.PREVIOUS;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 
-public class Help extends CmdHandler {
+public class Help extends SubCommand {
 
     @Override
     public void run(String[] args, Player player) {
+
+        if (!Permissions.hasPermission(player, "TPort.command.help", false)) {
+            if (!Permissions.hasPermission(player, "TPort.basic", false)) {
+                Permissions.sendNoPermMessage(player, "TPort.command.help", "TPort.basic");
+                return;
+            }
+        }
+
         openMainBook(player);
     }
 
@@ -39,6 +48,7 @@ public class Help extends CmdHandler {
         BookPage commandPage2 = book.createPage();
         BookPage commandPage3 = book.createPage();
         BookPage commandPage4 = book.createPage();
+        BookPage commandPage5 = book.createPage();
         BookPage cp1 = book.createPage();
         BookPage cp2 = book.createPage();
         BookPage cp3 = book.createPage();
@@ -55,6 +65,8 @@ public class Help extends CmdHandler {
         BookPage cp14 = book.createPage();
         BookPage cp15 = book.createPage();
         BookPage cp16 = book.createPage();
+        BookPage cp17 = book.createPage();
+        BookPage cp18 = book.createPage();
         BookPage author1 = book.createPage();
         BookPage author2 = book.createPage();
 
@@ -87,7 +99,7 @@ public class Help extends CmdHandler {
         aboutP3.addText(textComponent("\n\nThis inventory is called the ", ChatColor.BLUE));
         aboutP3.addText(textComponent("TPort gui", ChatColor.DARK_PURPLE));
         aboutP3.addText(textComponent(", in here you can find ", ChatColor.BLUE));
-        aboutP4.addText(textComponent("all the saved TPort of the owning player. When hovering over a TPort you can see of the TPort is private or not. If you are the owner of the TPort gui you can right-click" +
+        aboutP4.addText(textComponent("all the saved TPort of the owning player. When hovering over a TPort you can see if the TPort is private or not. If you are the owner of the TPort gui you can right-click" +
                 " a TPort to toggle to set the TPort private or open. When clicking the player head you can teleport to that", ChatColor.BLUE));
         aboutP5.addText(textComponent("player, but only if his PLTP is set to open or when you are whitelisted. When you click on your own head in your own TPort gui you will toggle the PLTP" +
                 " to open or private.", ChatColor.BLUE));
@@ -105,10 +117,12 @@ public class Help extends CmdHandler {
                 " When not found you will be notified. When succeed you will teleport to that feature.", ChatColor.BLUE));
 
         aboutP9.addText(textComponent("Cooldown", ChatColor.DARK_AQUA));
-        aboutP9.addText(textComponent("\n\nThis feature adds cooldowns to the teleport features of TPort. You can edit the cooldowns in the TPortConfig.yml file in the plugins folder of the server", ChatColor.BLUE));
+        aboutP9.addText(textComponent("\n\nThis feature adds cooldowns to the teleport features of TPort. You can edit the cooldowns in the TPortConfig.yml file in the plugins folder of the server." +
+                " Or you can edit it using the ", ChatColor.BLUE));
+        aboutP9.addText(textComponent("command", ChatColor.DARK_AQUA, hoverEvent(textComponent("/tport cooldown <cooldown> [value]", ChatColor.BLUE))));
 
         aboutP10.addText(textComponent("When setting the value to another cooldown name those will be linked, and when setting the value to 'permission' the cooldown time is the given permission of the player" +
-                ". this way you can give each player/group a separate cooldown, the permission is 'TPort.", ChatColor.BLUE));
+                ". This way you can give each player/group a separate cooldown, the permission is 'TPort.", ChatColor.BLUE));
         aboutP10.addText(textComponent("<cooldown>", ChatColor.BLUE, hoverEvent(textComponent("The cooldown name, mind that the cooldowns are case sensitive", ChatColor.DARK_AQUA))));
         aboutP10.addText(textComponent(".", ChatColor.BLUE));
         aboutP10.addText(textComponent("X", ChatColor.BLUE, hoverEvent(textComponent("The X is the cooldown time in milliseconds", ChatColor.DARK_AQUA))));
@@ -125,45 +139,47 @@ public class Help extends CmdHandler {
 
         commandPage1.addText(textComponent("Commands:", ChatColor.DARK_AQUA, commandTitleHoverEvent));
         commandPage1.addText(textComponent("\n/tport add <TPort name> [lore of TPort]", ChatColor.BLUE, ClickEvent.changePage(cp1.getPageNumber()), hoverEvent(textComponent("Page: " + cp1.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage1.addText(textComponent("\n/tport compass [player] [TPort name]", ChatColor.DARK_GREEN, ClickEvent.changePage(cp2.getPageNumber()), hoverEvent(textComponent("Page: " + cp2.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage1.addText(textComponent("\n/tport compass <type> [data]", ChatColor.DARK_GREEN, ClickEvent.changePage(cp2.getPageNumber()), hoverEvent(textComponent("Page: " + cp2.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage1.addText(textComponent("\n/tport edit <TPort name> lore set <lore...>", ChatColor.BLUE, ClickEvent.changePage(cp3.getPageNumber()), hoverEvent(textComponent("Page: " + cp3.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage1.addText(textComponent("\n/tport edit <TPort name> lore remove", ChatColor.DARK_GREEN, ClickEvent.changePage(cp4.getPageNumber()), hoverEvent(textComponent("Page: " + cp4.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage1.addText(textComponent("\n/tport edit <TPort name> name <new TPort name>", ChatColor.BLUE, ClickEvent.changePage(cp4.getPageNumber()), hoverEvent(textComponent("Page: " + cp4.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage1.addText(textComponent("\n/tport edit <TPort name> item", ChatColor.DARK_GREEN, ClickEvent.changePage(cp5.getPageNumber()), hoverEvent(textComponent("Page: " + cp5.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage2.addText(textComponent("Commands:", ChatColor.DARK_AQUA, commandTitleHoverEvent));
+        commandPage2.addText(textComponent("\n/tport edit <TPort name> item", ChatColor.DARK_GREEN, ClickEvent.changePage(cp5.getPageNumber()), hoverEvent(textComponent("Page: " + cp5.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage2.addText(textComponent("\n/tport edit <TPort name> location", ChatColor.BLUE, ClickEvent.changePage(cp5.getPageNumber()), hoverEvent(textComponent("Page: " + cp5.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage2.addText(textComponent("\n/tport edit <TPort name> private", ChatColor.DARK_GREEN, ClickEvent.changePage(cp6.getPageNumber()), hoverEvent(textComponent("Page: " + cp6.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage2.addText(textComponent("\n/tport edit <TPort name> private <true:false>", ChatColor.BLUE, ClickEvent.changePage(cp6.getPageNumber()), hoverEvent(textComponent("Page: " + cp6.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage2.addText(textComponent("\n/tport edit <TPort name> whitelist <add:remove> <player names...>", ChatColor.DARK_GREEN, ClickEvent.changePage(cp7.getPageNumber()), hoverEvent(textComponent("Page: " + cp7.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage2.addText(textComponent("\n/tport edit <TPort name> whitelist list", ChatColor.BLUE, ClickEvent.changePage(cp8.getPageNumber()), hoverEvent(textComponent("Page: " + cp8.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage3.addText(textComponent("Commands:", ChatColor.DARK_AQUA, commandTitleHoverEvent));
-        commandPage3.addText(textComponent("\n/tport edit <TPort name> move <slot>", ChatColor.BLUE, ClickEvent.changePage(cp8.getPageNumber()), hoverEvent(textComponent("Page: " + cp8.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage3.addText(textComponent("\n/tport PLTP <on:off>", ChatColor.DARK_GREEN, ClickEvent.changePage(cp9.getPageNumber()), hoverEvent(textComponent("Page: " + cp9.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage3.addText(textComponent("\n/tport PLTP whitelist list", ChatColor.BLUE, ClickEvent.changePage(cp10.getPageNumber()), hoverEvent(textComponent("Page: " + cp10.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage3.addText(textComponent("\n/tport PLTP whitelist <add:remove> <playername>", ChatColor.DARK_GREEN, ClickEvent.changePage(cp10.getPageNumber()), hoverEvent(textComponent("Page: " + cp10.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage3.addText(textComponent("\n/tport edit <TPort name> whitelist list", ChatColor.BLUE, ClickEvent.changePage(cp8.getPageNumber()), hoverEvent(textComponent("Page: " + cp8.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage3.addText(textComponent("\n/tport edit <TPort name> move <slot>", ChatColor.DARK_GREEN, ClickEvent.changePage(cp8.getPageNumber()), hoverEvent(textComponent("Page: " + cp8.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage3.addText(textComponent("\n/tport PLTP <on:off>", ChatColor.BLUE, ClickEvent.changePage(cp9.getPageNumber()), hoverEvent(textComponent("Page: " + cp9.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage3.addText(textComponent("\n/tport PLTP whitelist list", ChatColor.DARK_GREEN, ClickEvent.changePage(cp10.getPageNumber()), hoverEvent(textComponent("Page: " + cp10.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage3.addText(textComponent("\n/tport PLTP whitelist <add:remove> <playername>", ChatColor.BLUE, ClickEvent.changePage(cp10.getPageNumber()), hoverEvent(textComponent("Page: " + cp10.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage3.addText(textComponent("\n/tport PLTP tp <playername>", ChatColor.DARK_GREEN, ClickEvent.changePage(cp18.getPageNumber()), hoverEvent(textComponent("Page: " + cp18.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage3.addText(textComponent("\n/tport help", ChatColor.BLUE, ClickEvent.changePage(cp11.getPageNumber()), hoverEvent(textComponent("Page: " + cp11.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage3.addText(textComponent("\n/tport open <playername> [TPort name]", ChatColor.DARK_GREEN, ClickEvent.changePage(cp11.getPageNumber()), hoverEvent(textComponent("Page: " + cp11.getPageNumber(), ChatColor.DARK_AQUA))));
         commandPage4.addText(textComponent("Commands:", ChatColor.DARK_AQUA, commandTitleHoverEvent));
-        commandPage4.addText(textComponent("\n/tport own [TPort name]", ChatColor.BLUE, ClickEvent.changePage(cp12.getPageNumber()), hoverEvent(textComponent("Page: " + cp12.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage4.addText(textComponent("\n/tport remove <TPort name>", ChatColor.DARK_GREEN, ClickEvent.changePage(cp12.getPageNumber()), hoverEvent(textComponent("Page: " + cp12.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage4.addText(textComponent("\n/tport removePlayer <playerName>", ChatColor.BLUE, ClickEvent.changePage(cp13.getPageNumber()), hoverEvent(textComponent("Page: " + cp13.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage4.addText(textComponent("\n/tport back", ChatColor.DARK_GREEN, ClickEvent.changePage(cp13.getPageNumber()), hoverEvent(textComponent("Page: " + cp13.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage4.addText(textComponent("\n/tport biomeTP", ChatColor.BLUE, ClickEvent.changePage(cp15.getPageNumber()), hoverEvent(textComponent("Page: " + cp15.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage4.addText(textComponent("\n/tport biomeTP [biome]", ChatColor.DARK_GREEN, ClickEvent.changePage(cp15.getPageNumber()), hoverEvent(textComponent("Page: " + cp15.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage4.addText(textComponent("\n/tport featureTP", ChatColor.BLUE, ClickEvent.changePage(cp16.getPageNumber()), hoverEvent(textComponent("Page: " + cp16.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage4.addText(textComponent("\n/tport featureTP [featureType]", ChatColor.DARK_GREEN, ClickEvent.changePage(cp16.getPageNumber()), hoverEvent(textComponent("Page: " + cp16.getPageNumber(), ChatColor.DARK_AQUA))));
-        commandPage4.addText(textComponent("\n/tport reload", ChatColor.BLUE, ClickEvent.changePage(cp16.getPageNumber()), hoverEvent(textComponent("Page: " + cp16.getPageNumber(), ChatColor.DARK_AQUA))));
-
+        commandPage4.addText(textComponent("\n/tport open <playername> [TPort name]", ChatColor.BLUE, ClickEvent.changePage(cp11.getPageNumber()), hoverEvent(textComponent("Page: " + cp11.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage4.addText(textComponent("\n/tport own [TPort name]", ChatColor.DARK_GREEN, ClickEvent.changePage(cp12.getPageNumber()), hoverEvent(textComponent("Page: " + cp12.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage4.addText(textComponent("\n/tport remove <TPort name>", ChatColor.BLUE, ClickEvent.changePage(cp12.getPageNumber()), hoverEvent(textComponent("Page: " + cp12.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage4.addText(textComponent("\n/tport removePlayer <playerName>", ChatColor.DARK_GREEN, ClickEvent.changePage(cp13.getPageNumber()), hoverEvent(textComponent("Page: " + cp13.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage4.addText(textComponent("\n/tport back", ChatColor.BLUE, ClickEvent.changePage(cp13.getPageNumber()), hoverEvent(textComponent("Page: " + cp13.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage4.addText(textComponent("\n/tport biomeTP", ChatColor.DARK_GREEN, ClickEvent.changePage(cp15.getPageNumber()), hoverEvent(textComponent("Page: " + cp15.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage4.addText(textComponent("\n/tport biomeTP [biome]", ChatColor.BLUE, ClickEvent.changePage(cp15.getPageNumber()), hoverEvent(textComponent("Page: " + cp15.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage5.addText(textComponent("Commands:", ChatColor.DARK_AQUA, commandTitleHoverEvent));
+        commandPage5.addText(textComponent("\n/tport featureTP", ChatColor.DARK_GREEN, ClickEvent.changePage(cp16.getPageNumber()), hoverEvent(textComponent("Page: " + cp16.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage5.addText(textComponent("\n/tport featureTP [featureType]", ChatColor.BLUE, ClickEvent.changePage(cp16.getPageNumber()), hoverEvent(textComponent("Page: " + cp16.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage5.addText(textComponent("\n/tport reload", ChatColor.DARK_GREEN, ClickEvent.changePage(cp16.getPageNumber()), hoverEvent(textComponent("Page: " + cp16.getPageNumber(), ChatColor.DARK_AQUA))));
+        commandPage5.addText(textComponent("\n/tport cooldown <cooldown> [value]", ChatColor.BLUE, ClickEvent.changePage(cp17.getPageNumber()), hoverEvent(textComponent("Page: " + cp17.getPageNumber(), ChatColor.DARK_AQUA))));
+        
         cp1.addText(textComponent("/tport add <TPort name> [lore of TPort]", ChatColor.DARK_AQUA));
         cp1.addText(textComponent("\n\nUse this command to create a new TPort. It will take the item from your main hand and that item will be used to display the TPort in your TPort gui." +
                 " The lore you can add is like a description for your TPort, use ", ChatColor.BLUE));
         cp1.addText(textComponent("\\\\\\\\n", ChatColor.DARK_AQUA));
         cp1.addText(textComponent(" to create a new line", ChatColor.BLUE));
 
-        cp2.addText(textComponent("/tport compass [player] [TPort name]", ChatColor.DARK_AQUA));
-        cp2.addText(textComponent("\n\nThis will give you a compass item, when right-click with the compass you will open the main TPort gui. If you used a player in the command you will get a compass" +
-                " with a player linked to it, ", ChatColor.BLUE));
-        cp3.addText(textComponent("when right-click you will open their TPort gui. And if you even have a TPort linked to it you will teleport to that TPort", ChatColor.BLUE));
+        cp2.addText(textComponent("/tport compass <type> [data]", ChatColor.DARK_AQUA));
+        cp2.addText(textComponent("\n\nThis will preform an action linked to the compass type, each type has is own arguments, when right-click you will preform that action.", ChatColor.BLUE));
+        cp3.addText(textComponent("When the compass is in an item frame it still works", ChatColor.BLUE));
         cp3.addText(textComponent("\n\n/tport edit <TPort name> lore set <lore...>", ChatColor.DARK_AQUA));
         cp3.addText(textComponent("\n\nThis will edit the lore of the given TPort", ChatColor.BLUE));
 
@@ -237,6 +253,12 @@ public class Help extends CmdHandler {
         cp16.addText(textComponent("\n\nTeleport to a the given feature", ChatColor.BLUE));
         cp16.addText(textComponent("\n\n/tport reload", ChatColor.DARK_AQUA));
         cp16.addText(textComponent("\n\nreloads the TPorts and config", ChatColor.BLUE));
+
+        cp17.addText(textComponent("/tport cooldown <cooldown> [value]", ChatColor.DARK_AQUA));
+        cp17.addText(textComponent("\n\nShows you the cooldown value of the given cooldown, when given a value it will change the cooldown value", ChatColor.BLUE));
+    
+        cp18.addText(textComponent("/tport pltp tp <playername>", ChatColor.DARK_AQUA));
+        cp18.addText(textComponent("\n\nTeleport you to the given player", ChatColor.BLUE));
 
         author1.addText(textComponent("About the author", ChatColor.DARK_AQUA));
         author1.addText(textComponent("\n\nI'm ", ChatColor.BLUE));

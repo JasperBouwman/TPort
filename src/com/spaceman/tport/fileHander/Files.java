@@ -6,6 +6,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.logging.Level;
 
 public class Files {
@@ -34,6 +36,14 @@ public class Files {
             this.reloadConfig();
         }
         return fileConfiguration;
+    }
+    
+    public Collection<String> getConfigurationSection(String path) {
+        if (getConfig().contains(path)) {
+            return getConfig().getConfigurationSection(path).getKeys(false);
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     public void saveConfig() {

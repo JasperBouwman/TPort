@@ -1,26 +1,32 @@
 package com.spaceman.tport.commands;
 
+import com.spaceman.tport.Permissions;
+import com.spaceman.tport.commandHander.HeadCommand;
 import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.util.NumberConversions;
 
-import java.util.ArrayList;
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 import java.util.List;
-import java.util.UUID;
 
+import static com.spaceman.tport.Permissions.hasPermission;
 import static com.spaceman.tport.TPortInventories.openMainTPortGUI;
 
-public class TPort implements CommandExecutor {
+public class TPort extends HeadCommand {
 
-    private List<CmdHandler> actions = new ArrayList<>();
     public static Open open;
     public static PLTP pltp;
 
@@ -28,19 +34,21 @@ public class TPort implements CommandExecutor {
         open = new Open();
         pltp = new PLTP();
 
-        actions.add(new Add());
-        actions.add(new Edit());
-        actions.add(pltp);
-        actions.add(new Help());
-        actions.add(open);
-        actions.add(new Remove());
-        actions.add(new RemovePlayer());
-        actions.add(new Compass());
-        actions.add(new Own());
-        actions.add(new Back());
-        actions.add(new BiomeTP());
-        actions.add(new FeatureTP());
-        actions.add(new Reload());
+        addAction(new Add());
+        addAction(new Edit());
+        addAction(pltp);
+        addAction(new Help());
+        addAction(open);
+        addAction(new Remove());
+        addAction(new RemovePlayer());
+        addAction(new Compass());
+        addAction(new Own());
+        addAction(new Back());
+        addAction(new BiomeTP());
+        addAction(new FeatureTP());
+        addAction(new Reload());
+        addAction(new Cooldown());
+        addAction(new Log());
     }
 
     public static ItemStack getHead(UUID uuid) {
@@ -62,8 +70,25 @@ public class TPort implements CommandExecutor {
     }
 
     @Override
+    public List<String> tabList(String[] args, Player player) {
+        ArrayList<String> list = new ArrayList<>(super.tabList(args, player));
+
+        if (!Permissions.hasPermission(player, "TPort.admin.reload", false)) {
+            list.remove("reload");
+        }
+        if (!Permissions.hasPermission(player, "TPort.admin.removePlayer", false)) {
+            list.remove("removePlayer");
+        }
+        if (!hasPermission(player, "tport.command.cooldown")) {
+            list.remove("cooldown");
+        }
+        return list;
+    }
+
+    @Override
     public boolean onCommand(CommandSender commandSender, Command command, String string, String[] strings) {
 
+        // tport
         // tport add <TPort name> [lore of TPort]
         // tport compass [player] [TPort name]
         // tport edit <TPort name> lore set <lore>
@@ -72,10 +97,11 @@ public class TPort implements CommandExecutor {
         // tport edit <TPort name> item
         // tport edit <TPort name> location
         // tport edit <TPort name> private
-        // tport edit <TPort name> private [true:false]
+        // tport edit <TPort name> private [on:off:online]
         // tport edit <TPort name> whitelist <add:remove> <players names...>
         // tport edit <TPort name> whitelist list
-        // tport PLTP tp [on:off]
+        // tport edit <TPort name> move <slot>
+        // tport PLTP [on:off]
         // tport PLTP whitelist list
         // tport PLTP whitelist <add:remove> <playername>
         // tport help
@@ -89,6 +115,7 @@ public class TPort implements CommandExecutor {
         // tport featureTP
         // tport featureTP [featureType]
         // tport reload
+        // tport cooldown <cooldown> [value]
 
         if (!(commandSender instanceof Player)) {
             commandSender.sendMessage("You have to be a player to use this command");
@@ -98,16 +125,18 @@ public class TPort implements CommandExecutor {
         Player player = (Player) commandSender;
 
         if (strings.length == 0) {
-            openMainTPortGUI(player, 0);
-        } else {
-
-            for (CmdHandler action : this.actions) {
-                if (strings[0].equalsIgnoreCase(action.getClass().getSimpleName())) {
-                    action.run(strings, player);
+            if (!Permissions.hasPermission(player, "TPort.open", false)) {
+                if (!Permissions.hasPermission(player, "TPort.basic", false)) {
+                    Permissions.sendNoPermMessage(player, "TPort.open", "TPort.basic");
                     return false;
                 }
             }
-            player.sendMessage(ChatColor.RED + "This is not a sub-command");
+            openMainTPortGUI(player, 0);
+        } else {
+
+            if (!this.runCommands(strings[0], strings, player)) {
+                player.sendMessage(ChatColor.RED + "This is not a sub-command");
+            }
 
         }
 

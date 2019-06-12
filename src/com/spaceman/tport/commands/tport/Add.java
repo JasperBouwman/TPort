@@ -1,10 +1,12 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.commands.CmdHandler;
+import com.spaceman.tport.Permissions;
+import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.fileHander.GettingFiles;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -18,14 +20,34 @@ import java.util.Arrays;
 
 import static com.spaceman.tport.events.InventoryClick.TPortSize;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fileHander.GettingFiles.getFiles;
 
-public class Add extends CmdHandler {
+public class Add extends SubCommand {
 
     @Override
     public void run(String[] args, Player player) {
 
         // tport add <TPort name> [lore of TPort]
+
+        //check permission
+        boolean hasPer = false;
+        int maxTPorts = TPortSize;
+        for (int i = TPortSize; i > 0; i--) {
+            if (Permissions.hasPermission(player, "TPort.command.add." + i, false, false)) {
+                hasPer = true;
+                maxTPorts = i;
+                break;
+            }
+        }
+        if (!hasPer) {
+            hasPer = Permissions.hasPermission(player, "TPort.command.add", false);
+            if (!hasPer) {
+                hasPer = Permissions.hasPermission(player, "TPort.basic", false);
+            }
+        }
+        if (!hasPer) {
+            Permissions.sendNoPermMessage(player, "TPort.command.add.<X>", "TPort.basic");
+            return;
+        }
 
         if (args.length == 1) {
             player.sendMessage("§cUse: §4/tport add <TPort name> [lore of TPort]");
@@ -33,7 +55,7 @@ public class Add extends CmdHandler {
             return;
         }
 
-        Files tportData = getFiles("TPortData");
+        Files tportData = GettingFiles.getFile("TPortData");
 
         if (args.length == 2) {
 
@@ -60,26 +82,19 @@ public class Add extends CmdHandler {
                 return;
             }
 
-            // ItemMeta ism = is.getItemMeta();
-            // if (ism.getDisplayName().equals(null)) {
-            // player.sendMessage("place an item in you main hand");
-            // return false;
-            // }
-
             // set new item
-            for (int i = 0; i < TPortSize + 1; i++) {
+            for (int i = 0; i <= TPortSize; i++) {
                 if (i == TPortSize) {
                     player.sendMessage("§cYour TPort list is full, remove an old one");
                     return;
+                } else if (i == maxTPorts) {
+                    player.sendMessage(ChatColor.RED + "You have exceeded your maximal TPorts, permission: TPort.command.add." + maxTPorts);//todo test
+                    return;
                 } else if (!tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
                     ItemStack item = new ItemStack(player.getInventory().getItemInMainHand());
-//                    ItemMeta meta = item.getItemMeta();
-//                    meta.setDisplayName(args[1]);
-//                    item.setItemMeta(meta);
                     Location l = player.getLocation();
                     tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".name", args[1]);
                     tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".item", item);
-//                    p.getConfig().set("tport." + player.getName() + ".items." + i + ".location", l);
                     Main.saveLocation("tport." + playerUUID + ".items." + i + ".location", l);
 
                     tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".private.statement", "off");
@@ -96,6 +111,7 @@ public class Add extends CmdHandler {
                     return;
                 }
             }
+            player.sendMessage("§cYour TPort list is full, remove an old one");
         } else if (args.length >= 3) {
 
             ItemStack is = new ItemStack(player.getInventory().getItemInMainHand());
@@ -122,9 +138,12 @@ public class Add extends CmdHandler {
             }
 
             // set new item
-            for (int i = 0; i < TPortSize + 1; i++) {
+            for (int i = 0; i <= TPortSize; i++) {
                 if (i == TPortSize) {
                     player.sendMessage("§cYour TPort list is full, remove an old one");
+                    return;
+                } else if (i == maxTPorts) {
+                    player.sendMessage(ChatColor.RED + "You have exceeded your maximal TPorts, permission: TPort.command.add." + maxTPorts); //todo test
                     return;
                 } else if (!tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
                     ItemStack item = player.getInventory().getItemInMainHand().clone();
