@@ -1,54 +1,55 @@
 package com.spaceman.tport.commands.tport.edit.whitelist;
 
+import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
-import org.bukkit.ChatColor;
+import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.UUID;
+
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 
 public class List extends SubCommand {
-
+    
+    @Override
+    public Message getCommandDescription() {
+        return new Message(textComponent("This command is used to list all players in the whitelist of the given TPort", ColorTheme.ColorType.infoColor));
+    }
+    
     @Override
     public void run(String[] args, Player player) {
-        Message message = new Message();
-        boolean color = false;
-        boolean first = true;
-        Files tportData = GettingFiles.getFile("TPortData");
-        String playerUUID = player.getUniqueId().toString();
-
-        for (String s : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
-
-            String name = tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".name");
-            if (name.equalsIgnoreCase(args[1])) {
-                ArrayList<String> list = (ArrayList<String>) tportData.getConfig().getStringList("tport." + playerUUID + ".items." + s + ".private.players");
-
-                message.addText("Players in the whitelist of the TPort " + ChatColor.DARK_GREEN + args[1] + ChatColor.GREEN + ": ", ChatColor.GREEN);
-                message.addText(PlayerUUID.getPlayerName((list.size() > 0 ? list.get(0) : "")), ChatColor.BLUE);
-
-                for (String tmp : list) {
-                    if (first) {
-                        first = false;
-                        continue;
-                    }
-
-                    message.addText(", ", ChatColor.GREEN);
-
-                    if (color) {
-                        message.addText(PlayerUUID.getPlayerName(tmp), ChatColor.BLUE);
-                    } else {
-                        message.addText(PlayerUUID.getPlayerName(tmp), ChatColor.DARK_BLUE);
-                    }
-                    color = !color;
-                }
-
-                message.sendMessage(player);
-                return;
-            }
+        // tport edit <TPort name> whitelist list
+        
+        TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
+        
+        if (tport == null) {
+            sendErrorTheme(player, "No TPort found called %s", args[1]);
+            return;
         }
-        player.sendMessage("§cNo TPort found called §4" + args[1]);
+        ArrayList<UUID> list = tport.getWhitelist();
+    
+        ColorTheme theme = ColorTheme.getTheme(player);
+    
+        Message message = new Message();
+        message.addText("Players in the whitelist of the TPort " + theme.getVarInfoColor() + args[1] + theme.getInfoColor() + ": ", theme.getInfoColor());
+        boolean color = true;
+        message.addText("");
+        
+        for (UUID tmp : list) {
+            if (color) {
+                message.addText(PlayerUUID.getPlayerName(tmp), theme.getVarInfoColor());
+            } else {
+                message.addText(PlayerUUID.getPlayerName(tmp), theme.getVarInfo2Color());
+            }
+            message.addText(", ", theme.getInfoColor());
+            color = !color;
+        }
+        message.removeLast();
+        message.sendMessage(player);
     }
 }

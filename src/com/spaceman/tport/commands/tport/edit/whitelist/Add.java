@@ -1,107 +1,101 @@
 package com.spaceman.tport.commands.tport.edit.whitelist;
 
+import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.commandHander.ArgumentType;
+import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
+import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.spaceman.tport.colorFormatter.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Add extends SubCommand {
-
-    @Override
-    public List<String> tabList(Player player, String[] args) {
-        ArrayList<String> list = new ArrayList<>();
-        for (OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-            list.add(p.getName());
-        }
-        list.remove(player.getName());
-
-        ArrayList<String> removeList = new ArrayList<>();
-        Files tportData = GettingFiles.getFile("TPortData");
-        String playerUUID = player.getUniqueId().toString();
-        if (tportData.getConfig().contains("tport." + playerUUID + ".items")) {
-            for (String s : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
-                String name = tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".name");
-                if (name.equalsIgnoreCase(args[1])) {
-                    List<String> players = tportData.getConfig().getStringList("tport." + playerUUID + ".items." + s + ".private.players");
-                    players.stream().map(PlayerUUID::getPlayerName).filter(Objects::nonNull).forEach(removeList::add);
-//                    for (String uuid : players) {
-//                        String tmp = PlayerUUID.getPlayerName(uuid);
-//                        if (tmp != null) {
-//                            list.add(tmp);
-//                        }
-//                    }
-                }
+    
+    public Add() {
+        EmptyCommand emptyCommand = new EmptyCommand();
+        emptyCommand.setCommandName("player", ArgumentType.REQUIRED);
+        emptyCommand.setCommandDescription(textComponent("This command is used to add players to the whitelist of the given TPort", ColorType.infoColor),
+                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.edit.whitelist.add", ColorTheme.ColorType.varInfoColor),
+                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+        emptyCommand.setTabRunnable((args, player) -> {
+            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
+            if (tport != null) {
+                List<String> list = getFile("TPortData").getKeys("tport").stream().map(PlayerUUID::getPlayerName).collect(Collectors.toList());
+                list.remove(player.getName());
+                tport.getWhitelist().stream().map(PlayerUUID::getPlayerName).filter(Objects::nonNull).forEach(list::remove);
+                list.removeAll(Arrays.asList(args).subList(4, args.length));
+                return list;
+            } else {
+                return new ArrayList<>();
             }
-        }
-        list.removeAll(removeList);
-
-        return list;
+        });
+        emptyCommand.setLooped(true);
+        addAction(emptyCommand);
     }
-
+    
+    @Override
+    public Collection<String> tabList(Player player, String[] args) {
+        return getActions().get(0).tabList(player, args);
+    }
+    
     @Override
     public void run(String[] args, Player player) {
-        if (args.length == 4) {
-            player.sendMessage("§cUse: §4/tport whitelist <TPort name> <add> <players...>");
+        //tport edit <TPort name> whitelist add <player...>
+    
+        if (!hasPermission(player, "TPort.edit.whitelist.add", "TPort.basic")) {
             return;
         }
-        Files tportData = GettingFiles.getFile("TPortData");
-        String playerUUID = player.getUniqueId().toString();
-
-        for (String s : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
-
-            String name = tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".name");
-            if (name.equalsIgnoreCase(args[1])) {
-
-                ArrayList<String> list = (ArrayList<String>) tportData.getConfig().getStringList("tport." + playerUUID + ".items." + s + ".private.players");
-                for (int i = 4; i < args.length; i++) {
-
-                    String newPlayerName = args[i];
-                    String newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
-                    if (newPlayerUUID == null) {
-                        ArrayList<String> globalNames = PlayerUUID.getGlobalPlayerUUID(newPlayerName);
-                        if (globalNames.size() == 1) {
-                            newPlayerUUID = globalNames.get(0);
-                        } else if (globalNames.size() == 0) {
-                            player.sendMessage(ChatColor.RED + "Could not find any players named " + ChatColor.DARK_RED + newPlayerName);
-                            continue;
-                        } else {
-                            player.sendMessage(ChatColor.RED + "There are more players found with the name " + ChatColor.DARK_RED + newPlayerName + ChatColor.RED
-                                    + ", please type the correct name with correct capitals");
-                            continue;
-                        }
-                    }
-
-                    if (newPlayerUUID.equals(playerUUID)) {
-                        player.sendMessage("§cYou don't have to put yourself in your whitelist");
-                        continue;
-                    }
-                    if (list.contains(newPlayerUUID)) {
-                        player.sendMessage("§cThis player is already in you whitelist");
-                        continue;
-                    }
-
-                    list.add(newPlayerUUID);
-                    player.sendMessage("§3Successfully added " + newPlayerName);
-
-                    Player newPlayer = Bukkit.getPlayer(UUID.fromString(newPlayerUUID));
-                    if (newPlayer != null) {
-                        newPlayer.sendMessage("§3You are in the whitelist of §9" + player.getName() + " §3in the item §9" + name);
-                    }
-                }
-                tportData.getConfig().set("tport." + playerUUID + ".items." + s + ".private.players", list);
-                tportData.saveConfig();
+        
+        if (args.length == 4) {
+            sendErrorTheme(player, "Usage: %s", "/tport edit <TPort name> whitelist add <player...>");
+            return;
+        }
+        
+        TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
+        
+        if (tport == null) {
+            sendErrorTheme(player, "No TPort found called %s", args[1]);
+            return;
+        }
+        if (tport.isOffered()) {
+            sendErrorTheme(player, "You can't edit TPort %s while its offered to %s", tport.getName(), PlayerUUID.getPlayerName(tport.getOfferedTo()));
+            return;
+        }
+        for (int i = 4; i < args.length; i++) {
+            
+            String newPlayerName = args[i];
+            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
+            if (newPlayerUUID == null || !getFile("TPortData").getConfig().contains("tport." + newPlayerUUID)) {
+                sendErrorTheme(player, "Could not find a player named %s", newPlayerName);
                 return;
             }
+            
+            if (newPlayerUUID.equals(player.getUniqueId())) {
+                sendErrorTheme(player, "You don't have to put yourself in your whitelist");
+                continue;
+            }
+            if (tport.getWhitelist().contains(newPlayerUUID)) {
+                sendErrorTheme(player, "Player %s is already in your whitelist", newPlayerName);
+                continue;
+            }
+
+            sendSuccessTheme(player, "Successfully added %s", newPlayerName);
+    
+            Player newPlayer = Bukkit.getPlayer(newPlayerUUID);
+            if (newPlayer != null) {
+                sendInfoTheme(newPlayer, "You have been added in the whitelist of %s in the TPort %s", player.getName(), tport.getName());
+            }
         }
-        player.sendMessage("§cNo TPort found called §4" + args[1]);
+        tport.save();
     }
 }

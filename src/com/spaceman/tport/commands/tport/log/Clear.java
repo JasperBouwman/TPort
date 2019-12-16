@@ -1,22 +1,59 @@
 package com.spaceman.tport.commands.tport.log;
 
+import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.commandHander.ArgumentType;
+import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.logbook.Logbook;
+import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
-public class Clear extends SubCommand {
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
+
+public class Clear extends SubCommand {
+    
+    public Clear() {
+        EmptyCommand emptyCommand = new EmptyCommand();
+        emptyCommand.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyCommand.setCommandDescription(TextComponent.textComponent("This command is used to clear the TPort log of the given TPort", ColorTheme.ColorType.infoColor));
+        emptyCommand.setTabRunnable((args, player) -> {
+            List<String> list = TPortManager.getTPortList(player.getUniqueId()).stream().filter(tport -> !tport.isLogBookEmpty()).map(TPort::getName).collect(Collectors.toList());
+            list.removeAll(Arrays.asList(args).subList(2, args.length));
+            return list;
+        });
+        emptyCommand.setLooped(true);
+        addAction(emptyCommand);
+    }
+    
+    @Override
+    public Collection<String> tabList(Player player, String[] args) {
+        return TPortManager.getTPortList(player.getUniqueId()).stream().filter(tport -> !tport.isLogBookEmpty()).map(TPort::getName).collect(Collectors.toList());
+    }
+    
     @Override
     public void run(String[] args, Player player) {
-        //tport log clear [TPort name...]
-
-        if (args.length == 2) {
-
-        } else if (args.length > 2) {
-
+        // tport log clear <TPort name...>
+        
+        if (args.length > 2) {
+            for (int i = 2; i < args.length; i++) {
+                TPort tport = TPortManager.getTPort(player.getUniqueId(), args[i]);
+                if (tport != null) {
+                    tport.clearLogBook();
+                    tport.save();
+                    sendSuccessTheme(player, "Successfully cleared the log of TPort %s", tport.getName());
+                } else {
+                    sendErrorTheme(player, "No TPort found called %s", args[i]);
+                }
+            }
         } else {
-            player.sendMessage("§cUse: §4/tport log clear [TPort name...]");
+            sendErrorTheme(player, "Usage: $s", "/tport log clear <TPort name...>");
         }
-
     }
 }

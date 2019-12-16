@@ -1,12 +1,16 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.Permissions;
 import com.spaceman.tport.TPortInventories;
+import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
+import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.tport.TPortManager;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Biome;
@@ -14,41 +18,35 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendInfoTheme;
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class Compass extends SubCommand {
     
     public Compass() {
         EmptyCommand emptyCommand1 = new EmptyCommand();
+        emptyCommand1.setCommandName("data...", ArgumentType.OPTIONAL);
+        emptyCommand1.setCommandDescription(textComponent("This command is used when you need to add extra data to your TPort compass", ColorTheme.ColorType.infoColor),
+                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.compass.create", ColorTheme.ColorType.varInfoColor),
+                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
         emptyCommand1.setTabRunnable((args, player) -> {
             if (args[1].equalsIgnoreCase("TPort")) {
                 ArrayList<String> list = new ArrayList<>();
-                Files tportData = GettingFiles.getFile("TPortData");
                 
-                String argOneUUID = PlayerUUID.getPlayerUUID(args[2]);
+                UUID argOneUUID = PlayerUUID.getPlayerUUID(args[2]);
                 if (argOneUUID == null) {
-                    ArrayList<String> globalNames = PlayerUUID.getGlobalPlayerUUID(args[2]);
-                    if (globalNames.size() == 1) {
-                        argOneUUID = globalNames.get(0);
-                    }
+                    return Collections.emptyList();
                 }
-                
-                if (tportData.getConfig().contains("tport." + argOneUUID + ".items")) {
-                    for (String s : tportData.getConfig().getConfigurationSection("tport." + argOneUUID + ".items").getKeys(false)) {
-                        String name = tportData.getConfig().getString("tport." + argOneUUID + ".items." + s + ".name");
-                        
-                        if (tportData.getConfig().getString("tport." + argOneUUID + ".items." + s + ".private.statement").equals("true")) {
-                            ArrayList<String> listTmp = (ArrayList<String>) tportData.getConfig().getStringList("tport." + argOneUUID + ".items." + s + ".private.players");
-                            if (listTmp.contains(player.getUniqueId().toString())) {
-                                list.add(name);
-                            }
-                        } else {
-                            list.add(name);
-                        }
+    
+                for (TPort tport : TPortManager.getTPortList(argOneUUID)) {
+                    if (tport.hasAccess(player)) {
+                        list.add(tport.getName());
                     }
                 }
                 
@@ -58,11 +56,17 @@ public class Compass extends SubCommand {
         });
         
         EmptyCommand emptyCommand = new EmptyCommand();
+        emptyCommand.setCommandName("type", ArgumentType.REQUIRED);
+        emptyCommand.setCommandDescription(textComponent("This command is used to create TPort compasses. " +
+                "When right-clicking with a TPort compass you will trigger a certain action. " +
+                "TPort compasses will work when they are in a item frame, to rotate a TPort compass in an item frame you have to sneak", ColorTheme.ColorType.infoColor),
+                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.compass.create", ColorTheme.ColorType.varInfoColor),
+                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
         emptyCommand.setTabRunnable((args, player) -> {
             if ("TPort".equalsIgnoreCase(args[1]) || "PLTP".equalsIgnoreCase(args[1])) {
                 ArrayList<String> list = new ArrayList<>();
                 Files tportData = GettingFiles.getFile("TPortData");
-                for (String s : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
+                for (String s : tportData.getKeys("tport")) {
                     list.add(PlayerUUID.getPlayerName(s));
                 }
                 return list;
@@ -75,7 +79,19 @@ public class Compass extends SubCommand {
                 return list;
             } else if ("featureTP".equalsIgnoreCase(args[1])) {
                 ArrayList<String> list = new ArrayList<>();
-                Arrays.stream(TPortInventories.FeatureTypes.values()).map(TPortInventories.FeatureTypes::name).forEach(list::add);
+                Arrays.stream(TPortInventories.FeatureType.values()).map(TPortInventories.FeatureType::name).forEach(list::add);
+                return list;
+            } else if ("Public".equalsIgnoreCase(args[1])) {
+                ArrayList<String> list = new ArrayList<>();
+    
+                Files tportData = GettingFiles.getFile("TPortData");
+                for (String publicTPortSlot : tportData.getKeys("public.tports")) {
+                    String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
+                    TPort tport = getTPort(UUID.fromString(tportID));
+                    if (tport != null) {
+                        list.add(tport.getName());
+                    }
+                }
                 return list;
             }
             return Collections.emptyList();
@@ -91,24 +107,21 @@ public class Compass extends SubCommand {
     
     @Override
     public void run(String[] args, Player player) {
-        //tport compass <type> [data]
+        //tport compass <type> [data...]
         
-        if (!Permissions.hasPermission(player, "TPort.command.compass.create", false)) {
-            if (!Permissions.hasPermission(player, "TPort.compass.create", false)) {
-                Permissions.sendNoPermMessage(player, "TPort.command.compass.create", "TPort.compass.create");
-                return;
-            }
+        if (!hasPermission(player, true, true, "TPort.compass.create")) {
+            return;
         }
         
         /*
-         * Compass
+         * Compass:
          *
          * TPort Compass
          * Type: <type>
          * Data: <data...>
          *
          * */
-        
+    
         /*
          * /tport compass <type> [data]
          *
@@ -117,49 +130,55 @@ public class Compass extends SubCommand {
          * /tport compass featureTP [featureType]
          * /tport compass back
          * /tport compass PLTP <player>
+         * /tport compass home
+         * /tport compass public [tport]
          * */
         
         
         if (args.length == 1) {
-            player.sendMessage(ChatColor.RED + "Usage: " + ChatColor.DARK_RED + "/tport compass <type> [data...]");
+            sendErrorTheme(player, "Usage: %s", "/tport compass <type> [data...]");
         } else if (args.length > 1) {
             CompassType type = CompassType.getType(args[1]);
             
             if (type == null) {
-                player.sendMessage(ChatColor.DARK_RED + args[1] + ChatColor.RED + " is not a valid compass type");
+                sendErrorTheme(player, "%s is not a valid compass type", args[1]);
                 return;
             }
             
             if (type.getArgsMax() < args.length - 2 || type.getArgsMin() > args.length - 2) {
-                player.sendMessage("Compass type " + type.getDisplayName() + " does not support " + (args.length - 2) + " arguments");
+                sendErrorTheme(player, "Compass type %s does not support %s arguments", type.getDisplayName(), String.valueOf(args.length - 2));
                 return;
             }
             
-            ItemStack is = new ItemStack(Material.COMPASS);
+            ItemStack is = player.getInventory().getItemInMainHand();
+            if (!is.getType().equals(Material.COMPASS)) {
+                sendErrorTheme(player, "You need to hold a compass to turn it into a TPort Compass");
+                return;
+            }
+            
             ItemMeta im = is.getItemMeta();
             if (im != null) {
-                ArrayList<String> lore = new ArrayList<>();
-                
-                lore.add(ChatColor.DARK_AQUA + "TPort Compass");
-                lore.add("");
-                lore.add(ChatColor.GRAY + "Type: " + type.getDisplayName());
-                
-                for (int i = 0; i < args.length - 2; i++) {
-                    lore.add(ChatColor.GRAY + type.getArgNames()[i] + ": " + args[i + 2]);
-                }
-                
-                im.setLore(lore);
-                
-                is.setItemMeta(im);
+                im = Bukkit.getItemFactory().getItemMeta(is.getType());
             }
-            
-            for (ItemStack item : player.getInventory().addItem(is).values()) {
-                player.getWorld().dropItem(player.getLocation(), item);
+            if (im == null) {
+                sendErrorTheme(player, "Could not turn it into a TPort Compass");
+                return;
             }
+            ArrayList<String> lore = new ArrayList<>();
             
-            player.sendMessage(ChatColor.BLUE + "Right-click with the with compass to use it");
+            lore.add(ChatColor.DARK_AQUA + "TPort Compass");
+            lore.add("");
+            lore.add(ChatColor.GRAY + "Type: " + type.getDisplayName());
+            
+            for (int i = 0; i < args.length - 2; i++) {
+                lore.add(ChatColor.GRAY + type.getArgNames()[i] + ": " + args[i + 2]);
+            }
+            im.setLore(lore);
+            is.setItemMeta(im);
+
+            sendInfoTheme(player, "Right-click with the compass to use it");
         } else {
-            player.sendMessage(ChatColor.RED + "Use: " + ChatColor.DARK_RED + "/tport compass <type> [data]");
+            sendErrorTheme(player, "Usage: %s", "/tport compass <type> [data...]");
         }
     }
     
@@ -168,7 +187,9 @@ public class Compass extends SubCommand {
         PLTP("PLTP", 1, 1, "Player"),
         BIOME_TP("biomeTP", 0, 1, "Biome"),
         FEATURE_TP("featureTP", 0, 1, "Feature"),
-        BACK("back", 0, 0);
+        BACK("back", 0, 0),
+        HOME("home", 0, 0),
+        PUBLIC("Public", 0, 1, "Public TPort");
         
         private String displayName;
         private int argsMax;

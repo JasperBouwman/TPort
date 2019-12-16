@@ -1,14 +1,16 @@
 package com.spaceman.tport.events;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
+import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
@@ -33,9 +35,12 @@ public class JoinEvent implements Listener {
 
         if (!tportData.getConfig().contains("tport." + playerUUID)) {
             if (p.getConfig().contains("tport." + player.getName())) {
+                
+                ColorTheme theme = ColorTheme.getTheme(player);
+                
                 tportData.getConfig().set("tport." + playerUUID, p.getConfig().get("tport." + player.getName()));
 
-                for (String item : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
+                for (String item : tportData.getKeys("tport." + playerUUID + ".items")) {
                     try {
                         if (tportData.getConfig().contains("tport." + playerUUID + ".items." + item + ".item")) {
 
@@ -57,21 +62,17 @@ public class JoinEvent implements Listener {
                                 if (tmpItem.hasItemMeta() && tmpItem.getItemMeta().hasDisplayName()) { //test if valid item
 
                                     Message message = new Message();
-                                    message.addText(textComponent("The Whitelist of your TPort ", ChatColor.RED));
+                                    message.addText(textComponent("The Whitelist of your TPort ", theme.getErrorColor()));
 
-                                    message.addText(tmpItem.getItemMeta().getDisplayName(), ChatColor.DARK_RED);
-                                    message.addText(" has some names in the  whitelist that couldn't be recognized by the server and will be removed from your whitelist. This list is as followed:");
+                                    message.addText(tmpItem.getItemMeta().getDisplayName(), theme.getVarErrorColor());
+                                    message.addText(" has some names in the whitelist that couldn't be recognized by the server and will be removed from your whitelist. This list is as followed: ", theme.getErrorColor());
                                     boolean b = true;
                                     for (String playerName : list) {
-                                        message.addWhiteSpace();
-                                        if (b) {
-                                            message.addText(playerName, ChatColor.BLUE);
-                                            b = false;
-                                        } else {
-                                            message.addText(playerName, ChatColor.DARK_BLUE);
-                                            b = true;
-                                        }
+                                        message.addText(playerName, b ? theme.getVarErrorColor() : theme.getVarError2Color());
+                                        message.addText(textComponent(", ", theme.getErrorColor()));
+                                        b = !b;
                                     }
+                                    message.removeLast();
                                     message.sendMessage(player);
                                 }
                             }
@@ -111,18 +112,14 @@ public class JoinEvent implements Listener {
 
                 if (!list.isEmpty()) {
                     Message message = new Message();
-                    message.addText("The main whitelist has some players names that couldn't be recognized by the server and will be removed from your whitelist. This list is as followed:", ChatColor.RED);
+                    message.addText("The main whitelist has some players names that couldn't be recognized by the server and will be removed from your whitelist. This list is as followed:", theme.getErrorColor());
                     boolean b = true;
                     for (String playerName : list) {
-                        message.addWhiteSpace();
-                        if (b) {
-                            message.addText(playerName, ChatColor.BLUE);
-                            b = false;
-                        } else {
-                            message.addText(playerName, ChatColor.DARK_BLUE);
-                            b = true;
-                        }
+                        message.addText(playerName, b ? theme.getVarErrorColor() : theme.getVarError2Color());
+                        message.addText(textComponent(", ", theme.getErrorColor()));
+                        b = !b;
                     }
+                    message.removeLast();
                     message.sendMessage(player);
                 }
 
@@ -130,20 +127,21 @@ public class JoinEvent implements Listener {
 
                 tportData.getConfig().set("tport." + playerUUID + ".item", null);
                 tportData.saveConfig();
-
+    
+                TPortManager.convertOldToNew(tportData);
+                
             } else {
-                tportData.getConfig().set("tport." + playerUUID + ".gui", -1);
                 tportData.getConfig().set("tport." + playerUUID + ".tp.statement", "on");
                 tportData.getConfig().set("tport." + playerUUID + ".tp.players", new ArrayList<>());
                 tportData.saveConfig();
             }
         }
+        TPortManager.convertOldToNew(tportData);
     }
 
-    @EventHandler
+    @EventHandler(priority=EventPriority.MONITOR)
     @SuppressWarnings("unused")
     public void Join(PlayerJoinEvent e) {
-
         Player player = e.getPlayer();
         setData(p, player);
     }

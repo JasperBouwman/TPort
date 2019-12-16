@@ -1,7 +1,6 @@
 package com.spaceman.tport.events;
 
-import com.spaceman.tport.Permissions;
-import com.spaceman.tport.commands.TPort;
+import com.spaceman.tport.commands.TPortCommand;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -18,6 +17,8 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
+import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+
 public class CompassEvents implements Listener {
     
     private boolean openCompass(Player player, ItemStack is) {
@@ -28,48 +29,62 @@ public class CompassEvents implements Listener {
             if (lore.isEmpty()) {
                 return false;
             }
+
             
             if (!lore.get(0).equals(ChatColor.DARK_AQUA + "TPort Compass")) {
                 return false;
             }
-            
-            
-            if (!Permissions.hasPermission(player, "TPort.compass.use")) {
+    
+            if (!hasPermission(player, true, "TPort.compass.use")) {
                 return false;
             }
             
             if (lore.size() == 3) {
                 switch (lore.get(2).split("Type: ")[1]) {
-                    case "TPort":
-                        new TPort().onCommand(player, null, null, new String[]{});
-                        break;
                     case "biomeTP":
-                        new TPort().onCommand(player, null, null, new String[]{"BiomeTP"});
+                        TPortCommand.executeInternal(player, "BiomeTP");
                         break;
                     case "featureTP":
-                        new TPort().onCommand(player, null, null, new String[]{"FeatureTP"});
+                        TPortCommand.executeInternal(player, "FeatureTP");
                         break;
                     case "back":
-                        new TPort().onCommand(player, null, null, new String[]{"back"});
+                        TPortCommand.executeInternal(player, "back");
+                        break;
+                    case "home":
+                        TPortCommand.executeInternal(player, "home");
+                        break;
+                    case "Public":
+                        TPortCommand.executeInternal(player, "public");
+                        break;
+                    case "TPort":
+                    default:
+                        TPortCommand.executeInternal(player, "");
                         break;
                 }
             } else if (lore.size() == 4) {
                 switch (lore.get(2).split("Type: ")[1]) {
                     case "TPort":
-                        new TPort().onCommand(player, null, null, new String[]{"open", lore.get(3).split("Player: ")[1]});
+                        TPortCommand.executeInternal(player, new String[]{"open", lore.get(3).split("Player: ")[1]});
                         break;
                     case "biomeTP":
-                        new TPort().onCommand(player, null, null, new String[]{"BiomeTP", lore.get(3).split("Biome: ")[1]});
+                        TPortCommand.executeInternal(player, new String[]{"BiomeTP", lore.get(3).split("Biome: ")[1]});
                         break;
                     case "featureTP":
-                        new TPort().onCommand(player, null, null, new String[]{"FeatureTP", lore.get(3).split("Feature: ")[1]});
+                        TPortCommand.executeInternal(player, new String[]{"FeatureTP", lore.get(3).split("Feature: ")[1]});
                         break;
                     case "PLTP":
-                        new TPort().onCommand(player, null, null, new String[]{"PLTP", "tp", lore.get(3).split("Player: ")[1]});
+                        TPortCommand.executeInternal(player, new String[]{"PLTP", "tp", lore.get(3).split("Player: ")[1]});
+						break;
+                    case "Public":
+                        TPortCommand.executeInternal(player, new String[]{"public", "open", lore.get(3).split("Public TPort: ")[1]});
+                        break;
+                    default:
+                        TPortCommand.executeInternal(player, "");
+                        break;
                 }
             } else if (lore.size() == 5) {
                 if ("TPort".equals(lore.get(2).split("Type: ")[1])) {
-                    new TPort().onCommand(player, null, null, new String[]{"open", lore.get(3).split("Player: ")[1], lore.get(4).split("TPort: ")[1]});
+                    TPortCommand.executeInternal(player, new String[]{"open", lore.get(3).split("Player: ")[1], lore.get(4).split("TPort: ")[1]});
                 }
             }
             
@@ -152,7 +167,6 @@ public class CompassEvents implements Listener {
                 //since 1.14
             case BLAST_FURNACE:
             case LOOM:
-            case FLETCHING_TABLE:
             case SMOKER:
             case CARTOGRAPHY_TABLE:
             case STONECUTTER:
@@ -161,6 +175,7 @@ public class CompassEvents implements Listener {
             case JIGSAW:
             case LECTERN:
             case SMITHING_TABLE:
+            case FLETCHING_TABLE:
                 return true;
         }
         

@@ -38,7 +38,7 @@ public class Files {
         return fileConfiguration;
     }
     
-    public Collection<String> getConfigurationSection(String path) {
+    public Collection<String> getKeys(String path) {
         if (getConfig().contains(path)) {
             return getConfig().getConfigurationSection(path).getKeys(false);
         } else {

@@ -1,184 +1,72 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.Main;
-import com.spaceman.tport.Permissions;
+import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.commandHander.ArgumentType;
+import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.events.ClickEvent;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
+import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
-import static com.spaceman.tport.events.InventoryClick.TPortSize;
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Add extends SubCommand {
-
+    
+    public Add() {
+        EmptyCommand emptyCommand1 = new EmptyCommand();
+        emptyCommand1.setCommandName("description...", ArgumentType.OPTIONAL);
+        emptyCommand1.setCommandDescription(textComponent("This command is used to add a TPort to your saved TPorts list, " +
+                "and all arguments after the name are the description of that TPort. With ", ColorTheme.ColorType.infoColor),
+                textComponent("\\\\n", ColorTheme.ColorType.varInfoColor),
+                textComponent(" you can add a new line. With the character ", ColorTheme.ColorType.infoColor),
+                textComponent("&", ColorTheme.ColorType.varInfoColor),
+                textComponent(" and a color code you can add colors to your description", ColorTheme.ColorType.infoColor),
+                
+                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.add.[X]", ColorTheme.ColorType.varInfoColor),
+                textComponent(" and ", ColorTheme.ColorType.infoColor), textComponent("TPort.edit.description", ColorTheme.ColorType.varInfoColor),
+                textComponent(", or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+        
+        EmptyCommand emptyCommand = new EmptyCommand();
+        emptyCommand.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyCommand.setCommandDescription(textComponent("This command is used to add a TPort to your saved TPorts list", ColorTheme.ColorType.infoColor),
+                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.add.[X]", ColorTheme.ColorType.varInfoColor),
+                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+        emptyCommand.addAction(emptyCommand1);
+        
+        addAction(emptyCommand);
+    }
+    
     @Override
     public void run(String[] args, Player player) {
-
-        // tport add <TPort name> [lore of TPort]
-
-        //check permission
-        boolean hasPer = false;
-        int maxTPorts = TPortSize;
-        for (int i = TPortSize; i > 0; i--) {
-            if (Permissions.hasPermission(player, "TPort.command.add." + i, false, false)) {
-                hasPer = true;
-                maxTPorts = i;
-                break;
-            }
-        }
-        if (!hasPer) {
-            hasPer = Permissions.hasPermission(player, "TPort.command.add", false);
-            if (!hasPer) {
-                hasPer = Permissions.hasPermission(player, "TPort.basic", false);
-            }
-        }
-        if (!hasPer) {
-            Permissions.sendNoPermMessage(player, "TPort.command.add.<X>", "TPort.basic");
-            return;
-        }
-
+        // tport add <TPort name> [description...]
+        
         if (args.length == 1) {
-            player.sendMessage("§cUse: §4/tport add <TPort name> [lore of TPort]");
-            player.sendMessage("§cName is one word, and the lore can be more");
+            sendErrorTheme(player, "Usage: %s", "/tport add <TPort name> [description...]");
+            sendErrorTheme(player, "Name is one word, and the description can be more");
             return;
         }
-
-        Files tportData = GettingFiles.getFile("TPortData");
-
-        if (args.length == 2) {
-
-            String playerUUID = player.getUniqueId().toString();
-
-            // looks if name is used
-            if (tportData.getConfig().contains("tport." + playerUUID + ".items")) {
-                for (String i : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
-                    if (tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
-//                        ItemStack item = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + i + ".item");
-//                        ItemMeta meta = item.getItemMeta();
-                        if (args[1].equalsIgnoreCase(tportData.getConfig().getString("tport." + playerUUID + ".items." + i + ".name"))) {
-                            player.sendMessage("§cThis TPort name is used");
-                            return;
-                        }
-                    }
-                }
+        
+        ItemStack item = new ItemStack(player.getInventory().getItemInMainHand());
+        if (item.getType().equals(Material.AIR)) {
+            sendErrorTheme(player, "You must hold an item in your main hand");
+            return;
+        }
+        TPort newTPort = new TPort(player.getUniqueId(), args[1], player.getLocation(), item);
+        if (hasPermission(player, false, true, "TPort.edit.description", "TPort.basic")) {
+            if (args.length > 2) {
+                newTPort.setDescription(String.join(" ", Arrays.asList(args).subList(2, args.length)));
             }
-
-            ItemStack is = new ItemStack(player.getInventory().getItemInMainHand());
-
-            if (is.getItemMeta() == null) {
-                player.sendMessage("§cPlace an item in you main hand");
-                return;
-            }
-
-            // set new item
-            for (int i = 0; i <= TPortSize; i++) {
-                if (i == TPortSize) {
-                    player.sendMessage("§cYour TPort list is full, remove an old one");
-                    return;
-                } else if (i == maxTPorts) {
-                    player.sendMessage(ChatColor.RED + "You have exceeded your maximal TPorts, permission: TPort.command.add." + maxTPorts);//todo test
-                    return;
-                } else if (!tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
-                    ItemStack item = new ItemStack(player.getInventory().getItemInMainHand());
-                    Location l = player.getLocation();
-                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".name", args[1]);
-                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".item", item);
-                    Main.saveLocation("tport." + playerUUID + ".items." + i + ".location", l);
-
-                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".private.statement", "off");
-                    ArrayList<String> list = new ArrayList<>();
-                    list.add(playerUUID);
-                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".private.players", list);
-                    Message message = new Message();
-                    message.addText("Successfully added the TPort ", ChatColor.DARK_AQUA);
-                    message.addText(textComponent(args[1], ChatColor.BLUE, ClickEvent.runCommand("/tport open " + player.getName() + " " + args[1])));
-                    message.sendMessage(player);
-                    tportData.saveConfig();
-
-                    player.getInventory().setItem(player.getInventory().getHeldItemSlot(), new ItemStack(Material.AIR));
-                    return;
-                }
-            }
-            player.sendMessage("§cYour TPort list is full, remove an old one");
-        } else if (args.length >= 3) {
-
-            ItemStack is = new ItemStack(player.getInventory().getItemInMainHand());
-
-            if (is.getItemMeta() == null) {
-                player.sendMessage("§cPlace an item in you main hand");
-                return;
-            }
-
-            String playerUUID = player.getUniqueId().toString();
-
-            // looks if name is used
-            if (tportData.getConfig().contains("tport." + playerUUID + ".items")) {
-                for (String i : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
-                    if (tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
-//                        ItemStack item = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + i + ".item");
-//                        ItemMeta meta = item.getItemMeta();
-                        if (args[1].equalsIgnoreCase(tportData.getConfig().getString("tport." + playerUUID + ".items." + i + ".name"))) {
-                            player.sendMessage("§cThis TPort name is used");
-                            return;
-                        }
-                    }
-                }
-            }
-
-            // set new item
-            for (int i = 0; i <= TPortSize; i++) {
-                if (i == TPortSize) {
-                    player.sendMessage("§cYour TPort list is full, remove an old one");
-                    return;
-                } else if (i == maxTPorts) {
-                    player.sendMessage(ChatColor.RED + "You have exceeded your maximal TPorts, permission: TPort.command.add." + maxTPorts); //todo test
-                    return;
-                } else if (!tportData.getConfig().contains("tport." + playerUUID + ".items." + i)) {
-                    ItemStack item = player.getInventory().getItemInMainHand().clone();
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) {
-                        meta = Bukkit.getItemFactory().getItemMeta(item.getType());
-                    }
-//                    meta.setDisplayName(args[1]);
-
-                    StringBuilder lore = new StringBuilder(args[2]);
-                    for (int ii = 3; ii <= args.length - 1; ii++) {
-                        lore.append(" ").append(args[ii]);
-                    }
-
-                    ArrayList<String> list = new ArrayList<>(Arrays.asList(lore.toString().split("\\\\n")));
-
-                    meta.setLore(list);
-                    item.setItemMeta(meta);
-                    Location l = player.getLocation();
-                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".item", item);
-                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".name", args[1]);
-                    Main.saveLocation("tport." + playerUUID + ".items." + i + ".location", l);
-                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".private.statement", "off");
-                    tportData.getConfig().set("tport." + playerUUID + ".items." + i + ".private.players", new ArrayList<>());
-
-                    Message message = new Message();
-                    message.addText("Successfully added the TPort ", ChatColor.DARK_AQUA);
-                    message.addText(textComponent(args[1], ChatColor.BLUE, ClickEvent.runCommand("/tport open " + player.getName() + " " + args[1])));
-                    message.sendMessage(player);
-
-                    player.getInventory().setItem(player.getInventory().getHeldItemSlot(), new ItemStack(Material.AIR));
-                    tportData.saveConfig();
-                    return;
-                }
-            }
+        } else {
+            sendErrorTheme(player, "Could not add description to TPort, missing permissions: %s or %s", "TPort.edit.description", "TPort.basic");
+        }
+        if (TPortManager.addTPort(player, newTPort, true) != null) {
+            player.getInventory().setItem(player.getInventory().getHeldItemSlot(), new ItemStack(Material.AIR));
         }
     }
 }

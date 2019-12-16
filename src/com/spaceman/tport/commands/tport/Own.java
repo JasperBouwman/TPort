@@ -1,62 +1,54 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.Permissions;
+import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.commandHander.ArgumentType;
+import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.commands.TPort;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
+import com.spaceman.tport.commands.TPortCommand;
+import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 
 public class Own extends SubCommand {
-
-    public static List<String> getOwnTPorts(Player player) {
-        ArrayList<String> list = new ArrayList<>();
-        Files tportData = GettingFiles.getFile("TPortData");
-        String playerUUID = player.getUniqueId().toString();
-
-        //tport own
-        if (tportData.getConfig().contains("tport." + playerUUID + ".items")) {
-            for (String s : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
-                String name = tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".name");
-
-                if (tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".private.statement").equals("true")) {
-                    ArrayList<String> listTmp = (ArrayList<String>) tportData.getConfig().getStringList("tport." + playerUUID + ".items." + s + ".private.players");
-                    if (listTmp.contains(player.getUniqueId().toString())) {
-                        list.add(name);
-                    }
-                } else {
-                    list.add(name);
-                }
-            }
-        }
-        return list;
+    
+    public Own() {
+        EmptyCommand emptyCommand = new EmptyCommand();
+        emptyCommand.setCommandName("TPort name", ArgumentType.OPTIONAL);
+        emptyCommand.setCommandDescription(textComponent("This command is used to teleport to one of your own TPorts", ColorTheme.ColorType.infoColor));
+        addAction(emptyCommand);
     }
 
+    public static List<String> getOwnTPorts(Player player) {
+        return TPortManager.getTPortList(player.getUniqueId()).stream().map(TPort::getName).collect(Collectors.toList());
+    }
+    
+    @Override
+    public Message getCommandDescription() {
+        return new Message(textComponent("This command is used to open your own TPort GUI", ColorTheme.ColorType.infoColor));
+    }
+    
     @Override
     public List<String> tabList(Player player, String[] args) {
         return getOwnTPorts(player);
     }
-
+    
     @Override
     public void run(String[] args, Player player) {
         //tport own [TPort name]
 
-        if (!Permissions.hasPermission(player, "TPort.command.own", false)) {
-            if (!Permissions.hasPermission(player, "TPort.basic", false)) {
-                Permissions.sendNoPermMessage(player, "TPort.command.own", "TPort.basic");
-                return;
-            }
-        }
-
         if (args.length == 1) {
-            TPort.open.run(new String[]{"open", player.getName()}, player);
+            Open.runNotPerm(new String[]{"open", player.getName()}, player);
         } else if (args.length == 2) {
-            TPort.open.run(new String[]{"open", player.getName(), args[1]}, player);
+            Open.runNotPerm(new String[]{"open", player.getName(), args[1]}, player);
         } else {
-            player.sendMessage("§cUse: §4/tport own [TPort name]");
+            sendErrorTheme(player, "Usage: %s", "/tport own [TPort name]");
         }
     }
 }

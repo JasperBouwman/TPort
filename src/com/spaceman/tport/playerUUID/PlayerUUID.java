@@ -5,53 +5,39 @@ import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.UUID;
 
 public class PlayerUUID {
-
+    
     public static String getPlayerName(String uuid) {
+        return getPlayerName(UUID.fromString(uuid));
+    }
+    
+    public static String getPlayerName(UUID uuid) {
         if (uuid == null) return null;
-        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(UUID.fromString(uuid));
-        if (!offlinePlayer.hasPlayedBefore()) {
+        try {
+            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
+            return !offlinePlayer.hasPlayedBefore() && !offlinePlayer.isOnline() ? null : offlinePlayer.getName();
+        } catch (IllegalArgumentException iae) {
             return null;
         }
-        return offlinePlayer.getName();
     }
-
-    public static String getPlayerUUID(String playerName) {
+    
+    // returns null if not found
+    public static UUID getPlayerUUID(String playerName) {
         for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
-            if (op.getName().equals(playerName)) {
-                return op.getUniqueId().toString();
+            if ((op.hasPlayedBefore() || op.isOnline()) && op.getName() != null && op.getName().equalsIgnoreCase(playerName)) {
+                return op.getUniqueId();
             }
         }
         return null;
     }
-
-    public static ArrayList<String> getGlobalPlayerUUID(String playerName) {
-        ArrayList<String> temp = new ArrayList<>();
-        for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
-            if (op.getName().equalsIgnoreCase(playerName)) {
-                temp.add(op.getUniqueId().toString());
-            }
-        }
-        return temp;
-    }
-
-    public static String getPlayerUUID(Player player, String name) {
-        String newPlayerUUID = PlayerUUID.getPlayerUUID(name);
+    
+    public static UUID getPlayerUUID(Player player, String name) {
+        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(name);
         if (newPlayerUUID == null) {
-            ArrayList<String> globalNames = PlayerUUID.getGlobalPlayerUUID(name);
-            if (globalNames.size() == 1) {
-                newPlayerUUID = globalNames.get(0);
-            } else if (globalNames.size() == 0) {
-                player.sendMessage(ChatColor.RED + "Could not find any players named " + ChatColor.DARK_RED + name);
-                return null;
-            } else {
-                player.sendMessage(ChatColor.RED + "There are more players found with the name " + ChatColor.DARK_RED + name + ChatColor.RED
-                        + ", please type the correct name with correct capitals");
-                return null;
-            }
+            player.sendMessage(ChatColor.RED + "Could not find a player named " + ChatColor.DARK_RED + name);
+            return null;
         }
         return newPlayerUUID;
     }

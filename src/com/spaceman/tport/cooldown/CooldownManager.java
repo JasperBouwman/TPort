@@ -10,21 +10,37 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.logging.Level;
 
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+
 public enum CooldownManager {
 
-    TPortTP,
-    PlayerTP,
-    FeatureTP,
-    BiomeTP,
-    Back;
+    TPortTP("3000"),
+    PlayerTP("3000"),
+    FeatureTP("3000"),
+    BiomeTP("3000"),
+    Back("TPortTP");
 
     public static boolean loopCooldown = false;
     private static HashMap<UUID, HashMap<CooldownManager, Long>> cooldownTime = new HashMap<>();
     private static Files tportConfig = GettingFiles.getFile("TPortConfig");
-
+    
+    private String defaultValue;
+    
+    CooldownManager(String defValue) {
+        this.defaultValue = defValue;
+    }
+    
+    public static void setDefaultValues() {
+        for (CooldownManager cooldown : CooldownManager.values()) {
+            if (!tportConfig.getConfig().contains("cooldown." + cooldown.name())) {
+                cooldown.edit(cooldown.defaultValue);
+            }
+        }
+    }
+    
     public static boolean contains(String name) {
         for (CooldownManager cooldownManager : CooldownManager.values()) {
-            if (name.equals(cooldownManager.name())) {
+            if (cooldownManager.name().equals(name)) {
                 return true;
             }
         }
@@ -98,4 +114,17 @@ public enum CooldownManager {
         return getTime(player, null);
     }
 
+    public boolean hasCooled(Player player) {
+        return hasCooled(player, true);
+    }
+    
+    public boolean hasCooled(Player player, boolean sendMessage) {
+        long cooldown = this.getTime(player);
+        if (cooldown / 1000 > 0) {
+            if (sendMessage) sendErrorTheme(player, "You must wait another %s to use this again",
+                    (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s"));
+            return false;
+        }
+        return true;
+    }
 }

@@ -1,67 +1,73 @@
 package com.spaceman.tport.commands.tport.log;
 
+import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.commandHander.ArgumentType;
+import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
-import com.spaceman.tport.logbook.Logbook;
+import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.playerUUID.PlayerUUID;
+import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
-import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
 
-public class Remove extends SubCommand {//todo colorize
-
-    @Override
-    public List<String> tabList(Player player, String[] args) {
-        return getOwnTPorts(player);
+public class Remove extends SubCommand {
+    
+    public Remove() {
+        EmptyCommand emptyCommand = new EmptyCommand();
+        emptyCommand.setCommandName("player", ArgumentType.REQUIRED);
+        emptyCommand.setCommandDescription(TextComponent.textComponent("This command is used to remove the player form the TPort log", ColorTheme.ColorType.infoColor));
+        emptyCommand.setTabRunnable((args, player) -> {
+            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
+            if (tport != null) {
+                List<String> list = tport.getLogged().stream().map(PlayerUUID::getPlayerName).collect(Collectors.toList());
+                list.removeAll(Arrays.asList(args).subList(3, args.length));
+                return list;
+            } else {
+                return Collections.emptyList();
+            }
+        });
+        emptyCommand.setLooped(true);
+        addAction(emptyCommand);
     }
-
+    
+    @Override
+    public Collection<String> tabList(Player player, String[] args) {
+        return TPortManager.getTPortList(player.getUniqueId()).stream().filter(TPort::isLogged).map(TPort::getName).collect(Collectors.toList());
+    }
+    
     @Override
     public void run(String[] args, Player player) {
-        //tport log remove <TPort name> <player name...>
-
-        if (args.length >= 4) {
-
-            Files tportData = GettingFiles.getFile("TPortData");
-
-            if (tportData.getConfig().contains("tport." + player.getUniqueId().toString() + ".items")) {
-                for (String i : tportData.getConfig().getConfigurationSection("tport." + player.getUniqueId().toString() + ".items").getKeys(false)) {
-                    if (tportData.getConfig().contains("tport." + player.getUniqueId().toString() + ".items." + i)) {
-                        if (args[2].equalsIgnoreCase(tportData.getConfig().getString("tport." + player.getUniqueId().toString() + ".items." + i + ".name"))) {
-
-                            for (String name : Arrays.asList(args).subList(3, args.length)) {
-                                String uuid = PlayerUUID.getPlayerUUID(name);
-                                if (uuid == null) {
-                                    player.sendMessage("player " + name + " does not exist");
-                                    continue;
-                                }
-
-                                try {
-                                    try {
-                                        Logbook.removePlayer(player.getUniqueId(), args[2], UUID.fromString(uuid));
-                                        player.sendMessage("removed " + name);
-                                    } catch (IllegalArgumentException iae) {
-                                        player.sendMessage("player " + name + " is not logged");
-                                    }
-                                } catch (Exception e) {
-                                    Logbook.addPlayer(player.getUniqueId(), args[2], UUID.fromString(uuid));
-                                    player.sendMessage("added " + name + " with the logMode " + Logbook.LogMode.ALL.name().toLowerCase());
-                                }
-
-
-                            }
-                            return;
-                        }
+        // tport log remove <TPort name> <player...>
+        
+        if (args.length > 3) {
+            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
+            if (tport != null) {
+                for (int i = 3; i < args.length; i++) {
+                    String playerName = args[i];
+                    UUID playerUUID = PlayerUUID.getPlayerUUID(playerName);
+                    if (playerUUID == null) {
+                        sendErrorTheme(player, "Could not find a player named %s", playerName);
+                        continue;
+                    }
+                    if (tport.removeLogged(playerUUID)) {
+                        sendSuccessTheme(player, "Successfully stopped logging player %s", playerName);
+                    } else {
+                        sendErrorTheme(player, "Player %s was nog logged", playerName);
                     }
                 }
+                tport.save();
+            } else {
+                sendErrorTheme(player, "No TPort found called %s", args[2]);
             }
-            player.sendMessage("could not find TPort");
         } else {
-            player.sendMessage("Use: /tport log remove <TPort name> <player name>...");
+            sendErrorTheme(player, "Usage: %s", "/tport log remove <TPort name> <player...>");
         }
     }
 }

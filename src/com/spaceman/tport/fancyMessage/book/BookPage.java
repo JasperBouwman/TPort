@@ -1,54 +1,71 @@
 package com.spaceman.tport.fancyMessage.book;
 
+import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import org.bukkit.ChatColor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 
 public class BookPage {
-
+    
     private int pageNumber;
-
-    private ArrayList<TextComponent> text = new ArrayList<>();
-
-    private BookPage(int pageNumber) {
-        this.pageNumber = pageNumber;
+    private Message message;
+    
+    public BookPage() {
+        message = new Message();
     }
-
-    private BookPage(TextComponent text, int pageNumber) {
-        this.text.add(text);
-        this.pageNumber = pageNumber;
+    
+    public BookPage(TextComponent text) {
+        this();
+        addText(text);
     }
-
-    static BookPage newBookPage(int pageNumber) {
-        return new BookPage(pageNumber);
+    
+    public static String getActivePageReplacer() {
+        return "{APN}";
     }
-
-    static BookPage newBookPage(TextComponent text, int pageNumber) {
-        return new BookPage(text, pageNumber);
+    
+    public void addText(TextComponent... text) {
+        this.message.addText(text);
     }
-
-    public void addText(TextComponent textComponent, TextComponent... followUp) {
-        this.text.add(textComponent);
-        this.text.addAll(Arrays.asList(followUp));
+    
+    public void removeLast() {
+        message.removeLast();
     }
-
+    
     public void addText(String simpleText) {
-        this.text.add(textComponent(simpleText));
+        message.addText(simpleText);
     }
-
+    
     public void addText(String simpleText, ChatColor color) {
-        this.text.add(textComponent(simpleText, color));
+        message.addText(simpleText, color);
     }
-
+    
+    public void addMessage(Message message) {
+        this.message.addMessage(message);
+    }
+    
     public ArrayList<TextComponent> getText() {
-        return text;
+        return message.getText();
     }
-
+    
+    public Message getMessage() {
+        return message;
+    }
+    
+    public void setMessage(Message message) {
+        this.message = message;
+    }
+    
     public int getPageNumber() {
-        return pageNumber + 1;
+        return pageNumber;
+    }
+    
+    public void setPageNumber(int pageNumber) {
+        this.pageNumber = pageNumber;
+    }
+    
+    public String translateJSON(Message.TranslateMode mode, ColorTheme theme) {
+        return "\"" + message.translateJSON(mode, theme).replace(getActivePageReplacer(), String.valueOf(pageNumber)) + "\"";
     }
 }

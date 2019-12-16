@@ -1,69 +1,67 @@
 package com.spaceman.tport.commands.tport.edit;
 
-import com.spaceman.tport.Permissions;
+import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
-import org.bukkit.ChatColor;
+import com.spaceman.tport.playerUUID.PlayerUUID;
+import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.tport.TPortManager;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Item extends SubCommand {
-
+    
+    @Override
+    public Message getCommandDescription() {
+        return new Message(textComponent("This command is used to edit the item of the given TPort, the item in your main hand will become the new item," +
+                " and you will get the old item back", ColorTheme.ColorType.infoColor),
+                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.edit.item", ColorTheme.ColorType.varInfoColor),
+                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+    }
+    
     @Override
     public void run(String[] args, Player player) {
-        Files tportData = GettingFiles.getFile("TPortData");
-        String playerUUID = player.getUniqueId().toString();
-
-        for (String s : tportData.getConfig().getConfigurationSection("tport." + playerUUID + ".items").getKeys(false)) {
-
-            String name = tportData.getConfig().getString("tport." + playerUUID + ".items." + s + ".name");
-            if (name.equalsIgnoreCase(args[1])) {
-                ItemStack item = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + s + ".item");
-                ItemMeta meta = item.getItemMeta();
-
-                if (!Permissions.hasPermission(player, "TPort.command.edit.item", false)) {
-                    if (!Permissions.hasPermission(player, "TPort.basic", false)) {
-                        Permissions.sendNoPermMessage(player, "TPort.command.edit.item", "TPort.basic");
-                        return;
-                    }
-                }
-
-                if (args.length == 3) {
-                    ItemStack newItem = new ItemStack(player.getInventory().getItemInMainHand());
-
-                    if (newItem.getItemMeta() == null) {
-                        player.sendMessage("§cYou must place an item in you main hand");
-                        return;
-                    }
-
-                    ItemMeta newMeta = newItem.getItemMeta();
-                    newMeta.setLore(meta.getLore());
-                    newItem.setItemMeta(newMeta);
-
-                    ItemStack oldStack = tportData.getConfig().getItemStack("tport." + playerUUID + ".items." + s + ".item");
-                    player.getInventory().setItemInMainHand(oldStack);
-
-                    tportData.getConfig().set("tport." + playerUUID + ".items." + s + ".item", newItem);
-                    tportData.saveConfig();
-
-                    Message message = new Message();
-                    message.addText(TextComponent.textComponent("§3New item for TPort "));
-                    message.addText(TextComponent.textComponent(name, ChatColor.BLUE, ClickEvent.runCommand("/tport own " + name)));
-                    message.addText(TextComponent.textComponent(" set to ", ChatColor.DARK_AQUA));
-                    message.addText(TextComponent.textComponent(newItem.getType().toString(), ChatColor.BLUE));
-                    message.sendMessage(player);
-                } else {
-                    player.sendMessage("§cUse: §4/tport edit <TPort name> item");
-                }
-
+        // tport edit <TPort name> item
+    
+        if (!hasPermission(player, true, true, "TPort.edit.item", "TPort.basic")) {
+            return;
+        }
+        if (args.length == 3) {
+            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
+    
+            if (tport == null) {
+                sendErrorTheme(player, "No TPort found called %s", args[1]);
                 return;
             }
+            if (tport.isOffered()) {
+                sendErrorTheme(player, "You can't edit TPort %s while its offered to %s", tport.getName(), PlayerUUID.getPlayerName(tport.getOfferedTo()));
+                return;
+            }
+            ItemStack newItem = player.getInventory().getItemInMainHand();
+            if (newItem.getType().equals(Material.AIR)) {
+                sendErrorTheme(player, "You must place an item in your main hand");
+                return;
+            }
+            ItemStack oldItem = tport.getItem();
+            tport.setItem(newItem);
+            tport.save();
+            player.getInventory().setItemInMainHand(oldItem);
+            
+            Message message = new Message();
+            ColorTheme theme = ColorTheme.getTheme(player);
+            message.addText(textComponent("Successfully set item for TPort ", theme.getSuccessColor()));
+            message.addText(textComponent(tport.getName(), theme.getVarSuccessColor(), ClickEvent.runCommand("/tport own " + tport.getName())));
+            message.addText(textComponent(" to ", theme.getSuccessColor()));
+            message.addText(textComponent(newItem.getType().toString(), theme.getVarSuccessColor()));
+            message.sendMessage(player);
+        } else {
+            sendErrorTheme(player, "Usage: %s", "/tport edit <TPort name> item");
         }
-        player.sendMessage("§cNo TPort found called §4" + args[1]);
     }
 }

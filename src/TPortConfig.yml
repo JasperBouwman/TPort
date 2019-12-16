@@ -7,7 +7,13 @@ cooldown:
 Permissions:
   enabled: false
   strip: true
+public:
+  enabled: true
+delay:
+  permission: false
+restriction:
+  permission: false
 
-# each number is in milliseconds. 3000ms is 3 seconds.
-# you can use another cooldown to link each other. Just use another cooldown
+# each number for cooldown is in milliseconds. 3000ms is 3 seconds.
+# you can use another cooldown to link each other. Just use another cooldown name
 # you also can use permissions as a cooldown value to create a custom cooldown value for each player/group. to use set the value to 'permission'. The permission is then 'TPort.<cooldown>.X' where 'X' is the cooldown time and the <cooldown> is the cooldown

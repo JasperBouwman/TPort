@@ -1,57 +1,46 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.commands.tport.log.Add;
 import com.spaceman.tport.commands.tport.log.*;
+import com.spaceman.tport.commands.tport.log.Add;
 import com.spaceman.tport.commands.tport.log.Remove;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.commandHander.HeadCommand.runCommands;
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.commandHander.CommandTemplate.convertToArgs;
+import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
 
 public class Log extends SubCommand {
 
     public Log() {
-        addAction(new Add());
-        addAction(new AddAll());
-        addAction(new GetMode());
-        addAction(new List());
-        addAction(new Remove());
-        addAction(new RemoveAll());
-        addAction(new SetAll());
-        addAction(new SetMode());
-        addAction(new IsLogged());
-        addAction(new Clear());
         addAction(new Read());
+        addAction(new TimeZone());
+        addAction(new TimeFormat());
+        addAction(new Clear());
+        addAction(new LogData());
+        addAction(new Add());
+        addAction(new Remove());
+        addAction(new Default());
+        addAction(new Notify());
     }
 
     @Override
     public void run(String[] args, Player player) {
-        //modes: online, offline, all
-
-        ///tport log list [TPort name]
-        ///tport log add <TPort name> <player name[:mode]...>
-        ///tport log addAll <TPort name>
-        ///tport log remove <TPort name> <player name...>
-        ///tport log removeAll <TPort name>
-        ///tport log getMode <TPort name> <player name>
-        ///tport log setMode <TPort name> <player name> <LogMode>
-        ///tport log setAll <TPort name> <LogMode>
-        ///tport log isLogged <player name> <TPort name>
-        //tport log read <TPort name>
-        //tport log clear [TPort name...]
+        // tport log read <TPort name> [player]
+        // tport log TimeZone [TimeZone]
+        // tport log timeFormat [format...]
+        // tport log clear <TPort name...>
+        // tport log logData [TPort name] [player]
+        // tport log add <TPort name> <player[:LogMode]...>
+        // tport log remove <TPort name> <player...>
+        // tport log default <TPort name> [default LogMode]
+        // tport log notify <TPort name> [state]
         
-        if (true) {
-            player.sendMessage("Feature not ready yet! :(");
-            return;
+        if (args.length > 1) {
+            if (runCommands(getActions(), args[1], args, player)) {
+                return;
+            }
         }
-
-        if (args.length == 1) {
-            player.sendMessage("some explanation");//todo
-            return;
-        }
-
-        if (!runCommands(getActions(), args[1], args, player)) {
-            player.sendMessage("§cUse: §4/tport log <list:add:addAll:remove:removeAll:getMode:setMode:setAll:isLogged:read:clear>");
-        }
+        sendErrorTheme(player, "Usage: %s", "/tport log " + convertToArgs(getActions(), true));
     }
 }

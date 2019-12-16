@@ -1,24 +1,34 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.Permissions;
+import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.cooldown.CooldownManager;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.spaceman.tport.Permissions.hasPermission;
+import static com.spaceman.tport.colorFormatter.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Cooldown extends SubCommand {
 
     public Cooldown() {
-        EmptyCommand e = new EmptyCommand();
-        e.setTabRunnable((args, player) -> {
-            if (!Permissions.hasPermission(player, "TPort.command.cooldown.set", false) && !Permissions.hasPermission(player, "TPort.admin.cooldown", false)) {
+        EmptyCommand emptyValue = new EmptyCommand();
+        emptyValue.setCommandName("value", ArgumentType.OPTIONAL);
+        emptyValue.setCommandDescription(textComponent("This command is used to set the cooldown value of the given cooldown", ColorType.infoColor),
+                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.cooldown.set", ColorTheme.ColorType.varInfoColor),
+                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.cooldown", ColorTheme.ColorType.varInfoColor));
+        
+        EmptyCommand emptyCooldown = new EmptyCommand();
+        emptyCooldown.setCommandName("cooldown", ArgumentType.REQUIRED);
+        emptyCooldown.setCommandDescription(textComponent("This command is used to get the cooldown value of the given cooldown", ColorType.infoColor));
+        emptyCooldown.setTabRunnable((args, player) -> {
+            if (!hasPermission(player, false, true, "TPort.cooldown.set", "TPort.admin.cooldown")) {
                 return new ArrayList<>();
             }
 
@@ -33,7 +43,8 @@ public class Cooldown extends SubCommand {
 
             return new ArrayList<>();
         });
-        addAction(e);
+        emptyCooldown.addAction(emptyValue);
+        addAction(emptyCooldown);
     }
 
     @Override
@@ -48,22 +59,15 @@ public class Cooldown extends SubCommand {
         //tport cooldown <cooldown> [value]
 
         if (args.length == 2) {
-
-            if (!hasPermission(player, "tport.command.cooldown")) {
-                return;
-            }
             if (CooldownManager.contains(args[1])) {
-                player.sendMessage(ChatColor.DARK_AQUA + "Cooldown of " + args[1] + " is set to " + ChatColor.BLUE + CooldownManager.valueOf(args[1]).value());
+                sendInfoTheme(player, "Cooldown value of %s is set to %s", args[1], CooldownManager.valueOf(args[1]).value());
             } else {
-                player.sendMessage(ChatColor.RED + "Cooldown " + ChatColor.DARK_RED + args[1] + ChatColor.RED + " does not exist");
+                sendErrorTheme(player, "Cooldown %s does not exist", args[1]);
             }
 
         } else if (args.length > 2) {
-            if (!Permissions.hasPermission(player, "TPort.command.cooldown.set", false)) {
-                if (!Permissions.hasPermission(player, "TPort.admin.cooldown", false)) {
-                    Permissions.sendNoPermMessage(player, "TPort.command.cooldown.set", "TPort.admin.cooldown");
-                    return;
-                }
+            if (!hasPermission(player, true, true, "TPort.cooldown.set", "TPort.admin.cooldown")) {
+                return;
             }
             if (CooldownManager.contains(args[1])) {
                 try {
@@ -71,22 +75,22 @@ public class Cooldown extends SubCommand {
                 } catch (NumberFormatException nfe) {
                     if (!args[2].equals("permission")) {
                         if (!CooldownManager.contains(args[2])) {
-                            player.sendMessage(ChatColor.DARK_RED + args[2] + ChatColor.RED + " is not a valid value, it must be a number or another cooldown name");
+                            sendErrorTheme(player, "%s is not a valid value, it must be a number or another cooldown name", args[2]);
                             return;
                         } else if (args[1].equals(args[2])) {
-                            player.sendMessage(ChatColor.RED + "The value of a cooldown can not be set to it self");
+                            sendErrorTheme(player, "The value of a cooldown can not be set to it self");
                             return;
                         }
                     }
                 }
 
                 CooldownManager.valueOf(args[1]).edit(args[2]);
-                player.sendMessage(ChatColor.DARK_AQUA + "Cooldown of " + ChatColor.BLUE + args[1] + ChatColor.DARK_AQUA + " is now changed to " + ChatColor.BLUE + args[2]);
+                sendSuccessTheme(player, "Successfully set cooldown value of %s to %s", args[1], args[2]);
             } else {
-                player.sendMessage(ChatColor.RED + "Cooldown " + ChatColor.DARK_RED + args[1] + ChatColor.RED + " does not exist");
+                sendErrorTheme(player, "Cooldown %s does not exist", args[1]);
             }
         } else {
-            player.sendMessage(ChatColor.RED + "Usage: /tport cooldown <cooldown> [value]");
+            sendErrorTheme(player, "Usage: %s", "/tport <cooldown> [value]");
         }
 
     }

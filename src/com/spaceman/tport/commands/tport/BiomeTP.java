@@ -1,9 +1,11 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.Permissions;
+import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.commandHander.ArgumentType;
+import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.cooldown.CooldownManager;
-import org.bukkit.ChatColor;
+import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -13,22 +15,46 @@ import java.util.List;
 import java.util.Random;
 
 import static com.spaceman.tport.TPortInventories.openBiomeTP;
-import static com.spaceman.tport.events.InventoryClick.teleportPlayer;
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.events.InventoryClick.requestTeleportPlayer;
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class BiomeTP extends SubCommand {
+    
+    public BiomeTP() {
+        EmptyCommand emptyBiome = new EmptyCommand();
+        emptyBiome.setCommandName("biome", ArgumentType.OPTIONAL);
+        emptyBiome.setCommandDescription(textComponent("This command is used to teleport to the given biome", ColorTheme.ColorType.infoColor),
+                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.biomeTP.<biome>", ColorTheme.ColorType.varInfoColor),
+                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.biomeTP.all", ColorTheme.ColorType.varInfoColor));
+        EmptyCommand emptyRandom = new EmptyCommand();
+        emptyRandom.setCommandName("random", ArgumentType.OPTIONAL);
+        emptyRandom.setCommandDescription(textComponent("This command is used to teleport to a random biome", ColorTheme.ColorType.infoColor),
+                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.biomeTP.random", ColorTheme.ColorType.varInfoColor),
+                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.biomeTP.all", ColorTheme.ColorType.varInfoColor));
+        addAction(emptyBiome);
+        addAction(emptyRandom);
+    }
+    
+    public static int biomeSearches = 100;
 
-    public static void biomeTP(Player player, Biome biome) {
+    private static void biomeTP(Player player, Biome biome) {
 
         Random random = new Random();
         int x = random.nextInt(6000000) - 3000000;
         int z = random.nextInt(6000000) - 3000000;
         Block b = player.getWorld().getBlockAt(x, 64, z);
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < biomeSearches; i++) {
             if (b.getBiome().equals(biome)) {
-//                player.teleport(player.getWorld().getHighestBlockAt(x, z).getLocation().add(0.5, 0, 0.5));
-                teleportPlayer(player, player.getWorld().getHighestBlockAt(x, z).getLocation().add(0.5, 0, 0.5));
-                player.sendMessage("§3Teleport to biome: " + b.getBiome());
+                requestTeleportPlayer(player, player.getWorld().getHighestBlockAt(x, z).getLocation().add(0.5, 0.1, 0.5));
+                if (Delay.delayTime(player) == 0) {
+                    sendSuccessTheme(player, "Successfully teleported to biome %s", b.getBiome().name());
+                } else {
+                    sendSuccessTheme(player, "Successfully requested teleportation to biome %s", b.getBiome().name());
+                }
                 CooldownManager.BiomeTP.update(player);
                 return;
             } else {
@@ -37,10 +63,15 @@ public class BiomeTP extends SubCommand {
                 b = player.getWorld().getBlockAt(x, 64, z);
             }
         }
-        player.sendMessage(ChatColor.RED + "Could not find biome " + biome + " in 100 tries, try again");
-
+        sendErrorTheme(player, "Could not find the biome %s in a %s tries, you can try again", biome.name(), String.valueOf(biomeSearches));
     }
-
+    
+    @Override
+    public Message getCommandDescription() {
+        return new Message(textComponent("This command is used to open the BiomeTP GUI", ColorTheme.ColorType.infoColor),
+                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.biomeTP.open", ColorTheme.ColorType.varInfoColor));
+    }
+    
     @Override
     public List<String> tabList(Player player, String[] args) {
         ArrayList<String> list = new ArrayList<>();
@@ -56,26 +87,28 @@ public class BiomeTP extends SubCommand {
         //tport biomeTP [biome]
 
         if (args.length == 1) {
-            if (!Permissions.hasPermission(player, "TPort.command.biomeTP")) {
+            if (!hasPermission(player, "TPort.biomeTP.open")) {
                 return;
             }
             openBiomeTP(player, 0);
         } else {
 
             if (args[1].equalsIgnoreCase("random")) {
-                if (!Permissions.hasPermission(player, "TPort.command.biomeTP")) {
+                if (!hasPermission(player, "TPort.biomeTP.random", "TPort.biomeTP.all")) {
                     return;
                 }
-                long cooldown = CooldownManager.BiomeTP.getTime(player);
-                if (cooldown / 1000 > 0) {
-                    player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
+                if (!CooldownManager.BiomeTP.hasCooled(player)) {
                     return;
                 }
                 Random random = new Random();
                 int x = random.nextInt(6000000) - 3000000;
                 int z = random.nextInt(6000000) - 3000000;
-                teleportPlayer(player, player.getWorld().getHighestBlockAt(x, z).getLocation().add(0.5, 0, 0.5));
-                player.sendMessage("§3Teleported to a random location");
+                requestTeleportPlayer(player, player.getWorld().getHighestBlockAt(x, z).getLocation().add(0.5, 0, 0.5));
+                if (Delay.delayTime(player) == 0) {
+                    sendSuccessTheme(player, "Successfully teleported to a random location");
+                } else {
+                    sendSuccessTheme(player, "Successfully requested teleportation to a random location");
+                }
                 CooldownManager.BiomeTP.update(player);
                 return;
             }
@@ -84,17 +117,14 @@ public class BiomeTP extends SubCommand {
             try {
                 biome = Biome.valueOf(args[1].toUpperCase());
             } catch (IllegalArgumentException iae) {
-                player.sendMessage(ChatColor.RED + "Biome " + args[1].toUpperCase() + " does not exist");
+                sendErrorTheme(player, "Biome %s does not exist", args[1].toUpperCase());
                 return;
             }
 
-            if (!Permissions.hasPermission(player, "TPort.command.biomeTP." + biome)) {
+            if (!hasPermission(player, "TPort.biomeTP." + biome, "TPort.biomeTP.all")) {
                 return;
             }
-
-            long cooldown = CooldownManager.BiomeTP.getTime(player);
-            if (cooldown / 1000 > 0) {
-                player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
+            if (!CooldownManager.BiomeTP.hasCooled(player)) {
                 return;
             }
             biomeTP(player, biome);

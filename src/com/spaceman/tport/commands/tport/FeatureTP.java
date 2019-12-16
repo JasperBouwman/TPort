@@ -1,90 +1,111 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.Permissions;
 import com.spaceman.tport.TPortInventories;
+import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.commandHander.ArgumentType;
+import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.cooldown.CooldownManager;
+import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.spaceman.tport.TPortInventories.openFeatureTP;
-import static com.spaceman.tport.events.InventoryClick.teleportPlayer;
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.events.InventoryClick.requestTeleportPlayer;
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class FeatureTP extends SubCommand {
-
-    @Override
-    public List<String> tabList(Player player, String[] args) {
-        ArrayList<String> list = new ArrayList<>();
-        Arrays.stream(TPortInventories.FeatureTypes.values()).map(TPortInventories.FeatureTypes::name).forEach(list::add);
-//        for (TPortInventories.FeatureTypes feature : TPortInventories.FeatureTypes.values()) {
-//            list.add(feature.name());
-//        }
-        return list;
+    
+    public FeatureTP() {
+        EmptyCommand emptyFeature = new EmptyCommand();
+        emptyFeature.setCommandName("feature", ArgumentType.OPTIONAL);
+        emptyFeature.setCommandDescription(textComponent("This command is used to teleport to the given feature", ColorTheme.ColorType.infoColor),
+                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.featureTP.<feature>", ColorTheme.ColorType.varInfoColor),
+                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.featureTP.all", ColorTheme.ColorType.varInfoColor));
+        addAction(emptyFeature);
     }
-
-    public static void featureTP(Player player, TPortInventories.FeatureTypes featuresType) {
-        Location featureLoc = featureFinder(player.getLocation(), featuresType);
+    
+    private static void featureTP(Player player, TPortInventories.FeatureType featureType) {
+        Location featureLoc = featureFinder(player.getLocation(), featureType);
         if (featureLoc == null) {
-            player.sendMessage(ChatColor.RED + "Could not find a " + ChatColor.DARK_RED + featuresType.name() + ChatColor.RED + " nearby");
+            player.sendMessage(ChatColor.RED + "Could not find a " + ChatColor.DARK_RED + featureType.name() + ChatColor.RED + " nearby");
+            sendErrorTheme(player, "Could not find the feature %s nearby", featureType.name());
         } else {
             featureLoc.setY(player.getWorld().getHighestBlockYAt(featureLoc.getBlockX(), featureLoc.getBlockZ()));
-            teleportPlayer(player, featureLoc);
+            requestTeleportPlayer(player, featureLoc);
+            if (Delay.delayTime(player) == 0) {
+                sendSuccessTheme(player, "Successfully teleported to feature %s", featureType.name());
+            } else {
+                sendSuccessTheme(player, "Successfully requested teleportation to feature %s", featureType.name());
+            }
             CooldownManager.FeatureTP.update(player);
         }
     }
-
-    private static Location featureFinder(Location startLocation, TPortInventories.FeatureTypes feature) {
+    
+    private static Location featureFinder(Location startLocation, TPortInventories.FeatureType feature) {
         try {
             String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
-            Object nmsWorld = startLocation.getWorld().getClass().getMethod("getHandle").invoke(startLocation.getWorld());
+            Object nmsWorld = Objects.requireNonNull(startLocation.getWorld()).getClass().getMethod("getHandle").invoke(startLocation.getWorld());
             Object blockPos = Class.forName("net.minecraft.server." + version + ".BlockPosition").getConstructor(int.class, int.class, int.class)
                     .newInstance(startLocation.getBlockX(), startLocation.getBlockY(), startLocation.getBlockZ());
-            Object finalBlockPos = nmsWorld.getClass().getMethod("a", String.class, blockPos.getClass(), int.class, boolean.class).invoke(nmsWorld, feature.name(), blockPos, 100, false);
+            Object finalBlockPos = nmsWorld.getClass().getMethod("a", String.class, blockPos.getClass(), int.class, boolean.class)
+                    .invoke(nmsWorld, feature.name(), blockPos, 100, false);
             Object x = finalBlockPos.getClass().getMethod("getX").invoke(finalBlockPos);
             Object z = finalBlockPos.getClass().getMethod("getZ").invoke(finalBlockPos);
             return new Location(startLocation.getWorld(), (int) x, 0, (int) z);
-
         } catch (Exception ignore) {
             return null;
         }
     }
-
+    
+    @Override
+    public Message getCommandDescription() {
+        return new Message(textComponent("This command is used to open the FeatureTP GUI", ColorTheme.ColorType.infoColor),
+                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.featureTP.open", ColorTheme.ColorType.varInfoColor));
+    }
+    
+    @Override
+    public List<String> tabList(Player player, String[] args) {
+        return Arrays.stream(TPortInventories.FeatureType.values()).map(TPortInventories.FeatureType::name).collect(Collectors.toList());
+    }
+    
     @Override
     public void run(String[] args, Player player) {
         //tport featureTP [featureType]
-
-
+        
         if (args.length == 1) {
-            if (!Permissions.hasPermission(player, "TPort.command.featureTP")) {
+            if (!hasPermission(player, "TPort.featureTP.open")) {
                 return;
             }
             openFeatureTP(player, 0);
         } else {
-            TPortInventories.FeatureTypes featuresType;
+            TPortInventories.FeatureType featuresType;
             try {
-                featuresType = TPortInventories.FeatureTypes.valueOf(args[1]);
+                featuresType = TPortInventories.FeatureType.valueOf(args[1]);
             } catch (IllegalArgumentException iae) {
-                player.sendMessage(ChatColor.RED + "Feature " + args[1] + " does not exist");
+                sendErrorTheme(player, "Feature %s does not exist", args[1]);
                 return;
             }
-
-            if (!Permissions.hasPermission(player, "TPort.command.featureTP." + featuresType.name())) {
+            
+            if (!hasPermission(player, "TPort.featureTP." + featuresType.name(), "TPort.featureTP.all")) {
                 return;
             }
-            long cooldown = CooldownManager.FeatureTP.getTime(player);
-            if (cooldown / 1000 > 0) {
-                player.sendMessage(ChatColor.RED + "You must wait another " + (cooldown / 1000) + " second" + ((cooldown / 1000) == 1 ? "" : "s") + " to use this again");
+            if (!CooldownManager.FeatureTP.hasCooled(player)) {
                 return;
             }
-
+            
             featureTP(player, featuresType);
         }
     }
-
+    
 }

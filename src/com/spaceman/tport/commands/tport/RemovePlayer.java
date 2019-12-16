@@ -1,70 +1,78 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.Permissions;
+import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.commandHander.ArgumentType;
+import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
-import org.bukkit.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static com.spaceman.tport.colorFormatter.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class RemovePlayer extends SubCommand {
-
+    
+    public RemovePlayer() {
+        EmptyCommand emptyCommand = new EmptyCommand();
+        emptyCommand.setCommandName("player", ArgumentType.REQUIRED);
+        emptyCommand.setCommandDescription(TextComponent.textComponent("This command is used to remove a player from the Main TPort GUI, " +
+                "this will also remove all TPorts of the given player and can not be undone. " +
+                "Mostly used when a player is not coming back and you want to clear out the Main TPort GUI", ColorType.infoColor),
+                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.removePlayer", ColorTheme.ColorType.varInfoColor));
+        addAction(emptyCommand);
+    }
+    
     @Override
     public List<String> tabList(Player player, String[] args) {
-        ArrayList<String> list = new ArrayList<>();
-        if (player.isOp()) {
+        List<String> list = new ArrayList<>();
+        if (hasPermission(player, false, "TPort.admin.removePlayer")) {
             Files tportData = GettingFiles.getFile("TPortData");
-            for (String s : tportData.getConfig().getConfigurationSection("tport").getKeys(false)) {
-                list.add(PlayerUUID.getPlayerName(s));
-            }
+            list = tportData.getKeys("tport").stream().map(PlayerUUID::getPlayerName).collect(Collectors.toList());
         }
         return list;
     }
-
+    
     @Override
     public void run(String[] args, Player player) {
-        //tport removePlayer <playerName>
-
-        if (!Permissions.hasPermission(player, "TPort.admin.removePlayer")) {
+        //tport removePlayer <player>
+        
+        if (!hasPermission(player, "TPort.admin.removePlayer")) {
             return;
         }
-
-        if (!player.isOp()) {
-            player.sendMessage(ChatColor.RED + "You must be an OP to use this");
-            return;
-        }
+        
         if (args.length != 2) {
-            player.sendMessage(ChatColor.RED + "Usage: /tport removePlayer <player name>");
+            sendErrorTheme(player, "Usage: %s", "/tport removePlayer <player>");
             return;
         }
         Files tportData = GettingFiles.getFile("TPortData");
-
+        
         String newPlayerName = args[1];
-        String newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
+        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
         if (newPlayerUUID == null) {
-            ArrayList<String> globalNames = PlayerUUID.getGlobalPlayerUUID(newPlayerName);
-            if (globalNames.size() == 1) {
-                newPlayerUUID = globalNames.get(0);
-            } else if (globalNames.size() == 0) {
-                player.sendMessage(ChatColor.RED + "Could not find any players named " + ChatColor.DARK_RED + newPlayerName);
-                return;
-            } else {
-                player.sendMessage(ChatColor.RED + "There are more players found with the name " + ChatColor.DARK_RED + newPlayerName + ChatColor.RED
-                        + ", please type the correct name with correct capitals");
-                return;
-            }
+            sendErrorTheme(player, "Could not find a player named %s", newPlayerName);
+            return;
         }
-
+        if (Bukkit.getPlayer(newPlayerUUID) != null) {
+            sendErrorTheme(player, "Player %s has to be offline", newPlayerName);
+            return;
+        }
+        
         if (tportData.getConfig().contains("tport." + newPlayerUUID)) {
             tportData.getConfig().set("tport." + newPlayerUUID, null);
             tportData.saveConfig();
-            player.sendMessage("§3Successfully removed " + newPlayerName + "from the TPort plugin");
+            sendSuccessTheme(player, "Successfully removed %s from the TPort plugin", newPlayerName);
         } else {
-            player.sendMessage(ChatColor.RED + "This player is not registered in the TPort plugin");
+            sendInfoTheme(player, "Player %s is not registered in the TPort plugin", newPlayerName);
         }
     }
 }
