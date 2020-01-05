@@ -53,8 +53,8 @@ public class Back extends SubCommand {
                 if (!hasPermission(player, false, "TPort.open", "TPort.basic")) {
                     return 4;
                 }
-                tport.teleport(player, true);
                 prevTPort.put(player.getUniqueId(), new PrevTPort(prev.getTportName(), player.getLocation(), prev.getToPlayerUUID(), null));
+                tport.teleport(player, true);
                 return 1;
             }
         } else if (prev.getToPlayerUUID() != null) {
