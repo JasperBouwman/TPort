@@ -11,7 +11,6 @@ import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -44,7 +43,7 @@ public class Open extends SubCommand {
             return TPortManager.getTPortList(argOneUUID).stream()
                     .filter(tport -> tport.hasAccess(player))
                     .map(TPort::getName)
-                    .collect(Collectors.toCollection(ArrayList::new));
+                    .collect(Collectors.toList());
         });
         emptyCommand.addAction(emptyCommand1);
         addAction(emptyCommand);

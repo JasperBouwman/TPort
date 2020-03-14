@@ -18,6 +18,7 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 
 import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.commands.tport.Open.runNotPerm;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
@@ -37,6 +38,23 @@ public class Open extends SubCommand {
                 textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
         addAction(emptyPage);
         addAction(emptyTPort);
+    }
+    
+    public static TPort getPublicTPort(String name) {
+        Files tportData = GettingFiles.getFile("TPortData");
+        
+        for (String publicTPortSlot : tportData.getKeys("public.tports")) {
+            String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
+            
+            TPort tport = getTPort(UUID.fromString(tportID));
+            if (tport != null) {
+                if (tport.getName().equalsIgnoreCase(name)) {
+                    
+                    return tport;
+                }
+            }
+        }
+        return null;
     }
     
     @Override
@@ -77,23 +95,14 @@ public class Open extends SubCommand {
                 return;
             }
             
-            Files tportData = GettingFiles.getFile("TPortData");
-            
-            for (String publicTPortSlot : tportData.getKeys("public.tports")) {
-                String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
-                
-                TPort tport = getTPort(UUID.fromString(tportID));
-                if (tport != null) {
-                    if (tport.getName().equalsIgnoreCase(args[2])) {
-                        com.spaceman.tport.commands.tport.Open.runNotPerm(new String[]{"open", PlayerUUID.getPlayerName(tport.getOwner()), tport.getName()}, player);
-                        return;
-                    }
-                }
+            TPort publicTPort = getPublicTPort(args[2]);
+            if (publicTPort != null) {
+                runNotPerm(new String[]{"open", PlayerUUID.getPlayerName(publicTPort.getOwner()), publicTPort.getName()}, player);
+            } else {
+                sendErrorTheme(player, "No public TPort found called %s", args[2]);
             }
-            sendErrorTheme(player, "No public TPort found called %s", args[2]);
         } else {
             sendErrorTheme(player, "Usage: %s", "/tport public open <TPort name>");
         }
-        
     }
 }

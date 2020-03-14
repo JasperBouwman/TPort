@@ -71,6 +71,11 @@ public class TPortManager {
         } catch (NumberFormatException ignore) {
         }
         
+        if (Main.containsSpecialCharacter(tport.getName())) {
+            sendErrorTheme(owner, "TPort name can't contain any special characters");
+            return null;
+        }
+        
         for (TPort tmpTPort : getTPortList(owner.getUniqueId())) {
             if (tmpTPort.getName().equalsIgnoreCase(tport.getName())) {
                 if (sendMessage) sendErrorTheme(owner, "TPort %s name is already used", tmpTPort.getName());

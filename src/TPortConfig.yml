@@ -13,6 +13,8 @@ delay:
   permission: false
 restriction:
   permission: false
+biomeTP:
+  searches: 100
 
 # each number for cooldown is in milliseconds. 3000ms is 3 seconds.
 # you can use another cooldown to link each other. Just use another cooldown name

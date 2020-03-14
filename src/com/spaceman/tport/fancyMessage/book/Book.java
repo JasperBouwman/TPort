@@ -27,6 +27,11 @@ public class Book {
         this.author = author;
     }
     
+    @Override
+    public String toString() {
+        return pages.stream().map(BookPage::toString).collect(Collectors.joining());
+    }
+    
     public BookPage createPage(TextComponent textComponent) {
         BookPage page = new BookPage(textComponent);
         addPage(page);

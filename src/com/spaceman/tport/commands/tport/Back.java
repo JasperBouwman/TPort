@@ -24,75 +24,15 @@ import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Back extends SubCommand {
     
-    public static HashMap<UUID, PrevTPort> prevTPort = new HashMap<>();
-    
-    private static int tpBack(Player player) {
-        /*return codes:
-         * 0= no location known
-         * 1= teleported
-         * 2= player not online
-         * 3= player not whitelisted
-         * 4= invalid prevTPort value
-         * 5= tport set to private*/
-        
-        if (!prevTPort.containsKey(player.getUniqueId())) {
-            return 0;
-        }
-        
-        PrevTPort prev = prevTPort.get(player.getUniqueId());
-        Files tportData = GettingFiles.getFile("TPortData");
-        if (prev.getL() != null) {
-            
-            prevTPort.put(player.getUniqueId(), new PrevTPort(prev.getTportName(), null, prev.getToPlayerUUID(), prev.getDeathLoc()));
-            requestTeleportPlayer(player, prev.getL());
-            return 1;
-            
-        } else if (prev.getTportName() != null) {
-            TPort tport = TPortManager.getTPort(UUID.fromString(prev.getToPlayerUUID()), prev.getTportName());
-            if (tport != null) {
-                if (!hasPermission(player, false, "TPort.open", "TPort.basic")) {
-                    return 4;
-                }
-                prevTPort.put(player.getUniqueId(), new PrevTPort(prev.getTportName(), player.getLocation(), prev.getToPlayerUUID(), null));
-                tport.teleport(player, true);
-                return 1;
-            }
-        } else if (prev.getToPlayerUUID() != null) {
-            Player toPlayer = Bukkit.getPlayer(UUID.fromString(prev.getToPlayerUUID()));
-            if (toPlayer != null) {
-                if (Objects.equals(tportData.getConfig().getString("tport." + prev.getToPlayerUUID() + ".tp.statement"), "off")) {
-                    ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
-                            .getStringList("tport." + prev.getToPlayerUUID() + "tp.players");
-                    if (!list.contains(player.getUniqueId().toString())) {
-                        return 3;
-                    }
-                }
-                prevTPort.put(player.getUniqueId(), new PrevTPort(null, player.getLocation(), prev.getToPlayerUUID(), null));
-                requestTeleportPlayer(player, toPlayer.getLocation());
-                return 1;
-            } else {
-                return 2;
-            }
-        } else if (prev.getDeathLoc() != null) {
-            prevTPort.put(player.getUniqueId(), new PrevTPort(null, player.getLocation(), null, prev.getDeathLoc()));
-            requestTeleportPlayer(player, prev.getDeathLoc());
-            return 1;
-        }
-        return 4;
-    }
+    public static HashMap<UUID, PrevTPort> prevTPorts = new HashMap<>();
     
     public static String getPrevLocName(Player player) {
-        ColorTheme theme = ColorTheme.getTheme(player);
-        return theme.getInfoColor() + "Previous location: " + theme.getVarInfoColor() +
-                (prevTPort.containsKey(player.getUniqueId()) ?
-                        (prevTPort.get(player.getUniqueId()).getL() == null ? "To " : "From ") +
-                                (prevTPort.get(player.getUniqueId()).getTportName() != null
-                                        ? prevTPort.get(player.getUniqueId()).getTportName() :
-                                        (prevTPort.get(player.getUniqueId()).getToPlayerUUID() != null ?
-                                                PlayerUUID.getPlayerName(prevTPort.get(player.getUniqueId()).getToPlayerUUID()) :
-                                                "death location")
-                                ) :
-                        "Unknown");
+        ColorTheme ct = ColorTheme.getTheme(player);
+        if (prevTPorts.containsKey(player.getUniqueId())) {
+            return ct.getInfoColor() + "Previous location: " + ct.getVarInfoColor() + prevTPorts.get(player.getUniqueId()).toString(player);
+        } else {
+            return ct.getInfoColor() + "Previous location: Unknown";
+        }
     }
     
     @Override
@@ -118,59 +58,270 @@ public class Back extends SubCommand {
             return;
         }
         
-        switch (tpBack(player)) {
-            case 1:
-                if (Delay.delayTime(player) != 0) {
-                    sendSuccessTheme(player, "Successfully requested back teleportation");
-                } else {
-                    sendSuccessTheme(player, "Successfully teleported back");
-                }
+        if (prevTPorts.containsKey(player.getUniqueId())) {
+            if (prevTPorts.get(player.getUniqueId()).tpBack(player)) {
                 CooldownManager.Back.update(player);
-                return;
-            case 2:
-                sendErrorTheme(player, "Player not online anymore");
-                return;
-            case 3:
-                sendErrorTheme(player, "You are not whitelisted anymore");
-                return;
-            case 4:
-                sendErrorTheme(player, "Could not teleport you back");
-                return;
-            case 0:
-                sendErrorTheme(player, "No previous location known");
-                return;
-            default:
+            }
+        } else {
+            sendErrorTheme(player, "No previous location known");
         }
     }
     
-    @SuppressWarnings("WeakerAccess")
+    public enum PrevType {
+        TPORT((player, prevTPort) -> {
+            
+            Location prevLoc = (Location) prevTPort.getData().get("prevLoc");
+            String tportName = (String) prevTPort.getData().get("tportName");
+            String tportOwner = (String) prevTPort.getData().get("tportOwner");
+            
+            if (prevLoc == null) {
+                TPort tport = TPortManager.getTPort(UUID.fromString(tportOwner), tportName);
+                if (tport != null) {
+                    if (!hasPermission(player, true, "TPort.open", "TPort.basic")) {
+                        return false;
+                    }
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportName", tportName, "tportOwner", tportOwner, "prevLoc", player.getLocation()));
+                    if (tport.teleport(player, true, false)) {
+                        
+                        if (Delay.delayTime(player) == 0) {
+                            sendSuccessTheme(player, "Successfully teleported back to TPort %s", tportName);
+                        } else {
+                            sendSuccessTheme(player, "Successfully requested back teleportation back to TPort %s", tportName);
+                        }
+                        return true;
+                    } else {
+                        prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportName", tportName, "tportOwner", tportOwner, "prevLoc", null));
+                        return false;
+                    }
+                } else {
+                    sendErrorTheme(player, "Could not find TPort %s anymore", tportName);
+                    return false;
+                }
+            } else {
+                prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportName", tportName, "tportOwner", tportOwner, "prevLoc", null));
+                requestTeleportPlayer(player, prevLoc);
+    
+                if (Delay.delayTime(player) == 0) {
+                    sendSuccessTheme(player, "Successfully teleported back from TPort %s", tportName);
+                } else {
+                    sendSuccessTheme(player, "Successfully requested back teleportation back from TPort %s", tportName);
+                }
+                return true;
+            }
+        }, (player, prevTPort) -> {
+            String tportName = (String) prevTPort.getData().get("tportName");
+            String tportOwner = (String) prevTPort.getData().get("tportOwner");
+            TPort tport = TPortManager.getTPort(UUID.fromString(tportOwner), tportName);
+            if (tport != null) {
+                Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
+                return (prevLoc == null ? "To" : "From") + " TPort" + tport.getName();
+            } else {
+                return "Unknown";
+            }
+        }),
+        BIOME((player, prevTPort) -> {
+            Location biomeLoc = (Location) prevTPort.getData().get("biomeLoc");
+            Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
+            String biomeName = (String) prevTPort.getData().get("biomeName");
+            
+            if (prevLoc == null) {
+                prevTPorts.put(player.getUniqueId(), new PrevTPort("BIOME", "biomeLoc", biomeLoc, "prevLoc", player.getLocation(), "biomeName", biomeName));
+                requestTeleportPlayer(player, biomeLoc);
+    
+                if (Delay.delayTime(player) == 0) {
+                    sendSuccessTheme(player, "Successfully teleported back to biome %s", biomeName);
+                } else {
+                    sendSuccessTheme(player, "Successfully requested back teleportation back to biome %s", biomeName);
+                }
+            } else {
+                prevTPorts.put(player.getUniqueId(), new PrevTPort("BIOME", "biomeLoc", biomeLoc, "prevLoc", null, "biomeName", biomeName));
+                requestTeleportPlayer(player, prevLoc);
+    
+                if (Delay.delayTime(player) == 0) {
+                    sendSuccessTheme(player, "Successfully teleported back from biome %s", biomeName);
+                } else {
+                    sendSuccessTheme(player, "Successfully requested back teleportation back from biome %s", biomeName);
+                }
+            }
+            return true;
+        }, (player, prevTPort) -> {
+            String biomeName = (String) prevTPort.getData().get("biomeName");
+            Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
+            return (prevLoc == null ? "To" : "From") + " biome " + biomeName;
+        }),
+        FEATURE((player, prevTPort) -> {
+            Location featureLoc = (Location) prevTPort.getData().get("featureLoc");
+            Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
+            String featureName = (String) prevTPort.getData().get("featureName");
+            
+            if (prevLoc == null) {
+                prevTPorts.put(player.getUniqueId(), new PrevTPort("FEATURE", "featureLoc", featureLoc, "prevLoc", player.getLocation(), "featureName", featureName));
+                requestTeleportPlayer(player, featureLoc);
+
+                if (Delay.delayTime(player) == 0) {
+                    sendSuccessTheme(player, "Successfully teleported back to %s", featureName);
+                } else {
+                    sendSuccessTheme(player, "Successfully requested back teleportation back to %s", featureName);
+                }
+            } else {
+                prevTPorts.put(player.getUniqueId(), new PrevTPort("FEATURE", "featureLoc", featureLoc, "prevLoc", null, "featureName", featureName));
+                requestTeleportPlayer(player, prevLoc);
+
+                if (Delay.delayTime(player) == 0) {
+                    sendSuccessTheme(player, "Successfully teleported back from %s", featureName);
+                } else {
+                    sendSuccessTheme(player, "Successfully requested teleportation from %s", featureName);
+                }
+            }
+            return true;
+        }, (player, prevTPort) -> {
+            String featureName = (String) prevTPort.getData().get("featureName");
+            Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
+            return (prevLoc == null ? "To" : "From") + featureName;
+        }),
+        PLAYER((player, prevTPort) -> {
+            Files tportData = GettingFiles.getFile("TPortData");
+            String toPlayerUUID = (String) prevTPort.getData().get("playerUUID");
+            
+            Player toPlayer = Bukkit.getPlayer(UUID.fromString(toPlayerUUID));
+            Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
+            
+            if (prevLoc == null) {
+                if (toPlayer != null) {
+                    if (Objects.equals(tportData.getConfig().getString("tport." + toPlayerUUID + ".tp.statement"), "off")) {
+                        ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
+                                .getStringList("tport." + toPlayerUUID + "tp.players");
+                        if (!list.contains(player.getUniqueId().toString())) {
+                            sendErrorTheme(player, "%s has set his PLTP to off, and you are not whitelisted", toPlayer.getName());
+                            return false;
+                        }
+                    }
+                    
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("PLAYER", "playerUUID", toPlayerUUID, "prevLoc", player.getLocation()));
+                    requestTeleportPlayer(player, toPlayer.getLocation());
+                    
+                    if (Delay.delayTime(player) == 0) {
+                        sendSuccessTheme(player, "Successfully teleported back to player %s", toPlayer.getName());
+                    } else {
+                        sendSuccessTheme(player, "Successfully requested teleportation back to player %s", toPlayer.getName());
+                    }
+                    return true;
+                } else {
+                    sendErrorTheme(player, "Player %s is not online anymore", PlayerUUID.getPlayerName(toPlayerUUID));
+                    return false;
+                }
+            } else {
+                prevTPorts.put(player.getUniqueId(), new PrevTPort("PLAYER", "playerUUID", toPlayerUUID, "prevLoc", null));
+                requestTeleportPlayer(player, prevLoc);
+
+                if (Delay.delayTime(player) == 0) {
+                    sendSuccessTheme(player, "Successfully teleported back from player %s", PlayerUUID.getPlayerName(toPlayerUUID));
+                } else {
+                    sendSuccessTheme(player, "Successfully requested teleportation back from player %s", PlayerUUID.getPlayerName(toPlayerUUID));
+                }
+                return true;
+            }
+        }, (player, prevTPort) -> {
+            String playerName = PlayerUUID.getPlayerName((String) prevTPort.getData().get("playerUUID"));
+            Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
+            return (prevLoc == null ? "To" : "From") + playerName;
+        }),
+        DEATH((player, prevTPort) -> {
+            Location deathLoc = (Location) prevTPort.getData().get("deathLoc");
+            Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
+            
+            if (prevLoc == null) {
+                prevTPorts.put(player.getUniqueId(), new PrevTPort("DEATH", "deathLoc", deathLoc, "prevLoc", player.getLocation()));
+                requestTeleportPlayer(player, deathLoc);
+                
+                if (Delay.delayTime(player) == 0) {
+                    sendSuccessTheme(player, "Successfully teleported back to your %s location", "death");
+                } else {
+                    sendSuccessTheme(player, "Successfully requested teleportation back to your %s location", "death");
+                }
+            } else {
+                prevTPorts.put(player.getUniqueId(), new PrevTPort("DEATH", "deathLoc", deathLoc, "prevLoc", null));
+                requestTeleportPlayer(player, prevLoc);
+                
+                if (Delay.delayTime(player) == 0) {
+                    sendSuccessTheme(player, "Successfully teleported back from your %s location", "death");
+                } else {
+                    sendSuccessTheme(player, "Successfully requested teleportation back from your %s location", "death");
+                }
+            }
+            return true;
+        }, (player, prevTPort) -> {
+            Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
+            return (prevLoc == null ? "To" : "From") + " death location";
+        });
+        
+        private TPBack tpBack;
+        private BackString backString;
+        
+        PrevType(TPBack tpBack, BackString backString) {
+            this.tpBack = tpBack;
+            this.backString = backString;
+        }
+        
+        public boolean tpBack(Player player, PrevTPort prevTPort) {
+            return tpBack.tpBack(player, prevTPort);
+        }
+        
+        public String toString(Player player, PrevTPort prevTPort) {
+            return backString.backString(player, prevTPort);
+        }
+        
+        @FunctionalInterface
+        private interface TPBack {
+            boolean tpBack(Player player, PrevTPort prevTPort);
+        }
+        
+        @FunctionalInterface
+        private interface BackString {
+            String backString(Player player, PrevTPort prevTPort);
+        }
+    }
+    
     public static class PrevTPort {
-        private String tportName;
-        private Location backLoc;
-        private String toPlayerUUID;
-        private Location deathLoc;
+        private HashMap<String, Object> data = new HashMap<>();
+        private PrevType prevType;
         
-        public PrevTPort(String tportName, Location backLoc, String toPlayerUUID, Location deathLoc) {
-            this.tportName = tportName;
-            this.backLoc = backLoc;
-            this.toPlayerUUID = toPlayerUUID;
-            this.deathLoc = deathLoc;
+        public PrevTPort(PrevType prevType, String name1, Object data1, String name2, Object data2) {
+            this.data.put(name1, data1);
+            this.data.put(name2, data2);
+            this.prevType = prevType;
         }
         
-        public Location getL() {
-            return backLoc;
+        public PrevTPort(PrevType prevType, String name1, Object data1, String name2, Object data2, String name3, Object data3) {
+            this.data.put(name1, data1);
+            this.data.put(name2, data2);
+            this.data.put(name3, data3);
+            this.prevType = prevType;
         }
         
-        public String getToPlayerUUID() {
-            return toPlayerUUID;
+        public PrevTPort(String prevType, String name1, Object data1, String name2, Object data2) {
+            this.data.put(name1, data1);
+            this.data.put(name2, data2);
+            this.prevType = PrevType.valueOf(prevType);
         }
         
-        public String getTportName() {
-            return tportName;
+        public PrevTPort(String prevType, String name1, Object data1, String name2, Object data2, String name3, Object data3) {
+            this.data.put(name1, data1);
+            this.data.put(name2, data2);
+            this.data.put(name3, data3);
+            this.prevType = PrevType.valueOf(prevType);
         }
         
-        public Location getDeathLoc() {
-            return deathLoc;
+        public boolean tpBack(Player player) {
+            return prevType.tpBack(player, this);
+        }
+        
+        public String toString(Player player) {
+            return prevType.toString(player, this);
+        }
+        
+        public HashMap<String, Object> getData() {
+            return data;
         }
     }
 }

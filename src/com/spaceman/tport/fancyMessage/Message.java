@@ -39,6 +39,11 @@ public class Message {
         this.components.add(textComponent(simpleText, color));
     }
     
+    @Override
+    public String toString() {
+        return components.stream().map(TextComponent::toString).collect(Collectors.joining());
+    }
+    
     public static void testAll(Player player) {
         
         /*

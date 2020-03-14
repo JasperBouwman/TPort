@@ -21,6 +21,11 @@ public class BookPage {
         addText(text);
     }
     
+    @Override
+    public String toString() {
+        return message.toString();
+    }
+    
     public static String getActivePageReplacer() {
         return "{APN}";
     }

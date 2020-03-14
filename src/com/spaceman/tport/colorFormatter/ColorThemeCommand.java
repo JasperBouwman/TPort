@@ -19,17 +19,14 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 public class ColorThemeCommand extends SubCommand {
     
     public ColorThemeCommand() {
-        EmptyCommand emptyGetType = new EmptyCommand();
-        emptyGetType.setCommandName("type", ArgumentType.REQUIRED);
-        emptyGetType.setCommandDescription(textComponent("", ColorType.infoColor));
-        emptyGetType.setCommandDescription(textComponent("This command is used to get the color of the given color type", ColorType.infoColor));
-        
         EmptyCommand emptySetTheme = new EmptyCommand();
         emptySetTheme.setCommandName("theme", ArgumentType.REQUIRED);
         emptySetTheme.setCommandDescription(textComponent("This command is used to set your theme to the given default theme", ColorType.infoColor));
+        
         EmptyCommand emptySetTypeColor = new EmptyCommand();
         emptySetTypeColor.setCommandName("color", ArgumentType.REQUIRED);
         emptySetTypeColor.setCommandDescription(textComponent("This command is used to set the color of the given color type", ColorType.infoColor));
+        
         EmptyCommand emptySetType = new EmptyCommand();
         emptySetType.setCommandName("type", ArgumentType.REQUIRED);
         emptySetType.setTabRunnable((args, player) -> {
@@ -40,9 +37,6 @@ public class ColorThemeCommand extends SubCommand {
         });
         emptySetType.addAction(emptySetTypeColor);
         
-        EmptyCommand empty = new EmptyCommand();
-        empty.setCommandName("");
-        empty.setCommandDescription(textComponent("This command is used to see that your theme is set to", ColorType.infoColor));
         EmptyCommand emptySet = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -53,6 +47,12 @@ public class ColorThemeCommand extends SubCommand {
         emptySet.setTabRunnable((args, player) -> Stream.concat(ColorTheme.getDefaultThemes().stream(), ColorType.getTypes().stream()).collect(Collectors.toList()));
         emptySet.addAction(emptySetType);
         emptySet.addAction(emptySetTheme);
+        
+        
+        EmptyCommand emptyGetType = new EmptyCommand();
+        emptyGetType.setCommandName("type", ArgumentType.REQUIRED);
+        emptyGetType.setCommandDescription(textComponent("This command is used to get the color of the given color type", ColorType.infoColor));
+        
         EmptyCommand emptyGet = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -62,6 +62,17 @@ public class ColorThemeCommand extends SubCommand {
         emptyGet.setCommandName("get", ArgumentType.FIXED);
         emptyGet.setTabRunnable((args, player) -> ColorType.getTypes());
         emptyGet.addAction(emptyGetType);
+        
+        
+        EmptyCommand empty = new EmptyCommand() {
+            @Override
+            public String getName(String argument) {
+                return "";
+            }
+        };
+        empty.setCommandName("");
+        empty.setCommandDescription(textComponent("This command is used to see that your theme is set to", ColorType.infoColor));
+        
         addAction(empty);
         addAction(emptySet);
         addAction(emptyGet);

@@ -22,9 +22,11 @@ public class Backup extends SubCommand {
         // tport backup save <name>
         // tport backup load <name>
         // tport backup auto [state|count]
-        
-        if (!runCommands(getActions(), args[1], args, player)) {
-            sendErrorTheme(player, "Usage: %s", "/tport backup <save|load|auto> <name>|[state|count]");
+        if (args.length > 1) {
+            if (runCommands(getActions(), args[1], args, player)) {
+                return;
+            }
         }
+        sendErrorTheme(player, "Usage: %s", "/tport backup <save|load|auto> <name>|[state|count]");
     }
 }

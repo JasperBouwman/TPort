@@ -55,9 +55,26 @@ public class TPortCommand extends CommandTemplate {
         return item;
     }
     
+    public static boolean executeInternal(CommandSender sender, String args) {
+        return executeInternal(sender, args.split(" "));
+    }
+    
+    public static boolean executeInternal(CommandSender sender, String[] args) {
+        try {
+            final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            bukkitCommandMap.setAccessible(true);
+            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
+            
+            commandMap.getCommand("TPort").execute(sender, "", args);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
     @Override
     public void registerActions() {
-        EmptyCommand empty = new EmptyCommand(){
+        EmptyCommand empty = new EmptyCommand() {
             @Override
             public String getName(String argument) {
                 return "";
@@ -72,7 +89,7 @@ public class TPortCommand extends CommandTemplate {
         addAction(new Remove());
         addAction(new Edit());
         addAction(new PLTP());
-        addAction(new Compass());
+        addAction(new Teleporter());
         addAction(new Own());
         addAction(new Back());
         addAction(new BiomeTP());
@@ -92,11 +109,26 @@ public class TPortCommand extends CommandTemplate {
         addAction(new Delay());
         addAction(new Restriction());
         addAction(new Cancel());
+//        addAction(new QuickGuide());
+        addAction(new Redirect());
         HelpCommand helpCommand = new HelpCommand(this);
+        
+//        Message quickGuide = new Message();
+//        quickGuide.addText(textComponent("Not done yet"));
+//        helpCommand.addExtraHelp("QuickGuide", quickGuide);
+        
         helpCommand.addExtraHelp("PLTP", new Message(textComponent("PLTP stands for PlayerTeleportation, this allows you to teleport to other players. " +
                 "You can disable this, to disable use ", ColorTheme.ColorType.infoColor),
                 textComponent("/tport PLTP off", ColorTheme.ColorType.varInfoColor),
                 textComponent(". When this is off only players in your PLTP whitelist can teleport to you", ColorTheme.ColorType.infoColor)));
+        
+        Message redirects = new Message();
+        redirects.addText(textComponent("A Redirect has the ability to redirect an event/command. For example when a player used the command ", ColorTheme.ColorType.infoColor));
+        redirects.addText(textComponent("/tp <player>", ColorTheme.ColorType.varInfoColor));
+        redirects.addText(textComponent(" it will stop the command, and it will run the command ", ColorTheme.ColorType.infoColor));
+        redirects.addText(textComponent("/tport PLTP tp <player>", ColorTheme.ColorType.varInfoColor));
+        redirects.addText(textComponent(" instead", ColorTheme.ColorType.infoColor));
+        helpCommand.addExtraHelp("Redirects", redirects);
         
         addAction(helpCommand);
     }
@@ -115,23 +147,6 @@ public class TPortCommand extends CommandTemplate {
             list.remove("public");
         }
         return list;
-    }
-    
-    public static boolean executeInternal(CommandSender sender, String args) {
-        return executeInternal(sender, args.split(" "));
-    }
-    
-    public static boolean executeInternal(CommandSender sender, String[] args) {
-        try {
-            final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-            bukkitCommandMap.setAccessible(true);
-            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
-            
-            commandMap.getCommand("TPort").execute(sender, "", args);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
     }
     
     @Override
@@ -161,13 +176,20 @@ public class TPortCommand extends CommandTemplate {
         // tport PLTP whitelist list
         // tport PLTP whitelist <add|remove> <player...>
         // tport PLTP tp <player>
-        // tport compass <type> [data...]
+        // tport PLTP offset
+        // tport PLTP offset <offset>
+        // tport teleporter create <type> [data...]
+        // tport teleporter remove
         // tport own [TPort name]
         // tport back
         // tport biomeTP
-        // tport biomeTP [biome]
+        // tport biomeTP whitelist <biome...>
+        // tport biomeTP blacklist <biome...>
+        // tport biomeTP preset [preset]
+        // tport biomeTP random
         // tport featureTP
-        // tport featureTP [featureType]
+        // tport featureTP <featureType>
+        // tport featureTP <featureType> <mode>
         // tport home
         // tport setHome <player> <TPort name>
         // tport colorTheme
@@ -217,6 +239,8 @@ public class TPortCommand extends CommandTemplate {
         // tport restriction set <player> <type>
         // tport restriction get [player]
         // tport cancel
+        // tport quickGuide [guide]
+        // tport redirect <redirect> [state]
         
         if (!(sender instanceof Player)) {
             sender.sendMessage("You have to be a player to use this command");

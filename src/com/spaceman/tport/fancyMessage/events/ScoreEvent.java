@@ -11,6 +11,14 @@ public class ScoreEvent implements TextEvent {
     public ScoreEvent() {
     }
     
+    @Override
+    public String toString() {
+        return "ScoreEvent{" +
+                "name='" + name + '\'' +
+                ", objective='" + objective + '\'' +
+                '}';
+    }
+    
     public ScoreEvent(String name, String objective) {
         this.name = name;
         this.objective = objective;

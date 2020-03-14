@@ -84,13 +84,12 @@ public class JoinEvent implements Listener {
 
                             if (tportData.getConfig().getBoolean("tport." + playerUUID + ".items." + item + ".private.statement")) {
                                 tportData.getConfig().set("tport." + playerUUID + ".items." + item + ".private.statement", "on");
-                                tportData.saveConfig();
                             } else {
                                 tportData.getConfig().set("tport." + playerUUID + ".items." + item + ".private.statement", "off");
-                                tportData.saveConfig();
                             }
-
-
+                            tportData.saveConfig();
+    
+    
                             tportData.getConfig().set("tport." + playerUUID + ".items." + item + ".private.players", newList);
                         }
                     } catch (Exception ignore) {}
@@ -129,11 +128,6 @@ public class JoinEvent implements Listener {
                 tportData.saveConfig();
     
                 TPortManager.convertOldToNew(tportData);
-                
-            } else {
-                tportData.getConfig().set("tport." + playerUUID + ".tp.statement", "on");
-                tportData.getConfig().set("tport." + playerUUID + ".tp.players", new ArrayList<>());
-                tportData.saveConfig();
             }
         }
         TPortManager.convertOldToNew(tportData);

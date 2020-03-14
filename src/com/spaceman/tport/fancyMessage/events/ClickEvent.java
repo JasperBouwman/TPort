@@ -30,6 +30,15 @@ public class ClickEvent implements TextEvent {
         this.pageNumber = page;
     }
     
+    @Override
+    public String toString() {
+        return "ClickEvent{" +
+                "action='" + action + '\'' +
+                ", value='" + value + '\'' +
+                ", pageNumber=" + pageNumber +
+                '}';
+    }
+    
     public static ClickEvent clickEvent(String event, String value) {
         return new ClickEvent(event, value);
     }

@@ -63,6 +63,11 @@ public class TextComponent {
         this(text, color.name().toLowerCase(), textEvents, attribute);
     }
     
+    @Override
+    public String toString() {
+        return getRawText();
+    }
+    
     public static TextComponent textComponent() {
         return new TextComponent("", "white", null, null);
     }
@@ -165,6 +170,10 @@ public class TextComponent {
         if (pageNumber != null) {
             return text.replace(BookPage.getActivePageReplacer(), String.valueOf(pageNumber.getPageNumber()));
         }
+        return text;
+    }
+    
+    public String getRawText() {
         return text;
     }
     

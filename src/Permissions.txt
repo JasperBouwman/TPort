@@ -10,8 +10,8 @@ Permissions can work with trees.
 * If player has the permission 'TPort.command.example' -> player has permission to 'TPort.command.example'
 
 * All permissions                                                                                             TPort.*
-* All compass usages/commands                                                                                 TPort.compass.*
-* Use of compass                                                                                              TPort.compass.use
+* All teleporter usages/commands                                                                              TPort.teleporter.*
+* Use of a TPort Teleporter                                                                                   TPort.teleporter.use
 * Teleport to player                                                                                          TPort.pltp.tp
 
 /tport                                                                                                        TPort.open                                  || TPort.basic
@@ -36,7 +36,8 @@ Permissions can work with trees.
 /tport edit <TPort name> range
 /tport edit <TPort name> range <range>                                                                        TPort.edit.range
     also quick edit in own TPort gui ^
-/tport compass <type> [data...]                                                                               TPort.compass.create
+/tport teleporter create <type> [data...]                                                                     TPort.teleporter.create
+/tport teleporter remove                                                                                      TPort.teleporter.remove
 /tport PLTP state
 /tport PLTP state <state>                                                                                     TPort.PLTP.state.set                        || TPort.basic
     also quick edit in own TPort gui ^
@@ -50,6 +51,8 @@ Permissions can work with trees.
 /tport PLTP whitelist <add> <player...>                                                                       TPort.PLTP.edit                             || TPort.basic
 /tport PLTP whitelist <remove> <player...>
 /tport PLTP tp <player>                                                                                       TPort.PLTP.tp                               || TPort.basic
+/tport PLTP offset
+/tport PLTP offset <offset>
 /tport help
 /tport open <player> [TPort name]                                                                             TPort.open                                  || TPort.basic
     also using a TPort in a TPort gui ^
@@ -57,11 +60,15 @@ Permissions can work with trees.
 /tport remove <TPort name>
 /tport removePlayer <player>                                                                                  TPort.admin.removePlayer
 /tport back                                                                                                   TPort.back                                  || TPort.basic
-/tport biomeTP                                                                                                TPort.biomeTP.open
-/tport biomeTP [biome]                                                                                        TPort.biomeTP.<biome>                       || TPort.biomeTP.all
+/tport biomeTP
+/tport biomeTP whitelist <biome...>                                                                          (TPort.biomeTP.whitelist AND TPort.biomeTP.biome.<biome...>) || TPort.biomeTP.all
+/tport biomeTP blacklist <biome...>                                                                          (TPort.biomeTP.blacklist AND TPort.biomeTP.biome.<biome...>) || TPort.biomeTP.all
+/tport biomeTP preset                                                                                         TPort.biomeTP.preset                        || TPort.biomeTP.all
+/tport biomeTP preset [preset]                                                                                TPort.biomeTP.preset AND permissions of '/tport biomeTP whitelist/blacklist <biome...>'
 /tport biomeTP random                                                                                         TPort.biomeTP.random                        || TPort.biomeTP.all
-/tport featureTP                                                                                              TPort.featureTP.open
-/tport featureTP [featureType]                                                                                tport.featureTP.<featureType>               || TPort.featureTP.all
+/tport featureTP
+/tport featureTP [featureType]                                                                                TPort.featureTP.type.<feature> (to give player access to all biomes: TPort.featureTP.type.*)
+/tport featureTP [featureType] [mode]                                                                         TPort.featureTP.type.<feature> AND TPort.featureTP.mode.<mode>
 /tport reload                                                                                                 TPort.admin.reload
 /tport cooldown <cooldown>
 /tport cooldown <cooldown> <value>                                                                            TPort.cooldown.set                          || TPort.admin.cooldown
@@ -124,3 +131,6 @@ Permissions can work with trees.
 /tport restriction get                                                                                        TPort.restriction.get.own
 /tport restriction get <player>                                                                               TPort.restriction.get.all                   || TPort.admin.restriction
 /tport cancel                                                                                                 TPort.cancel                                || TPort.basic
+/tport quickGuide [guide]
+/tport redirect <redirect>
+/tport redirect <redirect> <state>                                                                            TPort.redirect.set                          || TPort.admin

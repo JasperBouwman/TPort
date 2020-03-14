@@ -425,47 +425,51 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public boolean teleport(Player player, boolean sendMessage) {
+        return teleport(player, sendMessage, sendMessage);
+    }
+    
+    public boolean teleport(Player player, boolean sendError, boolean sendSuccess) {
         if (!this.isActive()) {
-            if (sendMessage)
+            if (sendError)
                 sendErrorTheme(player, "TPort %s is not active, it may be inactive because that the world was not found", getName());
             return false;
         }
-        if (!CooldownManager.TPortTP.hasCooled(player, sendMessage)) {
+        if (!CooldownManager.TPortTP.hasCooled(player, sendError)) {
             return false;
         }
-        
+    
         Location l = this.getLocation();
-        
+    
         if (!owner.equals(player.getUniqueId())) {
-            
+        
             if (!this.getPrivateStatement().hasAccess(player, this)) {
                 this.getPrivateStatement().sendErrorMessage(player, this);
                 return false;
             }
-            
+        
             if (this.hasRange()) {
                 if (l == null) {
-                    if (sendMessage) sendErrorTheme(player, "The world for this TPort has not been found");
+                    if (sendError) sendErrorTheme(player, "The world for this TPort has not been found");
                     return false;
                 }
                 Location location = OfflineLocationManager.getLocation(owner);
                 if (location == null) {
-                    if (sendMessage)
+                    if (sendError)
                         sendErrorTheme(player, "Could not get distance of player to TPort, can't teleport you");
                     return false;
                 } else {
                     if (location.distance(l) > this.getRange()) {
-                        if (sendMessage) sendErrorTheme(player, "The owner is out of his set range of his TPort");
+                        if (sendError) sendErrorTheme(player, "The owner is out of his set range of his TPort");
                         return false;
                     }
                 }
             }
         }
-        
+    
         player.closeInventory();
-        
+    
         if (l == null) {
-            if (sendMessage) sendErrorTheme(player, "The world for this TPort has not been found");
+            if (sendError) sendErrorTheme(player, "The world for this TPort has not been found");
             return false;
         }
         tpPlayerToTPort(player, l, this.getName(), owner.toString());
@@ -473,8 +477,8 @@ public class TPort implements ConfigurationSerializable {
         this.log(player.getUniqueId());
         this.save();
         CooldownManager.TPortTP.update(player);
-        
-        if (sendMessage) {
+    
+        if (sendSuccess) {
             ColorTheme theme = ColorTheme.getTheme(player);
             Message message = new Message();
             if (Delay.delayTime(player) == 0) {

@@ -18,6 +18,11 @@ public class HoverEvent implements TextEvent {
     public HoverEvent() {
     }
     
+    @Override
+    public String toString() {
+        return text.stream().map(TextComponent::toString).collect(Collectors.joining());
+    }
+    
     public HoverEvent(TextComponent... textComponents) {
         for (TextComponent textComponent : textComponents) {
             textComponent.clearInteractiveEvents();

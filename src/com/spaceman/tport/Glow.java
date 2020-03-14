@@ -13,7 +13,7 @@ import java.lang.reflect.Field;
 public class Glow extends Enchantment {
     
     public Glow() {
-        super(new NamespacedKey(Main.getInstance(), Main.getInstance().getDescription().getName()));
+        super(new NamespacedKey(Main.getInstance(), "Glow"));
     }
     
     public static ItemStack addGlow(ItemStack item) {

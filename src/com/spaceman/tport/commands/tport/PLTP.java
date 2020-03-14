@@ -18,6 +18,7 @@ public class PLTP extends SubCommand {
         addAction(new Revoke());
         addAction(new Whitelist());
         addAction(new TP());
+        addAction(new Offset());
     }
     
     @Override

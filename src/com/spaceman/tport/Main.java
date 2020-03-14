@@ -2,12 +2,11 @@ package com.spaceman.tport;
 
 import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commands.TPortCommand;
+import com.spaceman.tport.commands.tport.BiomeTP;
+import com.spaceman.tport.commands.tport.Redirect;
 import com.spaceman.tport.commands.tport.Reload;
 import com.spaceman.tport.commands.tport.backup.Auto;
-import com.spaceman.tport.events.CompassEvents;
-import com.spaceman.tport.events.DeathEvent;
-import com.spaceman.tport.events.InventoryClick;
-import com.spaceman.tport.events.JoinEvent;
+import com.spaceman.tport.events.*;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
@@ -18,10 +17,8 @@ import com.spaceman.tport.tpEvents.animations.SimpleAnimation;
 import com.spaceman.tport.tpEvents.restrictions.NoneRestriction;
 import com.spaceman.tport.tpEvents.restrictions.WalkRestriction;
 import com.spaceman.tport.tport.TPort;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.World;
+import org.bukkit.*;
+import org.bukkit.block.Biome;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -30,6 +27,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 
@@ -51,6 +50,14 @@ public class Main extends JavaPlugin {
             sendErrorTheme(player, "Your inventory is full, dropped item %s on the ground", item.getType().name());
         }
         return returnList;
+    }
+    
+    public static <I, J> HashMap<I, J> asMap(Pair<I, J>... pairs) {
+        HashMap<I, J> map = new HashMap<>();
+        for (Pair<I, J> pair : pairs) {
+            map.put(pair.getLeft(), pair.getRight());
+        }
+        return map;
     }
     
     public static ArrayList<ItemStack> giveItems(Player player, ItemStack... items) {
@@ -117,18 +124,70 @@ public class Main extends JavaPlugin {
         return list;
     }
     
+    public static boolean containsSpecialCharacter(String s) {
+        if (s == null || s.trim().isEmpty()) {
+            return true;
+        }
+        Pattern p = Pattern.compile("[^A-Za-z0-9_-]");
+        Matcher m = p.matcher(s);
+        
+        return m.find();
+    }
+    
+    public static String replaceLast(String text, String regex, String replacement) {
+        return text.replaceFirst("(?s)(.*)" + regex, "$1" + replacement);
+    }
+    
     public void onEnable() {
         
         /*
-         * changelog 1.15.2 update:
+         * changelog 1.15.3 update:
+         * added featureTP modes:
+         *   modes available now: CLOSEST and RANDOM
+         *   when selected RANDOM it will find the feature at random
+         *   CLOSEST is the default
+         *   usage: /tport featureTP <feature> <mode>
+         * made biomeTP safe for the nether and the end to teleport to
+         * added presets to biomeTP (a preset is a pre generated white/blacklist to use for biomeTP)
+         * added the cooldown if the biomeTP search failed
+         * redid the biomeTP commands:
+         *   /tport biomeTP
+         *   /tport biomeTP whitelist <biome...> (teleport to a random biome that is in your list)
+         *   /tport biomeTP blacklist <biome...> (teleport to a random biome that is not in your list)
+         *   /tport biomeTP preset [preset]
+         *   /tport biomeTP random
+         * the amount of biome searches can now be edited in the TPortConfig.yml file
+         * redid/improved TPort back
+         * added to TPort back:
+         *   - biomeTP
+         *   - featureTP
+         * updated/renamed the compass mechanism. Old compasses don't work anymore, I'm sorry. The new name is 'teleporter'
+         * to remove the old compass data of your compass item, just remove the lore of the item
+         *  new commands for the teleporter command
+         *   /tport teleporter create <type> [data...]
+         *   /tport teleporter remove
+         * added redirects
+         *  /tport redirect <redirect> [state]
+         *  a redirect can redirect commands, i.e. the Minecraft command '/tp <player>' to the TPort command '/tport PLTP tp <player>'
+         *  for now its just commands
+         * added to PLTP an editable offset
+         *  When the offset is set to 'BEHIND' the player who teleports to you will be teleported 1 meter behind you, instead of in you
          *
-         * fixed TPort back: when teleporting back to a TPort it did not store the correct location
+         * you can create you own biomeTP preset:
+         *   1. create your own plugin
+         *   2. add TPort to your libraries
+         *   3. in your onEnable() put:
+         *      'com.spaceman.tport.commands.tport.BiomeTP.BiomeTPPresets.
+         *        registerPreset("PresetName", Arrays.asList(Biome.YOUR_BIOMES), (true if whitelist, false if blacklist), Material.YOUR_DISPLAY_MATERIAL);'
+         *      it returns true if successfully registered, false when not
          */
         
         /*
          * todo
          * remove converting methods
-         * improve TPort back code
+         * add QuickGuide command
+         *
+         * create tutorial for creating your own Particle Animations and TP Restrictions
          * */
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
@@ -140,33 +199,113 @@ public class Main extends JavaPlugin {
         TPRestriction.registerRestriction(NoneRestriction::new);
         TPRestriction.registerRestriction(WalkRestriction::new);
         
+        registerBiomeTPPresets();
+        
         Reload.reloadTPort();
         
         TPEManager.loadTPE(GettingFiles.getFile("TPortConfig"));
         
         ColorTheme.loadThemes(GettingFiles.getFile("TPortConfig"));
-        
-        
+    
+        Redirect.Redirects.loadRedirects();
+    
         Glow.registerGlow();
         
         new TPortCommand();
         
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(new InventoryClick(), this);
-        pm.registerEvents(new CompassEvents(), this);
+        pm.registerEvents(new TeleporterEvents(), this);
         pm.registerEvents(new JoinEvent(this), this);
-        pm.registerEvents(new DeathEvent(), this);
+        pm.registerEvents(new RespawnEvent(), this);
         pm.registerEvents(new OfflineLocationManager(), this);
+        pm.registerEvents(new CommandEvent(), this);
         
         for (Player player : Bukkit.getOnlinePlayers()) {
             JoinEvent.setData(this, player);
         }
+        
+        Files tportConfig = GettingFiles.getFile("TPortConfig");
+        if (!tportConfig.getConfig().contains("biomeTP.searches")) {
+            tportConfig.getConfig().set("biomeTP.searches", 100);
+            tportConfig.saveConfig();
+        }
+        BiomeTP.biomeSearches = tportConfig.getConfig().getInt("biomeTP.searches", 100);
+    }
+    
+    private void registerBiomeTPPresets() {
+        BiomeTP.BiomeTPPresets.registerPreset("Land", Arrays.asList(
+                Biome.OCEAN, Biome.WARM_OCEAN, Biome.LUKEWARM_OCEAN,
+                Biome.COLD_OCEAN, Biome.FROZEN_OCEAN, Biome.DEEP_OCEAN,
+                Biome.DEEP_WARM_OCEAN, Biome.DEEP_LUKEWARM_OCEAN,
+                Biome.DEEP_COLD_OCEAN, Biome.DEEP_FROZEN_OCEAN,
+                Biome.RIVER, Biome.FROZEN_RIVER
+        ), false, Material.DIRT);
+    
+        BiomeTP.BiomeTPPresets.registerPreset("Water", Arrays.asList(
+                Biome.OCEAN, Biome.WARM_OCEAN, Biome.LUKEWARM_OCEAN,
+                Biome.COLD_OCEAN, Biome.FROZEN_OCEAN, Biome.DEEP_OCEAN,
+                Biome.DEEP_WARM_OCEAN, Biome.DEEP_LUKEWARM_OCEAN,
+                Biome.DEEP_COLD_OCEAN, Biome.DEEP_FROZEN_OCEAN,
+                Biome.RIVER, Biome.FROZEN_RIVER
+        ), true, Material.WATER_BUCKET);
+    
+        BiomeTP.BiomeTPPresets.registerPreset("The_End", Arrays.asList(
+                Biome.END_BARRENS, Biome.END_HIGHLANDS, Biome.END_MIDLANDS, Biome.THE_END, Biome.SMALL_END_ISLANDS),
+                true, Material.END_STONE);
+    
+        BiomeTP.BiomeTPPresets.registerPreset("Savannah", Arrays.asList(
+                Biome.SAVANNA, Biome.SAVANNA_PLATEAU, Biome.SHATTERED_SAVANNA, Biome.SHATTERED_SAVANNA_PLATEAU),
+                true, Material.ACACIA_PLANKS);
+    
+        BiomeTP.BiomeTPPresets.registerPreset("Taiga", Arrays.asList(
+                Biome.TAIGA,
+                Biome.TAIGA_HILLS,
+                Biome.TAIGA_MOUNTAINS,
+                Biome.SNOWY_TAIGA,
+                Biome.SNOWY_TAIGA_MOUNTAINS
+                ),
+                true, Material.SPRUCE_PLANKS);
+    
+        BiomeTP.BiomeTPPresets.registerPreset("Giant_Taiga", Arrays.asList(
+                Biome.GIANT_TREE_TAIGA,
+                Biome.GIANT_TREE_TAIGA_HILLS,
+                Biome.GIANT_SPRUCE_TAIGA,
+                Biome.GIANT_SPRUCE_TAIGA_HILLS
+                ),
+                true, Material.SPRUCE_LOG);
+    
+        BiomeTP.BiomeTPPresets.registerPreset("Mushroom", Arrays.asList(
+                Biome.MUSHROOM_FIELDS, Biome.MUSHROOM_FIELD_SHORE),
+                true, Material.RED_MUSHROOM_BLOCK);
+    
+        BiomeTP.BiomeTPPresets.registerPreset("Jungle", Arrays.asList(
+                Biome.JUNGLE, Biome.JUNGLE_EDGE, Biome.JUNGLE_HILLS,
+                Biome.BAMBOO_JUNGLE, Biome.MODIFIED_JUNGLE, Biome.BAMBOO_JUNGLE_HILLS,
+                Biome.MODIFIED_JUNGLE_EDGE),
+                true, Material.JUNGLE_PLANKS);
+    
+        BiomeTP.BiomeTPPresets.registerPreset("Badlands", Arrays.asList(
+                Biome.BADLANDS, Biome.BADLANDS_PLATEAU, Biome.ERODED_BADLANDS,
+                Biome.MODIFIED_BADLANDS_PLATEAU, Biome.MODIFIED_WOODED_BADLANDS_PLATEAU,
+                Biome.WOODED_BADLANDS_PLATEAU),
+                true, Material.TERRACOTTA);
+    
+        BiomeTP.BiomeTPPresets.registerPreset("Birch", Arrays.asList(
+                Biome.BIRCH_FOREST, Biome.BIRCH_FOREST_HILLS,
+                Biome.TALL_BIRCH_FOREST, Biome.TALL_BIRCH_HILLS),
+                true, Material.BIRCH_PLANKS);
+
+//        BiomeTP.BiomeTPPresets.registerPreset("name", Arrays.asList(
+//                null),
+//                true, Material.STONE);
     }
     
     @Override
     public void onDisable() {
         TPEManager.saveTPE(GettingFiles.getFile("TPortConfig"));
         ColorTheme.saveThemes(GettingFiles.getFile("TPortConfig"));
+        Redirect.Redirects.saveRedirects();
         Auto.save();
     }
 }

@@ -1,7 +1,8 @@
 package com.spaceman.tport.events;
 
+import com.spaceman.tport.Main;
 import com.spaceman.tport.commands.TPortCommand;
-import org.bukkit.ChatColor;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
@@ -14,81 +15,25 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.List;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
-public class CompassEvents implements Listener {
+public class TeleporterEvents implements Listener {
     
-    private boolean openCompass(Player player, ItemStack is) {
-        if (is != null && is.hasItemMeta() && is.getItemMeta().hasLore()) {
-            
-            List<String> lore = is.getItemMeta().getLore();
-            
-            if (lore.isEmpty()) {
-                return false;
-            }
-
-            
-            if (!lore.get(0).equals(ChatColor.DARK_AQUA + "TPort Compass")) {
-                return false;
-            }
-    
-            if (!hasPermission(player, true, "TPort.compass.use")) {
-                return false;
-            }
-            
-            if (lore.size() == 3) {
-                switch (lore.get(2).split("Type: ")[1]) {
-                    case "biomeTP":
-                        TPortCommand.executeInternal(player, "BiomeTP");
-                        break;
-                    case "featureTP":
-                        TPortCommand.executeInternal(player, "FeatureTP");
-                        break;
-                    case "back":
-                        TPortCommand.executeInternal(player, "back");
-                        break;
-                    case "home":
-                        TPortCommand.executeInternal(player, "home");
-                        break;
-                    case "Public":
-                        TPortCommand.executeInternal(player, "public");
-                        break;
-                    case "TPort":
-                    default:
-                        TPortCommand.executeInternal(player, "");
-                        break;
-                }
-            } else if (lore.size() == 4) {
-                switch (lore.get(2).split("Type: ")[1]) {
-                    case "TPort":
-                        TPortCommand.executeInternal(player, new String[]{"open", lore.get(3).split("Player: ")[1]});
-                        break;
-                    case "biomeTP":
-                        TPortCommand.executeInternal(player, new String[]{"BiomeTP", lore.get(3).split("Biome: ")[1]});
-                        break;
-                    case "featureTP":
-                        TPortCommand.executeInternal(player, new String[]{"FeatureTP", lore.get(3).split("Feature: ")[1]});
-                        break;
-                    case "PLTP":
-                        TPortCommand.executeInternal(player, new String[]{"PLTP", "tp", lore.get(3).split("Player: ")[1]});
-						break;
-                    case "Public":
-                        TPortCommand.executeInternal(player, new String[]{"public", "open", lore.get(3).split("Public TPort: ")[1]});
-                        break;
-                    default:
-                        TPortCommand.executeInternal(player, "");
-                        break;
-                }
-            } else if (lore.size() == 5) {
-                if ("TPort".equals(lore.get(2).split("Type: ")[1])) {
-                    TPortCommand.executeInternal(player, new String[]{"open", lore.get(3).split("Player: ")[1], lore.get(4).split("TPort: ")[1]});
+    private boolean useTeleporter(Player player, ItemStack is) {
+        if (hasPermission(player, true, true, "TPort.teleporter.use")) {
+            ItemMeta im = is.getItemMeta();
+            if (im != null) {
+                PersistentDataContainer dataContainer = im.getPersistentDataContainer();
+                NamespacedKey keyCommand = new NamespacedKey(Main.getInstance(), "teleporterCommand");
+                if (dataContainer.has(keyCommand, PersistentDataType.STRING)) {
+                    TPortCommand.executeInternal(player, dataContainer.get(keyCommand, PersistentDataType.STRING));
+                    return true;
                 }
             }
-            
-            return true;
         }
         return false;
     }
@@ -104,7 +49,7 @@ public class CompassEvents implements Listener {
             
             ItemStack is = itemFrame.getItem();
             if (!e.getPlayer().isSneaking()) {
-                if (openCompass(e.getPlayer(), is)) {
+                if (useTeleporter(e.getPlayer(), is)) {
                     e.setCancelled(true);
                 }
             }
@@ -120,7 +65,7 @@ public class CompassEvents implements Listener {
                 && EquipmentSlot.OFF_HAND.equals(e.getHand())) {
             
             ItemStack is = e.getPlayer().getInventory().getItemInMainHand();
-            if (openCompass(e.getPlayer(), is)) {
+            if (useTeleporter(e.getPlayer(), is)) {
                 e.setCancelled(true);
             }
         }

