@@ -61,7 +61,7 @@ public class TP extends SubCommand {
             
             Player warp = Bukkit.getPlayer(args[2]);
             if (warp == null) {
-                sendErrorTheme(player, "Player %s is not online");
+                sendErrorTheme(player, "Player %s is not online", args[2]);
                 return;
             }
             

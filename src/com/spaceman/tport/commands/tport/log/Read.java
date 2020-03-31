@@ -20,7 +20,6 @@ import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.colorFormatter.ColorTheme.sendInfoTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
-import static com.spaceman.tport.tport.TPort.maxLogBookSize;
 
 public class Read extends SubCommand {
     
@@ -32,7 +31,7 @@ public class Read extends SubCommand {
         EmptyCommand emptyTPort = new EmptyCommand();
         emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
         emptyTPort.setCommandDescription(textComponent("This command is used to read the TPort log of the given TPort, the maximum log size is ", ColorTheme.ColorType.infoColor),
-                textComponent(String.valueOf(maxLogBookSize), ColorTheme.ColorType.varInfoColor));
+                textComponent(String.valueOf(LogSize.getLogSize()), ColorTheme.ColorType.varInfoColor));
         emptyTPort.setTabRunnable((args, player) -> {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
             if (tport != null) {

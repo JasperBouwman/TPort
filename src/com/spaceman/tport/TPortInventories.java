@@ -375,8 +375,19 @@ public class TPortInventories {
         backLore.add(theme.getVarInfoColor() + "Public TPort GUI");
         metaBack.setLore(backLore);
         back.setItemMeta(metaBack);
-        openDynamicScrollableInventory(player, page, "Select a Feature", Arrays.stream(FeatureTP.FeatureType.values())
+        
+        Inventory inv = getDynamicScrollableInventory(page, "Select a Feature", Arrays.stream(FeatureTP.FeatureType.values())
                 .map((f) -> createStack(theme.getInfoColor() + f.name(), f.getItemStack().getType())).collect(Collectors.toList()), back);
+    
+        ItemStack is = new ItemStack(Material.ELYTRA);
+        ItemMeta im = is.getItemMeta();
+        ColorTheme ct = ColorTheme.getTheme(player);
+        FeatureTP.FeatureTPMode mode = FeatureTP.getDefMode(player.getUniqueId());
+        im.setDisplayName(ct.getInfoColor() + "Current mode: " + ct.getVarInfoColor() + mode.name());
+        im.setLore(Arrays.asList(ct.getInfoColor() + "Click to change to " + ct.getVarInfoColor() + mode.getNext().name()));
+        is.setItemMeta(im);
+        inv.setItem(18, is);
+        player.openInventory(inv);
     }
     
     public static void openPublicTPortGUI(Player player, int page) {

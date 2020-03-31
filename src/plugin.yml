@@ -1,5 +1,6 @@
 main: com.spaceman.tport.Main
-version: 1.15.3
-name: tport
+version: 1.15.4
+name: TPort
 author: The_Spaceman
 api-version: 1.13
+website: https://dev.bukkit.org/projects/tport

@@ -2,9 +2,9 @@ package com.spaceman.tport.events;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.colorFormatter.ColorTheme;
-import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.Back;
 import com.spaceman.tport.commands.tport.Delay;
+import com.spaceman.tport.commands.tport.FeatureTP;
 import com.spaceman.tport.commands.tport.pltp.Offset;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.spaceman.tport.TPortInventories.*;
+import static com.spaceman.tport.commands.TPortCommand.executeInternal;
 import static com.spaceman.tport.commands.tport.Back.prevTPorts;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
@@ -255,7 +256,7 @@ public class InventoryClick implements Listener {
                                 }
                                 return;
                             } else if (e.getAction().equals(InventoryAction.PICKUP_ALL)) {//right click
-                                TPortCommand.executeInternal(player, "back");
+                                executeInternal(player, "back");
                                 return;
                             } else if (e.getAction().equals(InventoryAction.CLONE_STACK) || e.getAction().equals(InventoryAction.UNKNOWN)) {//middle click
                                 if (hasPermission(player, "TPort.featureTP.open")) {
@@ -279,7 +280,7 @@ public class InventoryClick implements Listener {
                                     
                                     if (list.contains(player.getUniqueId().toString())) {
                                         if (Bukkit.getPlayer(ownerUUID) != null) {
-                                            TPortCommand.executeInternal(player, new String[]{"PLTP", "tp", PlayerUUID.getPlayerName(ownerUUID)});
+                                            executeInternal(player, new String[]{"PLTP", "tp", PlayerUUID.getPlayerName(ownerUUID)});
                                         }
                                     } else {
                                         openTPortGUI(ownerUUID, player);
@@ -291,19 +292,19 @@ public class InventoryClick implements Listener {
                                     openTPortGUI(ownerUUID, player);
                                     e.setCancelled(true);
                                 } else {
-                                    TPortCommand.executeInternal(player, new String[]{"PLTP", "tp", PlayerUUID.getPlayerName(ownerUUID)});
+                                    executeInternal(player, new String[]{"PLTP", "tp", PlayerUUID.getPlayerName(ownerUUID)});
                                     return;
                                 }
                             } else if (testHead(item)) {
                                 e.setCancelled(true);
                                 if (e.getAction().equals(InventoryAction.PICKUP_HALF)) { //left click
                                     boolean pltpState = tportData.getConfig().getBoolean("tport." + player.getUniqueId().toString() + ".tp.consent", false);
-                                    TPortCommand.executeInternal(player, new String[]{"PLTP", "consent", String.valueOf(!pltpState)});
+                                    executeInternal(player, new String[]{"PLTP", "consent", String.valueOf(!pltpState)});
                                 } else if (e.getAction().equals(InventoryAction.PICKUP_ALL)) { //right click
                                     boolean pltpState = tportData.getConfig().getBoolean("tport." + player.getUniqueId().toString() + ".tp.statement", true);
-                                    TPortCommand.executeInternal(player, new String[]{"PLTP", "state", String.valueOf(!pltpState)});
+                                    executeInternal(player, new String[]{"PLTP", "state", String.valueOf(!pltpState)});
                                 } else if (e.getAction().equals(InventoryAction.CLONE_STACK) || e.getAction().equals(InventoryAction.UNKNOWN)) { //middle click
-                                    TPortCommand.executeInternal(player, new String[]{"PLTP", "offset", Offset.getPLTPOffset(player).getNext().name()});
+                                    executeInternal(player, new String[]{"PLTP", "offset", Offset.getPLTPOffset(player).getNext().name()});
                                 }
                                 openTPortGUI(player.getUniqueId(), player);
                             }
@@ -338,7 +339,7 @@ public class InventoryClick implements Listener {
                                             openTPortGUI(ownerUUID, player);
                                         }
                                     } else if (e.getAction().equals(InventoryAction.PICKUP_ALL)) {
-                                        TPortCommand.executeInternal(player, new String[]{"open", PlayerUUID.getPlayerName(ownerUUID), tport.getName()});
+                                        executeInternal(player, new String[]{"open", PlayerUUID.getPlayerName(ownerUUID), tport.getName()});
                                         return;
                                     }
                                 }
@@ -358,17 +359,17 @@ public class InventoryClick implements Listener {
                 if (e.getSlot() % 9 != 0 && e.getSlot() % 9 != 8) {
                     e.setCancelled(true);
                     if (e.getAction().equals(InventoryAction.PICKUP_ALL)) {
-                        TPortCommand.executeInternal(player, new String[]{"biomeTP", "whitelist", ChatColor.stripColor(meta.getDisplayName())});
+                        executeInternal(player, new String[]{"biomeTP", "whitelist", ChatColor.stripColor(meta.getDisplayName())});
                     }
                 } else if (e.getSlot() == 9) {
                     e.setCancelled(true);
                     if (e.getAction().equals(InventoryAction.PICKUP_ALL)) {
-                        TPortCommand.executeInternal(player, new String[]{"biomeTP", "random"});
+                        executeInternal(player, new String[]{"biomeTP", "random"});
                     }
                 } else if (e.getSlot() == 27) {
                     e.setCancelled(true);
                     if (e.getAction().equals(InventoryAction.PICKUP_ALL)) {
-                        TPortCommand.executeInternal(player, new String[]{"biomeTP", "preset"});
+                        executeInternal(player, new String[]{"biomeTP", "preset"});
                     }
                 } else if (item.getType().equals(Material.BARRIER) && meta.getDisplayName().equals(BACK)) {
                     e.setCancelled(true);
@@ -392,7 +393,7 @@ public class InventoryClick implements Listener {
                 if (e.getSlot() % 9 != 0 && e.getSlot() % 9 != 8) {
                     e.setCancelled(true);
                     if (e.getAction().equals(InventoryAction.PICKUP_ALL)) {
-                        TPortCommand.executeInternal(player, new String[]{"biomeTP", "preset", ChatColor.stripColor(meta.getDisplayName())});
+                        executeInternal(player, new String[]{"biomeTP", "preset", ChatColor.stripColor(meta.getDisplayName())});
                     }
                 } else if (item.getType().equals(Material.BARRIER) && meta.getDisplayName().equals(BACK)) {
                     e.setCancelled(true);
@@ -413,11 +414,15 @@ public class InventoryClick implements Listener {
                 openFeatureTP(player, Integer.parseInt(pageNumber) - 2);
             } else if (e.getSlot() == inv.getSize() - 1) {//page down
                 openFeatureTP(player, Integer.parseInt(pageNumber));
+            } else if (e.getSlot() == 18) {
+                e.setCancelled(true);
+                executeInternal(player, "featureTP mode " + FeatureTP.getDefMode(player.getUniqueId()).getNext().name());
+                openFeatureTP(player, Integer.parseInt(pageNumber) - 1);
             } else {
                 if (e.getSlot() % 9 != 0 && e.getSlot() % 9 != 8) {
                     e.setCancelled(true);
                     if (e.getAction().equals(InventoryAction.PICKUP_ALL)) {
-                        TPortCommand.executeInternal(player, new String[]{"featureTP", ChatColor.stripColor(meta.getDisplayName())});
+                        executeInternal(player, new String[]{"featureTP", "search", ChatColor.stripColor(meta.getDisplayName())});
                     }
                 } else if (item.getType().equals(Material.BARRIER) && meta.getDisplayName().equals(BACK)) {
                     e.setCancelled(true);
@@ -474,7 +479,7 @@ public class InventoryClick implements Listener {
                                 if (!otherTPortID.equals(tport.getTportID())) {
                                     TPort tmpTPort = TPortManager.getTPort(otherTPortID);
                                     if (tmpTPort != null) {
-                                        TPortCommand.executeInternal(player, new String[]{"public", "move", tmpTPort.getName(), tport.getName()});
+                                        executeInternal(player, new String[]{"public", "move", tmpTPort.getName(), tport.getName()});
                                     }
                                 }
                             } else {
@@ -486,7 +491,7 @@ public class InventoryClick implements Listener {
                             openPublicTPortGUI(player, Integer.parseInt(pageNumber) - 1);
                         } else {
                             if (e.getAction().equals(InventoryAction.PICKUP_ALL)) {
-                                TPortCommand.executeInternal(player, new String[]{"open", PlayerUUID.getPlayerName(tport.getOwner()), tport.getName()});
+                                executeInternal(player, new String[]{"open", PlayerUUID.getPlayerName(tport.getOwner()), tport.getName()});
                             }
                         }
                         return;

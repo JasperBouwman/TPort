@@ -37,12 +37,20 @@ public class CommandEvent implements Listener {
                 Bukkit.getLogger().log(Level.INFO, "[TPort] Redirected the command '" + e.getMessage() + "' to '/tport " + "BiomeTP whitelist" + e.getMessage().substring(12) + "'");
             }
         }
-        
+    
         if (Redirect.Redirects.Home_TPortHome.isEnabled() && e.getMessage().matches("/home")) {
             e.setCancelled(true);
             TPortCommand.executeInternal(e.getPlayer(), "home");
             if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
                 Bukkit.getLogger().log(Level.INFO, "[TPort] Redirected the command '" + e.getMessage() + "' to '/tport home'");
+            }
+        }
+        
+        if (Redirect.Redirects.Back_TPortBack.isEnabled() && e.getMessage().matches("/back")) {
+            e.setCancelled(true);
+            TPortCommand.executeInternal(e.getPlayer(), "back");
+            if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
+                Bukkit.getLogger().log(Level.INFO, "[TPort] Redirected the command '" + e.getMessage() + "' to '/tport back'");
             }
         }
         

@@ -66,9 +66,13 @@ Permissions can work with trees.
 /tport biomeTP preset                                                                                         TPort.biomeTP.preset                        || TPort.biomeTP.all
 /tport biomeTP preset [preset]                                                                                TPort.biomeTP.preset AND permissions of '/tport biomeTP whitelist/blacklist <biome...>'
 /tport biomeTP random                                                                                         TPort.biomeTP.random                        || TPort.biomeTP.all
+/tport biomeTP searchTries
+/tport biomeTP searchTries [tries]                                                                            TPort.biomeTP.searchTries                   || TPort.admin.biomeTP
 /tport featureTP
-/tport featureTP [featureType]                                                                                TPort.featureTP.type.<feature> (to give player access to all biomes: TPort.featureTP.type.*)
-/tport featureTP [featureType] [mode]                                                                         TPort.featureTP.type.<feature> AND TPort.featureTP.mode.<mode>
+/tport featureTP search <feature>                                                                             TPort.featureTP.type.<feature> (to give player access to all biomes: TPort.featureTP.type.*)
+/tport featureTP search <feature> [mode]                                                                      TPort.featureTP.type.<feature> AND TPort.featureTP.mode.<mode>
+/tport featureTP mode
+/tport featureTP mode [mode]                                                                                  TPort.featureTP.mode.<mode>
 /tport reload                                                                                                 TPort.admin.reload
 /tport cooldown <cooldown>
 /tport cooldown <cooldown> <value>                                                                            TPort.cooldown.set                          || TPort.admin.cooldown
@@ -89,6 +93,8 @@ Permissions can work with trees.
 /tport public list own
 /tport public list all
 /tport public move <TPort name> <slot|TPort name>                                                             TPort.public.move                           || TPort.admin.public
+/tport public listSize
+/tport public listSize <size>                                                                                 TPort.public.listSize                       || TPort.admin.public
 /tport transfer offer <player> <TPort name>                                                                   TPort.transfer.offer                        || TPort.basic
 /tport transfer revoke <TPort name>
 /tport transfer accept <player> <TPort name>                                                                  TPort.transfer.accept                       || TPort.basic
@@ -105,6 +111,8 @@ Permissions can work with trees.
 /tport log default <TPort name> [default LogMode]                                                             TPort.log
 /tport log notify <TPort name>
 /tport log notify <TPort name> <state>                                                                        TPort.notify.set                            || TPort.basic
+/tport log logSize
+/tport log logSize <size>                                                                                     TPort.log.logSize                           || TPort.admin.log
 /tport backup save <file>                                                                                     TPort.admin.backup.save
 /tport backup load <file>                                                                                     TPort.admin.backup.load
 /tport backup auto
@@ -133,4 +141,4 @@ Permissions can work with trees.
 /tport cancel                                                                                                 TPort.cancel                                || TPort.basic
 /tport quickGuide [guide]
 /tport redirect <redirect>
-/tport redirect <redirect> <state>                                                                            TPort.redirect.set                          || TPort.admin
+/tport redirect <redirect> <state>                                                                            TPort.redirect.set                          || TPort.admin.redirect

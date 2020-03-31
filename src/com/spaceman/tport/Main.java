@@ -141,45 +141,20 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         
         /*
-         * changelog 1.15.3 update:
-         * added featureTP modes:
-         *   modes available now: CLOSEST and RANDOM
-         *   when selected RANDOM it will find the feature at random
-         *   CLOSEST is the default
-         *   usage: /tport featureTP <feature> <mode>
-         * made biomeTP safe for the nether and the end to teleport to
-         * added presets to biomeTP (a preset is a pre generated white/blacklist to use for biomeTP)
-         * added the cooldown if the biomeTP search failed
-         * redid the biomeTP commands:
-         *   /tport biomeTP
-         *   /tport biomeTP whitelist <biome...> (teleport to a random biome that is in your list)
-         *   /tport biomeTP blacklist <biome...> (teleport to a random biome that is not in your list)
-         *   /tport biomeTP preset [preset]
-         *   /tport biomeTP random
-         * the amount of biome searches can now be edited in the TPortConfig.yml file
-         * redid/improved TPort back
-         * added to TPort back:
-         *   - biomeTP
-         *   - featureTP
-         * updated/renamed the compass mechanism. Old compasses don't work anymore, I'm sorry. The new name is 'teleporter'
-         * to remove the old compass data of your compass item, just remove the lore of the item
-         *  new commands for the teleporter command
-         *   /tport teleporter create <type> [data...]
-         *   /tport teleporter remove
-         * added redirects
-         *  /tport redirect <redirect> [state]
-         *  a redirect can redirect commands, i.e. the Minecraft command '/tp <player>' to the TPort command '/tport PLTP tp <player>'
-         *  for now its just commands
-         * added to PLTP an editable offset
-         *  When the offset is set to 'BEHIND' the player who teleports to you will be teleported 1 meter behind you, instead of in you
-         *
-         * you can create you own biomeTP preset:
-         *   1. create your own plugin
-         *   2. add TPort to your libraries
-         *   3. in your onEnable() put:
-         *      'com.spaceman.tport.commands.tport.BiomeTP.BiomeTPPresets.
-         *        registerPreset("PresetName", Arrays.asList(Biome.YOUR_BIOMES), (true if whitelist, false if blacklist), Material.YOUR_DISPLAY_MATERIAL);'
-         *      it returns true if successfully registered, false when not
+         * changelog 1.15.4 update:
+         * added
+         *  /tport biomeTP searchTries [tries]
+         *  /tport log logSize [size]
+         *  /tport public listSize [size]
+         * changed/added
+         *  /tport featureTP
+         *  /tport featureTP search <feature> [mode]
+         *  /tport featureTP mode [mode]
+         *  shortcut from FeatureTP GUI to '/tport featureTP mode <mode>'
+         *  when using /tport biomeTP whitelist|blacklist <biome...> it will give you a confirmation that its searching before the lag-spike
+         * fixed minor bugs
+         * added /back to TPort Redirects
+         * updated the permission 'TPort.admin' from command '/tport redirect <redirect> [state]' to 'TPort.admin.redirect'
          */
         
         /*
@@ -230,7 +205,6 @@ public class Main extends JavaPlugin {
             tportConfig.getConfig().set("biomeTP.searches", 100);
             tportConfig.saveConfig();
         }
-        BiomeTP.biomeSearches = tportConfig.getConfig().getInt("biomeTP.searches", 100);
     }
     
     private void registerBiomeTPPresets() {

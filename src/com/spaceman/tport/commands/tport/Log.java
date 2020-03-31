@@ -22,6 +22,7 @@ public class Log extends SubCommand {
         addAction(new Remove());
         addAction(new Default());
         addAction(new Notify());
+        addAction(new LogSize());
     }
 
     @Override

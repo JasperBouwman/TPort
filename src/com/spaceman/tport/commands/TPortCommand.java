@@ -109,13 +109,14 @@ public class TPortCommand extends CommandTemplate {
         addAction(new Delay());
         addAction(new Restriction());
         addAction(new Cancel());
-//        addAction(new QuickGuide());
         addAction(new Redirect());
+//        addAction(new QuickGuide());
         HelpCommand helpCommand = new HelpCommand(this);
         
-//        Message quickGuide = new Message();
-//        quickGuide.addText(textComponent("Not done yet"));
-//        helpCommand.addExtraHelp("QuickGuide", quickGuide);
+//        EmptyCommand emptyHelpQuickGuide = new EmptyCommand();
+//        emptyHelpQuickGuide.setCommandDescription(textComponent("This command is used to get the quick guide of this plugin", ColorTheme.ColorType.infoColor));
+//        emptyHelpQuickGuide.setRunnable((args, player) -> executeInternal(player, "quickGuide"));
+//        helpCommand.addExtraHelp("QuickGuide", emptyHelpQuickGuide);
         
         helpCommand.addExtraHelp("PLTP", new Message(textComponent("PLTP stands for PlayerTeleportation, this allows you to teleport to other players. " +
                 "You can disable this, to disable use ", ColorTheme.ColorType.infoColor),
@@ -187,9 +188,10 @@ public class TPortCommand extends CommandTemplate {
         // tport biomeTP blacklist <biome...>
         // tport biomeTP preset [preset]
         // tport biomeTP random
+        // tport biomeTP searchTries [tries]
         // tport featureTP
-        // tport featureTP <featureType>
-        // tport featureTP <featureType> <mode>
+        // tport featureTP search <feature> [mode]
+        // tport featureTP mode [mode]
         // tport home
         // tport setHome <player> <TPort name>
         // tport colorTheme
@@ -206,6 +208,7 @@ public class TPortCommand extends CommandTemplate {
         // tport public remove <own TPort name|all TPort name>
         // tport public list [own|all]
         // tport public move <TPort name> <slot|TPort name>
+        // tport public listSize [size]
         // tport transfer offer <player> <TPort name>
         // tport transfer revoke <TPort name>
         // tport transfer accept <player> <TPort name>
@@ -221,6 +224,7 @@ public class TPortCommand extends CommandTemplate {
         // tport log remove <TPort name> <player...>
         // tport log default <TPort name> [default LogMode]
         // tport log notify <TPort name> [state]
+        // tport log logSize [size]
         // tport backup save <name>
         // tport backup load <name>
         // tport backup auto [state|count]

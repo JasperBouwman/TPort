@@ -24,7 +24,7 @@ public class Redirect extends SubCommand {
         emptyRedirectState.setCommandName("state", ArgumentType.OPTIONAL);
         emptyRedirectState.setCommandDescription(textComponent("This command is used to set the state of the given redirect", ColorTheme.ColorType.infoColor),
                 textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.redirect.set", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin", ColorTheme.ColorType.varInfoColor));
+                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.redirect", ColorTheme.ColorType.varInfoColor));
         
         EmptyCommand emptyRedirect = new EmptyCommand();
         emptyRedirect.setCommandName("redirect", ArgumentType.REQUIRED);
@@ -55,7 +55,7 @@ public class Redirect extends SubCommand {
                 sendErrorTheme(player, "Given redirect does not exist");
             }
         } else if (args.length == 3) {
-            if (!hasPermission(player, true, true, "TPort.redirect.set", "TPort.admin")) {
+            if (!hasPermission(player, true, true, "TPort.redirect.set", "TPort.admin.redirect")) {
                 return;
             }
             
@@ -96,9 +96,16 @@ public class Redirect extends SubCommand {
                 textComponent("/home", ColorTheme.ColorType.varInfoColor),
                 textComponent(" to ", ColorTheme.ColorType.infoColor),
                 textComponent("/tport home", ColorTheme.ColorType.varInfoColor),
-                textComponent(". Most likely to be used when another plugin is installed that have the command ", ColorType.infoColor),
+                textComponent(". Most likely to be used when another plugin is installed that has the command ", ColorType.infoColor),
                 textComponent("/home", ColorType.varInfoColor),
-                textComponent(", but you (as admin) prefer the mechanics of the TPort home system")));
+                textComponent(", but you (as admin) prefer the mechanics of the TPort home system", ColorType.infoColor))),
+        Back_TPortBack(false, new Message(textComponent("Redirects the command ", ColorTheme.ColorType.infoColor),
+                textComponent("/back", ColorTheme.ColorType.varInfoColor),
+                textComponent(" to ", ColorTheme.ColorType.infoColor),
+                textComponent("/tport back", ColorTheme.ColorType.varInfoColor),
+                textComponent(". Most likely to be used when another plugin is installed that has the command ", ColorType.infoColor),
+                textComponent("/back", ColorType.varInfoColor),
+                textComponent(", but you (as admin) prefer the mechanics of the TPort back system", ColorType.infoColor)));
         
         private boolean enabled;
         private Message description;

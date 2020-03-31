@@ -53,7 +53,7 @@ public class Clear extends SubCommand {
                 }
             }
         } else {
-            sendErrorTheme(player, "Usage: $s", "/tport log clear <TPort name...>");
+            sendErrorTheme(player, "Usage: %s", "/tport log clear <TPort name...>");
         }
     }
 }

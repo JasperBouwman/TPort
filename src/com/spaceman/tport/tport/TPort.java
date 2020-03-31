@@ -4,6 +4,7 @@ import com.spaceman.tport.OfflineLocationManager;
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commands.tport.Delay;
+import com.spaceman.tport.commands.tport.log.LogSize;
 import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.playerUUID.PlayerUUID;
@@ -29,8 +30,6 @@ import static com.spaceman.tport.fancyMessage.events.ClickEvent.runCommand;
 
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public class TPort implements ConfigurationSerializable {
-    
-    public static int maxLogBookSize = 50;
     
     private UUID tportID;
     private UUID owner;
@@ -311,7 +310,7 @@ public class TPort implements ConfigurationSerializable {
     public void log(UUID consumer) {
         if (!consumer.equals(owner) && getLogMode(consumer).shouldLog(consumer, this)) {
             logBook.add(new Pair<>(Calendar.getInstance(), consumer));
-            while (logBook.size() > maxLogBookSize) {
+            while (logBook.size() > LogSize.getLogSize()) {
                 logBook.remove(logBook.size() - 1);
             }
         }

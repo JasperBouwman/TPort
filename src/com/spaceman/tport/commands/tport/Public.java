@@ -21,8 +21,6 @@ import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class Public extends SubCommand {
     
-    public static int PublicTPortSize = 70;
-    
     public Public() {
         EmptyCommand empty = new EmptyCommand() {
             @Override
@@ -40,6 +38,7 @@ public class Public extends SubCommand {
         addAction(new Remove());
         addAction(new List());
         addAction(new Move());
+        addAction(new ListSize());
     }
     
     public static boolean isEnabled() {

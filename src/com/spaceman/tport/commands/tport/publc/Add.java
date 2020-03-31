@@ -19,7 +19,6 @@ import java.util.UUID;
 import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
-import static com.spaceman.tport.commands.tport.Public.PublicTPortSize;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
@@ -41,6 +40,7 @@ public class Add extends SubCommand {
             Files tportData = GettingFiles.getFile("TPortData");
             for (String publicTPortSlot : tportData.getKeys("public.tports")) {
                 String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
+                //noinspection ConstantConditions
                 TPort tport = getTPort(UUID.fromString(tportID));
                 if (tport != null) {
                     if (tport.getOwner().equals(player.getUniqueId())) {
@@ -71,7 +71,7 @@ public class Add extends SubCommand {
                     return;
                 }
                 
-                for (int publicSlot = 0; publicSlot < PublicTPortSize; publicSlot++) {
+                for (int publicSlot = 0; publicSlot < ListSize.getPublicTPortSize(); publicSlot++) {
                     if (!tportData.getConfig().contains("public.tports." + publicSlot)) {
                         tportData.getConfig().set("public.tports." + publicSlot, tport.getTportID().toString());
                         tportData.saveConfig();
@@ -81,6 +81,7 @@ public class Add extends SubCommand {
                         return;
                     } else {
                         String tportID = tportData.getConfig().getString("public.tports." + publicSlot, TPortManager.defUUID.toString());
+                        //noinspection ConstantConditions
                         TPort tmpTPort = getTPort(UUID.fromString(tportID));
                         
                         if (tmpTPort != null && tmpTPort.getName().equalsIgnoreCase(tport.getName())) {
