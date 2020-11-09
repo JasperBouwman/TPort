@@ -1,10 +1,10 @@
 package com.spaceman.tport.commands.tport.transfer;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.playerUUID.PlayerUUID;
@@ -18,48 +18,48 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 
 public class Offer extends SubCommand {
     
-    public Offer() {
-        EmptyCommand emptyTPort = new EmptyCommand();
-        emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyTPort.setCommandDescription(textComponent("This command is used to offer one of your own TPorts to someone else", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.transfer.offer", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+    private final EmptyCommand emptyPlayerTPort;
     
+    public Offer() {
+        emptyPlayerTPort = new EmptyCommand();
+        emptyPlayerTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyPlayerTPort.setCommandDescription(textComponent("This command is used to offer one of your own TPorts to someone else", ColorTheme.ColorType.infoColor));
+        emptyPlayerTPort.setPermissions("TPort.transfer.offer", "TPort.basic");
+        
         EmptyCommand emptyPlayer = new EmptyCommand();
         emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
         emptyPlayer.setTabRunnable((args, player) -> {
-            if (!hasPermission(player, false, true, "TPort.transfer.accept", "TPort.basic")) {
+            Player p = Bukkit.getPlayer(args[2]);
+            if (p == null || !Accept.emptyPlayerTPort.hasPermissionToRun(p, false)) {
                 return new ArrayList<>();
             }
             List<String> list = TPortManager.getTPortList(player.getUniqueId()).stream().filter(tport -> !tport.isOffered()).map(TPort::getName).collect(Collectors.toList());
-            list.removeAll(TPortManager.getTPortList(PlayerUUID.getPlayerUUID(args[2])).stream().map(TPort::getName).collect(Collectors.toList()));
+            TPortManager.getTPortList(p.getUniqueId()).stream().map(TPort::getName).forEach(s -> list.removeIf(ss -> ss.equalsIgnoreCase(s))); //remove name duplicates (case insensitive)
             return list;
         });
-        emptyPlayer.addAction(emptyTPort);
+        emptyPlayer.addAction(emptyPlayerTPort);
         addAction(emptyPlayer);
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        if (!hasPermission(player, false, true, "TPort.transfer.accept", "TPort.basic")) {
-            return new ArrayList<>();
-        }
-        List<String> list = Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
-        list.remove(player.getName());
-        return list;
+        return Bukkit.getOnlinePlayers().stream()
+                .filter(p -> !p.getName().equalsIgnoreCase(player.getName()))
+                .filter(p -> Accept.emptyPlayerTPort.hasPermissionToRun(p, false))
+                .map(Player::getName)
+                .collect(Collectors.toList());
     }
     
     @Override
     public void run(String[] args, Player player) {
         // tport transfer offer <player> <TPort name>
         
-        if (!hasPermission(player, "TPort.transfer.offer", "TPort.basic")) {
+        if (!emptyPlayerTPort.hasPermissionToRun(player, true)) {
             return;
         }
         
@@ -78,7 +78,7 @@ public class Offer extends SubCommand {
                 }
                 
                 if (tport.isOffered()) {
-                    sendErrorTheme(player, "TPort %s is already being promised to player %s", tport.getName(), PlayerUUID.getPlayerName(tport.getOfferedTo()));
+                    sendErrorTheme(player, "TPort %s is already being offered to player %s", tport.getName(), PlayerUUID.getPlayerName(tport.getOfferedTo()));
                     return;
                 }
                 

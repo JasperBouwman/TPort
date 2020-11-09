@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.transfer;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -16,32 +15,30 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Accept extends SubCommand {
     
+    public static final EmptyCommand emptyPlayerTPort = new EmptyCommand();
+    
     public Accept() {
-        EmptyCommand emptyTPort = new EmptyCommand();
-        emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyTPort.setCommandDescription(TextComponent.textComponent("This command is used to accept the offer of the given TPort", ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.transfer.accept", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+        emptyPlayerTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyPlayerTPort.setCommandDescription(TextComponent.textComponent("This command is used to accept the offer of the given TPort", ColorType.infoColor));
+        emptyPlayerTPort.setPermissions("TPort.transfer.accept", "TPort.basic");
         
         EmptyCommand emptyPlayer = new EmptyCommand();
         emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
         emptyPlayer.setTabRunnable((args, player) -> TPortManager.getTPortList(PlayerUUID.getPlayerUUID(args[2])).
                 stream().filter(tport -> player.getUniqueId().equals(tport.getOfferedTo())).map(TPort::getName).collect(Collectors.toList()));
-        emptyPlayer.addAction(emptyTPort);
+        emptyPlayer.addAction(emptyPlayerTPort);
         addAction(emptyPlayer);
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
         ArrayList<String> list = new ArrayList<>();
-        if (!hasPermission(player, false, true, "TPort.transfer.accept", "TPort.basic")) {
+        if (!emptyPlayerTPort.hasPermissionToRun(player, false)) {
             return list;
         }
         for (String uuidString : getFile("TPortData").getKeys("tport")) {
@@ -58,8 +55,8 @@ public class Accept extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport transfer accept <player> <TPort name>
-    
-        if (!hasPermission(player, "TPort.transfer.accept", "TPort.basic")) {
+        
+        if (!emptyPlayerTPort.hasPermissionToRun(player, true)) {
             return;
         }
         

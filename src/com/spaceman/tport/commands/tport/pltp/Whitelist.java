@@ -6,7 +6,7 @@ import com.spaceman.tport.commands.tport.pltp.whitelist.List;
 import com.spaceman.tport.commands.tport.pltp.whitelist.Remove;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
 
 public class Whitelist extends SubCommand {
@@ -20,7 +20,7 @@ public class Whitelist extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport PLTP whitelist list
-        // tport PLTP whitelist <add|remove> <playername>
+        // tport PLTP whitelist <add|remove> <player...>
         
         if (args.length < 3) {
             sendErrorTheme(player, "Usage: %s or %s", "tport PLTP whitelist <add|remove> <player...>", "/tport PLTP whitelist list");

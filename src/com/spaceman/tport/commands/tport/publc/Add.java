@@ -1,10 +1,10 @@
 package com.spaceman.tport.commands.tport.publc;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
@@ -16,27 +16,27 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class Add extends SubCommand {
     
+    private final EmptyCommand emptyTPort;
+    
     public Add() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyCommand.setCommandDescription(TextComponent.textComponent("This command is used to add the given TPort to the Public TPort list", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.public.add", ColorTheme.ColorType.varInfoColor));
-        addAction(emptyCommand);
+        emptyTPort = new EmptyCommand();
+        emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyTPort.setCommandDescription(TextComponent.textComponent("This command is used to add the given TPort to the Public TPort list", ColorTheme.ColorType.infoColor));
+        emptyTPort.setPermissions("TPort.public.add");
+        addAction(emptyTPort);
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
         List<String> list = getOwnTPorts(player);
-        if (hasPermission(player, false, "TPort.public.add")) {
+        if (emptyTPort.hasPermissionToRun(player, false)) {
             Files tportData = GettingFiles.getFile("TPortData");
             for (String publicTPortSlot : tportData.getKeys("public.tports")) {
                 String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
@@ -56,7 +56,7 @@ public class Add extends SubCommand {
     public void run(String[] args, Player player) {
         // tport public add <TPort name>
         
-        if (!hasPermission(player, "TPort.public.add")) {
+        if (!emptyTPort.hasPermissionToRun(player, true)) {
             return;
         }
         

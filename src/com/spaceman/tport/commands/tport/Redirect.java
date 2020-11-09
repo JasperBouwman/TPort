@@ -1,6 +1,6 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -12,19 +12,19 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Redirect extends SubCommand {
     
+    private final EmptyCommand emptyRedirectState;
+    
     public Redirect() {
-        EmptyCommand emptyRedirectState = new EmptyCommand();
+        emptyRedirectState = new EmptyCommand();
         emptyRedirectState.setCommandName("state", ArgumentType.OPTIONAL);
-        emptyRedirectState.setCommandDescription(textComponent("This command is used to set the state of the given redirect", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.redirect.set", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.redirect", ColorTheme.ColorType.varInfoColor));
+        emptyRedirectState.setCommandDescription(textComponent("This command is used to set the state of the given redirect", ColorTheme.ColorType.infoColor));
+        emptyRedirectState.setPermissions("TPort.redirect.set", "TPort.admin.redirect");
         
         EmptyCommand emptyRedirect = new EmptyCommand();
         emptyRedirect.setCommandName("redirect", ArgumentType.REQUIRED);
@@ -55,7 +55,7 @@ public class Redirect extends SubCommand {
                 sendErrorTheme(player, "Given redirect does not exist");
             }
         } else if (args.length == 3) {
-            if (!hasPermission(player, true, true, "TPort.redirect.set", "TPort.admin.redirect")) {
+            if (!emptyRedirectState.hasPermissionToRun(player, true)) {
                 return;
             }
             
@@ -108,7 +108,7 @@ public class Redirect extends SubCommand {
                 textComponent(", but you (as admin) prefer the mechanics of the TPort back system", ColorType.infoColor)));
         
         private boolean enabled;
-        private Message description;
+        private final Message description;
         
         Redirects(boolean defaultState, Message description) {
             this.enabled = defaultState;

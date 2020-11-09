@@ -14,15 +14,15 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Revoke extends SubCommand {
     
     public Revoke() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyCommand.setCommandDescription(TextComponent.textComponent("This command is used to revoke the offer of the given TPort", ColorType.infoColor));
-        addAction(emptyCommand);
+        EmptyCommand emptyTPort = new EmptyCommand();
+        emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyTPort.setCommandDescription(TextComponent.textComponent("This command is used to revoke the offer of the given TPort", ColorType.infoColor));
+        addAction(emptyTPort);
     }
     
     @Override

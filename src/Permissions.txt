@@ -14,90 +14,101 @@ Permissions can work with trees.
 * Use of a TPort Teleporter                                                                                   TPort.teleporter.use
 * Teleport to player                                                                                          TPort.pltp.tp
 
-/tport                                                                                                        TPort.open                                  || TPort.basic
-/tport add <TPort name>                                                                                       TPort.add.[X]                               || TPort.basic
+/tport
+/tport add <TPort name>                                                                                       TPort.add.[X]                               OR TPort.basic
     TPort.add.<X> overrules all other permissions
-/tport add <TPort name> [description...]                                                                      TPort.add.[X] AND TPort.edit.description    || TPort.basic
-/tport edit <TPort name> description set <description...>                                                     TPort.edit.description                      || TPort.basic
-/tport edit <TPort name> description remove                                                                   TPort.edit.description                      || TPort.basic
-/tport edit <TPort name> description get                                                                      TPort.edit.description                      || TPort.basic
-/tport edit <TPort name> name <new TPort name>                                                                TPort.edit.name                             || TPort.basic
-/tport edit <TPort name> item                                                                                 TPort.edit.item                             || TPort.basic
-/tport edit <TPort name> location                                                                             TPort.edit.location                         || TPort.basic
+/tport add <TPort name> [description...]                                                                     (TPort.add.[X] AND TPort.edit.description)   OR TPort.basic
+/tport edit <TPort name> description set <description...>                                                     TPort.edit.description                      OR TPort.basic
+/tport edit <TPort name> description remove
+/tport edit <TPort name> description get
+/tport edit <TPort name> name <new TPort name>                                                                TPort.edit.name                             OR TPort.basic
+/tport edit <TPort name> item                                                                                 TPort.edit.item                             OR TPort.basic
+/tport edit <TPort name> location                                                                             TPort.edit.location                         OR TPort.basic
 /tport edit <TPort name> private
-/tport edit <TPort name> private <statement>                                                                  TPort.edit.private                          || TPort.basic
+/tport edit <TPort name> private <statement>                                                                  TPort.edit.private                          OR TPort.basic
     also quick edit in own TPort gui ^
-/tport edit <TPort name> whitelist add <player...>                                                            TPort.edit.whitelist.add                    || TPort.basic
+/tport edit <TPort name> whitelist add <player...>                                                            TPort.edit.whitelist.add                    OR TPort.basic
 /tport edit <TPort name> whitelist remove <player...>
 /tport edit <TPort name> whitelist list
-/tport edit <TPort name> whitelist clone <TPort name>                                                         TPort.edit.whitelist.clone                  || TPort.basic
-/tport edit <TPort name> move <slot|TPort name>                                                               TPort.edit.move                             || TPort.basic
+/tport edit <TPort name> whitelist clone <TPort name>                                                         TPort.edit.whitelist.clone                  OR TPort.basic
+/tport edit <TPort name> move <slot|TPort name>                                                               TPort.edit.move                             OR TPort.basic
     also quick edit in own TPort gui ^
 /tport edit <TPort name> range
-/tport edit <TPort name> range <range>                                                                        TPort.edit.range
+/tport edit <TPort name> range <range>                                                                        TPort.edit.range                            OR TPort.basic
+    also quick edit in own TPort gui ^
+/tport edit <TPort name> tag add <tag>                                                                        TPort.edit.tag.add.<tag>
+/tport edit <TPort name> tag remove <tag>
+/tport edit <TPort name> dynmap show
+/tport edit <TPort name> dynmap show [state]                                                                  TPort.edit.dynmap.setShow                   OR TPort.basic
+    also quick edit in own TPort gui ^
+/tport edit <TPort name> dynmap icon
+/tport edit <TPort name> dynmap icon [icon]                                                                   TPort.edit.dynmap.setIcon                   OR TPort.basic
     also quick edit in own TPort gui ^
 /tport teleporter create <type> [data...]                                                                     TPort.teleporter.create
 /tport teleporter remove                                                                                      TPort.teleporter.remove
 /tport PLTP state
-/tport PLTP state <state>                                                                                     TPort.PLTP.state.set                        || TPort.basic
+/tport PLTP state <state>                                                                                     TPort.PLTP.state.set                        OR TPort.basic
     also quick edit in own TPort gui ^
 /tport PLTP consent
-/tport PLTP consent <state>                                                                                   TPort.PLTP.consent.set                      || TPort.basic
+/tport PLTP consent <state>                                                                                   TPort.PLTP.consent.set                      OR TPort.basic
     also quick edit in own TPort gui ^
 /tport PLTP accept [player...]
 /tport PLTP reject <player>
 /tport PLTP revoke <player>
 /tport PLTP whitelist list
-/tport PLTP whitelist <add> <player...>                                                                       TPort.PLTP.edit                             || TPort.basic
+/tport PLTP whitelist <add> <player...>                                                                       TPort.PLTP.edit                             OR TPort.basic
 /tport PLTP whitelist <remove> <player...>
-/tport PLTP tp <player>                                                                                       TPort.PLTP.tp                               || TPort.basic
+/tport PLTP tp <player>                                                                                       TPort.PLTP.tp                               OR TPort.basic
 /tport PLTP offset
 /tport PLTP offset <offset>
 /tport help
-/tport open <player> [TPort name]                                                                             TPort.open                                  || TPort.basic
+/tport open <player> [TPort name]                                                                             TPort.open                                  OR TPort.basic
+/tport open <player> [TPort name] [safetyCheck]                                                              (TPort.open AND TPort.safetyCheck)           OR TPort.basic
     also using a TPort in a TPort gui ^
-/tport own [TPort name]
+/tport own [TPort name]                                                                                       TPort.open                                  OR TPort.basic
+/tport own [TPort name] [safetyCheck]                                                                        (TPort.open AND TPort.safetyCheck)           OR TPort.basic
 /tport remove <TPort name>
 /tport removePlayer <player>                                                                                  TPort.admin.removePlayer
-/tport back                                                                                                   TPort.back                                  || TPort.basic
-/tport biomeTP
-/tport biomeTP whitelist <biome...>                                                                          (TPort.biomeTP.whitelist AND TPort.biomeTP.biome.<biome...>) || TPort.biomeTP.all
-/tport biomeTP blacklist <biome...>                                                                          (TPort.biomeTP.blacklist AND TPort.biomeTP.biome.<biome...>) || TPort.biomeTP.all
-/tport biomeTP preset                                                                                         TPort.biomeTP.preset                        || TPort.biomeTP.all
-/tport biomeTP preset [preset]                                                                                TPort.biomeTP.preset AND permissions of '/tport biomeTP whitelist/blacklist <biome...>'
-/tport biomeTP random                                                                                         TPort.biomeTP.random                        || TPort.biomeTP.all
+/tport back                                                                                                   TPort.back                                  OR TPort.basic
+/tport back [safetyCheck]                                                                                    (TPort.back AND TPort.safetyCheck)           OR TPort.basic
+/tport biomeTP                                                                                                TPort.biomeTP.open
+/tport biomeTP whitelist <biome...>                                                                           TPort.biomeTP.whitelist                     AND TPort.biomeTP.biome.<biome...> (to give player access to all biomes: TPort.biomeTP.biome.*)
+/tport biomeTP blacklist <biome...>                                                                           TPort.biomeTP.blacklist                     AND TPort.biomeTP.biome.<biome...> (to give player access to all biomes: TPort.biomeTP.biome.*)
+/tport biomeTP preset                                                                                         TPort.biomeTP.preset
+/tport biomeTP preset [preset]                                                                                TPort.biomeTP.preset                        AND permissions of '/tport biomeTP whitelist/blacklist <biome...>'
+/tport biomeTP random                                                                                         TPort.biomeTP.random
 /tport biomeTP searchTries
-/tport biomeTP searchTries [tries]                                                                            TPort.biomeTP.searchTries                   || TPort.admin.biomeTP
-/tport featureTP
-/tport featureTP search <feature>                                                                             TPort.featureTP.type.<feature> (to give player access to all biomes: TPort.featureTP.type.*)
-/tport featureTP search <feature> [mode]                                                                      TPort.featureTP.type.<feature> AND TPort.featureTP.mode.<mode>
+/tport biomeTP searchTries [tries]                                                                            TPort.biomeTP.searchTries                   OR TPort.admin.biomeTP
+/tport featureTP                                                                                              TPort.featureTP.open
+/tport featureTP search <feature>                                                                             TPort.featureTP.type.<feature> (to give player access to all features: TPort.featureTP.type.*)
+/tport featureTP search <feature> [mode]                                                                      TPort.featureTP.type.<feature>              AND TPort.featureTP.mode.<mode>
 /tport featureTP mode
 /tport featureTP mode [mode]                                                                                  TPort.featureTP.mode.<mode>
 /tport reload                                                                                                 TPort.admin.reload
 /tport cooldown <cooldown>
-/tport cooldown <cooldown> <value>                                                                            TPort.cooldown.set                          || TPort.admin.cooldown
+/tport cooldown <cooldown> <value>                                                                            TPort.cooldown.set                          OR TPort.admin.cooldown
 /tport colorTheme
 /tport colorTheme set <theme>
 /tport colorTheme set <type> <color>
 /tport colorTheme get <type>
-/tport home                                                                                                   TPort.home                                  || TPort.basic
-/tport setHome <player> <TPort name>                                                                          TPort.setHome                               || TPort.basic
-/tport public                                                                                                 TPort.public.open                           || TPort.basic
-/tport public open <page>                                                                                     TPort.public.open.page                      || TPort.basic
-/tport public open <TPort name>                                                                               TPort.public.open.tp                        || TPort.basic
+/tport home                                                                                                   TPort.home                                  OR TPort.basic
+/tport setHome <player> <TPort name>                                                                          TPort.setHome                               OR TPort.basic
+/tport public                                                                                                 TPort.public.open                           OR TPort.basic
+/tport public open <page>                                                                                     TPort.public.open.page                      OR TPort.basic
+/tport public open <TPort name>                                                                               TPort.public.open.tp                        OR TPort.basic
     also using a Public TPort in a TPort gui ^
 /tport public add <TPort name>                                                                                TPort.public.add
 /tport public remove <own TPort name>
-/tport public remove <all TPort name>                                                                         TPort.public.remove.all                     || TPort.admin.public
+/tport public remove <all TPort name>                                                                         TPort.public.remove.all                     OR TPort.admin.public
 /tport public list
 /tport public list own
 /tport public list all
-/tport public move <TPort name> <slot|TPort name>                                                             TPort.public.move                           || TPort.admin.public
+/tport public move <TPort name> <slot|TPort name>                                                             TPort.public.move                           OR TPort.admin.public
 /tport public listSize
-/tport public listSize <size>                                                                                 TPort.public.listSize                       || TPort.admin.public
-/tport transfer offer <player> <TPort name>                                                                   TPort.transfer.offer                        || TPort.basic
+/tport public listSize <size>                                                                                 TPort.public.listSize                       OR TPort.admin.public
+/tport transfer offer <player> <TPort name>                                                                   TPort.transfer.offer                        OR TPort.basic
 /tport transfer revoke <TPort name>
-/tport transfer accept <player> <TPort name>                                                                  TPort.transfer.accept                       || TPort.basic
+/tport transfer accept <player> <TPort name>                                                                  TPort.transfer.accept                       OR TPort.basic
 /tport transfer reject <player> <TPort name>
 /tport transfer list
 /tport version
@@ -109,10 +120,11 @@ Permissions can work with trees.
 /tport log add <TPort name> <player[:LogMode]...>                                                             TPort.log
 /tport log remove <TPort name> <player...>
 /tport log default <TPort name> [default LogMode]                                                             TPort.log
+/tport log notify
 /tport log notify <TPort name>
-/tport log notify <TPort name> <state>                                                                        TPort.notify.set                            || TPort.basic
+/tport log notify <TPort name> <state>                                                                        TPort.notify.set                            OR TPort.basic
 /tport log logSize
-/tport log logSize <size>                                                                                     TPort.log.logSize                           || TPort.admin.log
+/tport log logSize <size>                                                                                     TPort.log.logSize                           OR TPort.admin.log
 /tport backup save <file>                                                                                     TPort.admin.backup.save
 /tport backup load <file>                                                                                     TPort.admin.backup.load
 /tport backup auto
@@ -128,17 +140,47 @@ Permissions can work with trees.
 /tport particleAnimation old enable                                                                           TPort.particleAnimation.old.enable.get
 /tport particleAnimation old enable [state]                                                                   TPort.particleAnimation.old.enable.set
 /tport particleAnimation list                                                                                 TPort.particleAnimation.list
-/tport delay permission                                                                                       TPort.delay.permission.get                  || TPort.admin.delay
-/tport delay permission [state]                                                                               TPort.delay.permission.set                  || TPort.admin.delay
-/tport delay set <player> <delay>                                                                             TPort.delay.set                             || TPort.admin.delay
+/tport delay permission                                                                                       TPort.delay.permission.get                  OR TPort.admin.delay
+/tport delay permission [state]                                                                               TPort.delay.permission.set                  OR TPort.admin.delay
+/tport delay set <player> <delay>                                                                             TPort.delay.set                             OR TPort.admin.delay
 /tport delay get                                                                                              TPort.delay.get.own
-/tport delay get <player>                                                                                     TPort.delay.get.all                         || TPort.admin.delay
-/tport restriction permission                                                                                 TPort.restriction.permission.get            || TPort.admin.restriction
-/tport restriction permission [state]                                                                         TPort.restriction.permission.set            || TPort.admin.restriction
-/tport restriction set <player> <type>                                                                        TPort.restriction.set                       || TPort.admin.restriction
+/tport delay get <player>                                                                                     TPort.delay.get.all                         OR TPort.admin.delay
+/tport restriction permission                                                                                 TPort.restriction.permission.get            OR TPort.admin.restriction
+/tport restriction permission [state]                                                                         TPort.restriction.permission.set            OR TPort.admin.restriction
+/tport restriction set <player> <type>                                                                        TPort.restriction.set                       OR TPort.admin.restriction
 /tport restriction get                                                                                        TPort.restriction.get.own
-/tport restriction get <player>                                                                               TPort.restriction.get.all                   || TPort.admin.restriction
-/tport cancel                                                                                                 TPort.cancel                                || TPort.basic
+/tport restriction get <player>                                                                               TPort.restriction.get.all                   OR TPort.admin.restriction
+/tport cancel                                                                                                 TPort.cancel                                OR TPort.basic
 /tport quickGuide [guide]
 /tport redirect <redirect>
-/tport redirect <redirect> <state>                                                                            TPort.redirect.set                          || TPort.admin.redirect
+/tport redirect <redirect> <state>                                                                            TPort.redirect.set                          OR TPort.admin.redirect
+/tport tag create <tag>                                                                                       TPort.tag.create                            OR TPort.admin.tag
+/tport tag delete <tag>                                                                                       TPort.tag.delete                            OR TPort.admin.tag
+/tport tag list
+/tport tag reset                                                                                              TPort.tag.reset                             OR TPort.admin.tag
+/tport search <type>                                                                                          TPort.search.<type>
+/tport search <type> <query...>                                                                               TPort.search.<type>
+/tport search <type> <mode> <query...>                                                                        TPort.search.<type>
+/tport sort
+/tport sort <sorter>                                                                                          TPort.sort.<sorter>
+/tport safetyCheck
+/tport safetyCheck [default state]                                                                            TPort.safetyCheck                           OR TPort.basic
+  if player does not have permission it turns back to false
+/tport metrics enable
+/tport metrics enable [state]                                                                                 TPort.metrics.enable                        OR TPort.admin.metrics
+/tport metrics viewStats
+/tport dynmap
+/tport dynmap enable
+/tport dynmap enable [state]                                                                                  TPort.dynmap.enable                         OR TPort.admin.dynmap
+/tport dynmap search <player> [tport name]                                                                    TPort.dynmap.search                         OR TPort.basic
+/tport dynmap IP
+/tport dynmap IP [IP]                                                                                         TPort.dynmap.ip                             OR TPort.admin.dynmap
+/tport mainLayout players
+/tport mainLayout players [state]                                                                             TPort.mainLayout.players
+  also for Main TPort GUI
+/tport mainLayout TPorts
+/tport mainLayout TPorts [state]                                                                              TPort.mainLayout.TPorts
+  also for Main TPort GUI
+/tport permissions enable
+/tport permissions enable [state]                                                                             TPort.permissions.enable                     OR TPort.admin.permissions
+/tport world <world>                                                                                          TPort.world.tp

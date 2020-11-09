@@ -1,7 +1,8 @@
 package com.spaceman.tport.fancyMessage.events;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.Message;
+import org.json.simple.JSONObject;
 
 public class ScoreEvent implements TextEvent {
     
@@ -29,9 +30,16 @@ public class ScoreEvent implements TextEvent {
     }
     
     @Override
-    public String translateJSON(Message.TranslateMode mode, ColorTheme theme) {
-        String q = mode.getQuote();
-        return String.format(q + "score" + q + ":{" + q + "name" + q + ":" + q + "%s" + q + "," + q + "objective" + q + ":" + q + "%s" + q + "}", name, objective);
+    public JSONObject translateJSON(ColorTheme theme) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("name", name);
+        jsonObject.put("objective", objective);
+        return jsonObject;
+    }
+    
+    @Override
+    public String name() {
+        return "score";
     }
     
     public String getName() {

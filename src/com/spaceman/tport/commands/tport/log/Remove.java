@@ -1,6 +1,6 @@
 package com.spaceman.tport.commands.tport.log;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -14,16 +14,16 @@ import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 
 public class Remove extends SubCommand {
     
     public Remove() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("player", ArgumentType.REQUIRED);
-        emptyCommand.setCommandDescription(TextComponent.textComponent("This command is used to remove the player form the TPort log", ColorTheme.ColorType.infoColor));
-        emptyCommand.setTabRunnable((args, player) -> {
+        EmptyCommand emptyTPortPlayer = new EmptyCommand();
+        emptyTPortPlayer.setCommandName("player", ArgumentType.REQUIRED);
+        emptyTPortPlayer.setCommandDescription(TextComponent.textComponent("This command is used to remove the player form the TPort log", ColorTheme.ColorType.infoColor));
+        emptyTPortPlayer.setTabRunnable((args, player) -> {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
             if (tport != null) {
                 List<String> list = tport.getLogged().stream().map(PlayerUUID::getPlayerName).collect(Collectors.toList());
@@ -33,8 +33,13 @@ public class Remove extends SubCommand {
                 return Collections.emptyList();
             }
         });
-        emptyCommand.setLooped(true);
-        addAction(emptyCommand);
+        emptyTPortPlayer.setLooped(true);
+        
+        EmptyCommand emptyTPort = new EmptyCommand();
+        emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyTPort.addAction(emptyTPortPlayer);
+        
+        addAction(emptyTPort);
     }
     
     @Override

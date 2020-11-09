@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.log;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -14,27 +13,27 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
 import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Default extends SubCommand {
     
-    public Default() {
-        EmptyCommand emptyMode = new EmptyCommand();
-        emptyMode.setCommandName("default LogMode", ArgumentType.OPTIONAL);
-        emptyMode.setCommandDescription(TextComponent.textComponent("This command is used to set the default LogMode of the given TPort. " +
-                "Players that are not logged have the default LogMode", ColorType.infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.log", ColorTheme.ColorType.varInfoColor));
+    private final EmptyCommand emptyTPortMode;
     
+    public Default() {
+        emptyTPortMode = new EmptyCommand();
+        emptyTPortMode.setCommandName("default LogMode", ArgumentType.OPTIONAL);
+        emptyTPortMode.setCommandDescription(TextComponent.textComponent("This command is used to set the default LogMode of the given TPort. " +
+                "Players that are not logged have the default LogMode", ColorType.infoColor));
+        emptyTPortMode.setPermissions("TPort.log");
+        
         EmptyCommand emptyTPort = new EmptyCommand();
         emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
         emptyTPort.setCommandDescription(TextComponent.textComponent("This command is used to get the default LogMode of the given TPort. " +
                 "Players that are not logged have the default LogMode", ColorType.infoColor));
-        emptyTPort.setTabRunnable((args, player) -> hasPermission(player, false, "TPort.command.log") ?
-                        Arrays.stream(TPort.LogMode.values()).map(TPort.LogMode::name).collect(Collectors.toList()) : Collections.emptyList());
-        emptyTPort.addAction(emptyMode);
+        emptyTPort.setTabRunnable((args, player) -> emptyTPortMode.hasPermissionToRun(player, false) ?
+                Arrays.stream(TPort.LogMode.values()).map(TPort.LogMode::name).collect(Collectors.toList()) : Collections.emptyList());
+        emptyTPort.addAction(emptyTPortMode);
         addAction(emptyTPort);
     }
     
@@ -46,8 +45,8 @@ public class Default extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport log default <TPort name> [default LogMode]
-    
-        if (!hasPermission(player, true, "TPort.log")) {
+        
+        if (!emptyTPortMode.hasPermissionToRun(player, true)) {
             return;
         }
         

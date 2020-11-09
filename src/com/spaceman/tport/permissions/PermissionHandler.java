@@ -1,6 +1,6 @@
 package com.spaceman.tport.permissions;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
@@ -12,7 +12,7 @@ import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 public class PermissionHandler {
     
     public static String noPermMessage = "You don't have permission to do this";
-    public static boolean permissionEnabled = false;
+    private static boolean permissionEnabled = false;
     
     public static void loadPermissionConfig() {
         Files tportConfig = getFile("TPortConfig");
@@ -22,6 +22,19 @@ public class PermissionHandler {
             tportConfig.getConfig().set("Permissions.enabled", permissionEnabled);
             tportConfig.saveConfig();
         }
+    }
+    
+    public static boolean isPermissionEnabled() {
+        return permissionEnabled;
+    }
+    
+    public static boolean enablePermissions(boolean state) {
+        boolean tmp = permissionEnabled;
+        permissionEnabled = state;
+        Files tportConfig = getFile("TPortConfig");
+        tportConfig.getConfig().set("Permissions.enabled", permissionEnabled);
+        tportConfig.saveConfig();
+        return tmp != permissionEnabled;
     }
     
     public static void sendNoPermMessage(Player player, String... permissions) {
@@ -81,7 +94,6 @@ public class PermissionHandler {
             sendNoPermMessage(player, OR, permissions);
         }
         return !OR;
-        
     }
     
     public static boolean hasPermission(Player player, String permission, boolean sendMessage) {

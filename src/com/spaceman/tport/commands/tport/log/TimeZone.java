@@ -10,17 +10,17 @@ import org.bukkit.entity.Player;
 import java.util.Arrays;
 import java.util.Collection;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class TimeZone extends SubCommand {
     
     public TimeZone() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("TimeZone", ArgumentType.OPTIONAL);
-        emptyCommand.setCommandDescription(textComponent("This command is used to set to your time zone, the time zone is used for the read command", ColorType.infoColor));
-        addAction(emptyCommand);
+        EmptyCommand emptyTimeZone = new EmptyCommand();
+        emptyTimeZone.setCommandName("TimeZone", ArgumentType.OPTIONAL);
+        emptyTimeZone.setCommandDescription(textComponent("This command is used to set to your time zone, the time zone is used for the read command", ColorType.infoColor));
+        addAction(emptyTimeZone);
     }
     
     @Override

@@ -1,9 +1,11 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.commandHander.ArgumentType;
+import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
@@ -16,11 +18,12 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.events.InventoryClick.requestTeleportPlayer;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 
 public class Back extends SubCommand {
     
@@ -31,27 +34,49 @@ public class Back extends SubCommand {
         if (prevTPorts.containsKey(player.getUniqueId())) {
             return ct.getInfoColor() + "Previous location: " + ct.getVarInfoColor() + prevTPorts.get(player.getUniqueId()).toString(player);
         } else {
-            return ct.getInfoColor() + "Previous location: Unknown";
+            return ct.getInfoColor() + "Previous location: " + ct.getVarInfoColor() + "Unknown";
         }
+    }
+    
+    public Back() {
+        EmptyCommand emptySafetyCheck = new EmptyCommand(){
+            @Override
+            public Message permissionsHover() {
+                Message message = new Message();
+                message.addText(
+                        textComponent("Permissions: (", infoColor),
+                        textComponent("TPort.back", varInfoColor),
+                        textComponent(" and ", infoColor),
+                        textComponent("TPort.safetyCheck", varInfoColor),
+                        textComponent(") or ", infoColor),
+                        textComponent("TPort.basic", varInfoColor));
+                return message;
+            }
+        };
+        emptySafetyCheck.setCommandName("safetyCheck", ArgumentType.OPTIONAL);
+        emptySafetyCheck.setCommandDescription(textComponent("This command is used to teleport back to your previous location, ", infoColor),
+                textComponent("the safetyCheck argument overrides your default value", infoColor));
+        emptySafetyCheck.setPermissions(Open.emptyPlayerTPortSafetyCheck.getPermissions());
+        addAction(emptySafetyCheck);
+        
+        this.setPermissions("TPort.back", "TPort.basic");
     }
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to teleport back to your previous location", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.back", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+        return new Message(textComponent("This command is used to teleport back to your previous location", infoColor));
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        return Collections.singletonList(ChatColor.stripColor(getPrevLocName(player)));
+        return Arrays.asList("true", "false", ChatColor.stripColor(getPrevLocName(player)));
     }
     
     @Override
     public void run(String[] args, Player player) {
-        //tport back
+        //tport back [safetyCheck]
         
-        if (!hasPermission(player, "TPort.back", "TPort.basic")) {
+        if (!hasPermissionToRun(player, true)) {
             return;
         }
         if (!CooldownManager.Back.hasCooled(player)) {
@@ -59,7 +84,17 @@ public class Back extends SubCommand {
         }
         
         if (prevTPorts.containsKey(player.getUniqueId())) {
-            if (prevTPorts.get(player.getUniqueId()).tpBack(player)) {
+            boolean safetyCheck;
+            if (args.length == 2) {
+                if (SafetyCheck.emptySafetyCheck.hasPermissionToRun(player, true)) {
+                    safetyCheck = Boolean.parseBoolean(args[1]);
+                } else {
+                    return;
+                }
+            } else {
+                safetyCheck = SafetyCheck.safetyCheck(player);
+            }
+            if (prevTPorts.get(player.getUniqueId()).tpBack(player, safetyCheck)) {
                 CooldownManager.Back.update(player);
             }
         } else {
@@ -68,79 +103,111 @@ public class Back extends SubCommand {
     }
     
     public enum PrevType {
-        TPORT((player, prevTPort) -> {
+        TPORT((player, prevTPort, safetyCheck) -> {
             
             Location prevLoc = (Location) prevTPort.getData().get("prevLoc");
-            String tportName = (String) prevTPort.getData().get("tportName");
+            UUID tportUUID = UUID.fromString((String) prevTPort.getData().get("tportUUID"));
             String tportOwner = (String) prevTPort.getData().get("tportOwner");
-            
+    
+            TPort tport = TPortManager.getTPort(UUID.fromString(tportOwner), tportUUID);
             if (prevLoc == null) {
-                TPort tport = TPortManager.getTPort(UUID.fromString(tportOwner), tportName);
                 if (tport != null) {
-                    if (!hasPermission(player, true, "TPort.open", "TPort.basic")) {
+                    if (!Open.emptyPlayerTPort.hasPermissionToRun(player, true)) {
                         return false;
                     }
-                    prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportName", tportName, "tportOwner", tportOwner, "prevLoc", player.getLocation()));
-                    if (tport.teleport(player, true, false)) {
-                        
-                        if (Delay.delayTime(player) == 0) {
-                            sendSuccessTheme(player, "Successfully teleported back to TPort %s", tportName);
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportName", tport.getName(), "tportOwner", tportOwner, "prevLoc", player.getLocation()));
+                    if (tport.teleport(player, true, false, safetyCheck, () -> sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Successfully teleported back to TPort %s", tport.getName()))) {
+    
+                        int delay = Delay.delayTime(player);
+                        if (delay == 0) {
+                            sendSuccessTheme(player, "Successfully teleported back to TPort %s", tport.getName());
                         } else {
-                            sendSuccessTheme(player, "Successfully requested back teleportation back to TPort %s", tportName);
+                            sendSuccessTheme(player, "Successfully requested back teleportation back to TPort %s, delay time is %s ticks", tport.getName(), delay);
                         }
                         return true;
                     } else {
-                        prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportName", tportName, "tportOwner", tportOwner, "prevLoc", null));
+                        prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportUUID", tportUUID.toString(), "tportOwner", tportOwner, "prevLoc", null));
                         return false;
                     }
                 } else {
-                    sendErrorTheme(player, "Could not find TPort %s anymore", tportName);
+                    sendErrorTheme(player, "Could not find TPort anymore, possibly deleted");
                     return false;
                 }
             } else {
-                prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportName", tportName, "tportOwner", tportOwner, "prevLoc", null));
-                requestTeleportPlayer(player, prevLoc);
-    
-                if (Delay.delayTime(player) == 0) {
-                    sendSuccessTheme(player, "Successfully teleported back from TPort %s", tportName);
+                if (!safetyCheck || SafetyCheck.isSafe(prevLoc)) {
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportUUID", tportUUID.toString(), "tportOwner", tportOwner, "prevLoc", null));
+                    requestTeleportPlayer(player, prevLoc, () -> {
+                        if (tport != null) {
+                            sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Successfully teleported back from TPort %s", tport.getName());
+                        } else {
+                            sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Successfully teleported back from TPort");
+                        }
+                    });
+                    int delay = Delay.delayTime(player);
+                    if (tport != null) {
+                        if (delay == 0) {
+                            sendSuccessTheme(player, "Successfully teleported back from TPort %s", tport.getName());
+                        } else {
+                            sendSuccessTheme(player, "Successfully requested back teleportation back from TPort %s, delay time is %s ticks", tport.getName(), delay);
+                        }
+                    } else {
+                        if (delay == 0) {
+                            sendSuccessTheme(player, "Successfully teleported back from TPort");
+                        } else {
+                            sendSuccessTheme(player, "Successfully requested back teleportation back from TPort, delay time is %s ticks", delay);
+                        }
+                    }
                 } else {
-                    sendSuccessTheme(player, "Successfully requested back teleportation back from TPort %s", tportName);
+                    sendErrorTheme(player, "Its not safe to teleport back from TPort %s", tport.getName());
+                    return false;
                 }
                 return true;
             }
         }, (player, prevTPort) -> {
-            String tportName = (String) prevTPort.getData().get("tportName");
+            UUID tportUUID = UUID.fromString((String) prevTPort.getData().get("tportUUID"));
             String tportOwner = (String) prevTPort.getData().get("tportOwner");
-            TPort tport = TPortManager.getTPort(UUID.fromString(tportOwner), tportName);
+            TPort tport = TPortManager.getTPort(UUID.fromString(tportOwner), tportUUID);
             if (tport != null) {
                 Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
-                return (prevLoc == null ? "To" : "From") + " TPort" + tport.getName();
+                return (prevLoc == null ? "To" : "From") + " TPort " + tport.getName();
             } else {
                 return "Unknown";
             }
         }),
-        BIOME((player, prevTPort) -> {
+        BIOME((player, prevTPort, safetyCheck) -> {
             Location biomeLoc = (Location) prevTPort.getData().get("biomeLoc");
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
             String biomeName = (String) prevTPort.getData().get("biomeName");
             
             if (prevLoc == null) {
-                prevTPorts.put(player.getUniqueId(), new PrevTPort("BIOME", "biomeLoc", biomeLoc, "prevLoc", player.getLocation(), "biomeName", biomeName));
-                requestTeleportPlayer(player, biomeLoc);
+                if (!safetyCheck || SafetyCheck.isSafe(biomeLoc)) {
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("BIOME", "biomeLoc", biomeLoc, "prevLoc", player.getLocation(), "biomeName", biomeName));
+                    requestTeleportPlayer(player, biomeLoc, () -> sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Successfully teleported back to biome %s", biomeName));
     
-                if (Delay.delayTime(player) == 0) {
-                    sendSuccessTheme(player, "Successfully teleported back to biome %s", biomeName);
+                    int delay = Delay.delayTime(player);
+                    if (delay == 0) {
+                        sendSuccessTheme(player, "Successfully teleported back to biome %s", biomeName);
+                    } else {
+                        sendSuccessTheme(player, "Successfully requested back teleportation back to biome %s, delay time is %s ticks", biomeName, delay);
+                    }
                 } else {
-                    sendSuccessTheme(player, "Successfully requested back teleportation back to biome %s", biomeName);
+                    sendErrorTheme(player, "Its not safe to teleport back to biome %s", biomeName);
+                    return false;
                 }
             } else {
-                prevTPorts.put(player.getUniqueId(), new PrevTPort("BIOME", "biomeLoc", biomeLoc, "prevLoc", null, "biomeName", biomeName));
-                requestTeleportPlayer(player, prevLoc);
+                if (!safetyCheck || SafetyCheck.isSafe(prevLoc)) {
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("BIOME", "biomeLoc", biomeLoc, "prevLoc", null, "biomeName", biomeName));
+                    requestTeleportPlayer(player, prevLoc, () -> sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Successfully teleported back from biome %s", biomeName));
     
-                if (Delay.delayTime(player) == 0) {
-                    sendSuccessTheme(player, "Successfully teleported back from biome %s", biomeName);
+                    int delay = Delay.delayTime(player);
+                    if (delay == 0) {
+                        sendSuccessTheme(player, "Successfully teleported back from biome %s", biomeName);
+                    } else {
+                        sendSuccessTheme(player, "Successfully requested back teleportation back from biome %s, delay time is %s ticks", biomeName, delay);
+                    }
                 } else {
-                    sendSuccessTheme(player, "Successfully requested back teleportation back from biome %s", biomeName);
+                    sendErrorTheme(player, "Its not safe to teleport back from biome %s", biomeName);
+                    return false;
                 }
             }
             return true;
@@ -149,37 +216,49 @@ public class Back extends SubCommand {
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
             return (prevLoc == null ? "To" : "From") + " biome " + biomeName;
         }),
-        FEATURE((player, prevTPort) -> {
+        FEATURE((player, prevTPort, safetyCheck) -> {
             Location featureLoc = (Location) prevTPort.getData().get("featureLoc");
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
             String featureName = (String) prevTPort.getData().get("featureName");
             
             if (prevLoc == null) {
-                prevTPorts.put(player.getUniqueId(), new PrevTPort("FEATURE", "featureLoc", featureLoc, "prevLoc", player.getLocation(), "featureName", featureName));
-                requestTeleportPlayer(player, featureLoc);
-
-                if (Delay.delayTime(player) == 0) {
-                    sendSuccessTheme(player, "Successfully teleported back to %s", featureName);
+                if (!safetyCheck || SafetyCheck.isSafe(featureLoc)) {
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("FEATURE", "featureLoc", featureLoc, "prevLoc", player.getLocation(), "featureName", featureName));
+                    requestTeleportPlayer(player, featureLoc, () -> sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Successfully teleported back to %s", featureName));
+    
+                    int delay = Delay.delayTime(player);
+                    if (delay == 0) {
+                        sendSuccessTheme(player, "Successfully teleported back to %s", featureName);
+                    } else {
+                        sendSuccessTheme(player, "Successfully requested back teleportation back to %s, delay time is %s ticks", featureName, delay);
+                    }
                 } else {
-                    sendSuccessTheme(player, "Successfully requested back teleportation back to %s", featureName);
+                    sendErrorTheme(player, "Its not safe to teleport back to %s", featureName);
+                    return false;
                 }
             } else {
-                prevTPorts.put(player.getUniqueId(), new PrevTPort("FEATURE", "featureLoc", featureLoc, "prevLoc", null, "featureName", featureName));
-                requestTeleportPlayer(player, prevLoc);
-
-                if (Delay.delayTime(player) == 0) {
-                    sendSuccessTheme(player, "Successfully teleported back from %s", featureName);
+                if (!safetyCheck || SafetyCheck.isSafe(prevLoc)) {
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("FEATURE", "featureLoc", featureLoc, "prevLoc", null, "featureName", featureName));
+                    requestTeleportPlayer(player, prevLoc, () -> sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Successfully teleported back from %s", featureName));
+    
+                    int delay = Delay.delayTime(player);
+                    if (delay == 0) {
+                        sendSuccessTheme(player, "Successfully teleported back from %s", featureName);
+                    } else {
+                        sendSuccessTheme(player, "Successfully requested teleportation from %s, delay time is %s ticks", featureName, delay);
+                    }
                 } else {
-                    sendSuccessTheme(player, "Successfully requested teleportation from %s", featureName);
+                    sendErrorTheme(player, "Its not safe to teleport back from %s", featureName);
+                    return false;
                 }
             }
             return true;
         }, (player, prevTPort) -> {
             String featureName = (String) prevTPort.getData().get("featureName");
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
-            return (prevLoc == null ? "To" : "From") + featureName;
+            return (prevLoc == null ? "To " : "From ") + featureName;
         }),
-        PLAYER((player, prevTPort) -> {
+        PLAYER((player, prevTPort, safetyCheck) -> {
             Files tportData = GettingFiles.getFile("TPortData");
             String toPlayerUUID = (String) prevTPort.getData().get("playerUUID");
             
@@ -197,13 +276,19 @@ public class Back extends SubCommand {
                         }
                     }
                     
-                    prevTPorts.put(player.getUniqueId(), new PrevTPort("PLAYER", "playerUUID", toPlayerUUID, "prevLoc", player.getLocation()));
-                    requestTeleportPlayer(player, toPlayer.getLocation());
-                    
-                    if (Delay.delayTime(player) == 0) {
-                        sendSuccessTheme(player, "Successfully teleported back to player %s", toPlayer.getName());
+                    if (!safetyCheck || SafetyCheck.isSafe(toPlayer.getLocation())) {
+                        prevTPorts.put(player.getUniqueId(), new PrevTPort("PLAYER", "playerUUID", toPlayerUUID, "prevLoc", player.getLocation()));
+                        requestTeleportPlayer(player, toPlayer.getLocation(), () -> sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Successfully teleported back to player %s", toPlayer.getName()));
+    
+                        int delay = Delay.delayTime(player);
+                        if (delay == 0) {
+                            sendSuccessTheme(player, "Successfully teleported back to player %s", toPlayer.getName());
+                        } else {
+                            sendSuccessTheme(player, "Successfully requested teleportation back to player %s, delay time is %s ticks", toPlayer.getName(), delay);
+                        }
                     } else {
-                        sendSuccessTheme(player, "Successfully requested teleportation back to player %s", toPlayer.getName());
+                        sendErrorTheme(player, "Its not safe to teleport back to player %s", toPlayer.getName());
+                        return false;
                     }
                     return true;
                 } else {
@@ -211,42 +296,61 @@ public class Back extends SubCommand {
                     return false;
                 }
             } else {
-                prevTPorts.put(player.getUniqueId(), new PrevTPort("PLAYER", "playerUUID", toPlayerUUID, "prevLoc", null));
-                requestTeleportPlayer(player, prevLoc);
-
-                if (Delay.delayTime(player) == 0) {
-                    sendSuccessTheme(player, "Successfully teleported back from player %s", PlayerUUID.getPlayerName(toPlayerUUID));
+                if (!safetyCheck || SafetyCheck.isSafe(prevLoc)) {
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("PLAYER", "playerUUID", toPlayerUUID, "prevLoc", null));
+                    requestTeleportPlayer(player, prevLoc, () ->
+                            sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Successfully teleported back from player %s", PlayerUUID.getPlayerName(toPlayerUUID)));
+    
+                    int delay = Delay.delayTime(player);
+                    if (delay == 0) {
+                        sendSuccessTheme(player, "Successfully teleported back from player %s", PlayerUUID.getPlayerName(toPlayerUUID));
+                    } else {
+                        sendSuccessTheme(player, "Successfully requested teleportation back from player %s, delay time is %s ticks", PlayerUUID.getPlayerName(toPlayerUUID), delay);
+                    }
                 } else {
-                    sendSuccessTheme(player, "Successfully requested teleportation back from player %s", PlayerUUID.getPlayerName(toPlayerUUID));
+                    sendErrorTheme(player, "Its not safe to teleport back from player %s", PlayerUUID.getPlayerName(toPlayerUUID));
+                    return false;
                 }
                 return true;
             }
         }, (player, prevTPort) -> {
             String playerName = PlayerUUID.getPlayerName((String) prevTPort.getData().get("playerUUID"));
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
-            return (prevLoc == null ? "To" : "From") + playerName;
+            return (prevLoc == null ? "To " : "From ") + playerName;
         }),
-        DEATH((player, prevTPort) -> {
+        DEATH((player, prevTPort, safetyCheck) -> {
             Location deathLoc = (Location) prevTPort.getData().get("deathLoc");
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
             
             if (prevLoc == null) {
-                prevTPorts.put(player.getUniqueId(), new PrevTPort("DEATH", "deathLoc", deathLoc, "prevLoc", player.getLocation()));
-                requestTeleportPlayer(player, deathLoc);
-                
-                if (Delay.delayTime(player) == 0) {
-                    sendSuccessTheme(player, "Successfully teleported back to your %s location", "death");
+                if (!safetyCheck || SafetyCheck.isSafe(deathLoc)) {
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("DEATH", "deathLoc", deathLoc, "prevLoc", player.getLocation()));
+                    requestTeleportPlayer(player, deathLoc, () -> sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Successfully teleported back to your %s location", "death"));
+    
+                    int delay = Delay.delayTime(player);
+                    if (delay == 0) {
+                        sendSuccessTheme(player, "Successfully teleported back to your %s location", "death");
+                    } else {
+                        sendSuccessTheme(player, "Successfully requested teleportation back to your %s location, delay time is %s ticks", "death", delay);
+                    }
                 } else {
-                    sendSuccessTheme(player, "Successfully requested teleportation back to your %s location", "death");
+                    sendErrorTheme(player, "Its not safe to teleport back to your %s location", "death");
+                    return false;
                 }
             } else {
-                prevTPorts.put(player.getUniqueId(), new PrevTPort("DEATH", "deathLoc", deathLoc, "prevLoc", null));
-                requestTeleportPlayer(player, prevLoc);
-                
-                if (Delay.delayTime(player) == 0) {
-                    sendSuccessTheme(player, "Successfully teleported back from your %s location", "death");
+                if (!safetyCheck || SafetyCheck.isSafe(prevLoc)) {
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("DEATH", "deathLoc", deathLoc, "prevLoc", null));
+                    requestTeleportPlayer(player, prevLoc, () -> sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Successfully teleported back from your %s location", "death"));
+    
+                    int delay = Delay.delayTime(player);
+                    if (delay == 0) {
+                        sendSuccessTheme(player, "Successfully teleported back from your %s location", "death");
+                    } else {
+                        sendSuccessTheme(player, "Successfully requested teleportation back from your %s location, delay time is %s ticks", "death", delay);
+                    }
                 } else {
-                    sendSuccessTheme(player, "Successfully requested teleportation back from your %s location", "death");
+                    sendErrorTheme(player, "Its not safe to teleport back from your %s location", "death");
+                    return false;
                 }
             }
             return true;
@@ -255,16 +359,16 @@ public class Back extends SubCommand {
             return (prevLoc == null ? "To" : "From") + " death location";
         });
         
-        private TPBack tpBack;
-        private BackString backString;
+        private final TPBack tpBack;
+        private final BackString backString;
         
         PrevType(TPBack tpBack, BackString backString) {
             this.tpBack = tpBack;
             this.backString = backString;
         }
         
-        public boolean tpBack(Player player, PrevTPort prevTPort) {
-            return tpBack.tpBack(player, prevTPort);
+        public boolean tpBack(Player player, PrevTPort prevTPort, boolean safetyCheck) {
+            return tpBack.tpBack(player, prevTPort, safetyCheck);
         }
         
         public String toString(Player player, PrevTPort prevTPort) {
@@ -273,7 +377,7 @@ public class Back extends SubCommand {
         
         @FunctionalInterface
         private interface TPBack {
-            boolean tpBack(Player player, PrevTPort prevTPort);
+            boolean tpBack(Player player, PrevTPort prevTPort, boolean safetyCheck);
         }
         
         @FunctionalInterface
@@ -283,8 +387,8 @@ public class Back extends SubCommand {
     }
     
     public static class PrevTPort {
-        private HashMap<String, Object> data = new HashMap<>();
-        private PrevType prevType;
+        private final HashMap<String, Object> data = new HashMap<>();
+        private final PrevType prevType;
         
         public PrevTPort(PrevType prevType, String name1, Object data1, String name2, Object data2) {
             this.data.put(name1, data1);
@@ -312,8 +416,8 @@ public class Back extends SubCommand {
             this.prevType = PrevType.valueOf(prevType);
         }
         
-        public boolean tpBack(Player player) {
-            return prevType.tpBack(player, this);
+        public boolean tpBack(Player player, boolean safetyCheck) {
+            return prevType.tpBack(player, this, safetyCheck);
         }
         
         public String toString(Player player) {

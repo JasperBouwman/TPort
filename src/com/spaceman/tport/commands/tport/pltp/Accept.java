@@ -1,6 +1,6 @@
 package com.spaceman.tport.commands.tport.pltp;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -15,21 +15,21 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendInfoTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTheme;
 import static com.spaceman.tport.commands.tport.pltp.Consent.pltpConsentMap;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 
 public class Accept extends SubCommand {
     
     public Accept() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("player", ArgumentType.OPTIONAL);
-        emptyCommand.setCommandDescription(textComponent("This command is used to accept the PLTP request of the given player(s)", ColorTheme.ColorType.infoColor));
-        emptyCommand.setTabRunnable((args, player) -> pltpConsentMap.getOrDefault(player.getUniqueId(), new ArrayList<>())
+        EmptyCommand emptyPlayer = new EmptyCommand();
+        emptyPlayer.setCommandName("player", ArgumentType.OPTIONAL);
+        emptyPlayer.setCommandDescription(textComponent("This command is used to accept the PLTP request of the given player(s)", ColorTheme.ColorType.infoColor));
+        emptyPlayer.setTabRunnable((args, player) -> pltpConsentMap.getOrDefault(player.getUniqueId(), new ArrayList<>())
                 .stream().map(PlayerUUID::getPlayerName).filter(Objects::nonNull).collect(Collectors.toList()));
-        emptyCommand.setLooped(true);
-        addAction(emptyCommand);
+        emptyPlayer.setLooped(true);
+        addAction(emptyPlayer);
     }
     
     @Override

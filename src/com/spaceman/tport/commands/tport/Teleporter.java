@@ -15,7 +15,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
 
 public class Teleporter extends SubCommand {
@@ -43,6 +43,7 @@ public class Teleporter extends SubCommand {
             PersistentDataContainer dataContainer = im.getPersistentDataContainer();
             NamespacedKey keySize = new NamespacedKey(Main.getInstance(), "teleporterSize");
             NamespacedKey keyCommand = new NamespacedKey(Main.getInstance(), "teleporterCommand");
+            NamespacedKey keyTPortUUID = new NamespacedKey(Main.getInstance(), "teleporterTPortUUID");
             if (dataContainer.has(keySize, PersistentDataType.INTEGER)) {
                 //noinspection ConstantConditions
                 int size = dataContainer.get(keySize, PersistentDataType.INTEGER);
@@ -56,6 +57,7 @@ public class Teleporter extends SubCommand {
     
                             dataContainer.remove(keySize);
                             dataContainer.remove(keyCommand);
+                            dataContainer.remove(keyTPortUUID);
                             is.setItemMeta(im);
                             return true;
                         }

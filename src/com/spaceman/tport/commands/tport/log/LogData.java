@@ -16,17 +16,17 @@ import java.util.Collections;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.*;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendInfoTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 
 public class LogData extends SubCommand {
     
     public LogData() {
-        EmptyCommand emptyPlayer = new EmptyCommand();
-        emptyPlayer.setCommandName("player", ArgumentType.OPTIONAL);
-        emptyPlayer.setCommandDescription(textComponent("This command is used to get the LogMode of the given player in the given TPort", infoColor));
+        EmptyCommand emptyTPortPlayer = new EmptyCommand();
+        emptyTPortPlayer.setCommandName("player", ArgumentType.OPTIONAL);
+        emptyTPortPlayer.setCommandDescription(textComponent("This command is used to get the LogMode of the given player in the given TPort", infoColor));
         
         EmptyCommand emptyTPort = new EmptyCommand();
         emptyTPort.setCommandName("TPort name", ArgumentType.OPTIONAL);
@@ -38,7 +38,7 @@ public class LogData extends SubCommand {
             }
             return Collections.emptyList();
         });
-        emptyTPort.addAction(emptyPlayer);
+        emptyTPort.addAction(emptyTPortPlayer);
         addAction(emptyTPort);
     }
     

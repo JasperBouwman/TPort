@@ -1,6 +1,6 @@
 package com.spaceman.tport.commands.tport.publc;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -15,7 +15,7 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 import static com.spaceman.tport.tport.TPortManager.getTPort;

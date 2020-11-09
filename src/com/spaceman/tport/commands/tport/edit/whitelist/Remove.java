@@ -13,17 +13,17 @@ import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class Remove extends SubCommand {
     
     public Remove() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("player", ArgumentType.REQUIRED);
-        emptyCommand.setCommandDescription(textComponent("This command is used to remove players from the whitelist of the given TPort", ColorType.infoColor));
-        emptyCommand.setTabRunnable((args, player) -> {
+        EmptyCommand emptyPlayer = new EmptyCommand();
+        emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
+        emptyPlayer.setCommandDescription(textComponent("This command is used to remove players from the whitelist of the given TPort", ColorType.infoColor));
+        emptyPlayer.setTabRunnable((args, player) -> {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
             if (tport != null) {
                 List<String> list = tport.getWhitelist().stream().map(PlayerUUID::getPlayerName).filter(Objects::nonNull).collect(Collectors.toList());
@@ -33,8 +33,8 @@ public class Remove extends SubCommand {
                 return new ArrayList<>();
             }
         });
-        emptyCommand.setLooped(true);
-        addAction(emptyCommand);
+        emptyPlayer.setLooped(true);
+        addAction(emptyPlayer);
     }
     
     @Override

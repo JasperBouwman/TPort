@@ -1,6 +1,6 @@
 package com.spaceman.tport.tpEvents;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import org.apache.commons.lang.Validate;

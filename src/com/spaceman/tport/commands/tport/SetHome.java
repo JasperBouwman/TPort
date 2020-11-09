@@ -1,10 +1,10 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
@@ -17,24 +17,21 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class SetHome extends SubCommand {
     
     public SetHome() {
-        EmptyCommand emptyCommand1 = new EmptyCommand();
-        emptyCommand1.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyCommand1.setCommandDescription(TextComponent.textComponent("This command is used to set your home TPort", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.setHome", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+        EmptyCommand emptyPlayerTPort = new EmptyCommand();
+        emptyPlayerTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyPlayerTPort.setCommandDescription(TextComponent.textComponent("This command is used to set your home TPort", ColorTheme.ColorType.infoColor));
+        emptyPlayerTPort.setPermissions("TPort.setHome", "TPort.basic");
         
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("player", ArgumentType.REQUIRED);
-        emptyCommand.setTabRunnable((args, player) -> {
+        EmptyCommand emptyPlayer = new EmptyCommand();
+        emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
+        emptyPlayer.setTabRunnable((args, player) -> {
             ArrayList<String> list = new ArrayList<>();
     
             UUID argOneUUID = PlayerUUID.getPlayerUUID(args[1]);
@@ -49,8 +46,8 @@ public class SetHome extends SubCommand {
             
             return list;
         });
-        emptyCommand.addAction(emptyCommand1);
-        addAction(emptyCommand);
+        emptyPlayer.addAction(emptyPlayerTPort);
+        addAction(emptyPlayer);
     }
     
     @Override
@@ -64,7 +61,7 @@ public class SetHome extends SubCommand {
         
         if (args.length == 3) {
             
-            if (!hasPermission(player, false, "TPort.setHome", "TPort.basic")) {
+            if (!hasPermissionToRun(player, true)) {
                 return;
             }
             

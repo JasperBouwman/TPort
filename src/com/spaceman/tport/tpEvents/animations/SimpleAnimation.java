@@ -1,6 +1,6 @@
 package com.spaceman.tport.tpEvents.animations;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.keyValueHelper.ExtendedKey;

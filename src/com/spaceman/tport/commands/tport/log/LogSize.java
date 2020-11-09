@@ -7,21 +7,19 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class LogSize extends SubCommand {
     
+    private final EmptyCommand emptySize;
+    
     public LogSize() {
-        EmptyCommand emptySize = new EmptyCommand();
+        emptySize = new EmptyCommand();
         emptySize.setCommandName("size", ArgumentType.OPTIONAL);
-        emptySize.setCommandDescription(textComponent("This command is used to set the size of a TPort log", ColorType.infoColor),
-                textComponent("\n\nPermissions: ", infoColor), textComponent("TPort.log.logSize", varInfoColor),
-                textComponent(" or ", infoColor), textComponent("TPort.admin.log", varInfoColor));
+        emptySize.setCommandDescription(textComponent("This command is used to set the size of a TPort log", ColorType.infoColor));
+        emptySize.setPermissions("TPort.log.logSize", "TPort.admin.log");
         addAction(emptySize);
     }
     
@@ -47,7 +45,7 @@ public class LogSize extends SubCommand {
         if (args.length == 2) {
             sendInfoTheme(player, "The size of the log entries is set to %s", String.valueOf(getLogSize()));
         } else if (args.length == 3) {
-            if (hasPermission(player, true, true, "TPort.log.logSize", "TPort.admin.log")) {
+            if (emptySize.hasPermissionToRun(player, true)) {
                 try {
                     setLogSize(Integer.parseInt(args[2]));
                     sendSuccessTheme(player, "Successfully set the log entry size to %s", args[2]);

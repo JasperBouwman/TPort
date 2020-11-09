@@ -1,38 +1,38 @@
 package com.spaceman.tport.commands.tport.backup;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Save extends SubCommand {
     
+    private final EmptyCommand emptyName;
+    
     public Save() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("name", ArgumentType.REQUIRED);
-        emptyCommand.setCommandDescription(TextComponent.textComponent("This command is used to save the TPort data to a file", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.backup.save", ColorTheme.ColorType.varInfoColor));
-        addAction(emptyCommand);
+        emptyName = new EmptyCommand();
+        emptyName.setCommandName("name", ArgumentType.REQUIRED);
+        emptyName.setCommandDescription(TextComponent.textComponent("This command is used to save the TPort data to a file", ColorTheme.ColorType.infoColor));
+        emptyName.setPermissions("TPort.admin.backup.save");
+        addAction(emptyName);
     }
     
     @Override
     public void run(String[] args, Player player) {
         // tport backup save <name>
         
-        if (!hasPermission(player, true, "TPort.admin.backup.save")) {
+        if (!emptyName.hasPermissionToRun(player, true)) {
             return;
         }
         

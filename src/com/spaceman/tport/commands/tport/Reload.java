@@ -1,13 +1,13 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.GettingFiles;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -17,12 +17,14 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.logging.Level;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendInfoTheme;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTheme;
 import static com.spaceman.tport.permissions.PermissionHandler.loadPermissionConfig;
 
 public class Reload extends SubCommand {
+    
+    public Reload() {
+        setPermissions("TPort.admin.reload");
+    }
     
     public static void reloadTPort() {
         
@@ -33,7 +35,7 @@ public class Reload extends SubCommand {
                     byte[] buffer = new byte[inputStream.available()];
                     inputStream.read(buffer);
                     new FileOutputStream(new File(Main.getInstance().getDataFolder(), file)).write(buffer);
-                    Bukkit.getLogger().log(Level.INFO, "[TPort] " + file + " did not exist, resetting it...");
+                    Main.getInstance().getLogger().log(Level.INFO, "" + file + " did not exist, resetting it...");
                 } catch (IOException ignore) {
                 }
             }
@@ -47,19 +49,17 @@ public class Reload extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        return new Message(TextComponent.textComponent("This command is used to reload the plugin", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.reload", ColorTheme.ColorType.varInfoColor));
+        return new Message(TextComponent.textComponent("This command is used to reload the plugin", ColorTheme.ColorType.infoColor));
     }
     
     @Override
     public void run(String[] args, Player player) {
         //tport reload
         
-        if (!hasPermission(player, true, "TPort.admin.reload")) {
-            return;
+        if (hasPermissionToRun(player, true)) {
+            reloadTPort();
+            Auto.save();
+            sendInfoTheme(player, "TPort has been reloaded");
         }
-        
-        reloadTPort();
-        sendInfoTheme(player, "TPort has been reloaded");
     }
 }

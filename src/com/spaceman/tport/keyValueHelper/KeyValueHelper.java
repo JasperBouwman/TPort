@@ -1,13 +1,10 @@
 package com.spaceman.tport.keyValueHelper;
 
 import com.spaceman.tport.Pair;
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.Message;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
@@ -141,15 +138,19 @@ public class KeyValueHelper {
         String object = arg.substring(0, arg.lastIndexOf(lastKeyValue));
         
         if (lastKeyValue.contains("=")) {
-            KeyValueTabArgument tabArgument = keyValueTabArguments.stream().filter(s -> s.getKey().equalsIgnoreCase(lastKey)).findFirst().get();
-            if (lastKeyValue.split("=").length == 2 && tabArgument.getValues(new ArrayList<>()).stream().anyMatch(s -> s.equalsIgnoreCase(lastKeyValue.split("=")[1]))) {
-                return filterNotContaining(arg, keyValueTabArguments).stream().map(KeyValueTabArgument::getKey).map(s -> object + lastKeyValue + "," + s).collect(Collectors.toList());
-            } else {
-                List<String> list = new ArrayList<>();
-                for (String s : tabArgument.getValues(getWrittenPairs(arg))) {
-                    list.add(object + lastKey + "=" + s);
+            KeyValueTabArgument tabArgument = keyValueTabArguments.stream().filter(s -> s.getKey().equalsIgnoreCase(lastKey)).findFirst().orElse(null);
+            if (tabArgument != null) {
+                if (lastKeyValue.split("=").length == 2 && tabArgument.getValues(new ArrayList<>()).stream().anyMatch(s -> s.equalsIgnoreCase(lastKeyValue.split("=")[1]))) {
+                    return filterNotContaining(arg, keyValueTabArguments).stream().map(KeyValueTabArgument::getKey).map(s -> object + lastKeyValue + "," + s).collect(Collectors.toList());
+                } else {
+                    List<String> list = new ArrayList<>();
+                    for (String s : tabArgument.getValues(getWrittenPairs(arg))) {
+                        list.add(object + lastKey + "=" + s);
+                    }
+                    return list;
                 }
-                return list;
+            } else {
+                return Collections.singletonList("");
             }
         } else {
             for (KeyValueTabArgument tabArgument : keyValueTabArguments) {
@@ -171,9 +172,8 @@ public class KeyValueHelper {
     
     public static HashMap<String, Object> constructObject(String stringObj, List<? extends Key> keys) throws KeyValueError {
         //key=value,key1=value1,value
-        
-        ArrayList<String> neededList = keys.stream().filter(key -> !key.isOptional()).map(Key::getKey).map(String::toLowerCase).collect(Collectors.toCollection(ArrayList::new));
-        
+    
+        List<String> neededList = keys.stream().filter(key -> !key.isOptional()).map(Key::getKey).map(String::toLowerCase).collect(Collectors.toList());
         HashMap<String, Object> keysMap = new HashMap<>();
         for (String keyValue : stringObj.split(",")) {
             if (keyValue.matches(".+=.+")) {

@@ -6,12 +6,12 @@ import com.spaceman.tport.commands.tport.log.Add;
 import com.spaceman.tport.commands.tport.log.Remove;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.commandHander.CommandTemplate.convertToArgs;
 import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
 
 public class Log extends SubCommand {
-
+    
     public Log() {
         addAction(new Read());
         addAction(new TimeZone());
@@ -24,7 +24,7 @@ public class Log extends SubCommand {
         addAction(new Notify());
         addAction(new LogSize());
     }
-
+    
     @Override
     public void run(String[] args, Player player) {
         // tport log read <TPort name> [player]
@@ -42,6 +42,6 @@ public class Log extends SubCommand {
                 return;
             }
         }
-        sendErrorTheme(player, "Usage: %s", "/tport log " + convertToArgs(getActions(), true));
+        sendErrorTheme(player, "Usage: %s", "/tport log " + convertToArgs(getActions(), false));
     }
 }

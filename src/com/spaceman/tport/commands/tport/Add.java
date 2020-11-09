@@ -1,45 +1,59 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
-
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 
 public class Add extends SubCommand {
     
+    private final EmptyCommand emptyTPortDescription;
+    
     public Add() {
-        EmptyCommand emptyCommand1 = new EmptyCommand();
-        emptyCommand1.setCommandName("description...", ArgumentType.OPTIONAL);
-        emptyCommand1.setCommandDescription(textComponent("This command is used to add a TPort to your saved TPorts list, " +
-                "and all arguments after the name are the description of that TPort. With ", ColorTheme.ColorType.infoColor),
-                textComponent("\\\\n", ColorTheme.ColorType.varInfoColor),
-                textComponent(" you can add a new line. With the character ", ColorTheme.ColorType.infoColor),
-                textComponent("&", ColorTheme.ColorType.varInfoColor),
-                textComponent(" and a color code you can add colors to your description", ColorTheme.ColorType.infoColor),
-                
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.add.[X]", ColorTheme.ColorType.varInfoColor),
-                textComponent(" and ", ColorTheme.ColorType.infoColor), textComponent("TPort.edit.description", ColorTheme.ColorType.varInfoColor),
-                textComponent(", or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+        emptyTPortDescription = new EmptyCommand(){
+            @Override
+            public Message permissionsHover() {
+                Message message = new Message();
+                message.addText(
+                        textComponent("Permissions: (", infoColor),
+                        textComponent("TPort.add.[X]", varInfoColor),
+                        textComponent(" and ", infoColor),
+                        textComponent("TPort.edit.description", varInfoColor),
+                        textComponent(") or ", infoColor),
+                        textComponent("TPort.basic", varInfoColor),
+                        textComponent(". Permission '", infoColor),
+                        textComponent("TPort.add.<X>", varInfoColor),
+                        textComponent("' overrules all other permissions", infoColor));
+                return message;
+            }
+        };
+        emptyTPortDescription.setCommandName("description...", ArgumentType.OPTIONAL);
+        emptyTPortDescription.setCommandDescription(textComponent("This command is used to add a TPort to your saved TPorts list, " +
+                "and all arguments after the name are the description of that TPort. With ", infoColor),
+                textComponent("\\\\n", varInfoColor),
+                textComponent(" you can add a new line. With the character ", infoColor),
+                textComponent("&", varInfoColor),
+                textComponent(" and a color code you can add colors to your description", infoColor));
+        emptyTPortDescription.setPermissions("TPort.add.[X]", "TPort.edit.description", "TPort.basic");
+    
+        EmptyCommand emptyTPort = new EmptyCommand();
+        emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyTPort.setCommandDescription(textComponent("This command is used to add a TPort to your saved TPorts list", infoColor));
+        emptyTPort.addAction(emptyTPortDescription);
+        emptyTPort.setPermissions("TPort.add.[X]", "TPort.basic");
         
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyCommand.setCommandDescription(textComponent("This command is used to add a TPort to your saved TPorts list", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.add.[X]", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
-        emptyCommand.addAction(emptyCommand1);
-        
-        addAction(emptyCommand);
+        addAction(emptyTPort);
     }
     
     @Override
@@ -58,9 +72,9 @@ public class Add extends SubCommand {
             return;
         }
         TPort newTPort = new TPort(player.getUniqueId(), args[1], player.getLocation(), item);
-        if (hasPermission(player, false, true, "TPort.edit.description", "TPort.basic")) {
+        if (emptyTPortDescription.hasPermissionToRun(player, false)) {
             if (args.length > 2) {
-                newTPort.setDescription(String.join(" ", Arrays.asList(args).subList(2, args.length)));
+                newTPort.setDescription(StringUtils.join(args, " ", 2, args.length));
             }
         } else {
             sendErrorTheme(player, "Could not add description to TPort, missing permissions: %s or %s", "TPort.edit.description", "TPort.basic");

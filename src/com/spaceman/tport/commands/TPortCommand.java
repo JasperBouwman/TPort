@@ -1,13 +1,18 @@
 package com.spaceman.tport.commands;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
-import com.spaceman.tport.colorFormatter.ColorThemeCommand;
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.CommandTemplate;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.HelpCommand;
+import com.spaceman.tport.Main;
+import com.spaceman.tport.TPortInventories;
+import com.spaceman.tport.commandHander.*;
 import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorThemeCommand;
+import com.spaceman.tport.metrics.CommandCounter;
+import com.spaceman.tport.tport.TPortManager;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,71 +23,91 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static com.spaceman.tport.TPortInventories.addCommand;
 import static com.spaceman.tport.TPortInventories.openMainTPortGUI;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.MessageUtils.ImageFrame.recursion;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 
 public class TPortCommand extends CommandTemplate {
     
     public TPortCommand() {
-        super(true, new CommandDescription("TPort", "The command to teleport to saved locations and more", "/TPort <args...>"));
+        super(Main.getInstance(), true, new CommandDescription("TPort", Main.getInstance().getDescription().getName(), "The command to teleport to saved locations and more", "/TPort <args...>"));
     }
     
-    public static ItemStack getHead(UUID uuid) {
-        return getHead(Bukkit.getOfflinePlayer(uuid));
+    public static ItemStack getHead(UUID head, Player player) {
+        return getHead(Bukkit.getOfflinePlayer(head), player);
     }
     
-    public static ItemStack getHead(OfflinePlayer player) {
-        if (player == null) {
+    public static ItemStack getHead(OfflinePlayer head, Player player) {
+        if (head == null) {
             return null;
         }
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
-        if (meta == null) {
-            meta = (SkullMeta) Bukkit.getItemFactory().getItemMeta(item.getType());
-        }
         if (meta != null) {
-            meta.setOwningPlayer(player);
-            meta.setDisplayName(ChatColor.YELLOW + player.getName());
+            meta.setOwningPlayer(head);
+            meta.setDisplayName(ChatColor.YELLOW + head.getName());
+            
+            addCommand(meta, TPortInventories.Action.LEFT_CLICK, "open " + head.getName());
+            
+            ColorTheme theme = ColorTheme.getTheme(player.getUniqueId());
+            
+            meta.setLore(Arrays.asList("",
+                    "§r" + theme.getInfoColor() + "TPorts: " + theme.getVarInfoColor() + TPortManager.getTPortList(head.getUniqueId()).size()));
+            
             item.setItemMeta(meta);
         }
         return item;
     }
     
     public static boolean executeInternal(CommandSender sender, String args) {
+        if (args == null) {
+            return false;
+        }
         return executeInternal(sender, args.split(" "));
     }
     
     public static boolean executeInternal(CommandSender sender, String[] args) {
+        if (args == null) {
+            return false;
+        }
         try {
             final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
             bukkitCommandMap.setAccessible(true);
             CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
             
-            commandMap.getCommand("TPort").execute(sender, "", args);
+            commandMap.getCommand("TPort").execute(sender, "tport", args);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
     }
     
+    private EmptyCommand empty;
+    
     @Override
     public void registerActions() {
-        EmptyCommand empty = new EmptyCommand() {
+        empty = new EmptyCommand() {
             @Override
             public String getName(String argument) {
                 return "";
             }
         };
         empty.setCommandName("", ArgumentType.FIXED);
-        empty.setCommandDescription(textComponent("This command is used to open the main TPort gui with all the player to choose from", ColorTheme.ColorType.infoColor),
-                textComponent("\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.open", ColorTheme.ColorType.varInfoColor));
+        empty.setCommandDescription(textComponent("This command is used to open the main TPort gui with all the player to choose from", ColorTheme.ColorType.infoColor));
+        empty.setPermissions("TPort.open", "TPort.basic");
         addAction(empty);
         addAction(new Open());
         addAction(new Add());
@@ -110,13 +135,38 @@ public class TPortCommand extends CommandTemplate {
         addAction(new Restriction());
         addAction(new Cancel());
         addAction(new Redirect());
-//        addAction(new QuickGuide());
+        addAction(Search.getInstance());
+        addAction(new Sort());
+        addAction(new Tag());
+        addAction(new SafetyCheck());
+        addAction(new Permissions());
+        addAction(new MetricsCommand());
+        addAction(new DynmapCommand());
+//        addAction(new SearchArea()); //todo uncomment for SearchArea
+        addAction(new MainLayout());
+        addAction(new WorldCommand());
+        
         HelpCommand helpCommand = new HelpCommand(this);
         
-//        EmptyCommand emptyHelpQuickGuide = new EmptyCommand();
-//        emptyHelpQuickGuide.setCommandDescription(textComponent("This command is used to get the quick guide of this plugin", ColorTheme.ColorType.infoColor));
-//        emptyHelpQuickGuide.setRunnable((args, player) -> executeInternal(player, "quickGuide"));
-//        helpCommand.addExtraHelp("QuickGuide", emptyHelpQuickGuide);
+        EmptyCommand emptyHelpQuickGuide = new EmptyCommand() {
+            @Override
+            public String getName(String argument) {
+                return getCommandName();
+            }
+        };
+        emptyHelpQuickGuide.setCommandDescription(textComponent("This command is used to get the quick guide of this plugin", ColorTheme.ColorType.infoColor));
+        emptyHelpQuickGuide.setRunnable((args, player) -> executeInternal(player, "quickGuide"));
+        helpCommand.addExtraHelp("QuickGuide", emptyHelpQuickGuide);
+        
+        EmptyCommand emptyHelpDynmap = new EmptyCommand() {
+            @Override
+            public String getName(String argument) {
+                return getCommandName();
+            }
+        };
+        emptyHelpDynmap.setCommandDescription(textComponent("This command is used to get the quick guide of this plugin", ColorTheme.ColorType.infoColor));
+        emptyHelpDynmap.setRunnable((args, player) -> executeInternal(player, "dynmap"));
+        helpCommand.addExtraHelp("Dynmap", emptyHelpDynmap);
         
         helpCommand.addExtraHelp("PLTP", new Message(textComponent("PLTP stands for PlayerTeleportation, this allows you to teleport to other players. " +
                 "You can disable this, to disable use ", ColorTheme.ColorType.infoColor),
@@ -137,13 +187,6 @@ public class TPortCommand extends CommandTemplate {
     @Override
     public List<String> tabList(String[] args, Player player) {
         ArrayList<String> list = new ArrayList<>(super.tabList(args, player));
-        
-        if (!hasPermission(player, false, "TPort.admin.reload")) {
-            list.remove("reload");
-        }
-        if (!hasPermission(player, false, "TPort.admin.removePlayer")) {
-            list.remove("removePlayer");
-        }
         if (!Public.isEnabled()) {
             list.remove("public");
         }
@@ -153,7 +196,7 @@ public class TPortCommand extends CommandTemplate {
     @Override
     public boolean execute(CommandSender sender, String command, String[] args) {
         // tport
-        // tport open <player> [TPort name]
+        // tport open <player> [TPort name] [safetyCheck]
         // tport add <TPort name> [description...]
         // tport remove <TPort name>
         // tport edit <TPort name> description set <description...>
@@ -169,6 +212,10 @@ public class TPortCommand extends CommandTemplate {
         // tport edit <TPort name> whitelist clone <TPort name>
         // tport edit <TPort name> move <slot|TPort name>
         // tport edit <TPort name> range [range]
+        // tport edit <TPort name> tag add <tag>
+        // tport edit <TPort name> tag remove <tag>
+        // tport edit <TPort name> dynmap show [state]
+        // tport edit <TPort name> dynmap icon [icon]
         // tport PLTP state [state]
         // tport PLTP consent [state]
         // tport PLTP accept [player...]
@@ -181,8 +228,8 @@ public class TPortCommand extends CommandTemplate {
         // tport PLTP offset <offset>
         // tport teleporter create <type> [data...]
         // tport teleporter remove
-        // tport own [TPort name]
-        // tport back
+        // tport own [TPort name] [safetyCheck]
+        // tport back [safetyCheck]
         // tport biomeTP
         // tport biomeTP whitelist <biome...>
         // tport biomeTP blacklist <biome...>
@@ -223,7 +270,7 @@ public class TPortCommand extends CommandTemplate {
         // tport log add <TPort name> <player[:LogMode]...>
         // tport log remove <TPort name> <player...>
         // tport log default <TPort name> [default LogMode]
-        // tport log notify <TPort name> [state]
+        // tport log notify [TPort name] [state]
         // tport log logSize [size]
         // tport backup save <name>
         // tport backup load <name>
@@ -245,6 +292,23 @@ public class TPortCommand extends CommandTemplate {
         // tport cancel
         // tport quickGuide [guide]
         // tport redirect <redirect> [state]
+        // tport tag create <tag> <permission>
+        // tport tag delete <tag>
+        // tport tag list
+        // tport tag reset
+        // tport search <type>
+        // tport search <type> <query...>
+        // tport search <type> <mode> <query...>
+        // tport sort [sorter]
+        // tport safetyCheck [default state]
+        // tport metrics enable [state]
+        // tport metrics viewStats
+        // tport dynmap
+        // tport dynmap enable [state]
+        // tport dynmap show <player> [tport name]
+        // tport dynmap IP [IP]
+        // tport mainLayout players [state]
+        // tport mainLayout TPorts [state]
         
         if (!(sender instanceof Player)) {
             sender.sendMessage("You have to be a player to use this command");
@@ -254,12 +318,14 @@ public class TPortCommand extends CommandTemplate {
         Player player = (Player) sender;
         
         if (args.length == 0) {
-            if (!hasPermission(player, true, true, "TPort.open", "TPort.basic")) {
+            if (!empty.hasPermissionToRun(player, true)) {
                 return false;
             }
             openMainTPortGUI(player, 0);
         } else {
-            if (!this.runCommands(args[0], args, player)) {
+            if (this.runCommands(args[0], args, player)) {
+                CommandCounter.add(args);
+            } else {
                 sendErrorTheme(player, "%s is not a valid sub-command", args[0]);
             }
         }

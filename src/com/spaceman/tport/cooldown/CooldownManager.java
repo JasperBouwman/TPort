@@ -1,5 +1,6 @@
 package com.spaceman.tport.cooldown;
 
+import com.spaceman.tport.Main;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
 import org.bukkit.Bukkit;
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 
 public enum CooldownManager {
 
@@ -18,6 +19,7 @@ public enum CooldownManager {
     PlayerTP("3000"),
     FeatureTP("3000"),
     BiomeTP("3000"),
+    Search("10000"),
     Back("TPortTP");
 
     public static boolean loopCooldown = false;
@@ -73,7 +75,7 @@ public enum CooldownManager {
 
     private long getTime(Player player, CooldownManager start) {
         if (this.name().equals((start == null ? "" : start.name())) || loopCooldown) {
-            Bukkit.getLogger().log(Level.WARNING, "[TPort] There is a loop in the cooldown configuration...");
+            Main.getInstance().getLogger().log(Level.WARNING, "There is a loop in the cooldown configuration...");
             loopCooldown = true;
             return 0;
         }
@@ -89,7 +91,7 @@ public enum CooldownManager {
                             long value = Long.parseLong(permissionInfo.getPermission().replace("TPort." + this.name() + ".", ""));
                             return (cooldownTime.getOrDefault(player.getUniqueId(), new HashMap<>()).getOrDefault(this, 0L) + value) - System.currentTimeMillis();
                         } catch (NumberFormatException nfe) {
-                            Bukkit.getLogger().log(Level.WARNING, "[TPort] Permission TPort." + this.name() + ".X is not a valid Long value");
+                            Main.getInstance().getLogger().log(Level.WARNING, "Permission TPort." + this.name() + ".X is not a valid Long value");
                             return 0;
                         }
                     }

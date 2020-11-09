@@ -1,20 +1,27 @@
 package com.spaceman.tport.tpEvents;
 
+import com.spaceman.tport.Main;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.tpEvents.animations.SimpleAnimation;
 import com.spaceman.tport.tpEvents.restrictions.NoneRestriction;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.UUID;
 
+import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+
 public class TPEManager {
     
-    private static HashMap<UUID, ParticleAnimation> newLocAnimations = new HashMap<>();
-    private static HashMap<UUID, ParticleAnimation> oldLocAnimations = new HashMap<>();
-    private static HashMap<UUID, TPRestriction> tpRestrictions = new HashMap<>();
-    private static HashMap<UUID, Integer> taskIDs = new HashMap<>();
+    private static final HashMap<UUID, ParticleAnimation> newLocAnimations = new HashMap<>();
+    private static final HashMap<UUID, ParticleAnimation> oldLocAnimations = new HashMap<>();
+    private static final HashMap<UUID, TPRestriction> tpRestrictions = new HashMap<>();
+    private static final HashMap<UUID, Integer> taskIDs = new HashMap<>();
     
     public static void saveTPE(Files file) {
         for (UUID uuid : newLocAnimations.keySet()) {
@@ -57,7 +64,7 @@ public class TPEManager {
                     }
                     newLocAnimations.put(uuid, newPA);
                 } else {
-                    Bukkit.getLogger().warning("[TPort] could not find particle animation " + file.getConfig().getString("ParticleAnimations.players." + uuidS + ".new.name"));
+                    Main.getInstance().getLogger().warning("Could not find particle animation " + file.getConfig().getString("ParticleAnimations.players." + uuidS + ".new.name"));
                 }
             }
     
@@ -74,7 +81,7 @@ public class TPEManager {
                     }
                     oldLocAnimations.put(uuid, oldPA);
                 } else {
-                    Bukkit.getLogger().warning("[TPort] could not find particle animation " + file.getConfig().getString("ParticleAnimations.players." + uuidS + ".old.name"));
+                    Main.getInstance().getLogger().warning("Could not find particle animation " + file.getConfig().getString("ParticleAnimations.players." + uuidS + ".old.name"));
                 }
             }
         }
@@ -90,14 +97,13 @@ public class TPEManager {
         return pa;
     }
     
-    public static void setTPRestriction(UUID uuid, TPRestriction type) {
+    public static void setTPRestriction(UUID uuid, @Nullable TPRestriction type) {
         if (type == null) {
             type = new NoneRestriction();
         }
         if (tpRestrictions.containsKey(uuid)) {
             tpRestrictions.get(uuid).disable();
         }
-        type.activate();
         tpRestrictions.put(uuid, type);
     }
     
@@ -117,11 +123,28 @@ public class TPEManager {
         return oldLocAnimations.get(uuid);
     }
     
-    public static TPRestriction getTPRestriction(UUID uuid) {
+    private static TPRestriction getUnmodifiedTPRestriction(UUID uuid) {
         if (!tpRestrictions.containsKey(uuid)) {
             setTPRestriction(uuid, null);
         }
         return tpRestrictions.get(uuid);
+    }
+    
+    public static TPRestriction getTPRestriction(UUID uuid) {
+    
+        if (getFile("TPortConfig").getConfig().getBoolean("restriction.permission", false)) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) {
+                for (PermissionAttachmentInfo p : player.getEffectivePermissions()) {
+                    if (p.getPermission().toLowerCase().startsWith("tport.restriction.type.")) {
+                        setTPRestriction(uuid, TPRestriction.getNewRestriction(p.getPermission().toLowerCase().replace("tport.restriction.type.", "")));
+                        break;
+                    }
+                }
+            }
+            setTPRestriction(uuid, null);
+        }
+        return getUnmodifiedTPRestriction(uuid);
     }
     
     public static int registerTP(UUID uuid, int taskID) {
@@ -139,7 +162,7 @@ public class TPEManager {
     
     public static boolean cancelTP(UUID uuid) {
         if (taskIDs.containsKey(uuid)) {
-            TPRestriction tpr = TPEManager.getTPRestriction(uuid);
+            TPRestriction tpr = TPEManager.getUnmodifiedTPRestriction(uuid);
             if (tpr != null) tpr.cancel();
             Bukkit.getScheduler().cancelTask(taskIDs.remove(uuid));
             return true;

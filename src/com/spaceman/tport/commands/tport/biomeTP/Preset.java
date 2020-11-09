@@ -13,31 +13,31 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.commands.TPortCommand.executeInternal;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 
 public class Preset extends SubCommand {
     
     public Preset() {
+        setPermissions("TPort.biomeTP.preset");
+        
         EmptyCommand emptyPreset = new EmptyCommand();
         emptyPreset.setCommandName("preset", ArgumentType.OPTIONAL);
-        emptyPreset.setCommandDescription(textComponent("This command is used to use a biomeTP preset", infoColor),
-                textComponent("\n\nPermissions: (", infoColor), textComponent("TPort.biomeTP.preset", varInfoColor),
-                textComponent(" and ", infoColor), textComponent("permissions of '/tport biomeTP whitelist/blacklist <biome...>'", varInfoColor),
-                textComponent(") or ", infoColor), textComponent("TPort.biomeTP.all", varInfoColor));
+        emptyPreset.setCommandDescription(textComponent("This command is used to use a biomeTP preset. ", infoColor),
+                textComponent("This command generates the command that is used for ", infoColor),
+                textComponent("/tport biomeTP whitelist/blacklist <biome...>", varInfoColor),
+                textComponent(" therefore you need the permission for that command too", infoColor));
+        emptyPreset.setPermissions(getPermissions());
         
         addAction(emptyPreset);
     }
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to open the biomeTP preset list GUI", infoColor),
-                textComponent("\n\nPermissions: ", infoColor), textComponent("TPort.biomeTP.preset", varInfoColor),
-                textComponent(" or ", infoColor), textComponent("TPort.biomeTP.all", varInfoColor));
+        return new Message(textComponent("This command is used to open the biomeTP preset list GUI", infoColor));
     }
     
     @Override
@@ -50,11 +50,11 @@ public class Preset extends SubCommand {
         // tport biomeTP preset [preset]
         
         if (args.length == 2) {
-            if (hasPermission(player, true, true, "TPort.biomeTP.preset", "TPort.biomeTP.all")) {
+            if (hasPermissionToRun(player, true)) {
                 TPortInventories.openBiomeTPPreset(player, 0);
             }
         } else if (args.length == 3) {
-            if (!hasPermission(player, true, true, "TPort.biomeTP.preset", "TPort.biomeTP.all")) {
+            if (!hasPermissionToRun(player, true)) {
                 return;
             }
             BiomeTP.BiomeTPPresets.Preset preset = BiomeTP.BiomeTPPresets.getPreset(args[2]);

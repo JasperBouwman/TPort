@@ -1,9 +1,10 @@
 package com.spaceman.tport.tpEvents.restrictions;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.tpEvents.TPEManager;
 import com.spaceman.tport.tpEvents.TPRestriction;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -14,12 +15,11 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 import java.util.UUID;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.commandHander.SubCommand.lowerCaseFirst;
 
 public class WalkRestriction extends TPRestriction implements Listener {
     
-    private int taskID = -2;
     private UUID uuid = null;
     private Location oldLoc = null;
     
@@ -28,9 +28,9 @@ public class WalkRestriction extends TPRestriction implements Listener {
     }
     
     private void reset() {
-        taskID = -2;
         uuid = null;
         oldLoc = null;
+        disable();
     }
     
     @EventHandler
@@ -41,7 +41,7 @@ public class WalkRestriction extends TPRestriction implements Listener {
                     oldLoc.getY() != e.getPlayer().getLocation().getY() ||
                     oldLoc.getZ() != e.getPlayer().getLocation().getZ()) {
                 sendErrorTheme(e.getPlayer(), "You can't walk during teleport pending, teleportation canceled");
-                Bukkit.getScheduler().cancelTask(taskID);
+                TPEManager.cancelTP(uuid);
                 reset();
             }
         }
@@ -54,9 +54,9 @@ public class WalkRestriction extends TPRestriction implements Listener {
     
     @Override
     public void start(Player player, int taskID) {
+        this.activate();
         this.oldLoc = player.getLocation();
         uuid = player.getUniqueId();
-        this.taskID = taskID;
     }
     
     @Override
@@ -66,7 +66,7 @@ public class WalkRestriction extends TPRestriction implements Listener {
     
     @Override
     public Message getDescription() {
-        return new Message(TextComponent.textComponent("With this restriction you can't move while requesting a teleportation", ColorTheme.ColorType.infoColor));
+        return new Message(TextComponent.textComponent("With this restriction you can't walk while requesting a teleportation", ColorTheme.ColorType.infoColor));
     }
     
     @Override

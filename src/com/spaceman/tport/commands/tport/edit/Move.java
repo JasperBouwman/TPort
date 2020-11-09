@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.edit;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -12,30 +11,29 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.events.InventoryClick.TPortSize;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 
 public class Move extends SubCommand {
     
+    public static EmptyCommand emptySlot;
+    
     public Move() {
-        EmptyCommand emptySlot = new EmptyCommand();
+        emptySlot = new EmptyCommand();
         emptySlot.setCommandName("slot", ArgumentType.REQUIRED);
         emptySlot.setCommandDescription(textComponent("This command is used to move/swap the given TPort to the given slot, you can choose between ", infoColor),
                 textComponent("0", varInfoColor),
                 textComponent(" and ", infoColor),
-                textComponent(String.valueOf(TPortSize), varInfoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.edit.move", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+                textComponent(String.valueOf(TPortSize), varInfoColor));
+        emptySlot.setPermissions("TPort.edit.move", "TPort.basic");
         EmptyCommand emptyTPort = new EmptyCommand();
         emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyTPort.setCommandDescription(textComponent("This command us used to swap the first given TPort with the second given TPort", infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.edit.move", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+        emptyTPort.setCommandDescription(textComponent("This command us used to swap the first given TPort with the second given TPort", infoColor));
+        emptyTPort.setPermissions(emptySlot.getPermissions()); //clone permissions of emptySlot
         addAction(emptySlot);
         addAction(emptyTPort);
     }
@@ -51,13 +49,12 @@ public class Move extends SubCommand {
     public void run(String[] args, Player player) {
         // tport edit <TPort name> move <slot|TPort name>
         
-        if (!hasPermission(player, true, true, "TPort.edit.move", "TPort.basic")) {
+        if (!emptySlot.hasPermissionToRun(player, true)) {
             return;
         }
         
-        TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
-        
         if (args.length == 4) {
+            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
             if (tport == null) {
                 sendErrorTheme(player, "No TPort found called %s", args[1]);
                 return;
@@ -90,7 +87,7 @@ public class Move extends SubCommand {
                         sendSuccessTheme(player, "Successfully moved TPort %s to slot %s", tport.getName(), String.valueOf((newSlot + 1)));
                     }
                 } catch (NumberFormatException nfe) {
-                    sendErrorTheme(player, "Slot %s is not a slot number or a TPort", args[3]);
+                    sendErrorTheme(player, "%s is not a slot number or a TPort", args[3]);
                 }
             }
             

@@ -1,9 +1,9 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
@@ -13,24 +13,24 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 
 public class Home extends SubCommand {
     
+    public Home() {
+        setPermissions("TPort.home", "TPort.basic");
+    }
+    
     @Override
     public Message getCommandDescription() {
-        return new Message(TextComponent.textComponent("This command is used to teleport to your home TPort", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.home", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+        return new Message(TextComponent.textComponent("This command is used to teleport to your home TPort", ColorTheme.ColorType.infoColor));
     }
     
     @Override
     public void run(String[] args, Player player) {
         //tport home
         
-        if (!hasPermission(player, true, true, "TPort.home", "TPort.basic")) {
+        if (!hasPermissionToRun(player, true)) {
             return;
         }
         Files tportData = GettingFiles.getFile("TPortData");

@@ -1,10 +1,10 @@
 package com.spaceman.tport.commands.tport.edit;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -14,34 +14,33 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.events.ClickEvent.runCommand;
 
 public class Private extends SubCommand {
     
+    private Message getEmptyCommandDescription() {
+        Message message = new Message();
+        message.addText(textComponent("This command is used to edit the private statement of the given TPort.", infoColor));
+        for (TPort.PrivateStatement privateStatement : TPort.PrivateStatement.values()) {
+            message.addText(textComponent("\n"));
+            message.addMessage(privateStatement.getDescription());
+        }
+        return message;
+    }
+    
+    private final EmptyCommand emptyStatement;
+    
     public Private() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("statement", ArgumentType.OPTIONAL);
-        emptyCommand.setCommandDescription(textComponent("This command is used to edit the private statement of the given TPort.", infoColor),
-                textComponent("\nStatement ", infoColor),
-                textComponent("on", varInfoColor),
-                textComponent(" means that only players in your whitelist can teleport to that TPort.", infoColor),
-                textComponent("\nStatement ", infoColor),
-                textComponent("off", varInfoColor),
-                textComponent(" means that all players can teleport to that TPort.", infoColor),
-                textComponent("\nStatement ", infoColor),
-                textComponent("online", varInfoColor),
-                textComponent(" means that all players can teleport to that TPort when your are online, and not when your are offline", infoColor),
-                textComponent("\nStatement ", infoColor),
-                textComponent("prion", varInfoColor),
-                textComponent(" (PRIvate ONline) means that all players can teleport to that TPort when your are online, and not when your are offline. " +
-                        "But players in your whitelist can still teleport", infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.edit.private", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
-        addAction(emptyCommand);
+        emptyStatement = new EmptyCommand();
+        emptyStatement.setCommandName("statement", ArgumentType.OPTIONAL);
+        emptyStatement.setCommandDescription(getEmptyCommandDescription());
+        emptyStatement.setPermissions("TPort.edit.private", "TPort.basic");
+        addAction(emptyStatement);
     }
     
     @Override
@@ -56,7 +55,7 @@ public class Private extends SubCommand {
     
     @Override
     public void run(String[] args, Player player) {
-        //tport edit <TPort> private [statement]
+        //tport edit <TPort name> private [statement]
         
         if (args.length == 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
@@ -65,9 +64,20 @@ public class Private extends SubCommand {
                 sendErrorTheme(player, "No TPort found called %s", args[1]);
                 return;
             }
-            sendInfoTheme(player, "The TPort %s is %s", tport.getName(), tport.getPrivateStatement().getDisplayName());
+            
+            Message message = new Message();
+            message.addText(textComponent("TPort ", infoColor));
+            message.addText(textComponent(tport.getName(), varInfoColor));
+            message.addText(textComponent(" is ", infoColor));
+            HoverEvent hEvent = new HoverEvent();
+            hEvent.addMessage(tport.getPrivateStatement().getDescription());
+            message.addText(textComponent(tport.getPrivateStatement().getDisplayName(), varInfoColor, hEvent));
+            message.addText(textComponent(". For the description of all the other states click ", infoColor));
+            message.addText(textComponent("here", varInfoColor, new HoverEvent(textComponent("/tport help tport edit <tport name> private <statement>", infoColor)), runCommand("/tport help tport edit <tport name> private <statement>")));
+            
+            message.sendMessage(player);
         } else if (args.length == 4) {
-            if (!hasPermission(player, true, true, "TPort.edit.private", "TPort.basic")) {
+            if (!emptyStatement.hasPermissionToRun(player, true)) {
                 return;
             }
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
@@ -100,6 +110,6 @@ public class Private extends SubCommand {
         } else {
             sendErrorTheme(player, "Usage: %s", "/tport edit <TPort name> private [statement]");
         }
-
+        
     }
 }

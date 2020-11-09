@@ -4,17 +4,18 @@ import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.commands.tport.edit.*;
+import com.spaceman.tport.commands.tport.edit.Tag;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.commandHander.CommandTemplate.convertToArgs;
 import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
 
 public class Edit extends SubCommand {
     
-    private EmptyCommand emptyOwnTPort;
+    private final EmptyCommand emptyOwnTPort;
     
     public Edit() {
         emptyOwnTPort = new EmptyCommand();
@@ -27,6 +28,8 @@ public class Edit extends SubCommand {
         emptyOwnTPort.addAction(new Whitelist());
         emptyOwnTPort.addAction(new Move());
         emptyOwnTPort.addAction(new Range());
+        emptyOwnTPort.addAction(new Tag());
+        emptyOwnTPort.addAction(new Dynmap());
         addAction(emptyOwnTPort);
     }
     
@@ -49,12 +52,16 @@ public class Edit extends SubCommand {
         // tport edit <TPort name> whitelist list
         // tport edit <TPort name> move <slot|TPort name>
         // tport edit <TPort name> range [range]
+        // tport edit <TPort name> tag add <tag>
+        // tport edit <TPort name> tag remove <tag>
+        // tport edit <TPort name> dynmap show [state]
+        // tport edit <TPort name> dynmap icon [icon]
         
         if (args.length > 2) {
             if (runCommands(emptyOwnTPort.getActions(), args[2], args, player)) {
                 return;
             }
         }
-        sendErrorTheme(player, "Usage: %s", "/tport edit <TPort name> " + convertToArgs(getActions().get(0).getActions(), true));
+        sendErrorTheme(player, "Usage: %s", "/tport edit <TPort name> " + convertToArgs(getActions().get(0).getActions(), false));
     }
 }

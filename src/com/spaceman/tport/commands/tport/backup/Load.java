@@ -1,7 +1,6 @@
 package com.spaceman.tport.commands.tport.backup;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -17,24 +16,24 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Load extends SubCommand {
     
+    private final EmptyCommand emptyName;
+    
     public Load() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("name", ArgumentType.REQUIRED);
-        emptyCommand.setCommandDescription(TextComponent.textComponent("This command is used to load the data in the given file to TPort", ColorType.infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.backup.load", ColorTheme.ColorType.varInfoColor));
-        addAction(emptyCommand);
+        emptyName = new EmptyCommand();
+        emptyName.setCommandName("name", ArgumentType.REQUIRED);
+        emptyName.setCommandDescription(TextComponent.textComponent("This command is used to load the data in the given file to TPort", ColorType.infoColor));
+        emptyName.setPermissions("TPort.admin.backup.load");
+        addAction(emptyName);
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        if (!hasPermission(player, false, "TPort.admin.backup.load")) {
+        if (!emptyName.hasPermissionToRun(player, false)) {
             return Collections.emptyList();
         }
         return Arrays.stream(Objects.requireNonNull(new File(Main.getInstance().getDataFolder(), "/backup").listFiles()))
@@ -48,7 +47,7 @@ public class Load extends SubCommand {
     public void run(String[] args, Player player) {
         // tport backup load <name>
         
-        if (!hasPermission(player, true, "TPort.admin.backup.load")) {
+        if (!emptyName.hasPermissionToRun(player, true)) {
             return;
         }
         

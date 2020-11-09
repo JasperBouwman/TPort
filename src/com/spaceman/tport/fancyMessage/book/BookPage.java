@@ -1,6 +1,6 @@
 package com.spaceman.tport.fancyMessage.book;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import org.bukkit.ChatColor;
@@ -70,7 +70,11 @@ public class BookPage {
         this.pageNumber = pageNumber;
     }
     
-    public String translateJSON(Message.TranslateMode mode, ColorTheme theme) {
-        return "\"" + message.translateJSON(mode, theme).replace(getActivePageReplacer(), String.valueOf(pageNumber)) + "\"";
+    public String translateString() {
+        return message.translateString().replace(getActivePageReplacer(), String.valueOf(pageNumber));
+    }
+    
+    public String translateJSON(ColorTheme theme) {
+        return message.translateJSON(theme).replace(getActivePageReplacer(), String.valueOf(pageNumber));
     }
 }

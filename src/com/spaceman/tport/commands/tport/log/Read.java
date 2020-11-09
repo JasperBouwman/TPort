@@ -1,7 +1,7 @@
 package com.spaceman.tport.commands.tport.log;
 
 import com.spaceman.tport.Pair;
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -16,17 +16,17 @@ import java.util.TimeZone;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendInfoTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class Read extends SubCommand {
     
     public Read() {
-        EmptyCommand emptyPlayer = new EmptyCommand();
-        emptyPlayer.setCommandName("player", ArgumentType.OPTIONAL);
-        emptyPlayer.setCommandDescription(textComponent("This command is used to filter the TPort log of the given TPort for the given player", ColorTheme.ColorType.infoColor));
+        EmptyCommand emptyTPortPlayer = new EmptyCommand();
+        emptyTPortPlayer.setCommandName("player", ArgumentType.OPTIONAL);
+        emptyTPortPlayer.setCommandDescription(textComponent("This command is used to filter the TPort log of the given TPort for the given player", ColorTheme.ColorType.infoColor));
         
         EmptyCommand emptyTPort = new EmptyCommand();
         emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
@@ -39,7 +39,7 @@ public class Read extends SubCommand {
             }
             return Collections.emptyList();
         });
-        emptyTPort.addAction(emptyPlayer);
+        emptyTPort.addAction(emptyTPortPlayer);
         addAction(emptyTPort);
     }
     

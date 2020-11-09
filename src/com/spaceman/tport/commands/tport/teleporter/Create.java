@@ -2,13 +2,12 @@ package com.spaceman.tport.commands.tport.teleporter;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.commands.tport.BiomeTP;
-import com.spaceman.tport.commands.tport.Teleporter;
 import com.spaceman.tport.commands.tport.FeatureTP;
+import com.spaceman.tport.commands.tport.Teleporter;
 import com.spaceman.tport.commands.tport.publc.Open;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
@@ -28,9 +27,9 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
@@ -41,12 +40,11 @@ public class Create extends SubCommand {
         
         EmptyCommand emptyTPortPlayerTPort = new EmptyCommand();
         emptyTPortPlayerTPort.setCommandName("TPort name", ArgumentType.OPTIONAL);
-        emptyTPortPlayerTPort.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyTPortPlayerTPort.setCommandDescription(textComponent("This command is used to create a Teleporter, that teleports you to the given TPort", infoColor));
+        emptyTPortPlayerTPort.setPermissions("TPort.teleporter.create");
         EmptyCommand emptyTPortPlayer = new EmptyCommand();
         emptyTPortPlayer.setCommandName("Player", ArgumentType.OPTIONAL);
-        emptyTPortPlayer.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyTPortPlayer.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the TPort GUI of the given player", infoColor));
         emptyTPortPlayer.setTabRunnable(((args, player) -> {
             UUID otherUUID = PlayerUUID.getPlayerUUID(args[3]);
             if (otherUUID == null) {
@@ -57,6 +55,7 @@ public class Create extends SubCommand {
                     .collect(Collectors.toList());
         }));
         emptyTPortPlayer.addAction(emptyTPortPlayerTPort);
+        emptyTPortPlayer.setPermissions("TPort.teleporter.create");
         EmptyCommand emptyTPort = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -64,15 +63,15 @@ public class Create extends SubCommand {
             }
         };
         emptyTPort.setCommandName("TPort", ArgumentType.FIXED);
-        emptyTPort.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyTPort.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the Main TPort GUI", infoColor));
         emptyTPort.setTabRunnable((args, player) -> GettingFiles.getFile("TPortData").getKeys("tport").stream().map(PlayerUUID::getPlayerName).collect(Collectors.toList()));
         emptyTPort.addAction(emptyTPortPlayer);
+        emptyTPort.setPermissions("TPort.teleporter.create");
         
         EmptyCommand emptyPLTPPlayer = new EmptyCommand();
         emptyPLTPPlayer.setCommandName("Player", ArgumentType.REQUIRED);
-        emptyPLTPPlayer.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyPLTPPlayer.setCommandDescription(textComponent("This command is used to create a Teleporter, that teleports you to the given player", infoColor));
+        emptyPLTPPlayer.setPermissions("TPort.teleporter.create");
         EmptyCommand emptyPLTP = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -90,17 +89,17 @@ public class Create extends SubCommand {
             }
         };
         emptyBiomeTPEmpty.setCommandName("", ArgumentType.FIXED);
-        emptyBiomeTPEmpty.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyBiomeTPEmpty.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the BiomeTP GUI", infoColor));
+        emptyBiomeTPEmpty.setPermissions("TPort.teleporter.create");
         EmptyCommand emptyBiomeTPWhiteListBiome = new EmptyCommand();
         emptyBiomeTPWhiteListBiome.setCommandName("biome", ArgumentType.REQUIRED);
-        emptyBiomeTPWhiteListBiome.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyBiomeTPWhiteListBiome.setCommandDescription(textComponent("This command is used to create a Teleporter, that searches for biomes according to the given whitelist", infoColor));
         emptyBiomeTPWhiteListBiome.setTabRunnable(((args, player) -> {
             List<String> biomeList = Arrays.asList(args).subList(4, args.length).stream().map(String::toUpperCase).collect(Collectors.toList());
             return Arrays.stream(Biome.values()).filter(biome -> !biomeList.contains(biome.name())).map(Enum::name).collect(Collectors.toList());
         }));
         emptyBiomeTPWhiteListBiome.setLooped(true);
+        emptyBiomeTPWhiteListBiome.setPermissions("TPort.teleporter.create");
         EmptyCommand emptyBiomeTPWhitelist = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -112,10 +111,10 @@ public class Create extends SubCommand {
         emptyBiomeTPWhitelist.addAction(emptyBiomeTPWhiteListBiome);
         EmptyCommand emptyBiomeTPBlackListBiome = new EmptyCommand();
         emptyBiomeTPBlackListBiome.setCommandName("biome", ArgumentType.REQUIRED);
-        emptyBiomeTPBlackListBiome.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyBiomeTPBlackListBiome.setCommandDescription(textComponent("This command is used to create a Teleporter, that searches for biomes according to the given blacklist", infoColor));
         emptyBiomeTPBlackListBiome.setTabRunnable(((args, player) -> emptyBiomeTPWhiteListBiome.tabList(player, args)));
         emptyBiomeTPBlackListBiome.setLooped(true);
+        emptyBiomeTPBlackListBiome.setPermissions("TPort.teleporter.create");
         EmptyCommand emptyBiomeTPBlacklist = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -127,8 +126,8 @@ public class Create extends SubCommand {
         emptyBiomeTPBlacklist.addAction(emptyBiomeTPBlackListBiome);
         EmptyCommand emptyBiomeTPPresetPreset = new EmptyCommand();
         emptyBiomeTPPresetPreset.setCommandName("Preset", ArgumentType.OPTIONAL);
-        emptyBiomeTPPresetPreset.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyBiomeTPPresetPreset.setCommandDescription(textComponent("This command is used to create a Teleporter, that searched for biomes given the preset", infoColor));
+        emptyBiomeTPPresetPreset.setPermissions("TPort.teleporter.create");
         EmptyCommand emptyBiomeTPPreset = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -136,10 +135,10 @@ public class Create extends SubCommand {
             }
         };
         emptyBiomeTPPreset.setCommandName("Preset", ArgumentType.FIXED);
-        emptyBiomeTPPreset.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyBiomeTPPreset.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the BiomeTP preset GUI", infoColor));
         emptyBiomeTPPreset.setTabRunnable(((args, player) -> BiomeTP.BiomeTPPresets.getNames()));
         emptyBiomeTPPreset.addAction(emptyBiomeTPPresetPreset);
+        emptyBiomeTPPreset.setPermissions("TPort.teleporter.create");
         EmptyCommand emptyBiomeTPRandom = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -147,8 +146,8 @@ public class Create extends SubCommand {
             }
         };
         emptyBiomeTPRandom.setCommandName("Random", ArgumentType.FIXED);
-        emptyBiomeTPRandom.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyBiomeTPRandom.setCommandDescription(textComponent("This command is used to create a Teleporter, that random teleports you", infoColor));
+        emptyBiomeTPRandom.setPermissions("TPort.teleporter.create");
         EmptyCommand emptyBiomeTP = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -164,14 +163,14 @@ public class Create extends SubCommand {
         
         EmptyCommand emptyFeatureTPFeatureMode = new EmptyCommand();
         emptyFeatureTPFeatureMode.setCommandName("Mode", ArgumentType.OPTIONAL);
-        emptyFeatureTPFeatureMode.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyFeatureTPFeatureMode.setCommandDescription(textComponent("This command is used to create a Teleporter, that searches the given feature with the given mode", infoColor));
+        emptyFeatureTPFeatureMode.setPermissions("TPort.teleporter.create");
         EmptyCommand emptyFeatureTPFeature = new EmptyCommand();
         emptyFeatureTPFeature.setCommandName("Feature", ArgumentType.OPTIONAL);
-        emptyFeatureTPFeature.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyFeatureTPFeature.setCommandDescription(textComponent("This command is used to create a Teleporter, that searches the given feature", infoColor));
         emptyFeatureTPFeature.setTabRunnable(((args, player) -> Arrays.stream(FeatureTP.FeatureTPMode.values()).map(Enum::name).collect(Collectors.toList())));
         emptyFeatureTPFeature.addAction(emptyFeatureTPFeatureMode);
+        emptyFeatureTPFeature.setPermissions("TPort.teleporter.create");
         EmptyCommand emptyFeatureTP = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -179,10 +178,10 @@ public class Create extends SubCommand {
             }
         };
         emptyFeatureTP.setCommandName("FeatureTP", ArgumentType.FIXED);
-        emptyFeatureTP.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyFeatureTP.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the FeatureTP GUI", infoColor));
         emptyFeatureTP.setTabRunnable(((args, player) -> Arrays.stream(FeatureTP.FeatureType.values()).map(FeatureTP.FeatureType::name).collect(Collectors.toList())));
         emptyFeatureTP.addAction(emptyFeatureTPFeature);
+        emptyFeatureTP.setPermissions("TPort.teleporter.create");
         
         EmptyCommand emptyHome = new EmptyCommand() {
             @Override
@@ -191,8 +190,8 @@ public class Create extends SubCommand {
             }
         };
         emptyHome.setCommandName("Home", ArgumentType.FIXED);
-        emptyHome.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyHome.setCommandDescription(textComponent("This command is used to create a Teleporter, that teleports you home", infoColor));
+        emptyHome.setPermissions("TPort.teleporter.create");
         
         EmptyCommand emptyBack = new EmptyCommand() {
             @Override
@@ -201,13 +200,13 @@ public class Create extends SubCommand {
             }
         };
         emptyBack.setCommandName("Back", ArgumentType.FIXED);
-        emptyBack.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyBack.setCommandDescription(textComponent("This command is used to create a Teleporter, that teleports you back", infoColor));
+        emptyBack.setPermissions("TPort.teleporter.create");
         
         EmptyCommand emptyPublicTPort = new EmptyCommand();
         emptyPublicTPort.setCommandName("TPort name", ArgumentType.OPTIONAL);
-        emptyPublicTPort.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyPublicTPort.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the given TPort", infoColor));
+        emptyPublicTPort.setPermissions("TPort.teleporter.create");
         EmptyCommand emptyPublic = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -215,10 +214,10 @@ public class Create extends SubCommand {
             }
         };
         emptyPublic.setCommandName("Public", ArgumentType.FIXED);
-        emptyPublic.setCommandDescription(textComponent("This command is used to create a Teleporter", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.teleporter.create", ColorTheme.ColorType.varInfoColor));
+        emptyPublic.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the Public TPort GUI", infoColor));
         emptyPublic.setTabRunnable(((args, player) -> {
             Files tportData = GettingFiles.getFile("TPortData");
+            //noinspection ConstantConditions
             return tportData.getKeys("public.tports").stream()
                     .map(publicTPortSlot -> tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString()))
                     .map(tportID -> getTPort(UUID.fromString(tportID)))
@@ -227,6 +226,7 @@ public class Create extends SubCommand {
                     .collect(Collectors.toList());
         }));
         emptyPublic.addAction(emptyPublicTPort);
+        emptyPublic.setPermissions("TPort.teleporter.create");
         
         addAction(emptyTPort);
         addAction(emptyPLTP);
@@ -279,6 +279,7 @@ public class Create extends SubCommand {
                 String newPlayerName = null;
                 String tportName = null;
                 UUID newPlayerUUID = null;
+                String tportUUID = null;
                 if (args.length > 3) {
                     Pair<String, UUID> profile = PlayerUUID.getProfile(args[3]);
                     newPlayerName = profile.getLeft();
@@ -295,9 +296,10 @@ public class Create extends SubCommand {
                         return;
                     }
                     tportName = tport.getName();
+                    tportUUID = tport.getTportID().toString();
                 }
                 createTeleporter(player, "TPort",
-                        (newPlayerName == null ? "" : "open " + newPlayerName) + " " + Main.getOrDefault(tportName, ""),
+                        (newPlayerName == null ? "" : "open " + newPlayerName), Main.getOrDefault(tportUUID, ""),
                         new Pair<>("Player", newPlayerName), new Pair<>("TPort", tportName));
             }
             else if (args[2].equalsIgnoreCase("BiomeTP")) {
@@ -443,7 +445,7 @@ public class Create extends SubCommand {
                         sendErrorTheme(player, "Could not find a player named %s", args[3]);
                         return;
                     }
-                    createTeleporter(player, "PLTP", "PLTP " + newPlayerName, new Pair<>("Player", newPlayerName));
+                    createTeleporter(player, "PLTP", "PLTP tp " + newPlayerName, new Pair<>("Player", newPlayerName));
                 } else {
                     sendErrorTheme(player, "Usage: %s", "/tport teleporter create PLTP <player>");
                 }
@@ -473,13 +475,15 @@ public class Create extends SubCommand {
     
     @SafeVarargs
     private final void createTeleporter(Player player, String type, String command, Pair<String, String>... pairs) {
+        createTeleporter(player, type, command, null, pairs);
+    }
+    
+    @SafeVarargs
+    private final void createTeleporter(Player player, String type, String command, String tportUUID, Pair<String, String>... pairs) {
         ItemStack is = player.getInventory().getItemInMainHand();
         Teleporter.removeTeleporter(is);
         ItemMeta im = is.getItemMeta();
-    
-        if (im == null) {
-            im = Bukkit.getItemFactory().getItemMeta(is.getType());
-        }
+        
         if (im == null) {
             sendErrorTheme(player, "Could not turn it into a TPort Teleporter");
             return;
@@ -488,7 +492,6 @@ public class Create extends SubCommand {
         if (lore == null) {
             lore = new ArrayList<>();
         }
-        
         
         int size = 3;
         
@@ -509,6 +512,9 @@ public class Create extends SubCommand {
         
         im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "teleporterCommand"), PersistentDataType.STRING, StringUtils.normalizeSpace(command));
         im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "teleporterSize"), PersistentDataType.INTEGER, size);
+        if (tportUUID != null) {
+            im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "teleporterTPortUUID"), PersistentDataType.STRING, tportUUID);
+        }
         
         im.setLore(lore);
         is.setItemMeta(im);

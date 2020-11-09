@@ -1,13 +1,12 @@
 package com.spaceman.tport.commands.tport.backup;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -16,24 +15,25 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Auto extends SubCommand {
     
+    private final EmptyCommand emptyCount;
+    
     public Auto() {
-        EmptyCommand emptyCount = new EmptyCommand();
+        emptyCount = new EmptyCommand();
         emptyCount.setCommandName("count", ArgumentType.OPTIONAL);
-        emptyCount.setCommandDescription(textComponent("This command is used set the count of auto saved files", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.backup.auto", ColorTheme.ColorType.varInfoColor));
+        emptyCount.setCommandDescription(textComponent("This command is used set the count of auto saved files", ColorTheme.ColorType.infoColor));
+        emptyCount.setPermissions("TPort.admin.backup.auto");
         
         EmptyCommand emptyState = new EmptyCommand();
         emptyState.setCommandName("state", ArgumentType.OPTIONAL);
-        emptyState.setCommandDescription(textComponent("This command is used to enable/disable the auto save function", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.backup.auto", ColorTheme.ColorType.varInfoColor));
+        emptyState.setCommandDescription(textComponent("This command is used to enable/disable the auto save function", ColorTheme.ColorType.infoColor));
+        emptyState.setPermissions(emptyCount.getPermissions());
         
         addAction(emptyState);
         addAction(emptyCount);
@@ -74,13 +74,13 @@ public class Auto extends SubCommand {
                         configFile.getConfig().set("tport", tportData.getConfig().getConfigurationSection("tport"));
                         configFile.getConfig().set("public", tportData.getConfig().getConfigurationSection("public"));
                         configFile.saveConfig();
-                        Bukkit.getLogger().info("[TPort] auto backup " + name + " succeeded");
+                        Main.getInstance().getLogger().info("Auto backup " + name + " succeeded");
                         return;
                     }
                     version++;
                 } catch (IOException e) {
                     e.printStackTrace();
-                    Bukkit.getLogger().warning("[TPort] Could not auto backup file " + name + ": " + e.getMessage());
+                    Main.getInstance().getLogger().warning("Could not auto backup file " + name + ": " + e.getMessage());
                     return;
                 }
             }
@@ -96,14 +96,14 @@ public class Auto extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        return hasPermission(player, false, "TPort.admin.backup.auto") ? Arrays.asList("true", "false", "<count>") : Collections.emptyList();
+        return emptyCount.hasPermissionToRun(player, false) ? Arrays.asList("true", "false", "<count>") : Collections.emptyList();
     }
     
     @Override
     public void run(String[] args, Player player) {
         // tport backup auto [state|count]
     
-        if (!hasPermission(player, true, "TPort.admin.backup.auto")) {
+        if (!emptyCount.hasPermissionToRun(player, true)) {
             return;
         }
         

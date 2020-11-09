@@ -1,8 +1,8 @@
 package com.spaceman.tport.commands.tport.edit;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
@@ -11,25 +11,26 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 
 public class Item extends SubCommand {
+    
+    public Item() {
+        setPermissions("TPort.edit.item", "TPort.basic");
+    }
     
     @Override
     public Message getCommandDescription() {
         return new Message(textComponent("This command is used to edit the item of the given TPort, the item in your main hand will become the new item," +
-                " and you will get the old item back", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.edit.item", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+                " and you will get the old item back", ColorTheme.ColorType.infoColor));
     }
     
     @Override
     public void run(String[] args, Player player) {
         // tport edit <TPort name> item
     
-        if (!hasPermission(player, true, true, "TPort.edit.item", "TPort.basic")) {
+        if (!hasPermissionToRun(player, true)) {
             return;
         }
         if (args.length == 3) {

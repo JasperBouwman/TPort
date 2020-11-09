@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.edit;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -10,22 +9,22 @@ import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Range extends SubCommand {
     
+    private final EmptyCommand emptyRange;
+    
     public Range() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("range", ArgumentType.OPTIONAL);
-        emptyCommand.setCommandDescription(textComponent("This command is used to edit the range of the given TPort, to turn off set range to ", infoColor),
-                textComponent("0", varInfoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.edit.range", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
-        addAction(emptyCommand);
+        emptyRange = new EmptyCommand();
+        emptyRange.setCommandName("range", ArgumentType.OPTIONAL);
+        emptyRange.setCommandDescription(textComponent("This command is used to edit the range of the given TPort, to turn off set range to ", infoColor),
+                textComponent("0", varInfoColor));
+        emptyRange.setPermissions("TPort.edit.range", "TPort.basic");
+        addAction(emptyRange);
     }
     
     @Override
@@ -53,7 +52,7 @@ public class Range extends SubCommand {
                 sendInfoTheme(player, "TPort %s has its range set to %s", tport.getName(), String.valueOf(tport.getRange()));
             }
         } else if (args.length == 4) {
-            if (!hasPermission(player, true, true, "TPort.edit.range")) {
+            if (!emptyRange.hasPermissionToRun(player, true)) {
                 return;
             }
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);

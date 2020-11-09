@@ -1,9 +1,6 @@
 package com.spaceman.tport.fancyMessage;
 
 public class Keybinds {
-    //credits:
-    //https://github.com/skylinerw/guides/blob/master/java/text%20component.md#text-keybind
-    
     public static final String FORWARD = "key.forward";
     public static final String LEFT = "key.left";
     public static final String BACK = "key.back";
@@ -36,4 +33,7 @@ public class Keybinds {
     public static final String HOTBAR9 = "key.hotbar.9";
     public static final String SAVE_TOOLBAR = "key.saveToolbarActivator";
     public static final String LOAD_TOOLBAR = "key.loadToolbarActivator";
+    public static final String SWAP_OFFHAND = "key.swapOffhand";
+    public static final String ADVANCEMENTS = "key.advancements";
+    public static final String ZOOM = "of.key.zoom"; //requires the player to use Optifine
 }

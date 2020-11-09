@@ -1,10 +1,9 @@
 package com.spaceman.tport.events;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -19,18 +18,13 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.ArrayList;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class JoinEvent implements Listener {
 
-    private Main p;
-
-    public JoinEvent(Main instance) {
-        p = instance;
-    }
-
     public static void setData(Main p, Player player) {
 
-        Files tportData = GettingFiles.getFile("TPortData");
+        Files tportData = getFile("TPortData");
         String playerUUID = player.getUniqueId().toString();
 
         if (!tportData.getConfig().contains("tport." + playerUUID)) {
@@ -129,14 +123,28 @@ public class JoinEvent implements Listener {
     
                 TPortManager.convertOldToNew(tportData);
             }
+            tportData.getConfig().set("tport." + playerUUID + ".tports.0", "welcome");
+            tportData.getConfig().set("tport." + playerUUID + ".tports.0", null);
+            tportData.saveConfig();
         }
+    
         TPortManager.convertOldToNew(tportData);
+        
+        Files tportConfig = getFile("TPortConfig");
+        
+        for (String uuid : tportConfig.getKeys("featureTP.defaultMode")) {
+            String mode = tportConfig.getConfig().getString("featureTP.defaultMode." + uuid);
+            tportData.getConfig().set("tport." + uuid + ".featureTP.defaultMode", mode);
+        }
+        tportData.saveConfig();
+        tportConfig.getConfig().set("featureTP", null);
+        tportConfig.getConfig().set("offlineLoc", null);
+        tportConfig.saveConfig();
     }
 
     @EventHandler(priority=EventPriority.MONITOR)
     @SuppressWarnings("unused")
     public void Join(PlayerJoinEvent e) {
-        Player player = e.getPlayer();
-        setData(p, player);
+        setData(Main.getInstance(), e.getPlayer());
     }
 }

@@ -7,21 +7,19 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class SearchTries extends SubCommand {
     
+    private final EmptyCommand emptySize;
+    
     public SearchTries() {
-        EmptyCommand emptySize = new EmptyCommand();
+        emptySize = new EmptyCommand();
         emptySize.setCommandName("size", ArgumentType.OPTIONAL);
-        emptySize.setCommandDescription(textComponent("This command is used to set the amount of tries it will search for finding a biome", ColorType.infoColor),
-                textComponent("\n\nPermissions: ", infoColor), textComponent("TPort.biomeTP.searchTries", varInfoColor),
-                textComponent(" or ", infoColor), textComponent("TPort.admin.biomeTP", varInfoColor));
+        emptySize.setCommandDescription(textComponent("This command is used to set the amount of tries it will search for finding a biome", ColorType.infoColor));
+        emptySize.setPermissions("TPort.biomeTP.searchTries", "TPort.admin.biomeTP");
         addAction(emptySize);
     }
     
@@ -47,7 +45,7 @@ public class SearchTries extends SubCommand {
         if (args.length == 2) {
             sendInfoTheme(player, "The amount of biome search tries is set to %s", String.valueOf(getBiomeSearches()));
         } else if (args.length == 3) {
-            if (hasPermission(player, true, true, "TPort.biomeTP.searchTries", "TPort.admin.biomeTP")) {
+            if (emptySize.hasPermissionToRun(player, true)) {
                 try {
                     setBiomeSearches(Integer.parseInt(args[2]));
                     sendSuccessTheme(player, "Successfully set the biome searches tries to %s", args[2]);

@@ -1,7 +1,7 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -12,8 +12,8 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
 import static com.spaceman.tport.commands.tport.publc.Remove.removePublicTPort;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
@@ -21,10 +21,10 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 public class Remove extends SubCommand {
     
     public Remove() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyCommand.setCommandDescription(textComponent("This command is used to remove the given TPort from your TPorts", ColorTheme.ColorType.infoColor));
-        addAction(emptyCommand);
+        EmptyCommand emptyTPort = new EmptyCommand();
+        emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyTPort.setCommandDescription(textComponent("This command is used to remove the given TPort from your TPorts", ColorTheme.ColorType.infoColor));
+        addAction(emptyTPort);
     }
     
     @Override

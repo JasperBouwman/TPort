@@ -6,7 +6,7 @@ import com.spaceman.tport.commands.tport.pa.New;
 import com.spaceman.tport.commands.tport.pa.Old;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
 
 public class ParticleAnimationCommand extends SubCommand {

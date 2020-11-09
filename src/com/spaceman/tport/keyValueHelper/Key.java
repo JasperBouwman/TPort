@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Key {
 
-    private String errorMessage = "is not valid";
+    private String errorMessage = " is not valid";
     private boolean acceptNullValue = false;
     private String key;
     private ValueChecker checker;

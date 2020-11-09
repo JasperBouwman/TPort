@@ -14,24 +14,24 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 
 public class Remove extends SubCommand {
     
     public Remove() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("player", ArgumentType.REQUIRED);
-        emptyCommand.setCommandDescription(textComponent("This command is used to remove players from your PLTP whitelist", ColorType.infoColor));
-        emptyCommand.setTabRunnable((args, player) -> {
+        EmptyCommand emptyRemove = new EmptyCommand();
+        emptyRemove.setCommandName("player", ArgumentType.REQUIRED);
+        emptyRemove.setCommandDescription(textComponent("This command is used to remove players from your PLTP whitelist", ColorType.infoColor));
+        emptyRemove.setTabRunnable((args, player) -> {
             Files tportData = GettingFiles.getFile("TPortData");
             ArrayList<String> list = new ArrayList<>();
             new ArrayList<>(tportData.getConfig().getStringList("tport." + player.getUniqueId() + ".tp.players")).stream().map(PlayerUUID::getPlayerName).forEach(list::add);
             list.removeAll(Arrays.asList(args).subList(3, args.length));
             return list;
         });
-        emptyCommand.setLooped(true);
-        addAction(emptyCommand);
+        emptyRemove.setLooped(true);
+        addAction(emptyRemove);
     }
     
     @Override

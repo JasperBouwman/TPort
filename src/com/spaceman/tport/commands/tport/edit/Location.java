@@ -1,33 +1,34 @@
 package com.spaceman.tport.commands.tport.edit;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 
 public class Location extends SubCommand {
+    
+    public Location() {
+        setPermissions("TPort.edit.location", "TPort.basic");
+    }
     
     @Override
     public Message getCommandDescription() {
         return new Message(textComponent("This command is used to edit the location of the given TPort, the location of where you are will become the new location",
-                ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.edit.location", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+                ColorTheme.ColorType.infoColor));
     }
     
     @Override
     public void run(String[] args, Player player) {
         // tport edit <TPort name> location
         
-        if (!hasPermission(player, true, true, "TPort.edit.location", "TPort.basic")) {
+        if (!hasPermissionToRun(player, true)) {
             return;
         }
         if (args.length == 3) {

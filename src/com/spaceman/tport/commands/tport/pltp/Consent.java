@@ -1,34 +1,33 @@
 package com.spaceman.tport.commands.tport.pltp;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Consent extends SubCommand {
     
     static HashMap<UUID, ArrayList<UUID>> pltpConsentMap = new HashMap<>();
+    private final EmptyCommand emptyState;
     
     public Consent() {
-        EmptyCommand emptyState = new EmptyCommand();
+        emptyState = new EmptyCommand();
         emptyState.setCommandName("state", ArgumentType.OPTIONAL);
         emptyState.setCommandDescription(textComponent("This command is used to set your PLTP consent statement. If ", ColorTheme.ColorType.infoColor),
                 textComponent("true", ColorTheme.ColorType.varInfoColor),
                 textComponent(" you will be asked if that player can teleport to you, if ", ColorTheme.ColorType.infoColor),
                 textComponent("false", ColorTheme.ColorType.varInfoColor),
-                textComponent(" you wont be asked", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.PLTP.consent.set", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+                textComponent(" you wont be asked", ColorTheme.ColorType.infoColor));
+        emptyState.setPermissions("TPort.PLTP.consent.set", "TPort.basic");
         addAction(emptyState);
     }
     
@@ -54,7 +53,7 @@ public class Consent extends SubCommand {
             message.addText(textComponent(String.valueOf(pltpState), ColorTheme.ColorType.varInfoColor));
             message.sendMessage(player);
         } else if (args.length == 3) {
-            if (!hasPermission(player, true, "TPort.PLTP.consent.set")) {
+            if (!emptyState.hasPermissionToRun(player, true)) {
                 return;
             }
             Files tportData = getFile("TPortData");

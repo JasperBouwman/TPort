@@ -13,17 +13,17 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class TimeFormat extends SubCommand {
     
     public TimeFormat() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("format...", ArgumentType.OPTIONAL);
-        emptyCommand.setCommandDescription(textComponent("This command is used to set the time format, the time format is used for the read command", ColorType.infoColor));
-        addAction(emptyCommand);
+        EmptyCommand emptyFormat = new EmptyCommand();
+        emptyFormat.setCommandName("format...", ArgumentType.OPTIONAL);
+        emptyFormat.setCommandDescription(textComponent("This command is used to set the time format, the time format is used for the read command", ColorType.infoColor));
+        addAction(emptyFormat);
     }
     
     @Override

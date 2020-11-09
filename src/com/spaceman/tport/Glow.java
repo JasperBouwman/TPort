@@ -18,11 +18,10 @@ public class Glow extends Enchantment {
     
     public static ItemStack addGlow(ItemStack item) {
         ItemMeta im = item.getItemMeta();
-        if (im == null) {
-            im = Bukkit.getItemFactory().getItemMeta(item.getType());
+        if (im != null) {
+            addGlow(im);
+            item.setItemMeta(im);
         }
-        addGlow(im);
-        item.setItemMeta(im);
         return item;
     }
     

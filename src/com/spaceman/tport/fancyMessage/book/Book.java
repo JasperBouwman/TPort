@@ -1,14 +1,15 @@
 package com.spaceman.tport.fancyMessage.book;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
@@ -20,7 +21,7 @@ public class Book {
     
     private final String title;
     private final String author;
-    private ArrayList<BookPage> pages = new ArrayList<>();
+    private final ArrayList<BookPage> pages = new ArrayList<>();
     
     public Book(String title, String author) {
         this.title = title;
@@ -45,11 +46,10 @@ public class Book {
     }
     
     @SuppressWarnings("deprecation")
-    public ItemStack getWritableBook(@Nullable Player player) {
+    public ItemStack getWritableBook() {
         ItemStack stack = new ItemStack(Material.WRITABLE_BOOK);
         try {
-            return Bukkit.getUnsafe().modifyItemStack(stack, translateJSON(Message.TranslateMode.WRITABLE_BOOk,
-                    player == null ? ColorTheme.getDefaultTheme(ColorTheme.getDefaultThemes().get(0)) : ColorTheme.getTheme(player)));
+            return Bukkit.getUnsafe().modifyItemStack(stack, translateString());
         } catch (Throwable localThrowable) {
             return stack;
         }
@@ -59,7 +59,7 @@ public class Book {
     public ItemStack getWrittenBook(@Nullable Player player) {
         ItemStack stack = new ItemStack(Material.WRITTEN_BOOK);
         try {
-            return Bukkit.getUnsafe().modifyItemStack(stack, translateJSON(Message.TranslateMode.WRITTEN_BOOK,
+            return Bukkit.getUnsafe().modifyItemStack(stack, translateJSON(
                     player == null ? ColorTheme.getDefaultTheme(ColorTheme.getDefaultThemes().get(0)) : ColorTheme.getTheme(player)));
         } catch (Throwable localThrowable) {
             return stack;
@@ -67,7 +67,7 @@ public class Book {
     }
     
     @SuppressWarnings("All")
-    public void openBook(ItemStack book, Player player) {
+    public static void openBook(ItemStack book, Player player) {
         
         if (!book.getType().equals(Material.WRITTEN_BOOK)) {
             throw new IllegalArgumentException("Given item is not a written book");
@@ -133,17 +133,32 @@ public class Book {
         openBook(getWrittenBook(player), player);
     }
     
-    public String translateJSON(Message.TranslateMode mode, Player player) {
-        return translateJSON(mode, ColorTheme.getTheme(player));
+    public String translateString() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("title", title);
+        jsonObject.put("author", author);
+    
+        JSONArray jsonArray = new JSONArray();
+        pages.stream().map(BookPage::translateString).forEach(jsonArray::add);
+        jsonObject.put("pages", jsonArray);
+    
+        return jsonObject.toString().replaceAll("\\\\/", "/").replace("\\n", "\n");
     }
     
-    public String translateJSON(Message.TranslateMode mode, ColorTheme theme) {
-        return pages.stream()
-                .map(p -> p.translateJSON(mode, theme))
-                .collect(Collectors.joining(
-                        ",",
-                        "{\"pages\":[",
-                        String.format("],\"title\":\"%s\",\"author\":\"%s\"}", title, author)));
+    public String translateJSON(Player player) {
+        return translateJSON(ColorTheme.getTheme(player));
+    }
+    
+    public String translateJSON(ColorTheme theme) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("title", title);
+        jsonObject.put("author", author);
+    
+        JSONArray jsonArray = new JSONArray();
+        pages.stream().map(p -> p.translateJSON(theme)).forEach(jsonArray::add);
+        jsonObject.put("pages", jsonArray);
+    
+        return jsonObject.toString().replaceAll("\\\\{3}/", "/");
     }
     
     public ArrayList<BookPage> getPages() {

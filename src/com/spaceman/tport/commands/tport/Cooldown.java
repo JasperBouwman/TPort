@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -11,24 +10,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Cooldown extends SubCommand {
-
+    
+    private final EmptyCommand emptyCooldownValue;
+    
     public Cooldown() {
-        EmptyCommand emptyValue = new EmptyCommand();
-        emptyValue.setCommandName("value", ArgumentType.OPTIONAL);
-        emptyValue.setCommandDescription(textComponent("This command is used to set the cooldown value of the given cooldown", ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.cooldown.set", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.cooldown", ColorTheme.ColorType.varInfoColor));
+        emptyCooldownValue = new EmptyCommand();
+        emptyCooldownValue.setCommandName("value", ArgumentType.OPTIONAL);
+        emptyCooldownValue.setCommandDescription(textComponent("This command is used to set the cooldown value of the given cooldown", ColorType.infoColor));
+        emptyCooldownValue.setPermissions("TPort.cooldown.set", "TPort.admin.cooldown");
         
         EmptyCommand emptyCooldown = new EmptyCommand();
         emptyCooldown.setCommandName("cooldown", ArgumentType.REQUIRED);
         emptyCooldown.setCommandDescription(textComponent("This command is used to get the cooldown value of the given cooldown", ColorType.infoColor));
         emptyCooldown.setTabRunnable((args, player) -> {
-            if (!hasPermission(player, false, true, "TPort.cooldown.set", "TPort.admin.cooldown")) {
+            if (!hasPermissionToRun(player, false)) {
                 return new ArrayList<>();
             }
 
@@ -43,7 +42,7 @@ public class Cooldown extends SubCommand {
 
             return new ArrayList<>();
         });
-        emptyCooldown.addAction(emptyValue);
+        emptyCooldown.addAction(emptyCooldownValue);
         addAction(emptyCooldown);
     }
 
@@ -66,7 +65,7 @@ public class Cooldown extends SubCommand {
             }
 
         } else if (args.length > 2) {
-            if (!hasPermission(player, true, true, "TPort.cooldown.set", "TPort.admin.cooldown")) {
+            if (!emptyCooldownValue.hasPermissionToRun(player, true)) {
                 return;
             }
             if (CooldownManager.contains(args[1])) {

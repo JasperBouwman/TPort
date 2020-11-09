@@ -1,33 +1,33 @@
 package com.spaceman.tport.commandHander;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.customRunnables.RunRunnable;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import org.bukkit.Bukkit;
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.*;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 
 public class HelpCommand extends SubCommand {
     
     private int listSize = 10;
-    private CommandTemplate template;
-    private Message commandMessage;
-    private List<String> extraHelp = new ArrayList<>();
+    private final CommandTemplate template;
+    private final Message commandMessage;
+    private final List<String> extraHelp = new ArrayList<>();
     
     public HelpCommand(CommandTemplate template) {
         this(template, new Message(textComponent("This command is used to get all the help you need for this command", infoColor)));
-        Bukkit.getLogger().info("No help command description given, using default one for " + template.getName());
+        template.getPlugin().getLogger().info("No help command description given, using default one for " + template.getName());
     }
     
     public HelpCommand(CommandTemplate template, Message commandMessage) {
@@ -59,7 +59,7 @@ public class HelpCommand extends SubCommand {
             }
             
             Message message = new Message();
-            HashMap<String, Message> commandMap = template.collectActions();
+            HashMap<String, SubCommand> commandMap = template.collectActions();
             
             if (startIndex > commandMap.size()) {
                 startIndex = (commandMap.size() / listSize) * listSize;
@@ -98,7 +98,26 @@ public class HelpCommand extends SubCommand {
             
             for (int i = startIndex; i < startIndex + listSize && i < commandArrayList.size(); i++) {
                 String command = commandArrayList.get(i);
-                TextComponent commandComponent = commandToComponent(command, commandMap.get(command), color);
+                SubCommand subCommand = commandMap.get(command);
+                Message description = subCommand.getCommandDescription();
+    
+                if (!subCommand.getPermissions().isEmpty()) {
+                    description.addText("\n\n");
+                    description.addMessage(subCommand.permissionsHover());
+                    if (subCommand.getPermissions().stream().anyMatch(p -> p.contains("<") || p.contains("["))) {
+                        description.addText(textComponent("\nCan't measure if you have permission or not (variable not known)", infoColor));
+                    } else {
+                        description.addText(textComponent("\nYou ", infoColor));
+                        if (subCommand.hasPermissionToRun(player, false)) {
+                            description.addText(textComponent("do", varInfoColor));
+                        } else {
+                            description.addText(textComponent("don't", varInfoColor));
+                        }
+                        description.addText(textComponent(" have permission to use this command", infoColor));
+                    }
+                }
+                
+                TextComponent commandComponent = commandToComponent(command, description, color);
                 message.addText(commandComponent);
                 
                 message.addText("\n");
@@ -118,8 +137,8 @@ public class HelpCommand extends SubCommand {
         commandHelp.setCommandName(template.getName() + " command", ArgumentType.REQUIRED);
         commandHelp.setCommandDescription(textComponent("This command is used to get the help of the specified command", infoColor));
         commandHelp.setRunnable((args, player) -> {
-            HashMap<String, Message> commandMap = template.collectActions();
-            String command = "/" + String.join(" ", Arrays.asList(args).subList(1, args.length));
+            HashMap<String, SubCommand> commandMap = template.collectActions();
+            String command = "/" + StringUtils.join(args, " ", 1, args.length);
             
             ColorTheme theme = ColorTheme.getTheme(player);
             Message message = new Message();
@@ -127,12 +146,32 @@ public class HelpCommand extends SubCommand {
             message.addText(textComponent("Results for ", theme.getInfoColor()));
             message.addText(textComponent(command, theme.getVarInfoColor()));
             message.addText(":\n", theme.getInfoColor());
+            message.addText("");
             
             boolean color = true;
             
             for (String tmpCommand : commandMap.keySet()) {
                 if (tmpCommand.toLowerCase().startsWith(command.toLowerCase()) || command.equalsIgnoreCase(tmpCommand)) {
-                    TextComponent commandComponent = commandToComponent(tmpCommand, commandMap.get(tmpCommand), color);
+                    SubCommand subCommand = commandMap.get(tmpCommand);
+                    Message description = subCommand.getCommandDescription();
+    
+                    if (!subCommand.getPermissions().isEmpty()) {
+                        description.addText("\n\n");
+                        description.addMessage(subCommand.permissionsHover());
+                        if (subCommand.getPermissions().stream().anyMatch(p -> p.contains("<") || p.contains("["))) {
+                            description.addText(textComponent("\nCan't measure if you have permission or not (variable not known)", infoColor));
+                        } else {
+                            description.addText(textComponent("\nYou ", infoColor));
+                            if (subCommand.hasPermissionToRun(player, false)) {
+                                description.addText(textComponent("do", varInfoColor));
+                            } else {
+                                description.addText(textComponent("don't", varInfoColor));
+                            }
+                            description.addText(textComponent(" have permission to use this command", infoColor));
+                        }
+                    }
+                    
+                    TextComponent commandComponent = commandToComponent(tmpCommand, description, color);
                     message.addText(commandComponent);
                     
                     message.addText("\n");
@@ -143,7 +182,7 @@ public class HelpCommand extends SubCommand {
             message.sendMessage(player);
         });
         commandHelp.setTabRunnable((args, player) -> {
-            String s = String.join(" ", Arrays.asList(args).subList(1, args.length - 1)) + " ";
+            String s = StringUtils.join(args, " ", 1, args.length - 1) + " ";
             return template.collectActions().keySet().stream()
                     .map(c -> c.substring(1).toLowerCase())
                     .filter(c -> c.startsWith(s.toLowerCase()))
@@ -248,8 +287,6 @@ public class HelpCommand extends SubCommand {
                 return;
             }
         }
-//        player.sendMessage(formatError("Usage: %s", "/" + template.getName() + " help " + (commandMessage == null ? "<" : "[") + "page|command..." +
-//                extraHelp.stream().collect(Collectors.joining("|", (extraHelp.size() == 0 ? "" : "|"), "")) + (commandMessage == null ? ">" : "]"));
         sendErrorTheme(player, "Usage: %s", "/" + template.getName() + " help " + (commandMessage == null ? "<" : "[") + "page|" + template.getName() + " command..." +
                 extraHelp.stream().collect(Collectors.joining("|", (extraHelp.size() == 0 ? "" : "|"), "")) + (commandMessage == null ? ">" : "]"));
     }

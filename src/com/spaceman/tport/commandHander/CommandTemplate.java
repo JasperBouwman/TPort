@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.spigotmc.CustomTimingsHandler;
 
 import java.lang.reflect.Field;
@@ -21,13 +22,17 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
     
     protected ArrayList<SubCommand> actions = new ArrayList<>();
     private Message commandDescription = null;
+    private String fallbackPrefix = "";
+    private final JavaPlugin plugin;
     
-    public CommandTemplate(boolean register) {
-        this(register, new CommandDescription(null, "Unknown", null, new ArrayList<>()));
+    public CommandTemplate(JavaPlugin plugin, boolean register) {
+        this(plugin, register, new CommandDescription(null, plugin.getName(), "Unknown", null, new ArrayList<>()));
     }
     
-    public CommandTemplate(boolean register, CommandDescription description) {
+    public CommandTemplate(JavaPlugin plugin, boolean register, CommandDescription description) {
+        //noinspection ConstantConditions
         super(null);
+        this.plugin = plugin;
         setDescription(description);
         if (register) {
             register(this);
@@ -37,16 +42,16 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
     
     public static void register(CommandTemplate template) {
         //to check if the reflection works
-//        ((org.bukkit.craftbukkit.v1_14_R1.CraftServer)Bukkit.getServer()).getCommandMap().register("",
-//                new CommandTemplate(false) { @Override public boolean execute(CommandSender sender, String command, String[] args) { return false; } });
+//        ((org.bukkit.craftbukkit.v1_16_R1.CraftServer)Bukkit.getServer()).getCommandMap().register(Main.getInstance().getDescription().getName(),
+//                new CommandTemplate(Main.getInstance(), false) { @Override public boolean execute(CommandSender sender, String command, String[] args) { return false; } });
         try {
             final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
             bukkitCommandMap.setAccessible(true);
             CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
             
-            commandMap.register("", template);
+            commandMap.register(template.fallbackPrefix, template);
         } catch (Exception e) {
-            Bukkit.getLogger().log(Level.WARNING, "An error occurred while registering the command '/" + template.getName() + "'");
+            template.plugin.getLogger().log(Level.WARNING, "An error occurred while registering the command '/" + template.getName() + "'");
         }
     }
     
@@ -77,14 +82,8 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
             ArrayList<String> tabList = new ArrayList<>();
             
             for (SubCommand subCommand : actions) {
-                
                 if (subCommand.getName(args[i - 2]).equalsIgnoreCase(args[i - 2])) {
                     tabList.addAll(filterContaining(args[i - 1], subCommand.tabList(player, args)));
-                }
-                if (subCommand instanceof EmptyCommand) {
-                    if (subCommand.getName(args[i - 2]).equals("")) {
-                        tabList.addAll(filterContaining(args[i - 1], subCommand.tabList(player, args)));
-                    }
                 }
             }
             return tabList;
@@ -95,9 +94,6 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
                         if (subCommand instanceof EmptyCommand && ((EmptyCommand) subCommand).isLooped()) {
                             return filterContaining(args[args.length - 1], subCommand.tabList(player, args));
                         }
-                        return tabList(subCommand.getActions(), args, player, i + 1);
-                    }
-                    if (subCommand instanceof EmptyCommand && subCommand.getName(args[i - 2]) == null) {
                         return tabList(subCommand.getActions(), args, player, i + 1);
                     }
                 }
@@ -131,6 +127,10 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
             //if name is not given, set name to class name
             description.setName(lowerCaseFirst(this.getClass().getSimpleName()));
         }
+        if (description.getFallbackPrefix().equalsIgnoreCase("")) {
+            //if fallBack name is not given, set name to description name
+            description.setFallbackPrefix(description.getName());
+        }
         if (description.getUsage() == null) {
             //if usage not given, set usage to '/<name>'
             description.setUsage("/" + description.getName());
@@ -141,12 +141,17 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
         this.setLabel(description.getName());
         this.setDescription(description.getDescription());
         this.timings = new CustomTimingsHandler("** Command: " + description.getName());
+        this.fallbackPrefix = description.getFallbackPrefix();
     }
     
     public void registerActions() {
     }
     
-    private void collectActions(SubCommand actions, Pair<String, Message> pre, boolean b, LinkedHashMap<String, Message> commandList) {
+    public JavaPlugin getPlugin() {
+        return plugin;
+    }
+    
+    private void collectActions(SubCommand actions, Pair<String, SubCommand> pre, boolean b, LinkedHashMap<String, SubCommand> commandList) {
         for (SubCommand action : actions.getActions()) {
             String name = "";
             String suffix = "";
@@ -189,19 +194,19 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
                     if (action.isLinked()) {
                         name += "]";
                     }
-                    commandList.put((pre.getLeft() + " " + name).trim(), action.getCommandDescription());
+                    commandList.put((pre.getLeft() + " " + name).trim(), action);
                     continue;
                 }
             }
             if (action.getActions().isEmpty()) {
-                commandList.put((pre.getLeft() + " " + name).trim(), action.getCommandDescription());
+                commandList.put((pre.getLeft() + " " + name).trim(), action);
             } else {
-                collectActions(action, new Pair<>(pre.getLeft() + " " + name, action.getCommandDescription()), b, commandList);
+                collectActions(action, new Pair<>(pre.getLeft() + " " + name, action), b, commandList);
             }
         }
     }
     
-    public LinkedHashMap<String, Message> collectActions() {
+    public LinkedHashMap<String, SubCommand> collectActions() {
         //requirements:
         /*
          * AN: Argument name
@@ -231,7 +236,7 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
          * /command <r2>
          * where r1 and r2 are linked
          * */
-        LinkedHashMap<String, Message> commandList = new LinkedHashMap<>();
+        LinkedHashMap<String, SubCommand> commandList = new LinkedHashMap<>();
         
         for (SubCommand action : this.getActions()) {
             
@@ -242,9 +247,9 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
             }
             
             if (action.getActions().isEmpty()) {
-                commandList.put(("/" + this.getName() + " " + action.getCommandName()).trim(), action.getCommandDescription());
+                commandList.put(("/" + this.getName() + " " + action.getCommandName()).trim(), action);
             } else {
-                collectActions(action, new Pair<>("/" + this.getName() + " " + action.getCommandName(), action.getCommandDescription()), false, commandList);
+                collectActions(action, new Pair<>("/" + this.getName() + " " + action.getCommandName(), action), false, commandList);
             }
         }
         return commandList;
@@ -333,18 +338,24 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
         return runCommands(actions, arg, args, player);
     }
     
+    public String getFallbackPrefix() {
+        return fallbackPrefix;
+    }
+    
     public static class CommandDescription {
         private String name;
+        private String fallbackPrefix;
         private String description;
         private String usage;
         private List<String> aliases;
         
-        public CommandDescription(String name, String description, String usage) {
-            this(name, description, usage, new ArrayList<>());
+        public CommandDescription(String name, String pluginName, String description, String usage) {
+            this(name, pluginName, description, usage, new ArrayList<>());
         }
         
-        public CommandDescription(String name, String description, String usage, List<String> aliases) {
+        public CommandDescription(String name, String pluginName, String description, String usage, List<String> aliases) {
             this.name = name;
+            this.fallbackPrefix = pluginName;
             this.description = description;
             this.usage = usage;
             this.aliases = aliases;
@@ -356,6 +367,14 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
         
         public void setName(String name) {
             this.name = name;
+        }
+        
+        public String getFallbackPrefix() {
+            return fallbackPrefix;
+        }
+        
+        public void setFallbackPrefix(String fallbackPrefix) {
+            this.fallbackPrefix = fallbackPrefix;
         }
         
         public List<String> getAliases() {

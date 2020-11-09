@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.commands.tport.pltp.Consent.pltpConsentMap;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 

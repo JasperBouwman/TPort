@@ -13,11 +13,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.commands.tport.BiomeTP.biomeTP;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Blacklist extends SubCommand {
@@ -25,15 +24,13 @@ public class Blacklist extends SubCommand {
     public Blacklist() {
         EmptyCommand emptyBlacklist = new EmptyCommand();
         emptyBlacklist.setCommandName("blacklist", ArgumentType.REQUIRED);
-        emptyBlacklist.setCommandDescription(textComponent("This command is used to teleport to a random biome in the given blacklist", infoColor),
-                textComponent("\n\nPermissions: (", infoColor), textComponent("TPort.biomeTP.blacklist", varInfoColor),
-                textComponent(" and ", infoColor), textComponent("TPort.biomeTP.biome.<biome...>", varInfoColor),
-                textComponent(") or ", infoColor), textComponent("TPort.biomeTP.all", varInfoColor));
+        emptyBlacklist.setCommandDescription(textComponent("This command is used to teleport to a random biome in the given blacklist", infoColor));
         emptyBlacklist.setTabRunnable(((args, player) -> {
             List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toUpperCase).collect(Collectors.toList());
             return Arrays.stream(Biome.values()).filter(biome -> !biomeList.contains(biome.name())).map(Enum::name).collect(Collectors.toList());
         }));
         emptyBlacklist.setLooped(true);
+        emptyBlacklist.setPermissions("TPort.biomeTP.blacklist", "TPort.biomeTP.biome.<biome...>");
         addAction(emptyBlacklist);
     }
     
@@ -50,7 +47,7 @@ public class Blacklist extends SubCommand {
         if (args.length == 2) {
             sendErrorTheme(player, "Usage: %s", "/tport biomeTP blacklist <biome...>");
         } else {
-            if (!hasPermission(player, true, true, "TPort.biomeTP.blacklist", "TPort.biomeTP.all")) {
+            if (!hasPermission(player, true, true, "TPort.biomeTP.blacklist")) {
                 return;
             }
             if (!CooldownManager.BiomeTP.hasCooled(player)) {
@@ -71,17 +68,17 @@ public class Blacklist extends SubCommand {
                 blacklist.add(biome);
             }
 
-            List<Biome> newList = new ArrayList<>();
+            List<Biome> whitelist = new ArrayList<>();
             for (Biome biome : Biome.values()) {
                 if (!blacklist.contains(biome)) {
-                    if (!hasPermission(player, true, true, "TPort.biomeTP.biome." + biome.name(), "TPort.biomeTP.all")) {
+                    if (!hasPermission(player, true, true, "TPort.biomeTP.biome." + biome.name())) {
                         return;
                     }
-                    newList.add(biome);
+                    whitelist.add(biome);
                 }
             }
 
-            biomeTP(player, newList);
+            biomeTP(player, whitelist);
         }
     }
 }

@@ -1,6 +1,7 @@
 main: com.spaceman.tport.Main
-version: 1.15.4
+version: 1.16.1
 name: TPort
 author: The_Spaceman
-api-version: 1.13
+api-version: 1.16
 website: https://dev.bukkit.org/projects/tport
+softdepend: [dynmap]

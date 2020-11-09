@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.pa;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -10,45 +9,48 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
-import static com.spaceman.tport.colorFormatter.ColorTheme.ColorType.infoColor;
 import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class New extends SubCommand {
     
     public New() {
-        EmptyCommand emptySetParticleData = new EmptyCommand(){
+        EmptyCommand emptySetParticleData = new EmptyCommand() {
             @Override
             public String getName(String argument) {
                 return getCommandName();
             }
         };
         emptySetParticleData.setCommandName("data", ArgumentType.OPTIONAL);
-        emptySetParticleData.setCommandDescription(textComponent("This command is used to change your new location particle animation, and give if your data", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.particleAnimation.new.set", ColorTheme.ColorType.varInfoColor));
+        emptySetParticleData.setCommandDescription(textComponent("This command is used to change your new location particle animation, and give if your data", infoColor));
         emptySetParticleData.setTabRunnable((args, player) -> ParticleAnimation.getNewAnimation(args[3]).tabList(player, Arrays.copyOfRange(args, 4, args.length)));
         emptySetParticleData.setRunnable(((args, player) -> {
-            if (hasPermission(player, true, "TPort.particleAnimation.new.set")) {
-                ParticleAnimation pa = ParticleAnimation.getNewAnimation(args[3], Arrays.copyOfRange(args, 4, args.length), player);
-                if (pa != null) {
-                    TPEManager.setNewLocAnimation(player.getUniqueId(), pa);
-                    sendSuccessTheme(player, "Successfully set your new location particle animation to %s", pa.getAnimationName());
-                } else {
-                    sendErrorTheme(player, "Particle animation %s was not found", args[4]);
+            if (args.length < 4) {
+                sendErrorTheme(player, "Usage: %s", "/tport particleAnimation new set <particleAnimation> [data...]");
+            } else {
+                if (emptySetParticleData.hasPermissionToRun(player, true)) {
+                    ParticleAnimation pa = ParticleAnimation.getNewAnimation(args[3], Arrays.copyOfRange(args, 4, args.length), player);
+                    if (pa != null) {
+                        TPEManager.setNewLocAnimation(player.getUniqueId(), pa);
+                        sendSuccessTheme(player, "Successfully set your new location particle animation to %s", pa.getAnimationName());
+                    } else {
+                        sendErrorTheme(player, "Particle animation %s was not found", args[4]);
+                    }
                 }
             }
         }));
         emptySetParticleData.setLooped(true);
+        emptySetParticleData.setPermissions("TPort.particleAnimation.new.set");
         EmptyCommand emptySetParticle = new EmptyCommand();
         emptySetParticle.setCommandName("particleAnimation", ArgumentType.REQUIRED);
-        emptySetParticle.setCommandDescription(textComponent("This command is used to change your new location particle animation", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.particleAnimation.new.set", ColorTheme.ColorType.varInfoColor));
+        emptySetParticle.setCommandDescription(textComponent("This command is used to change your new location particle animation", infoColor));
         emptySetParticle.setTabRunnable((args, player) -> ParticleAnimation.getNewAnimation(args[3]).tabList(player, Arrays.copyOfRange(args, 4, args.length)));
         emptySetParticle.setRunnable((emptySetParticleData::run));
         emptySetParticle.addAction(emptySetParticleData);
-        EmptyCommand emptySet = new EmptyCommand(){
+        emptySetParticle.setPermissions(emptySetParticleData.getPermissions());
+        EmptyCommand emptySet = new EmptyCommand() {
             @Override
             public String getName(String argument) {
                 return getCommandName();
@@ -56,27 +58,20 @@ public class New extends SubCommand {
         };
         emptySet.setCommandName("set", ArgumentType.FIXED);
         emptySet.setTabRunnable((args, player) -> ParticleAnimation.getAnimations());
-        emptySet.setRunnable(((args, player) -> {
-            if (args.length < 4) {
-                sendErrorTheme(player, "Usage: %s", "/tport particleAnimation new set <particleAnimation> [data...]");
-            } else {
-                emptySetParticle.run(args, player);
-            }
-        }));
+        emptySet.setRunnable(emptySetParticleData::run);
         emptySet.addAction(emptySetParticle);
         
-        EmptyCommand emptyEditData = new EmptyCommand(){
+        EmptyCommand emptyEditData = new EmptyCommand() {
             @Override
             public String getName(String argument) {
                 return getCommandName();
             }
         };
         emptyEditData.setCommandName("data", ArgumentType.REQUIRED);
-        emptyEditData.setCommandDescription(textComponent("This command is used to edit your new location particle animation", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.particleAnimation.new.edit", ColorTheme.ColorType.varInfoColor));
+        emptyEditData.setCommandDescription(textComponent("This command is used to edit your new location particle animation", infoColor));
         emptyEditData.setTabRunnable((args, player) -> TPEManager.getNewLocAnimation(player.getUniqueId()).tabList(player, Arrays.copyOfRange(args, 3, args.length)));
         emptyEditData.setRunnable((args, player) -> {
-            if (hasPermission(player, true, "TPort.particleAnimation.new.edit")) {
+            if (emptyEditData.hasPermissionToRun(player, true)) {
                 ParticleAnimation pa = TPEManager.getNewLocAnimation(player.getUniqueId());
                 String[] data = Arrays.copyOfRange(args, 3, args.length);
                 pa.edit(player, data);
@@ -84,7 +79,8 @@ public class New extends SubCommand {
             }
         });
         emptyEditData.setLooped(true);
-        EmptyCommand emptyEdit = new EmptyCommand(){
+        emptyEditData.setPermissions("TPort.particleAnimation.new.edit");
+        EmptyCommand emptyEdit = new EmptyCommand() {
             @Override
             public String getName(String argument) {
                 return getCommandName();
@@ -101,32 +97,41 @@ public class New extends SubCommand {
         });
         emptyEdit.addAction(emptyEditData);
         
-        EmptyCommand emptyTest = new EmptyCommand(){
+        EmptyCommand emptyTest = new EmptyCommand() {
             @Override
             public String getName(String argument) {
                 return getCommandName();
             }
         };
         emptyTest.setCommandName("test", ArgumentType.FIXED);
-        emptyTest.setCommandDescription(textComponent("This command is used to test your new location particle animation", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.particleAnimation.new.test", ColorTheme.ColorType.varInfoColor));
+        emptyTest.setCommandDescription(textComponent("This command is used to test your new location particle animation", infoColor));
         emptyTest.setRunnable(((args, player) -> {
-            if (hasPermission(player, true, "TPort.particleAnimation.new.test"))
+            if (emptyTest.hasPermissionToRun(player, true))
                 TPEManager.getNewLocAnimation(player.getUniqueId()).show(player, player.getLocation());
         }));
-    
-        EmptyCommand emptyEnableState = new EmptyCommand(){
+        emptyTest.setPermissions("TPort.particleAnimation.new.test");
+        
+        EmptyCommand emptyEnableState = new EmptyCommand() {
             @Override
             public String getName(String argument) {
                 return getCommandName();
             }
         };
         emptyEnableState.setCommandName("state", ArgumentType.OPTIONAL);
-        emptyEnableState.setCommandDescription(textComponent("This command is used to set the new location particle animation enabled or not", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.particleAnimation.new.enable.set", ColorTheme.ColorType.varInfoColor));
-        emptyEnableState.setRunnable(((args, player) -> {
+        emptyEnableState.setCommandDescription(textComponent("This command is used to set the new location particle animation enabled or not", infoColor));
+        emptyEnableState.setPermissions("TPort.particleAnimation.new.enable.set");
+        EmptyCommand emptyEnable = new EmptyCommand() {
+            @Override
+            public String getName(String argument) {
+                return getCommandName();
+            }
+        };
+        emptyEnable.setCommandName("enable", ArgumentType.FIXED);
+        emptyEnable.setCommandDescription(textComponent("This command is used to get if the new location particle animation is enabled or not", infoColor));
+        emptyEnable.setTabRunnable(((args, player) -> Arrays.asList("true", "false")));
+        emptyEnable.setRunnable(((args, player) -> {
             if (args.length == 3) {
-                if (hasPermission(player, true, "TPort.particleAnimation.new.enable.get")) {
+                if (emptyEnable.hasPermissionToRun(player, true)) {
                     ParticleAnimation pa = TPEManager.getNewLocAnimation(player.getUniqueId());
                     if (pa.isEnabled()) {
                         sendInfoTheme(player, "Your new location particle animation is %s", "enabled");
@@ -135,7 +140,7 @@ public class New extends SubCommand {
                     }
                 }
             } else if (args.length == 4) {
-                if (hasPermission(player, true, "TPort.particleAnimation.new.enable.set")) {
+                if (emptyEnableState.hasPermissionToRun(player, true)) {
                     ParticleAnimation pa = TPEManager.getNewLocAnimation(player.getUniqueId());
                     pa.setEnabled(Boolean.parseBoolean(args[3]));
                     if (pa.isEnabled()) {
@@ -148,17 +153,7 @@ public class New extends SubCommand {
                 sendErrorTheme(player, "Usage: %s", "/tport particleAnimation new enable [state]");
             }
         }));
-        EmptyCommand emptyEnable = new EmptyCommand(){
-            @Override
-            public String getName(String argument) {
-                return getCommandName();
-            }
-        };
-        emptyEnable.setCommandName("enable", ArgumentType.FIXED);
-        emptyEnable.setCommandDescription(textComponent("This command is used to get if the new location particle animation is enabled or not", infoColor),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.particleAnimation.new.enable.get", ColorTheme.ColorType.varInfoColor));
-        emptyEnable.setTabRunnable(((args, player) -> Arrays.asList("true", "false")));
-        emptyEnable.setRunnable(emptyEnableState::run);
+        emptyEnable.setPermissions("TPort.particleAnimation.new.enable.get");
         
         addAction(emptySet);
         addAction(emptyEdit);
@@ -172,7 +167,7 @@ public class New extends SubCommand {
         // tport particleAnimation new edit <data...>
         // tport particleAnimation new test
         // tport particleAnimation new enable [state]
-    
+        
         if (args.length > 2) {
             if (runCommands(getActions(), args[2], args, player)) {
                 return;

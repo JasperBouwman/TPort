@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.publc;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -14,20 +13,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class Move extends SubCommand {
     
+    public static final EmptyCommand emptySlot = new EmptyCommand();
+    
     public Move() {
-        EmptyCommand emptySlot = new EmptyCommand();
         emptySlot.setTabRunnable((args, player) -> {
     
             ArrayList<String> list = new ArrayList<>();
-            if (hasPermission(player, false, "TPort.public.move", "TPort.admin.public")) {
+            if (emptySlot.hasPermissionToRun(player, false)) {
                 Files tportData = GettingFiles.getFile("TPortData");
                 for (String publicTPortSlot : tportData.getKeys("public.tports")) {
                     String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
@@ -47,10 +47,8 @@ public class Move extends SubCommand {
             return list;
         });
         emptySlot.setCommandName("slot", ArgumentType.REQUIRED);
-        emptySlot.setCommandDescription(textComponent("This command is used to swap the given Public TPort with the Public TPort that is on the given slot",
-                ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.public.move", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.public", ColorTheme.ColorType.varInfoColor));
+        emptySlot.setCommandDescription(textComponent("This command is used to swap the given Public TPort with the Public TPort that is on the given slot", infoColor));
+        emptySlot.setPermissions("TPort.public.move", "TPort.admin.public");
         EmptyCommand emptyTPort = new EmptyCommand(){
             @Override
             public String getName(String argument) {
@@ -58,10 +56,8 @@ public class Move extends SubCommand {
             }
         };
         emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyTPort.setCommandDescription(textComponent("This command is used to swap the first given Public TPort with the second given Public TPort",
-                ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.public.move", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.public", ColorTheme.ColorType.varInfoColor));
+        emptyTPort.setCommandDescription(textComponent("This command is used to swap the first given Public TPort with the second given Public TPort", infoColor));
+        emptyTPort.setPermissions(emptySlot.getPermissions());
         addAction(emptySlot);
         addAction(emptyTPort);
     }
@@ -69,7 +65,7 @@ public class Move extends SubCommand {
     @Override
     public Collection<String> tabList(Player player, String[] args) {
         ArrayList<String> list = new ArrayList<>();
-        if (hasPermission(player, false, "TPort.public.move", "TPort.admin.public")) {
+        if (emptySlot.hasPermissionToRun(player, false)) {
             Files tportData = GettingFiles.getFile("TPortData");
             for (String publicTPortSlot : tportData.getKeys("public.tports")) {
                 String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
@@ -86,7 +82,7 @@ public class Move extends SubCommand {
     public void run(String[] args, Player player) {
         // tport public move <TPort name> <slot|TPort name>
         
-        if (!hasPermission(player, true, "TPort.public.move", "TPort.admin.public")) {
+        if (!emptySlot.hasPermissionToRun(player, true)) {
             return;
         }
         

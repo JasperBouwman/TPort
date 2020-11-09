@@ -1,6 +1,6 @@
 package com.spaceman.tport.commands.tport.log;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -15,23 +15,25 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Add extends SubCommand {
     
+    private final EmptyCommand emptyPlayer;
+    
     public Add() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("player:[LogMode]", ArgumentType.REQUIRED);
-        emptyCommand.setCommandDescription(textComponent("This command is used to set the LogMode of the given player for the given TPort, example: ", ColorTheme.ColorType.infoColor),
-                textComponent("/tport log add ", ColorTheme.ColorType.varInfoColor),
-                textComponent("home The_Spaceman:ONLINE", ColorTheme.ColorType.varInfoColor, Attribute.ITALIC),
-                textComponent("\n\nPermission: ", ColorTheme.ColorType.infoColor), textComponent("TPort.log", ColorTheme.ColorType.varInfoColor));
-        emptyCommand.setTabRunnable((args, player) -> {
-            if (!hasPermission(player, false, "TPort.log")) {
+        emptyPlayer = new EmptyCommand();
+        emptyPlayer.setCommandName("player:[LogMode]", ArgumentType.REQUIRED);
+        emptyPlayer.setCommandDescription(textComponent("This command is used to set the LogMode of the given player for the given TPort, example: ", ColorTheme.ColorType.infoColor),
+                textComponent("/tport log add ", varInfoColor),
+                textComponent("home The_Spaceman:ONLINE", varInfoColor, Attribute.ITALIC));
+        emptyPlayer.setPermissions("TPort.log");
+        emptyPlayer.setTabRunnable((args, player) -> {
+            if (!hasPermissionToRun(player, false)) {
                 return Collections.emptyList();
             }
             if (PlayerUUID.getPlayerUUID(args[args.length - 1].split(":")[0]) != null) {
@@ -60,8 +62,8 @@ public class Add extends SubCommand {
                 return list;
             }
         });
-        emptyCommand.setLooped(true);
-        addAction(emptyCommand);
+        emptyPlayer.setLooped(true);
+        addAction(emptyPlayer);
     }
     
     @Override
@@ -73,7 +75,7 @@ public class Add extends SubCommand {
     public void run(String[] args, Player player) {
         // tport log add <TPort name> <player[:LogMode]...>
         
-        if (!hasPermission(player, true, "TPort.log")) {
+        if (!emptyPlayer.hasPermissionToRun(player, true)) {
             return;
         }
         

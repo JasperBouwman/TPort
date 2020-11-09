@@ -1,7 +1,6 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.TPortInventories;
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.CommandTemplate;
 import com.spaceman.tport.commandHander.EmptyCommand;
@@ -10,28 +9,29 @@ import com.spaceman.tport.commands.tport.publc.Add;
 import com.spaceman.tport.commands.tport.publc.Open;
 import com.spaceman.tport.commands.tport.publc.Remove;
 import com.spaceman.tport.commands.tport.publc.*;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class Public extends SubCommand {
     
+    private final EmptyCommand empty;
+    
     public Public() {
-        EmptyCommand empty = new EmptyCommand() {
+        empty = new EmptyCommand() {
             @Override
             public String getName(String argument) {
                 return "";
             }
         };
         empty.setCommandName("", ArgumentType.FIXED);
-        empty.setCommandDescription(textComponent("This command is used to open the Public TPort GUI", ColorTheme.ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.public.open", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.basic", ColorTheme.ColorType.varInfoColor));
+        empty.setCommandDescription(textComponent("This command is used to open the Public TPort GUI", ColorTheme.ColorType.infoColor));
+        empty.setPermissions("TPort.public.open", "TPort.basic");
         addAction(empty);
         addAction(new Open());
         addAction(new Add());
@@ -63,7 +63,7 @@ public class Public extends SubCommand {
         
         if (isEnabled()) {
             if (args.length == 1) {
-                if (hasPermission(player, true, "TPort.public.open", "TPort.basic")) {
+                if (empty.hasPermissionToRun(player, true)) {
                     TPortInventories.openPublicTPortGUI(player, 0);
                 }
             } else {

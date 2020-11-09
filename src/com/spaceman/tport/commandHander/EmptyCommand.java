@@ -11,7 +11,7 @@ import java.util.Collections;
 public class EmptyCommand extends SubCommand {
     
     private boolean looped = false;
-    private ArrayList<SubCommand> actions = new ArrayList<>();
+    private final ArrayList<SubCommand> actions = new ArrayList<>();
     private RunRunnable runnable = (args, player) -> {};
     private TabRunnable tabRunnable = (args, player) -> {
         ArrayList<String> list = new ArrayList<>();

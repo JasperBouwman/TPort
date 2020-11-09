@@ -7,7 +7,7 @@ import com.spaceman.tport.commands.tport.edit.whitelist.List;
 import com.spaceman.tport.commands.tport.edit.whitelist.Remove;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
 
 public class Whitelist extends SubCommand {
@@ -30,6 +30,6 @@ public class Whitelist extends SubCommand {
                 return;
             }
         }
-        sendErrorTheme(player, "Usage: %s", "/tport whitelist <TPort name> <add|remove|list|clone>");
+        sendErrorTheme(player, "Usage: %s", "/tport edit <TPort name> whitelist <add|remove|list|clone>");
     }
 }

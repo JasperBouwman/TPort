@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.publc;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -17,24 +16,23 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class Remove extends SubCommand {
     
+    private final static EmptyCommand emptyAll = new EmptyCommand();
+    
     public Remove() {
-        EmptyCommand emptyCommand1 = new EmptyCommand();
-        emptyCommand1.setCommandName("own TPort name", ArgumentType.REQUIRED);
-        emptyCommand1.setCommandDescription(TextComponent.textComponent("This command is used to remove a Public TPort that is yours", ColorType.infoColor));
-        EmptyCommand emptyCommand2 = new EmptyCommand();
-        emptyCommand2.setCommandName("all TPort name", ArgumentType.REQUIRED);
-        emptyCommand2.setCommandDescription(TextComponent.textComponent("This command is used to remove a Public TPort that is not yours", ColorType.infoColor),
-                textComponent("\n\nPermissions: ", ColorTheme.ColorType.infoColor), textComponent("TPort.public.remove.all", ColorTheme.ColorType.varInfoColor),
-                textComponent(" or ", ColorTheme.ColorType.infoColor), textComponent("TPort.admin.public", ColorTheme.ColorType.varInfoColor));
-        addAction(emptyCommand1);
-        addAction(emptyCommand2);
+        EmptyCommand emptyOwn = new EmptyCommand();
+        emptyOwn.setCommandName("own TPort name", ArgumentType.REQUIRED);
+        emptyOwn.setCommandDescription(TextComponent.textComponent("This command is used to remove a Public TPort that is yours", ColorType.infoColor));
+        
+        emptyAll.setCommandName("all TPort name", ArgumentType.REQUIRED);
+        emptyAll.setCommandDescription(TextComponent.textComponent("This command is used to remove a Public TPort that is not yours", ColorType.infoColor));
+        emptyAll.setPermissions("TPort.public.remove.all", "TPort.admin.public");
+        addAction(emptyOwn);
+        addAction(emptyAll);
     }
     
     @Override
@@ -49,7 +47,7 @@ public class Remove extends SubCommand {
                 if (tport.getOwner().equals(player.getUniqueId())) {
                     list.add(tport.getName());
                 } else {
-                    if (hasPermission(player, false, "TPort.public.remove.all", "TPort.admin.public")) {
+                    if (emptyAll.hasPermissionToRun(player, false)) {
                         list.add(tport.getName());
                     }
                 }
@@ -77,7 +75,7 @@ public class Remove extends SubCommand {
                         try {
                             publicSlot = Integer.parseInt(publicTPortSlot) + 1;
                         } catch (NumberFormatException nfe) {
-                            sendErrorTheme(player, "Can't make TPort %s private, there is an error in the file %s", tport.getName(), "TPortData.yml");
+                            sendErrorTheme(player, "Can't make TPort %s private, there is an error in file %s", tport.getName(), "TPortData.yml");
                             return;
                         }
                         tportData.getConfig().set("public.tports." + publicTPortSlot, null);
@@ -86,7 +84,7 @@ public class Remove extends SubCommand {
                         sendSuccessTheme(player, "Successfully made TPort %s private", tport.getName());
                         while (true) {
                             if (tportData.getConfig().contains("public.tports." + publicSlot)) {
-                                String publicTPort = tportData.getConfig().getString("public.tports." + publicSlot, "s;s");
+                                String publicTPort = tportData.getConfig().getString("public.tports." + publicSlot, TPortManager.defUUID.toString());
                                 tportData.getConfig().set("public.tports." + (publicSlot - 1), publicTPort);
                                 tportData.getConfig().set("public.tports." + (publicSlot), null);
                                 publicSlot++;
@@ -97,7 +95,7 @@ public class Remove extends SubCommand {
                         tportData.saveConfig();
                         return;
                     } else if (!fromDelete) {
-                        if (hasPermission(player, true, "TPort.public.remove.all", "TPort.admin.public")) {
+                        if (emptyAll.hasPermissionToRun(player, true)) {
                             int publicSlot;
                             try {
                                 publicSlot = Integer.parseInt(publicTPortSlot) + 1;
@@ -125,7 +123,7 @@ public class Remove extends SubCommand {
                         
                             while (true) {
                                 if (tportData.getConfig().contains("public.tports." + publicSlot)) {
-                                    String publicTPort = tportData.getConfig().getString("public.tports." + publicSlot, "s;s");
+                                    String publicTPort = tportData.getConfig().getString("public.tports." + publicSlot, TPortManager.defUUID.toString());
                                     tportData.getConfig().set("public.tports." + (publicSlot - 1), publicTPort);
                                     tportData.getConfig().set("public.tports." + (publicSlot), null);
                                     publicSlot++;

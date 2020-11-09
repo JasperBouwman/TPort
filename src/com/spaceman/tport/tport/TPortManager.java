@@ -1,7 +1,7 @@
 package com.spaceman.tport.tport;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fileHander.Files;
@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 import static com.spaceman.tport.events.InventoryClick.TPortSize;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
@@ -29,7 +29,9 @@ public class TPortManager {
     public final static UUID defUUID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     
     public static ArrayList<TPort> getTPortList(UUID owner) {
-        Files tportData = getFile("TPortData");
+        return getTPortList(getFile("TPortData"), owner);
+    }
+    public static ArrayList<TPort> getTPortList(Files tportData, UUID owner) {
         ArrayList<TPort> tportList = new ArrayList<>();
         for (String tportID : tportData.getKeys("tport." + owner + ".tports")) {
             TPort tport = (TPort) tportData.getConfig().get("tport." + owner + ".tports." + tportID);

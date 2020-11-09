@@ -4,5 +4,5 @@ public enum TextType {
     TEXT,
     KEYBIND,
     TRANSLATE,
-    SELECTOR;
+    SELECTOR
 }

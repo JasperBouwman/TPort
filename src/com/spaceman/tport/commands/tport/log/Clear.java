@@ -1,6 +1,6 @@
 package com.spaceman.tport.commands.tport.log;
 
-import com.spaceman.tport.colorFormatter.ColorTheme;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.commandHander.ArgumentType;
 import com.spaceman.tport.commandHander.EmptyCommand;
 import com.spaceman.tport.commandHander.SubCommand;
@@ -14,22 +14,22 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.colorFormatter.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 
 public class Clear extends SubCommand {
     
     public Clear() {
-        EmptyCommand emptyCommand = new EmptyCommand();
-        emptyCommand.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyCommand.setCommandDescription(TextComponent.textComponent("This command is used to clear the TPort log of the given TPort", ColorTheme.ColorType.infoColor));
-        emptyCommand.setTabRunnable((args, player) -> {
+        EmptyCommand emptyTPort = new EmptyCommand();
+        emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyTPort.setCommandDescription(TextComponent.textComponent("This command is used to clear the TPort log of the given TPort", ColorTheme.ColorType.infoColor));
+        emptyTPort.setTabRunnable((args, player) -> {
             List<String> list = TPortManager.getTPortList(player.getUniqueId()).stream().filter(tport -> !tport.isLogBookEmpty()).map(TPort::getName).collect(Collectors.toList());
             list.removeAll(Arrays.asList(args).subList(2, args.length));
             return list;
         });
-        emptyCommand.setLooped(true);
-        addAction(emptyCommand);
+        emptyTPort.setLooped(true);
+        addAction(emptyTPort);
     }
     
     @Override
