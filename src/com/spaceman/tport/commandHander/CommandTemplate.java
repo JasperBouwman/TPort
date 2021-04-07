@@ -8,14 +8,11 @@ import org.bukkit.Location;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.spigotmc.CustomTimingsHandler;
 
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-
-import static com.spaceman.tport.commandHander.SubCommand.lowerCaseFirst;
 
 @SuppressWarnings({"NullableProblems", "WeakerAccess", "unused"})
 public abstract class CommandTemplate extends Command implements CommandExecutor, TabCompleter {
@@ -123,25 +120,16 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
     }
     
     private void setDescription(CommandDescription description) {
-        if (description.getName() == null) {
-            //if name is not given, set name to class name
-            description.setName(lowerCaseFirst(this.getClass().getSimpleName()));
-        }
         if (description.getFallbackPrefix().equalsIgnoreCase("")) {
             //if fallBack name is not given, set name to description name
-            description.setFallbackPrefix(description.getName());
-        }
-        if (description.getUsage() == null) {
-            //if usage not given, set usage to '/<name>'
-            description.setUsage("/" + description.getName());
+            description.setFallbackPrefix(plugin.getName());
         }
         
         this.setName(description.getName());
         this.setUsage(description.getUsage());
-        this.setLabel(description.getName());
-        this.setDescription(description.getDescription());
-        this.timings = new CustomTimingsHandler("** Command: " + description.getName());
-        this.fallbackPrefix = description.getFallbackPrefix();
+        if (description.getName() != null) this.setLabel(description.getName());
+        if (description.getDescription() != null) this.setDescription(description.getDescription());
+        if (description.getFallbackPrefix() != null) this.fallbackPrefix = description.getFallbackPrefix();
     }
     
     public void registerActions() {

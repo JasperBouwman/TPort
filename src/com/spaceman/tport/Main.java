@@ -164,76 +164,9 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         
         /*
-         * changelog 1.16.1 update:
-         * added:
-         *  /tport log notify
-         *  /tport search <type>
-         *  /tport edit <TPort name> tag add <tag>
-         *  /tport edit <TPort name> tag remove <tag>
-         *  /tport tag create <tag> <permission>
-         *  /tport tag delete <tag>
-         *  /tport tag list
-         *  /tport tag reset
-         *  /tport sort [sorter]
-         *  /tport safetyCheck [default state]
-         *  /tport open <player> <TPort name> [safetyCheck]
-         *  /tport own <TPort name> [safetyCheck]
-         *  /tport back [safetyCheck]
-         *  /tport permissions enabled [state]
-         *  /tport mainLayout players [state]
-         *  /tport mainLayout TPorts [state]
-         *  /tport world <world>   (used to teleport to the spawn of the given world)
-         *  '/tport search' cooldown, default value is 10 seconds
-         * fixed:
-         *  tport back from '/tport biomeTP random'
-         * Teleporter items (old name compass) are now TPort rename friendly
-         * new buttons in the main TPort GUI to go to BiomeTP, FeatureTP and Public TPorts and to teleport back (/tport back)
-         * added the permission 'TPort.featureTP.open' to open the FeatureTP gui (/tport featureTP)
+         * changelog 1.16.2 update:
          *
-         * players in your PLTP whitelist don't have to ask for consent anymore (when PLTP consent is set to true)
-         *
-         * added metrics (powered by bStats)
-         *  /tport metrics enable [state]
-         *  /tport metrics viewStats
-         *
-         * added Dynmap support.
-         * new commands:
-         *  /tport dynmap
-         *  /tport dynmap enable [state]
-         *  /tport dynmap show <player> <tport name>
-         *  /tport dynmap IP [IP]
-         *  /tport edit <TPort name> dynmap show [state]
-         *  /tport edit <TPort name> dynmap icon [icon]
-         *
-         * improved PLTP Offset BEHIND
-         *
-         * if a TPort is public (/tport public add <TPort name>) it can't be renamed to a name that contains as a Public TPort
-         *
-         * when a player gets offline, his location won't be stored to use for TPort range. When he is offline he is just out of range.
-         * fixed error when owner is in different dimension than TPort, when trying to measure the distance between owner and TPort
-         *
-         * updated '/tport teleporter create' command descriptions
-         *
-         * ColorTheme now supports HEX colors (#123456), to use '/tport colorTheme set <type> <hex color>'
-         * added some more color themes, if you have made any for yourself you should share them with me. If I like it I will add it to TPort
-         *
-         * updated the permissions system for the commands. There may be some bugs that the permission does not properly works for that command.
-         * If you found any leave a command at https://dev.bukkit.org/projects/tport
-         *
-         * you can now search for the different village types (Village_Desert, Village_Plains, Village_Savanna, Village_Snowy, Village_Taiga),
-         * it won't always gets the closest village when the FeatureTP mode is set to CLOSEST
-         * Updated feature display items in GUI
-         *
-         * added a SafetyCheck, to use this use the command '/tport safetyCheck [default state]'
-         * when true it will preform a safetyCheck before you teleport. It checks if the location does not exist of solid blocks, and the block you are standing on is not lava/fire
-         *
-         * the walkRestriction now cancels your TP request when you walk. Before it canceled your teleportation, but it forgot to remove the request.
-         * TPort restriction can now be used with permissions, permission: TPort.restriction.type.<restriction name>
-         * To enable use '/tport restriction permission true'
-         *
-         * TPort back form TPorts is now TPort rename friendly
-         *
-         * permission 'TPort.biomeTP.all' is replaced by 'TPort.biomeTP.*'
+         * Fixed that TPort wont start on servers that aren't Spigot
          */
         
         /*

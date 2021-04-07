@@ -136,7 +136,7 @@ public class Message {
         
         swordMeta.setLore(Arrays.asList(ChatColor.GREEN + "line 1",
                 "line 2",
-                net.md_5.bungee.api.ChatColor.of("#123456") + "line 3"));
+                new MultiColor("#123456").getStringColor() + "line 3"));
         
         swordItem.setItemMeta(swordMeta);
         diamond_sword.addTextEvent(hoverEvent(swordItem));
