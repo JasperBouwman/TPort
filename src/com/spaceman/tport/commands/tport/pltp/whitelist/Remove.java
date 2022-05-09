@@ -1,32 +1,31 @@
 package com.spaceman.tport.commands.tport.pltp.whitelist;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.UUID;
+import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 
 public class Remove extends SubCommand {
     
     public Remove() {
         EmptyCommand emptyRemove = new EmptyCommand();
         emptyRemove.setCommandName("player", ArgumentType.REQUIRED);
-        emptyRemove.setCommandDescription(textComponent("This command is used to remove players from your PLTP whitelist", ColorType.infoColor));
+        emptyRemove.setCommandDescription(formatInfoTranslation("tport.command.PLTP.whitelist.remove.players.commandDescription"));
         emptyRemove.setTabRunnable((args, player) -> {
             Files tportData = GettingFiles.getFile("TPortData");
-            ArrayList<String> list = new ArrayList<>();
-            new ArrayList<>(tportData.getConfig().getStringList("tport." + player.getUniqueId() + ".tp.players")).stream().map(PlayerUUID::getPlayerName).forEach(list::add);
+//            ArrayList<String> list = new ArrayList<>();
+            List<String> list = tportData.getConfig().getStringList("tport." + player.getUniqueId() + ".tp.players").stream().map(PlayerUUID::getPlayerName).collect(Collectors.toList());
             list.removeAll(Arrays.asList(args).subList(3, args.length));
             return list;
         });
@@ -38,39 +37,40 @@ public class Remove extends SubCommand {
     public Collection<String> tabList(Player player, String[] args) {
         return getActions().get(0).tabList(player, args);
     }
-
+    
     @Override
     public void run(String[] args, Player player) {
         // tport PLTP whitelist remove <player...>
         
+        if (args.length < 4) {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP whitelist remove <player...>");
+            return;
+        }
+        
         Files tportData = GettingFiles.getFile("TPortData");
         String playerUUID = player.getUniqueId().toString();
-        ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
-                .getStringList("tport." + playerUUID + ".tp.players");
-    
+        ArrayList<String> list = (ArrayList<String>) tportData.getConfig().getStringList("tport." + playerUUID + ".tp.players");
+        
         for (int i = 3; i < args.length; i++) {
             String removePlayerName = args[i];
             UUID removePlayerUUID = PlayerUUID.getPlayerUUID(removePlayerName);
-    
+            
             if (removePlayerUUID == null || !tportData.getConfig().contains("tport." + removePlayerUUID)) {
-                sendErrorTheme(player, "Could not find a player named %s", removePlayerName);
+                sendErrorTranslation(player, "tport.command.playerNotFound", removePlayerName);
                 return;
             }
-    
+            
             if (!list.contains(removePlayerUUID.toString())) {
-                sendErrorTheme(player, "Player %s is not in your PLTP whitelist");
+                sendErrorTranslation(player, "tport.command.PLTP.whitelist.remove.players.notInList", asPlayer(removePlayerUUID));
                 return;
             }
-    
+            
             list.remove(removePlayerUUID.toString());
             tportData.getConfig().set("tport." + playerUUID + ".tp.players", list);
             tportData.saveConfig();
-            sendSuccessTheme(player, "Successfully removed player %s from your PLTP whitelist");
+            sendSuccessTranslation(player, "tport.command.PLTP.whitelist.remove.players.succeeded", asPlayer(removePlayerUUID));
     
-            Player removePlayer = Bukkit.getPlayer(removePlayerUUID);
-            if (removePlayer != null) {
-                sendInfoTheme(removePlayer, "You have been removed from the PLTP whitelist of player %s", player.getName());
-            }
+            sendInfoTranslation(Bukkit.getPlayer(removePlayerUUID), "tport.command.PLTP.whitelist.remove.players.succeededOtherPlayer", player);
         }
     }
 }

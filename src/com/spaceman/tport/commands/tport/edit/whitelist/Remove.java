@@ -1,8 +1,8 @@
 package com.spaceman.tport.commands.tport.edit.whitelist;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class Remove extends SubCommand {
@@ -22,12 +22,12 @@ public class Remove extends SubCommand {
     public Remove() {
         EmptyCommand emptyPlayer = new EmptyCommand();
         emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
-        emptyPlayer.setCommandDescription(textComponent("This command is used to remove players from the whitelist of the given TPort", ColorType.infoColor));
+        emptyPlayer.setCommandDescription(formatInfoTranslation("tport.command.edit.whitelist.remove.commandDescription"));
         emptyPlayer.setTabRunnable((args, player) -> {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
             if (tport != null) {
-                List<String> list = tport.getWhitelist().stream().map(PlayerUUID::getPlayerName).filter(Objects::nonNull).collect(Collectors.toList());
-                list.removeAll(Arrays.asList(args).subList(4, args.length));
+                List<String> list = tport.getWhitelist().stream().map(PlayerUUID::getPlayerName).collect(Collectors.toList());
+                list.removeAll(Arrays.asList(args).subList(4, args.length - 1));
                 return list;
             } else {
                 return new ArrayList<>();
@@ -47,18 +47,19 @@ public class Remove extends SubCommand {
         //tport edit <TPort name> whitelist remove <player...>
         
         if (args.length == 4) {
-            sendErrorTheme(player, "Usage: %s", "/tport edit <TPort name> whitelist remove <player...>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> whitelist remove <player...>");
             return;
         }
         
         TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
         
         if (tport == null) {
-            sendErrorTheme(player, "No TPort found called %s", args[1]);
+            sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
             return;
         }
         if (tport.isOffered()) {
-            sendErrorTheme(player, "You can't edit TPort %s while its offered to %s", tport.getName(), PlayerUUID.getPlayerName(tport.getOfferedTo()));
+            sendErrorTranslation(player, "tport.command.edit.whitelist.remove.isOffered",
+                    tport, asPlayer(tport.getOfferedTo()));
             return;
         }
         
@@ -67,20 +68,18 @@ public class Remove extends SubCommand {
             String newPlayerName = args[i];
             UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
             if (newPlayerUUID == null || !getFile("TPortData").getConfig().contains("tport." + newPlayerUUID)) {
-                sendErrorTheme(player, "Could not find a player named %s", newPlayerName);
+                sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
                 return;
             }
+            Player newPlayer = Bukkit.getPlayer(newPlayerUUID);
             if (tport.removeWhitelist(newPlayerUUID)) {
-                sendSuccessTheme(player, "Successfully removed %s", newPlayerName);
+                sendSuccessTranslation(player, "tport.command.edit.whitelist.remove.succeeded", asPlayer(newPlayerUUID), tport);
             } else {
-                sendErrorTheme(player, "Player %s is not in your whitelist", newPlayerName);
+                sendErrorTranslation(player, "tport.command.edit.whitelist.remove.notInList", asPlayer(newPlayerUUID), tport);
                 continue;
             }
             
-            Player newPlayer = Bukkit.getPlayer(newPlayerUUID);
-            if (newPlayer != null) {
-                sendInfoTheme(newPlayer, "You have been removed from the whitelist of %s in the TPort %s", player.getName(), tport.getName());
-            }
+            sendInfoTranslation(newPlayer, "tport.command.edit.whitelist.remove.succeededOtherPlayer", player, tport);
         }
         tport.save();
     }

@@ -1,8 +1,8 @@
 package com.spaceman.tport.commands.tport.log;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class TimeZone extends SubCommand {
@@ -19,13 +18,13 @@ public class TimeZone extends SubCommand {
     public TimeZone() {
         EmptyCommand emptyTimeZone = new EmptyCommand();
         emptyTimeZone.setCommandName("TimeZone", ArgumentType.OPTIONAL);
-        emptyTimeZone.setCommandDescription(textComponent("This command is used to set to your time zone, the time zone is used for the read command", ColorType.infoColor));
+        emptyTimeZone.setCommandDescription(formatInfoTranslation("tport.command.log.timeZone.timeZone.commandDescription"));
         addAction(emptyTimeZone);
     }
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to get the set time zone, the time zone is used for the read command", ColorType.infoColor));
+        return formatInfoTranslation("tport.command.log.timeZone.commandDescription");
     }
     
     @Override
@@ -38,7 +37,7 @@ public class TimeZone extends SubCommand {
         // tport log TimeZone [TimeZone]
         
         if (args.length == 2) {
-            sendInfoTheme(player, "Your time zone: %s",
+            sendInfoTranslation(player, "tport.command.log.timeZone.succeeded",
                     java.util.TimeZone.getTimeZone(getFile("TPortData").getConfig().getString(
                             "tport." + player.getUniqueId() + ".timeZone",
                             java.util.TimeZone.getDefault().getID())
@@ -49,12 +48,12 @@ public class TimeZone extends SubCommand {
                 Files tportData = getFile("TPortData");
                 tportData.getConfig().set("tport." + player.getUniqueId() + ".timeZone", zone.getID());
                 tportData.saveConfig();
-                sendSuccessTheme(player, "Successfully set your time zone to %s", zone.getDisplayName());
+                sendSuccessTranslation(player, "tport.command.log.timeZone.timeZone.succeeded", zone.getDisplayName());
             } else {
-                sendErrorTheme(player, "Time zone %s does not exist", args[2]);
+                sendErrorTranslation(player, "tport.command.log.timeZone.timeZone.timeZoneNotExist", args[2]);
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport log TimeZone [TimeZone]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log TimeZone [TimeZone]");
         }
     }
 }

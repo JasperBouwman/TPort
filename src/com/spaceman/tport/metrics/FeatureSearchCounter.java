@@ -1,8 +1,7 @@
 package com.spaceman.tport.metrics;
 
-import com.spaceman.tport.commands.tport.FeatureTP;
-
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FeatureSearchCounter {
@@ -21,14 +20,12 @@ public class FeatureSearchCounter {
     
     private final HashMap<String, Integer> count = new HashMap<>();
     
-    public static void add(FeatureTP.FeatureType featureType) {
-        getInstance().count.merge(featureType.name().toLowerCase(), 1, Integer::sum);
+    public static void add(List<String> featureType) {
+        featureType.forEach(type -> getInstance().count.merge(type, 1, Integer::sum));
     }
     
     public static Map<String, Integer> getData() {
-        Map<String, Integer> data = new HashMap<>();
-        
-        getInstance().count.forEach(data::put);
+        Map<String, Integer> data = new HashMap<>(getInstance().count);
         getInstance().count.clear();
         
         return data;

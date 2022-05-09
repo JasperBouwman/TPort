@@ -4,7 +4,7 @@ import java.util.List;
 
 public class Key {
 
-    private String errorMessage = " is not valid";
+    private String errorMessageID = " is not valid";
     private boolean acceptNullValue = false;
     private String key;
     private ValueChecker checker;
@@ -32,13 +32,13 @@ public class Key {
         }
     }
 
-    public Key setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
+    public Key setErrorMessageID(String errorMessageID) {
+        this.errorMessageID = errorMessageID;
         return this;
     }
 
-    public String getErrorMessage() {
-        return errorMessage;
+    public String getErrorMessageID() {
+        return errorMessageID;
     }
 
     public boolean isAcceptNullValue() {

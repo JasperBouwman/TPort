@@ -1,13 +1,11 @@
 package com.spaceman.tport.commands.tport.backup;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -15,9 +13,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class Auto extends SubCommand {
@@ -27,12 +24,12 @@ public class Auto extends SubCommand {
     public Auto() {
         emptyCount = new EmptyCommand();
         emptyCount.setCommandName("count", ArgumentType.OPTIONAL);
-        emptyCount.setCommandDescription(textComponent("This command is used set the count of auto saved files", ColorTheme.ColorType.infoColor));
+        emptyCount.setCommandDescription(formatInfoTranslation("tport.command.backup.auto.count.commandDescription"));
         emptyCount.setPermissions("TPort.admin.backup.auto");
         
         EmptyCommand emptyState = new EmptyCommand();
         emptyState.setCommandName("state", ArgumentType.OPTIONAL);
-        emptyState.setCommandDescription(textComponent("This command is used to enable/disable the auto save function", ColorTheme.ColorType.infoColor));
+        emptyState.setCommandDescription(formatInfoTranslation("tport.command.backup.auto.state.commandDescription"));
         emptyState.setPermissions(emptyCount.getPermissions());
         
         addAction(emptyState);
@@ -54,7 +51,13 @@ public class Auto extends SubCommand {
                 int count = tportConfig.getConfig().getInt("backup.auto.count", 10);
                 if (files.size() >= count) {
                     for (int i = 0; i <= files.size() - count; i++) {
-                        files.get(i).delete();
+                        try {
+                            if (!files.get(i).delete()) {
+                                Main.getInstance().getLogger().warning("Could not delete redundant backup " + files.get(i).getName());
+                            }
+                        } catch (SecurityException se) {
+                            Main.getInstance().getLogger().warning("Could not delete redundant backup " + files.get(i).getName());
+                        }
                     }
                 }
             }
@@ -89,9 +92,7 @@ public class Auto extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to get the data of the auto save function. " +
-                "When the state is true TPort will backup on reload/shutdown. " +
-                "The count says how many auto saved files will exist", ColorTheme.ColorType.infoColor));
+        return formatInfoTranslation("tport.command.backup.auto.commandDescription");
     }
     
     @Override
@@ -102,41 +103,42 @@ public class Auto extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport backup auto [state|count]
-    
+        
         if (!emptyCount.hasPermissionToRun(player, true)) {
             return;
         }
         
         if (args.length == 2) {
             Files tportConfig = getFile("TPortConfig");
-            
-            Message message = new Message();
-            message.addText(textComponent("Auto save state is: ", ColorTheme.ColorType.infoColor));
-            boolean state = tportConfig.getConfig().getBoolean("backup.auto.state", false);
-            if (state) {
-                message.addText(textComponent("true\n", ChatColor.GREEN));
-            } else {
-                message.addText(textComponent("false\n", ChatColor.RED));
-            }
             int count = tportConfig.getConfig().getInt("backup.auto.count", 10);
-            message.addText(textComponent("Count of auto saved files is: ", ColorTheme.ColorType.infoColor));
-            message.addText(textComponent(String.valueOf(count), ColorTheme.ColorType.varInfoColor));
-            message.sendMessage(player);
+            
+            Message stateAsMessage;
+            if (tportConfig.getConfig().getBoolean("backup.auto.state", false)) {
+                stateAsMessage = formatTranslation(ColorType.goodColor, varInfoColor, "tport.command.backup.auto.true");
+            } else {
+                stateAsMessage = formatTranslation(ColorType.badColor, varInfoColor, "tport.command.backup.auto.false");
+            }
+            sendInfoTranslation(player, "tport.command.backup.auto.getStateAndCount", stateAsMessage, count);
         } else if (args.length == 3) {
             Files tportConfig = getFile("TPortConfig");
             try {
                 int newCount = Integer.parseInt(args[2]);
                 tportConfig.getConfig().set("backup.auto.count", newCount);
                 tportConfig.saveConfig();
-                sendSuccessTheme(player, "Successfully set backup count to %s", String.valueOf(newCount));
+                sendSuccessTranslation(player, "tport.command.backup.auto.setStateSucceeded", newCount);
             } catch (NumberFormatException nfe) {
-                boolean newState = Boolean.parseBoolean(args[2]);
+                Boolean newState = Main.toBoolean(args[2]);
+                if (newState == null) {
+                    sendErrorTranslation(player, "tport.command.wrongUsage", "/tport backup auto [true|false]");
+                    return;
+                }
+                
                 tportConfig.getConfig().set("backup.auto.state", newState);
                 tportConfig.saveConfig();
-                sendSuccessTheme(player, "Successfully set backup state to %s", String.valueOf(newState));
+                sendSuccessTranslation(player, "tport.command.backup.auto.setCountSucceeded", newState);
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport backup auto [state]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport backup auto [state|count]");
         }
     }
 }

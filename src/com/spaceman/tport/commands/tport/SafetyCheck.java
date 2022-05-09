@@ -1,31 +1,48 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.Main;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.permissions.PermissionHandler;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.events.ClickEvent.runCommand;
+import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class SafetyCheck extends SubCommand {
     
-    public static final EmptyCommand emptySafetyCheck = new EmptyCommand();
-    
     public SafetyCheck() {
-        emptySafetyCheck.setCommandName("default state", ArgumentType.OPTIONAL);
-        emptySafetyCheck.setCommandDescription(textComponent("This command is used to set your default safetyCheck value", infoColor));
-        emptySafetyCheck.setPermissions("TPort.safetyCheck", "TPort.basic");
-        addAction(emptySafetyCheck);
+        EmptyCommand emptyCheck = new EmptyCommand();
+        emptyCheck.setCommandName("check", ArgumentType.FIXED);
+        emptyCheck.setCommandDescription(formatInfoTranslation("tport.command.safetyCheck.check.commandDescription"));
+        emptyCheck.setPermissions("TPort.safetyCheck.check", "TPort.basic");
+        
+        EmptyCommand emptySourceState = new EmptyCommand();
+        emptySourceState.setCommandName("state", ArgumentType.OPTIONAL);
+        emptySourceState.setCommandDescription(formatInfoTranslation("tport.command.safetyCheck.source.state.commandDescription"));
+        emptySourceState.setPermissions("TPort.safetyCheck.<source>", "TPort.basic");
+        EmptyCommand emptySource = new EmptyCommand();
+        emptySource.setCommandName("source", ArgumentType.OPTIONAL);
+        emptySource.setCommandDescription(formatInfoTranslation("tport.command.safetyCheck.source.commandDescription"));
+        emptySource.addAction(emptySourceState);
+        
+        addAction(emptyCheck);
+        addAction(emptySource);
     }
     
     private static SafetyChecker safetyChecker = (l -> true);
@@ -38,53 +55,147 @@ public class SafetyCheck extends SubCommand {
         return safetyChecker.isSafe(feet);
     }
     
-    public static boolean safetyCheck(Player player) {
-        if (emptySafetyCheck.hasPermissionToRun(player, false)) {
-            return getFile("TPortData").getConfig().getBoolean("tport." + player.getUniqueId() + ".safetyCheck", false);
-        } else {
-            return false;
-        }
-    }
-    
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        return Arrays.asList("true", "false");
+        List<String> list = Arrays.stream(SafetyCheckSource.values()).map(Enum::name).collect(Collectors.toList());
+        list.add("check");
+        return list;
     }
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to see if the safetyCheck is enabled or not. When enabled and not overridden, " +
-                "it will preform a safetyCheck before you teleport. It checks if the location does not exist of solid blocks, and the block you are standing on is not lava/fire", infoColor));
+        return formatInfoTranslation("tport.command.safetyCheck.commandDescription");
     }
     
     @Override
     public void run(String[] args, Player player) {
-        // tport safetyCheck [default state]
+        // tport safetyCheck
+        // tport safetyCheck <source> [state]
+        // tport safetyCheck check
         
         if (args.length == 1) {
-            Files tportData = getFile("TPortData");
-            boolean safetyCheck = tportData.getConfig().getBoolean("tport." + player.getUniqueId() + ".safetyCheck", false);
-            sendInfoTheme(player, "Your default safeCheck value is set to %s", safetyCheck);
             
-            if (!emptySafetyCheck.hasPermissionToRun(player, false)) {
-                sendInfoTheme(player, "Since you don't have the permissions %s or %s your default value is overridden with %s", "TPort.safetyCheck", "TPort.basic", "false");
+            Message list = new Message();
+            Message delimiter = formatInfoTranslation("tport.command.safetyCheck.delimiter");
+            SafetyCheckSource[] values = SafetyCheckSource.values();
+            boolean color = true;
+            
+            for (int i = 0; i < values.length; i++) {
+                SafetyCheckSource source = values[i];
+                TextComponent stateMessage;
+                
+                if (source.getState(player)) stateMessage = textComponent("true", goodColor)
+                        .addTextEvent(hoverEvent("/tport safetyCheck " + source.name() + " false", infoColor))
+                        .addTextEvent(runCommand("/tport safetyCheck " + source.name() + " false"))
+                        .setInsertion("/tport safetyCheck " + source.name() + " false");
+                else                     stateMessage = textComponent("false", badColor)
+                        .addTextEvent(hoverEvent("/tport safetyCheck " + source.name() + " true", infoColor))
+                        .addTextEvent(runCommand("/tport safetyCheck " + source.name() + " true"))
+                        .setInsertion("/tport safetyCheck " + source.name() + " true");
+                
+                if (color) list.addMessage(formatTranslation(infoColor, varInfoColor, "tport.command.safetyCheck.listElement", source, stateMessage));
+                else       list.addMessage(formatTranslation(infoColor, varInfo2Color, "tport.command.safetyCheck.listElement", source, stateMessage));
+                
+                color = !color;
+                if (i + 2 == values.length) list.addMessage(formatInfoTranslation("tport.command.safetyCheck.lastDelimiter"));
+                else                        list.addMessage(delimiter);
             }
             
+            sendInfoTranslation(player, "tport.command.safetyCheck.succeeded", list);
+            return;
         } else if (args.length == 2) {
-            if (emptySafetyCheck.hasPermissionToRun(player, true)) {
-                boolean safetyCheck = Boolean.parseBoolean(args[1]);
-                Files tportData = getFile("TPortData");
-                tportData.getConfig().set("tport." + player.getUniqueId() + ".safetyCheck", safetyCheck);
-                tportData.saveConfig();
-                sendInfoTheme(player, "Your default safeCheck value is set to %s", safetyCheck);
+            if (args[1].equalsIgnoreCase("check")) {
+                Message state;
+                if (safetyChecker.isSafe(player.getLocation())) {
+                    state = formatTranslation(goodColor, goodColor, "tport.command.safetyCheck.check.safe");
+                } else {
+                    state = formatTranslation(badColor, badColor, "tport.command.safetyCheck.check.unsafe");
+                }
+                sendInfoTranslation(player, "tport.command.safetyCheck.check.succeeded", state);
+                return;
             }
-        } else {
-            sendErrorTheme(player, "Usage: %s", "/tport safetyCheck [default state]");
         }
+        
+        if (args.length == 2 || args.length == 3) {
+            SafetyCheckSource source = SafetyCheckSource.get(args[1]);
+            if (source == null) {
+                sendErrorTranslation(player, "tport.command.safetyCheck.source.sourceNotFound");
+                return;
+            }
+            
+            if (args.length == 2) { //get source
+                formatInfoTranslation("tport.command.safetyCheck.source.succeeded", source, source.getState(player));
+            } else { //set source
+                Boolean newState = Main.toBoolean(args[2]);
+                if (newState == null) {
+                    sendErrorTranslation(player, "tport.command.wrongUsage", "/tport safetyCheck <source> <true|false>");
+                    return;
+                }
+                
+                source.setState(player, newState);
+                sendSuccessTranslation(player, "tport.command.safetyCheck.source.state.succeeded", source, source.getState(player));
+            }
+            return;
+        }
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport safetyCheck [source|state]");
     }
     
     @FunctionalInterface
     public interface SafetyChecker {
         boolean isSafe(Location feet);
+    }
+    
+    public enum SafetyCheckSource implements MessageUtils.MessageDescription {
+        TPORT_OPEN,
+        TPORT_OWN,
+        TPORT_HOME,
+        TPORT_BACK,
+        TPORT_PUBLIC;
+        
+        public String getPermission() {
+            return "TPort.safetyCheck." + this.name();
+        }
+        public boolean hasPermission(Player player, boolean sendMessage) {
+            return PermissionHandler.hasPermission(player, sendMessage, true, this.getPermission(), "TPort.basic");
+        }
+        
+        public boolean getState(Player player) {
+            if (hasPermission(player, false)) {
+                return getFile("TPortData").getConfig().getBoolean("tport." + player.getUniqueId() + ".safetyCheck." + this.name() + ".state", true);
+            } else {
+                return false;
+            }
+        }
+        public void setState(Player player, boolean state) {
+            if (hasPermission(player, false)) {
+                Files tportData = getFile("TPortData");
+                tportData.getConfig().set("tport." + player.getUniqueId() + ".safetyCheck." + this.name() + ".state", state);
+                tportData.saveConfig();
+            }
+        }
+        
+        public static SafetyCheckSource get(String name) {
+            for (SafetyCheckSource source : SafetyCheckSource.values()) {
+                if (source.name().equalsIgnoreCase(name)) {
+                    return source;
+                }
+            }
+            return null;
+        }
+        
+        @Override
+        public Message getDescription() {
+            return formatInfoTranslation("tport.command.safetyCheck.safetyCheckSource." + this.name() + ".description");
+        }
+        
+        @Override
+        public String getName() {
+            return name();
+        }
+        
+        @Override
+        public String getInsertion() {
+            return getName();
+        }
     }
 }

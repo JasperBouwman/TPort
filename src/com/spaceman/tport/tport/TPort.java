@@ -2,14 +2,18 @@ package com.spaceman.tport.tport;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
-import com.spaceman.tport.commands.tport.Delay;
+import com.spaceman.tport.commands.tport.Requests;
+import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.SafetyCheck;
 import com.spaceman.tport.commands.tport.log.LogSize;
 import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.dynmap.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
+import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.events.ClickEvent;
+import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.playerUUID.PlayerUUID;
+import com.spaceman.tport.tpEvents.TPRequest;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -27,24 +31,25 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.events.InventoryClick.tpPlayerToTPort;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.events.ClickEvent.runCommand;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
+import static com.spaceman.tport.tpEvents.TPEManager.tpPlayerToTPort;
 
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "FieldMayBeFinal"})
 public class TPort implements ConfigurationSerializable {
     
-    private UUID tportID;
+    private UUID tportID = null;
     private UUID owner;
     private ItemStack item;
     private Location location;
     private String name;
     private int range = 0;
     private String description = "";
-    private PrivateStatement privateStatement = PrivateStatement.OFF;
+    private PrivateState privateState = PrivateState.OPEN;
+    private WhitelistVisibility whitelistVisibility = WhitelistVisibility.ON;
     private ArrayList<UUID> whitelist = new ArrayList<>();
     private int slot = -1;
     private boolean publicTPort = false;
@@ -105,7 +110,8 @@ public class TPort implements ConfigurationSerializable {
         tport.inactiveWorldName = inactiveWorldName;
         tport.setSlot((Integer) args.getOrDefault("slot", -1));
         tport.setPublicTPort((Boolean) args.getOrDefault("publicTPort", false));
-        tport.setPrivateStatement(PrivateStatement.get((String) args.getOrDefault("ps", PrivateStatement.OFF.name())));
+        tport.setPrivateState(PrivateState.get((String) args.getOrDefault("ps", PrivateState.OPEN.name())));
+        tport.setWhitelistVisibility(WhitelistVisibility.get((String) args.getOrDefault("whitelistVisibility", PrivateState.OPEN.name())));
         tport.setDescription((String) args.getOrDefault("description", ""));
         //noinspection unchecked
         tport.setWhitelist(((ArrayList<String>) args.getOrDefault("whitelist", new ArrayList<>())).stream().map(UUID::fromString).collect(Collectors.toCollection(ArrayList::new)));
@@ -138,7 +144,7 @@ public class TPort implements ConfigurationSerializable {
                 tport.addTag(tag);
             }
         }
-    
+        
         tport.showOnDynmap((Boolean) args.getOrDefault("showOnDynmap", true));
         tport.setDynmapIconID((String) args.getOrDefault("dynmapIconID", ""));
         
@@ -166,7 +172,8 @@ public class TPort implements ConfigurationSerializable {
             map.put("offeredTo", offeredTo.toString());
         }
         if (publicTPort) map.put("publicTPort", true);
-        if (privateStatement != PrivateStatement.OFF) map.put("ps", privateStatement.name());
+        if (privateState != PrivateState.OPEN) map.put("ps", privateState.name());
+        if (whitelistVisibility != WhitelistVisibility.ON) map.put("whitelistVisibility", whitelistVisibility.name());
         if (!whitelist.isEmpty())
             map.put("whitelist", whitelist.stream().map(UUID::toString).collect(Collectors.toList()));
         if (!description.isEmpty()) map.put("description", description);
@@ -212,25 +219,33 @@ public class TPort implements ConfigurationSerializable {
     public Biome getBiome() {
         return location.getBlock().getBiome();
     }
-
+    
     public World.Environment getDimension() {
         return Main.getOrDefault(location.getWorld(), Bukkit.getWorlds().get(0)).getEnvironment();
     }
     
-    public PrivateStatement getPrivateStatement() {
-        return privateStatement;
+    public PrivateState getPrivateState() {
+        return privateState;
     }
     
-    public void setPrivateStatement(PrivateStatement privateStatement) {
-        this.privateStatement = privateStatement;
+    public void setPrivateState(PrivateState privateState) {
+        this.privateState = privateState;
     }
     
-    public boolean hasAccess(Player player) {
+    public WhitelistVisibility getWhitelistVisibility() {
+        return whitelistVisibility;
+    }
+    
+    public void setWhitelistVisibility(WhitelistVisibility whitelistVisibility) {
+        this.whitelistVisibility = whitelistVisibility;
+    }
+    
+    public Boolean hasAccess(Player player) {
         return hasAccess(player.getUniqueId());
     }
     
-    public boolean hasAccess(UUID uuid) {
-        return this.getPrivateStatement().hasAccess(uuid, this);
+    public Boolean hasAccess(UUID uuid) {
+        return this.getPrivateState().hasAccess(uuid, this);
     }
     
     public ArrayList<UUID> getWhitelist() {
@@ -242,7 +257,10 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public boolean addWhitelist(UUID uuid) {
-        return this.whitelist.add(uuid);
+        if (!whitelist.contains(uuid)) {
+            return this.whitelist.add(uuid);
+        }
+        return false;
     }
     
     public boolean removeWhitelist(UUID uuid) {
@@ -274,7 +292,7 @@ public class TPort implements ConfigurationSerializable {
         if (description == null) {
             description = "";
         }
-    
+        
         Pattern hexPattern = Pattern.compile("#[0-9a-fA-F]{6}");
         Matcher hexMatcher = hexPattern.matcher(description);
         while (hexMatcher.find()) {
@@ -287,16 +305,21 @@ public class TPort implements ConfigurationSerializable {
         Matcher rgbMatcher = rgbPattern.matcher(description);
         while (rgbMatcher.find()) {
             String rgbColor = description.substring(rgbMatcher.start(), rgbMatcher.start() + 12);
-    
+            
+            //this used bit shift to move the correct color values to their places (rgb).
+            //this is done in a lambda, but this used only final objects.
+            //this is a problem because I needed an int that stored how far the bits should be shifted.
+            //the final int array of size 1 got around that. The array is final, but the int inside that array
+            //is not final, this stores how far the bits should shift
             final int[] shift = {16};
             int color = Arrays.stream(rgbColor.substring(1).split("\\$")).mapToInt(Integer::parseInt).map(i -> {
                 i <<= shift[0];
                 shift[0] -= 8;
                 return i;
             }).sum();
-            color = ((255) << 24) | color; //this is only to make sure that the leading zeroes are not forgotten
+            color = ((255) << 24) | color; //this is only to make sure that the leading zeroes are not forgotten (set alpha to max)
             String hexColor = Integer.toHexString(color).substring(2);
-    
+            
             description = description.replace(rgbColor, "&x" + hexColor.replaceAll("(.)", "&$1"));
             rgbMatcher = rgbPattern.matcher(description);
         }
@@ -376,7 +399,7 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public void log(UUID consumer) {
-        if (!consumer.equals(owner) && getLogMode(consumer).shouldLog(consumer, this)) {
+        if (getLogMode(consumer).shouldLog(consumer, this)) {
             logBook.add(new Pair<>(Calendar.getInstance(), consumer));
             while (logBook.size() > LogSize.getLogSize()) {
                 logBook.remove(logBook.size() - 1);
@@ -389,6 +412,7 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public LogMode getLogMode(UUID uuid) {
+        if (uuid.equals(owner)) return logged.getOrDefault(owner, LogMode.NONE);
         return logged.getOrDefault(uuid, defaultLogMode);
     }
     
@@ -427,17 +451,18 @@ public class TPort implements ConfigurationSerializable {
     public boolean setPublicTPort(boolean publicTPort) {
         return setPublicTPort(publicTPort, null);
     }
+    
     /**
      * @return true if successfully changed
-    * */
+     */
     public boolean setPublicTPort(boolean publicTPort, @Nullable Player player) {
         boolean b = this.publicTPort != publicTPort;
         this.publicTPort = publicTPort;
         if (publicTPort) {
-            if (!privateStatement.canGoPublic()) {
-                privateStatement = PrivateStatement.OFF;
+            if (!privateState.canGoPublic()) {
+                privateState = PrivateState.OPEN;
                 if (player != null) {
-                    sendErrorTheme(player, "Private Statement of TPort %s is now set to %s, because this TPort is now a Public TPort", this.getName(), privateStatement.getDisplayName());
+                    sendInfoTranslation(player, "tport.tport.tport.setPublicTPort.incompatiblePrivateState", this, privateState);
                 }
             }
         }
@@ -471,12 +496,7 @@ public class TPort implements ConfigurationSerializable {
         if (shouldNotify(teleporter.getUniqueId())) {
             Player player = Bukkit.getPlayer(owner);
             if (player != null) {
-                Message message = new Message();
-                message.addText(textComponent("Player ", infoColor));
-                message.addText(textComponent(teleporter.getName(), varInfoColor));
-                message.addText(textComponent(" just teleported to TPort ", infoColor));
-                message.addText(textComponent(getName(), varInfoColor, runCommand("/tport own " + getName())));
-                message.sendMessage(player);
+                sendInfoTranslation(player, "tport.tport.tport.notifyOwner", teleporter, this);
             }
         }
     }
@@ -519,6 +539,18 @@ public class TPort implements ConfigurationSerializable {
         DynmapHandler.updateTPort(this);
     }
     
+    //this is used when a TPort is being converted to a TextComponent in ColorTheme#formatTranslation(String color, String varColor, String id, Object... objects)
+    private boolean parseAsPublic = false;
+    
+    public TPort parseAsPublic(boolean parseAsPublic) {
+        this.parseAsPublic = parseAsPublic;
+        return this;
+    }
+    
+    public boolean parseAsPublic() {
+        return parseAsPublic;
+    }
+    
     public void save() {
         TPortManager.saveTPort(this);
     }
@@ -527,48 +559,76 @@ public class TPort implements ConfigurationSerializable {
         this.inactiveWorldName = inactiveWorldName;
     }
     
-    public boolean canTeleport(Player player, boolean sendError, boolean safetyCheck) {
+    public boolean canTeleport(Player player, boolean sendError, boolean askConsent, boolean safetyCheck) {
         if (!this.isActive()) {
-            if (sendError) sendErrorTheme(player, "TPort %s is not active, it may be inactive because that the world was not found", getName());
+            if (sendError) sendErrorTranslation(player, "tport.tport.tport.canTeleport.notActive", this);
             return false;
         }
-    
+        
         if (this.getLocation() == null) {
-            if (sendError) sendErrorTheme(player, "The world for this TPort has not been found");
+            if (sendError) sendErrorTranslation(player, "tport.tport.tport.canTeleport.worldNotFound");
             return false;
         }
         
         if (safetyCheck) {
             if (!SafetyCheck.isSafe(this.getLocation())) {
-                if (sendError) sendErrorTheme(player, "Its not safe to teleport to TPort %s", this.getName());
+                if (sendError) sendErrorTranslation(player, "tport.tport.tport.canTeleport.safetyCheck", this);
                 return false;
             }
         }
         
         if (!owner.equals(player.getUniqueId())) {
-        
-            if (!this.getPrivateStatement().hasAccess(player, this)) {
-                if (sendError) this.getPrivateStatement().sendErrorMessage(player, this);
-                return false;
-            }
-        
-            if (this.hasRange()) {
-                if (this.getLocation() == null) {
-                    if (sendError) sendErrorTheme(player, "The world for this TPort has not been found");
+            Boolean access = this.getPrivateState().hasAccess(player, this);
+            if (access == null) {
+                if (askConsent) {
+                    
+                    Player ownerPlayer = Bukkit.getPlayer(owner);
+                    if (ownerPlayer == null) { //should not be null, otherwise access wouldn't be null
+                        return false;
+                    }
+                    
+                    if (TPRequest.hasRequest(player, true)) {
+                        return false;
+                    }
+                    TPRequest.createTPortRequest(player.getUniqueId(), this);
+                    
+                    Message accept = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
+                    accept.getText().forEach(t -> t
+                            .addTextEvent(ClickEvent.runCommand("/tport requests accept " + player.getName()))
+                            .addTextEvent(new HoverEvent(textComponent("/tport requests accept " + player.getName(), infoColor))));
+                    Message reject = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
+                    reject.getText().forEach(t -> t
+                            .addTextEvent(ClickEvent.runCommand("/tport requests reject " + player.getName()))
+                            .addTextEvent(new HoverEvent(textComponent("/tport requests reject " + player.getName(), infoColor))));
+                    Message revoke = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
+                    revoke.getText().forEach(t -> t
+                            .addTextEvent(ClickEvent.runCommand("/tport requests revoke"))
+                            .addTextEvent(new HoverEvent(textComponent("/tport requests revoke", infoColor))));
+                    
+                    sendInfoTranslation(ownerPlayer, "tport.tport.tport.consent.consent.askConsent", player, this, accept, reject);
+                    sendInfoTranslation(player, "tport.tport.tport.consent.consent.consentAsked", ownerPlayer, this, this.getPrivateState(), revoke);
                     return false;
                 }
+            }
+            if (access != null && !access) {
+                if (sendError) this.getPrivateState().sendErrorMessage(player, this);
+                return false;
+            }
+            
+            if (this.hasRange()) {
                 Player ownerPlayer = Bukkit.getPlayer(owner);
                 if (ownerPlayer == null) {
-                    if (sendError) sendErrorTheme(player, "The owner is out of his range of his TPort");
+                    if (sendError)
+                        sendErrorTranslation(player, "tport.tport.tport.canTeleport.ownerOutOfRange", PlayerUUID.getPlayerName(owner), this);
                     return false;
                 }
                 Location location = ownerPlayer.getLocation();
                 if (!Objects.equals(location.getWorld(), this.getLocation().getWorld()) ||
                         location.distance(this.getLocation()) > this.getRange()) {
-                    if (sendError) sendErrorTheme(player, "The owner is out of his range of his TPort");
+                    if (sendError)
+                        sendErrorTranslation(player, "tport.tport.tport.canTeleport.ownerOutOfRange", ownerPlayer, this);
                     return false;
                 }
-    
             }
         }
         
@@ -576,93 +636,149 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public boolean teleport(Player player, boolean safetyCheck) {
-        return teleport(player, true, safetyCheck);
+        return teleport(player, safetyCheck, true, null, null);
     }
     
-    public boolean teleport(Player player, boolean sendMessage, boolean safetyCheck) {
-        return teleport(player, sendMessage, sendMessage, safetyCheck);
-    }
-    
-    public boolean teleport(Player player, boolean sendError, boolean sendSuccess, boolean safetyCheck) {
-        return teleport(player, sendError, sendSuccess, safetyCheck, null);
-    }
-    
-    public boolean teleport(Player player, boolean sendError, boolean sendSuccess, boolean safetyCheck, Runnable postMessage) {
-        if (!CooldownManager.TPortTP.hasCooled(player, sendError)) {
+    public boolean teleport(Player player, boolean safetyCheck, boolean askConsent, @Nullable String successMessage, @Nullable String requestMessage) {
+        if (!CooldownManager.TPortTP.hasCooled(player, true)) {
             return false;
         }
         
-        if (!this.canTeleport(player, true, safetyCheck)) {
+        if (!this.canTeleport(player, true, askConsent, safetyCheck)) {
             return false;
         }
         
         player.closeInventory();
         
-        tpPlayerToTPort(player, this.getLocation(), this.getTportID(), owner.toString(), (postMessage == null ? () -> {
-            ColorTheme theme = ColorTheme.getTheme(player);
-            Message message = new Message();
-            message.addText("Successfully teleported to ", theme.getSuccessColor());
-            message.addText(textComponent(this.getName(), theme.getVarSuccessColor(), runCommand("/tport open " + PlayerUUID.getPlayerName(this.getOwner()) + " " + this.getName())));
-            message.sendMessage(Bukkit.getPlayer(player.getUniqueId()));
-        } : postMessage));
-        this.notifyOwner(player);
-        this.log(player.getUniqueId());
-        this.save();
+        tpPlayerToTPort(player, this, () -> {
+                    TPort lambdaTPort = TPortManager.getTPort(this.getOwner(), this.getTportID());
+                    sendSuccessTranslation(player, successMessage == null ? "tport.tport.tport.teleport.succeeded" : successMessage, asTPort(lambdaTPort, this.getName()));
+                    if (lambdaTPort != null) {
+                        lambdaTPort.notifyOwner(player);
+                        lambdaTPort.log(player.getUniqueId());
+                        lambdaTPort.save();
+                    }
+                },
+                (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, requestMessage == null ? "tport.tport.tport.teleport.tpRequested" : requestMessage,
+                        this, delay, tickMessage, seconds, secondMessage));
         
         CooldownManager.TPortTP.update(player);
-        if (sendSuccess) {
-            ColorTheme theme = ColorTheme.getTheme(player);
-            Message message = new Message();
-            int delay = Delay.delayTime(player);
-            if (delay == 0) {
-                message.addText("Successfully teleported to ", theme.getSuccessColor());
-            } else {
-                message.addText("Successfully requested teleportation to ", theme.getSuccessColor());
-            }
-            message.addText(textComponent(this.getName(), theme.getVarSuccessColor(), runCommand("/tport open " + PlayerUUID.getPlayerName(this.getOwner()) + " " + this.getName())));
-            if (delay != 0) {
-                message.addText(", delay time is ", theme.getSuccessColor());
-                message.addText(String.valueOf(delay), theme.getVarSuccessColor());
-            }
-            message.sendMessage(player);
-        }
         return true;
     }
     
-    public enum PrivateStatement {
-        OFF(ChatColor.RED + "open", new Message(textComponent("Statement ", infoColor),
-                textComponent("on", varInfoColor),
-                textComponent(" means that only players in your whitelist can teleport to that TPort.", infoColor)), true, "", (player, tport) -> true),
-        ON(ChatColor.GREEN + "private", new Message(textComponent("Statement ", infoColor),
-                textComponent("off", varInfoColor),
-                textComponent(" means that all players can teleport to that TPort.", infoColor)), false, "You are not whitelisted to this private TPort", (player, tport) -> tport.getWhitelist().contains(player) || tport.getOwner().equals(player)),
-        ONLINE(ChatColor.YELLOW + "online", new Message(textComponent("Statement ", infoColor),
-                textComponent("online", varInfoColor),
-                textComponent(" means that all players can teleport to that TPort when your are online, and not when your are offline", infoColor)), true, "You can't teleport to this TPort right now, player %s has set this to %s", (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null),
-        PRION(ChatColor.GOLD + "private online", new Message( textComponent("Statement ", infoColor),
-                textComponent("prion", varInfoColor),
-                textComponent(" (PRIvate ONline) means that all players can teleport to that TPort when your are online, and not when your are offline. " +
-                        "But players in your whitelist can still teleport", infoColor)), false, "You can't teleport to this TPort right now, player %s has set this to %s", (player, tport) -> ONLINE.hasAccess(player, tport) || ON.hasAccess(player, tport));
+    public List<Message> getHoverData(boolean extended) {
+        List<Message> hoverData = new ArrayList<>();
         
-        private AccessTester tester;
-        private String errMessage;
-        private String displayName;
-        private Message description;
-        private boolean canGoPublic;
-        
-        PrivateStatement(String displayName, Message description, boolean canGoPublic, String errMessage, AccessTester tester) {
-            this.displayName = displayName;
-            this.description = description;
-            this.canGoPublic = canGoPublic;
-            this.errMessage = errMessage;
-            this.tester = tester;
+        if (extended) {
+            hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.tportOwner", PlayerUUID.getPlayerName(this.getOwner())));
+            hoverData.add(new Message());
         }
         
-        public static PrivateStatement get(@Nullable String name) {
+        if (this.hasDescription()) {
+            for (String s : this.getDescription().split("\\\\n")) {
+                hoverData.add(new Message(textComponent(ChatColor.BLUE + s)));
+            }
+            hoverData.add(new Message());
+        }
+        
+        hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.privateState", this.getPrivateState().getDisplayName()));
+        
+        if (this.getPrivateState().usesWhitelist() && this.getWhitelistVisibility() == WhitelistVisibility.ON) {
+            Message whitelistMessage = new Message();
+            for (int i = 0; i < this.getWhitelist().size(); i++) {
+                if (i == 3) {
+                    whitelistMessage.addMessage(formatTranslation(infoColor, infoColor, "tport.tport.tport.hoverData.whitelist.shorten"));
+                    whitelistMessage.addWhiteSpace();
+                    break;
+                }
+                UUID uuid = this.getWhitelist().get(i);
+                whitelistMessage.addMessage(formatTranslation(varInfoColor, varInfoColor, "tport.tport.tport.hoverData.whitelist.element", PlayerUUID.getPlayerName(uuid)));
+                whitelistMessage.addMessage(formatTranslation(infoColor, infoColor, "tport.tport.tport.hoverData.whitelist.delimiter"));
+            }
+            whitelistMessage.removeLast();
+            if (whitelistMessage.getText().isEmpty())
+                hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.whitelist.list",
+                        formatTranslation(varInfoColor, varInfoColor, "tport.tport.tport.hoverData.whitelist.empty")));
+            else hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.whitelist.list", whitelistMessage));
+        }
+        
+        hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.range", this.getRange()));
+        if (Features.Feature.PublicTP.isEnabled()) hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.publicTPort", this.isPublicTPort()));
+        hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.defaultLogMode", this.getDefaultLogMode().name()));
+        hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.notifyMode", this.getNotifyMode().name()));
+        if (DynmapHandler.isEnabled()) {
+            hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.dynmapShow", this.showOnDynmap()));
+            hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.dynmapIcon", DynmapHandler.getTPortIconName(this)));
+        }
+        if (this.hasTags()) {
+            Message tagsMessage = new Message();
+            
+            boolean color = true;
+            for (String tag : this.getTags()) {
+                tagsMessage.addText(textComponent(tag, (color ? varInfoColor : varInfo2Color)));
+                tagsMessage.addText(textComponent(", ", infoColor));
+                color = !color;
+            }
+            tagsMessage.removeLast();
+            
+            hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.tags", tagsMessage));
+        }
+        
+        if (this.isOffered()) {
+            hoverData.add(new Message());
+            hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.isOffered", PlayerUUID.getPlayerName(this.getOfferedTo())));
+        }
+        
+        return hoverData;
+    }
+    
+    public enum PrivateState implements MessageUtils.MessageDescription {
+        OPEN(ChatColor.RED + "open", true, false,
+                (player, tport) -> true),
+        PRIVATE(ChatColor.GREEN + "private", false, true,
+                (player, tport) -> tport.getWhitelist().contains(player)),
+        ONLINE(ChatColor.YELLOW + "online", true, true,
+                (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null || PRIVATE.hasAccess(player, tport)),
+        PRION(ChatColor.GOLD + "prion", false, true,
+                (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null && PRIVATE.hasAccess(player, tport)),
+        CONSENT_PRIVATE(ChatColor.DARK_AQUA + "consent private", false, true,
+                (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null ? null : PRIVATE.hasAccess(player, tport)),
+        CONSENT_CLOSE(ChatColor.BLUE + "consent close", false, true,
+                (player, tport) -> (Bukkit.getPlayer(tport.getOwner()) != null && tport.getWhitelist().contains(player)) ? null : false);
+        
+        /*
+         * OPEN: always open
+         * PRIVATE: only players in whitelist can teleport
+         * ONLINE: when online OPEN, when offline PRIVATE
+         * PRION: when online PRIVATE, when offline close
+         * CONSENT_PRIVATE: when online ask consent, when offline PRIVATE
+         * CONSENT_CLOSE: when online whitelist ask consent, when offline close
+         * */
+        
+        private final AccessTester tester;
+        private final String displayName;
+        private final boolean canGoPublic;
+        private final boolean usesWhitelist;
+        
+        PrivateState(String displayName, boolean canGoPublic, boolean usesWhitelist, AccessTester tester) {
+            this.displayName = displayName;
+            this.canGoPublic = canGoPublic;
+            this.tester = tester;
+            this.usesWhitelist = usesWhitelist;
+        }
+        
+        public static PrivateState get(@Nullable String name) {
             try {
-                return PrivateStatement.valueOf(name != null ? name.toUpperCase() : OFF.name());
+                return PrivateState.valueOf(name != null ? name.toUpperCase() : OPEN.name());
             } catch (IllegalArgumentException | NullPointerException iae) {
-                return OFF;
+                if (name != null) {
+                    if (name.equalsIgnoreCase("on")) {
+                        return PRIVATE;
+                    } else if (name.equalsIgnoreCase("off")) {
+                        return OPEN;
+                    }
+                }
+                return OPEN;
             }
         }
         
@@ -671,51 +787,109 @@ public class TPort implements ConfigurationSerializable {
             return canGoPublic;
         }
         
-        public PrivateStatement getNext() {
+        public boolean usesWhitelist() {
+            return usesWhitelist;
+        }
+        
+        public PrivateState getNext() {
             boolean next = false;
-            for (PrivateStatement statement : values()) {
-                if (statement.equals(this)) {
+            for (PrivateState state : values()) {
+                if (state.equals(this)) {
                     next = true;
                 } else if (next) {
-                    return statement;
+                    return state;
                 }
             }
             return Arrays.asList(values()).get(0);
         }
         
         public void sendErrorMessage(Player player, TPort tport) {
-            sendErrorTheme(player, errMessage, PlayerUUID.getPlayerName(tport.getOwner()), this.name().toLowerCase());
+            sendErrorTranslation(player, "tport.tport.tport.privateState." + this.name() + ".errorMessage",
+                    asPlayer(tport.getOwner()),
+                    this,
+                    tport);
         }
         
         public String getDisplayName() {
             return displayName;
         }
         
+        @Override
         public Message getDescription() {
-            return description;
+            return formatInfoTranslation("tport.tport.tport.privateState." + this.name() + ".description", this.getDisplayName());
         }
         
-        public boolean hasAccess(Player player, TPort tport) {
+        @Override
+        public String getName() {
+            return name();
+        }
+        
+        @Override
+        public String getInsertion() {
+            return getName();
+        }
+        
+        public Boolean hasAccess(Player player, TPort tport) {
             return hasAccess(player.getUniqueId(), tport);
         }
         
-        public boolean hasAccess(UUID uuid, TPort tport) {
+        //return:
+        // true: has access
+        // false: has not access
+        // null: ask consent
+        public Boolean hasAccess(UUID uuid, TPort tport) {
             return this.tester.hasAccess(uuid, tport);
         }
         
         @FunctionalInterface
         private interface AccessTester {
-            boolean hasAccess(UUID uuid, TPort tport);
+            Boolean hasAccess(UUID uuid, TPort tport);
         }
     }
     
-    public enum LogMode {
+    public enum WhitelistVisibility implements MessageUtils.MessageDescription {
+        ON,
+        OFF;
+        
+        public static WhitelistVisibility get(@Nullable String name) {
+            try {
+                return WhitelistVisibility.valueOf(name != null ? name.toUpperCase() : ON.name());
+            } catch (IllegalArgumentException | NullPointerException iae) {
+                return ON;
+            }
+        }
+        
+        public WhitelistVisibility getNext() {
+            if (this == ON) {
+                return OFF;
+            } else {
+                return ON;
+            }
+        }
+        
+        @Override
+        public Message getDescription() {
+            return formatInfoTranslation("tport.tport.tport.whitelistVisibility." + this.name() + ".description", this.name());
+        }
+        
+        @Override
+        public String getName() {
+            return name();
+        }
+        
+        @Override
+        public String getInsertion() {
+            return getName();
+        }
+    }
+    
+    public enum LogMode implements MessageUtils.MessageDescription {
         ONLINE((uuid, tport) -> Bukkit.getPlayer(tport.getOwner()) != null),
         OFFLINE((uuid, tport) -> Bukkit.getPlayer(tport.getOwner()) == null),
         ALL((uuid, tport) -> true),
         NONE((uuid, tport) -> false);
         
-        private LogTester tester;
+        private final LogTester tester;
         
         LogMode(LogTester tester) {
             this.tester = tester;
@@ -740,14 +914,29 @@ public class TPort implements ConfigurationSerializable {
         
         public LogMode getNext() {
             boolean next = false;
-            for (LogMode statement : values()) {
-                if (statement.equals(this)) {
+            for (LogMode state : values()) {
+                if (state.equals(this)) {
                     next = true;
                 } else if (next) {
-                    return statement;
+                    return state;
                 }
             }
             return Arrays.asList(values()).get(0);
+        }
+        
+        @Override
+        public Message getDescription() {
+            return formatInfoTranslation("tport.tport.tport.logMode." + this.name() + ".description", this.name());
+        }
+        
+        @Override
+        public String getName() {
+            return name();
+        }
+        
+        @Override
+        public String getInsertion() {
+            return getName();
         }
         
         @FunctionalInterface
@@ -756,16 +945,14 @@ public class TPort implements ConfigurationSerializable {
         }
     }
     
-    public enum NotifyMode {
-        ONLINE("When you are online you will be notified", (uuid, tport) -> Bukkit.getPlayer(tport.getOwner()) != null),
-        LOG("When the user is logged you will be notified if you are online", (uuid, tport) -> tport.getLogMode(uuid).shouldLog(uuid, tport)),
-        NONE("You won't be notified", (uuid, tport) -> false);
+    public enum NotifyMode implements MessageUtils.MessageDescription {
+        ONLINE((uuid, tport) -> Bukkit.getPlayer(tport.getOwner()) != null),
+        LOG((uuid, tport) -> tport.getLogMode(uuid).shouldLog(uuid, tport)),
+        NONE((uuid, tport) -> false);
         
-        private String description;
-        private NotifyTester tester;
+        private final NotifyTester tester;
         
-        NotifyMode(String description, NotifyTester tester) {
-            this.description = description;
+        NotifyMode(NotifyTester tester) {
             this.tester = tester;
         }
         
@@ -786,17 +973,28 @@ public class TPort implements ConfigurationSerializable {
             return tester.shouldNotify(uuid, tport);
         }
         
-        public String getDescription() {
-            return description;
+        @Override
+        public Message getDescription() {
+            return formatInfoTranslation("tport.tport.tport.notifyMode." + this.name() + ".description", this.name());
+        }
+        
+        @Override
+        public String getName() {
+            return name();
+        }
+        
+        @Override
+        public String getInsertion() {
+            return getName();
         }
         
         public NotifyMode getNext() {
             boolean next = false;
-            for (NotifyMode statement : values()) {
-                if (statement.equals(this)) {
+            for (NotifyMode mode : values()) {
+                if (mode.equals(this)) {
                     next = true;
                 } else if (next) {
-                    return statement;
+                    return mode;
                 }
             }
             return Arrays.asList(values()).get(0);

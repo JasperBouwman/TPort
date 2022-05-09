@@ -1,17 +1,14 @@
 package com.spaceman.tport.commands.tport.tag;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.Tag;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
 
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Delete extends SubCommand {
     
@@ -20,7 +17,7 @@ public class Delete extends SubCommand {
     public Delete() {
         emptyTag = new EmptyCommand();
         emptyTag.setCommandName("tag", ArgumentType.REQUIRED);
-        emptyTag.setCommandDescription(textComponent("This command is used to delete the given tag, the tag will also be removed from all TPorts", infoColor));
+        emptyTag.setCommandDescription(formatInfoTranslation("tport.command.tag.delete.tag.commandDescription"));
         emptyTag.setPermissions("TPort.tag.delete", "TPort.admin.tag");
         addAction(emptyTag);
     }
@@ -41,13 +38,13 @@ public class Delete extends SubCommand {
         if (args.length == 3) {
             String tag = Tag.getTag(args[2]);
             if (tag == null) {
-                sendErrorTheme(player, "Tag %s does not exist", args[2]);
+                sendErrorTranslation(player, "tport.command.tag.delete.tag.notExist", args[2]);
                 return;
             }
             Tag.deleteTag(tag);
-            sendSuccessTheme(player, "Successfully deleted the tag %s", tag);
+            sendSuccessTranslation(player, "tport.command.tag.delete.tag.succeeded", tag);
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport tag delete <tag>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport tag delete <tag>");
         }
     }
 }

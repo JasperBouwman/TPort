@@ -1,11 +1,10 @@
 package com.spaceman.tport.commands.tport.backup;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.Reload;
-import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
@@ -26,7 +25,7 @@ public class Load extends SubCommand {
     public Load() {
         emptyName = new EmptyCommand();
         emptyName.setCommandName("name", ArgumentType.REQUIRED);
-        emptyName.setCommandDescription(TextComponent.textComponent("This command is used to load the data in the given file to TPort", ColorType.infoColor));
+        emptyName.setCommandDescription(formatInfoTranslation("tport.command.backup.load.commandDescription"));
         emptyName.setPermissions("TPort.admin.backup.load");
         addAction(emptyName);
     }
@@ -62,17 +61,17 @@ public class Load extends SubCommand {
                     tportData.getConfig().set("public", configFile.getConfig().getConfigurationSection("public"));
                     tportData.saveConfig();
                     
-                    sendInfoTheme(player, "Reloading TPort to effect the changes");
+                    sendInfoTranslation(player, "tport.command.backup.load.reloading");
                     Reload.reloadTPort();
-                    sendSuccessTheme(player, "Successfully loaded backup %s", fileName);
+                    sendSuccessTranslation(player, "tport.command.backup.load.succeeded", fileName);
                 } else {
-                    sendErrorTheme(player, "Backup file %s is not correct", fileName + ".yml");
+                    sendErrorTranslation(player, "tport.command.backup.load.error", file.getName());
                 }
             } else {
-                sendErrorTheme(player, "Backup file %s does not exist", fileName + ".yml");
+                sendErrorTranslation(player, "tport.command.backup.load.fileNotFound", fileName + ".yml");
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport backup load <name>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport backup load <name>");
         }
     }
 }

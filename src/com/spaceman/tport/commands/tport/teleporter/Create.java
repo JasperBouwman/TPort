@@ -1,240 +1,46 @@
 package com.spaceman.tport.commands.tport.teleporter;
 
+import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.commands.tport.BiomeTP;
-import com.spaceman.tport.commands.tport.FeatureTP;
+import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.Teleporter;
-import com.spaceman.tport.commands.tport.publc.Open;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
-import com.spaceman.tport.playerUUID.PlayerUUID;
-import com.spaceman.tport.tport.TPort;
-import com.spaceman.tport.tport.TPortManager;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import com.spaceman.tport.commands.tport.teleporter.create.Back;
+import com.spaceman.tport.commands.tport.teleporter.create.Home;
+import com.spaceman.tport.commands.tport.teleporter.create.PLTP;
+import com.spaceman.tport.commands.tport.teleporter.create.Public;
+import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.NamespacedKey;
-import org.bukkit.block.Biome;
-import org.bukkit.craftbukkit.libs.org.apache.commons.lang3.StringUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
-import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class Create extends SubCommand {
     
     public Create() {
-        
-        EmptyCommand emptyTPortPlayerTPort = new EmptyCommand();
-        emptyTPortPlayerTPort.setCommandName("TPort name", ArgumentType.OPTIONAL);
-        emptyTPortPlayerTPort.setCommandDescription(textComponent("This command is used to create a Teleporter, that teleports you to the given TPort", infoColor));
-        emptyTPortPlayerTPort.setPermissions("TPort.teleporter.create");
-        EmptyCommand emptyTPortPlayer = new EmptyCommand();
-        emptyTPortPlayer.setCommandName("Player", ArgumentType.OPTIONAL);
-        emptyTPortPlayer.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the TPort GUI of the given player", infoColor));
-        emptyTPortPlayer.setTabRunnable(((args, player) -> {
-            UUID otherUUID = PlayerUUID.getPlayerUUID(args[3]);
-            if (otherUUID == null) {
-                return Collections.emptyList();
-            }
-            return TPortManager.getTPortList(otherUUID).stream()
-                    .map(TPort::getName)
-                    .collect(Collectors.toList());
-        }));
-        emptyTPortPlayer.addAction(emptyTPortPlayerTPort);
-        emptyTPortPlayer.setPermissions("TPort.teleporter.create");
-        EmptyCommand emptyTPort = new EmptyCommand() {
-            @Override
-            public String getName(String argument) {
-                return getCommandName();
-            }
-        };
-        emptyTPort.setCommandName("TPort", ArgumentType.FIXED);
-        emptyTPort.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the Main TPort GUI", infoColor));
-        emptyTPort.setTabRunnable((args, player) -> GettingFiles.getFile("TPortData").getKeys("tport").stream().map(PlayerUUID::getPlayerName).collect(Collectors.toList()));
-        emptyTPort.addAction(emptyTPortPlayer);
-        emptyTPort.setPermissions("TPort.teleporter.create");
-        
-        EmptyCommand emptyPLTPPlayer = new EmptyCommand();
-        emptyPLTPPlayer.setCommandName("Player", ArgumentType.REQUIRED);
-        emptyPLTPPlayer.setCommandDescription(textComponent("This command is used to create a Teleporter, that teleports you to the given player", infoColor));
-        emptyPLTPPlayer.setPermissions("TPort.teleporter.create");
-        EmptyCommand emptyPLTP = new EmptyCommand() {
-            @Override
-            public String getName(String argument) {
-                return getCommandName();
-            }
-        };
-        emptyPLTP.setCommandName("PLTP", ArgumentType.FIXED);
-        emptyPLTP.setTabRunnable(((args, player) -> Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList())));
-        emptyPLTP.addAction(emptyPLTPPlayer);
-        
-        EmptyCommand emptyBiomeTPEmpty = new EmptyCommand() {
-            @Override
-            public String getName(String argument) {
-                return "";
-            }
-        };
-        emptyBiomeTPEmpty.setCommandName("", ArgumentType.FIXED);
-        emptyBiomeTPEmpty.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the BiomeTP GUI", infoColor));
-        emptyBiomeTPEmpty.setPermissions("TPort.teleporter.create");
-        EmptyCommand emptyBiomeTPWhiteListBiome = new EmptyCommand();
-        emptyBiomeTPWhiteListBiome.setCommandName("biome", ArgumentType.REQUIRED);
-        emptyBiomeTPWhiteListBiome.setCommandDescription(textComponent("This command is used to create a Teleporter, that searches for biomes according to the given whitelist", infoColor));
-        emptyBiomeTPWhiteListBiome.setTabRunnable(((args, player) -> {
-            List<String> biomeList = Arrays.asList(args).subList(4, args.length).stream().map(String::toUpperCase).collect(Collectors.toList());
-            return Arrays.stream(Biome.values()).filter(biome -> !biomeList.contains(biome.name())).map(Enum::name).collect(Collectors.toList());
-        }));
-        emptyBiomeTPWhiteListBiome.setLooped(true);
-        emptyBiomeTPWhiteListBiome.setPermissions("TPort.teleporter.create");
-        EmptyCommand emptyBiomeTPWhitelist = new EmptyCommand() {
-            @Override
-            public String getName(String argument) {
-                return getCommandName();
-            }
-        };
-        emptyBiomeTPWhitelist.setCommandName("Whitelist", ArgumentType.FIXED);
-        emptyBiomeTPWhitelist.setTabRunnable(emptyBiomeTPWhiteListBiome.getTabRunnable());
-        emptyBiomeTPWhitelist.addAction(emptyBiomeTPWhiteListBiome);
-        EmptyCommand emptyBiomeTPBlackListBiome = new EmptyCommand();
-        emptyBiomeTPBlackListBiome.setCommandName("biome", ArgumentType.REQUIRED);
-        emptyBiomeTPBlackListBiome.setCommandDescription(textComponent("This command is used to create a Teleporter, that searches for biomes according to the given blacklist", infoColor));
-        emptyBiomeTPBlackListBiome.setTabRunnable(((args, player) -> emptyBiomeTPWhiteListBiome.tabList(player, args)));
-        emptyBiomeTPBlackListBiome.setLooped(true);
-        emptyBiomeTPBlackListBiome.setPermissions("TPort.teleporter.create");
-        EmptyCommand emptyBiomeTPBlacklist = new EmptyCommand() {
-            @Override
-            public String getName(String argument) {
-                return getCommandName();
-            }
-        };
-        emptyBiomeTPBlacklist.setCommandName("Blacklist", ArgumentType.FIXED);
-        emptyBiomeTPBlacklist.setTabRunnable(((args, player) -> emptyBiomeTPWhiteListBiome.tabList(player, args)));
-        emptyBiomeTPBlacklist.addAction(emptyBiomeTPBlackListBiome);
-        EmptyCommand emptyBiomeTPPresetPreset = new EmptyCommand();
-        emptyBiomeTPPresetPreset.setCommandName("Preset", ArgumentType.OPTIONAL);
-        emptyBiomeTPPresetPreset.setCommandDescription(textComponent("This command is used to create a Teleporter, that searched for biomes given the preset", infoColor));
-        emptyBiomeTPPresetPreset.setPermissions("TPort.teleporter.create");
-        EmptyCommand emptyBiomeTPPreset = new EmptyCommand() {
-            @Override
-            public String getName(String argument) {
-                return getCommandName();
-            }
-        };
-        emptyBiomeTPPreset.setCommandName("Preset", ArgumentType.FIXED);
-        emptyBiomeTPPreset.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the BiomeTP preset GUI", infoColor));
-        emptyBiomeTPPreset.setTabRunnable(((args, player) -> BiomeTP.BiomeTPPresets.getNames()));
-        emptyBiomeTPPreset.addAction(emptyBiomeTPPresetPreset);
-        emptyBiomeTPPreset.setPermissions("TPort.teleporter.create");
-        EmptyCommand emptyBiomeTPRandom = new EmptyCommand() {
-            @Override
-            public String getName(String argument) {
-                return getCommandName();
-            }
-        };
-        emptyBiomeTPRandom.setCommandName("Random", ArgumentType.FIXED);
-        emptyBiomeTPRandom.setCommandDescription(textComponent("This command is used to create a Teleporter, that random teleports you", infoColor));
-        emptyBiomeTPRandom.setPermissions("TPort.teleporter.create");
-        EmptyCommand emptyBiomeTP = new EmptyCommand() {
-            @Override
-            public String getName(String argument) {
-                return getCommandName();
-            }
-        };
-        emptyBiomeTP.setCommandName("BiomeTP", ArgumentType.FIXED);
-        emptyBiomeTP.addAction(emptyBiomeTPEmpty);
-        emptyBiomeTP.addAction(emptyBiomeTPWhitelist);
-        emptyBiomeTP.addAction(emptyBiomeTPBlacklist);
-        emptyBiomeTP.addAction(emptyBiomeTPPreset);
-        emptyBiomeTP.addAction(emptyBiomeTPRandom);
-        
-        EmptyCommand emptyFeatureTPFeatureMode = new EmptyCommand();
-        emptyFeatureTPFeatureMode.setCommandName("Mode", ArgumentType.OPTIONAL);
-        emptyFeatureTPFeatureMode.setCommandDescription(textComponent("This command is used to create a Teleporter, that searches the given feature with the given mode", infoColor));
-        emptyFeatureTPFeatureMode.setPermissions("TPort.teleporter.create");
-        EmptyCommand emptyFeatureTPFeature = new EmptyCommand();
-        emptyFeatureTPFeature.setCommandName("Feature", ArgumentType.OPTIONAL);
-        emptyFeatureTPFeature.setCommandDescription(textComponent("This command is used to create a Teleporter, that searches the given feature", infoColor));
-        emptyFeatureTPFeature.setTabRunnable(((args, player) -> Arrays.stream(FeatureTP.FeatureTPMode.values()).map(Enum::name).collect(Collectors.toList())));
-        emptyFeatureTPFeature.addAction(emptyFeatureTPFeatureMode);
-        emptyFeatureTPFeature.setPermissions("TPort.teleporter.create");
-        EmptyCommand emptyFeatureTP = new EmptyCommand() {
-            @Override
-            public String getName(String argument) {
-                return getCommandName();
-            }
-        };
-        emptyFeatureTP.setCommandName("FeatureTP", ArgumentType.FIXED);
-        emptyFeatureTP.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the FeatureTP GUI", infoColor));
-        emptyFeatureTP.setTabRunnable(((args, player) -> Arrays.stream(FeatureTP.FeatureType.values()).map(FeatureTP.FeatureType::name).collect(Collectors.toList())));
-        emptyFeatureTP.addAction(emptyFeatureTPFeature);
-        emptyFeatureTP.setPermissions("TPort.teleporter.create");
-        
-        EmptyCommand emptyHome = new EmptyCommand() {
-            @Override
-            public String getName(String argument) {
-                return getCommandName();
-            }
-        };
-        emptyHome.setCommandName("Home", ArgumentType.FIXED);
-        emptyHome.setCommandDescription(textComponent("This command is used to create a Teleporter, that teleports you home", infoColor));
-        emptyHome.setPermissions("TPort.teleporter.create");
-        
-        EmptyCommand emptyBack = new EmptyCommand() {
-            @Override
-            public String getName(String argument) {
-                return getCommandName();
-            }
-        };
-        emptyBack.setCommandName("Back", ArgumentType.FIXED);
-        emptyBack.setCommandDescription(textComponent("This command is used to create a Teleporter, that teleports you back", infoColor));
-        emptyBack.setPermissions("TPort.teleporter.create");
-        
-        EmptyCommand emptyPublicTPort = new EmptyCommand();
-        emptyPublicTPort.setCommandName("TPort name", ArgumentType.OPTIONAL);
-        emptyPublicTPort.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the given TPort", infoColor));
-        emptyPublicTPort.setPermissions("TPort.teleporter.create");
-        EmptyCommand emptyPublic = new EmptyCommand() {
-            @Override
-            public String getName(String argument) {
-                return getCommandName();
-            }
-        };
-        emptyPublic.setCommandName("Public", ArgumentType.FIXED);
-        emptyPublic.setCommandDescription(textComponent("This command is used to create a Teleporter, that opens the Public TPort GUI", infoColor));
-        emptyPublic.setTabRunnable(((args, player) -> {
-            Files tportData = GettingFiles.getFile("TPortData");
-            //noinspection ConstantConditions
-            return tportData.getKeys("public.tports").stream()
-                    .map(publicTPortSlot -> tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString()))
-                    .map(tportID -> getTPort(UUID.fromString(tportID)))
-                    .filter(Objects::nonNull)
-                    .map(TPort::getName)
-                    .collect(Collectors.toList());
-        }));
-        emptyPublic.addAction(emptyPublicTPort);
-        emptyPublic.setPermissions("TPort.teleporter.create");
-        
-        addAction(emptyTPort);
-        addAction(emptyPLTP);
-        addAction(emptyBiomeTP);
-        addAction(emptyFeatureTP);
-        addAction(emptyHome);
-        addAction(emptyBack);
-        addAction(emptyPublic);
+        if (Features.Feature.BackTP.isEnabled()) addAction(new Back());
+        if (Features.Feature.BiomeTP.isEnabled()) addAction(new com.spaceman.tport.commands.tport.teleporter.create.BiomeTP());
+        if (Features.Feature.FeatureTP.isEnabled()) addAction(new com.spaceman.tport.commands.tport.teleporter.create.FeatureTP());
+        if (Features.Feature.PLTP.isEnabled()) addAction(new PLTP());
+        if (Features.Feature.PublicTP.isEnabled()) addAction(new Public());
+        addAction(new Home());
+        addAction(new com.spaceman.tport.commands.tport.teleporter.create.TPort());
     }
     
     @Override
@@ -249,274 +55,90 @@ public class Create extends SubCommand {
          * /tport teleporter create <type> [data]
          *
          * /tport teleporter create TPort [player] [TPort name]
-         * /tport teleporter create biomeTP whitelist <biome...>
-         * /tport teleporter create biomeTP blacklist <biome...>
-         * /tport teleporter create biomeTP preset [preset]
+         * /tport teleporter create biomeTP whitelist [mode] <biome...>
+         * /tport teleporter create biomeTP blacklist [mode] <biome...>
+         * /tport teleporter create biomeTP preset [preset] [mode]
          * /tport teleporter create biomeTP random
          * /tport teleporter create biomeTP
-         * /tport teleporter create featureTP [featureType] [mode]
+         * /tport teleporter create featureTP [mode] [featureType]
          * /tport teleporter create back
          * /tport teleporter create PLTP <player>
          * /tport teleporter create home
          * /tport teleporter create public [TPort name]
          * */
         
-        if (args.length == 1) {
-            sendErrorTheme(player, "Usage: %s", "/tport teleporter create <type> [data...]");
-        } else if (args.length > 2) {
+        if (args.length > 2) {
             ItemStack is = player.getInventory().getItemInMainHand();
             if (is.getType().isAir()) {
-                sendErrorTheme(player, "You must hold an item in your main hand to turn it into a TPort Teleporter");
+                sendErrorTranslation(player, "tport.command.teleporter.create.noItem");
                 return;
             }
             if (is.getType().isEdible()) {
-                sendErrorTheme(player, "You can't turn an edible into a TPort Teleporter");
+                sendErrorTranslation(player, "tport.command.teleporter.create.noEdible");
                 return;
             }
-            Files tportData = getFile("TPortData");
             
-            if (args[2].equalsIgnoreCase("TPort")) {
-                String newPlayerName = null;
-                String tportName = null;
-                UUID newPlayerUUID = null;
-                String tportUUID = null;
-                if (args.length > 3) {
-                    Pair<String, UUID> profile = PlayerUUID.getProfile(args[3]);
-                    newPlayerName = profile.getLeft();
-                    newPlayerUUID = profile.getRight();
-                    if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-                        sendErrorTheme(player, "Could not find a player named %s", args[3]);
-                        return;
-                    }
-                }
-                if (args.length > 4) {
-                    TPort tport = TPortManager.getTPort(newPlayerUUID, args[4]);
-                    if (tport == null) {
-                        sendErrorTheme(player, "No TPort found called %s", args[4]);
-                        return;
-                    }
-                    tportName = tport.getName();
-                    tportUUID = tport.getTportID().toString();
-                }
-                createTeleporter(player, "TPort",
-                        (newPlayerName == null ? "" : "open " + newPlayerName), Main.getOrDefault(tportUUID, ""),
-                        new Pair<>("Player", newPlayerName), new Pair<>("TPort", tportName));
-            }
-            else if (args[2].equalsIgnoreCase("BiomeTP")) {
-                if (args.length == 3) {
-                    createTeleporter(player, "BiomeTP", "BiomeTP");
-                    return;
-                }
-                if (args[3].equalsIgnoreCase("Whitelist")) {
-                    if (args.length > 4) {
-                        
-                        ArrayList<String> whitelist = new ArrayList<>();
-                        for (int i = 4; i < args.length; i++) {
-                            String biomeName = args[i].toUpperCase();
-                            Biome biome;
-                            try {
-                                biome = Biome.valueOf(biomeName);
-                            } catch (IllegalArgumentException iae) {
-                                sendErrorTheme(player, "Biome %s does not exist", biomeName);
-                                return;
-                            }
-                            if (whitelist.contains(biome.name())) {
-                                sendErrorTheme(player, "Biome %s is already in your whitelist", biomeName);
-                                return;
-                            }
-                            
-                            whitelist.add(biome.name());
-                        }
-                        
-                        StringBuilder str = new StringBuilder();
-                        str.append("[");
-                        final int width = 2;
-                        int currWidth = 0;
-                        for (int i = 0; i < whitelist.size(); i++) {
-                            str.append(whitelist.get(i)).append(", ");
-                            currWidth++;
-                            if (currWidth == width && i + 1 < whitelist.size()) {
-                                currWidth = 0;
-                                str.append("\n          ");
-                            }
-                        }
-                        
-                        String biomes = Main.replaceLast(str.toString(), ", ", "") + "]";
-                        
-                        createTeleporter(player, "BiomeTP", "BiomeTP blacklist " + biomes.replace(",", "").replace("[", "").replace("]", ""),
-                                new Pair<>("SubType", "Whitelist"), new Pair<>("Biomes", biomes));
-                    } else {
-                        sendErrorTheme(player, "Usage: %s", "/tport teleporter BiomeTP whitelist <biome...>");
-                    }
-                } else if (args[3].equalsIgnoreCase("Blacklist")) {
-                    if (args.length > 4) {
-                        
-                        ArrayList<String> blacklist = new ArrayList<>();
-                        for (int i = 4; i < args.length; i++) {
-                            String biomeName = args[i].toUpperCase();
-                            Biome biome;
-                            try {
-                                biome = Biome.valueOf(biomeName);
-                            } catch (IllegalArgumentException iae) {
-                                sendErrorTheme(player, "Biome %s does not exist", biomeName);
-                                return;
-                            }
-                            if (blacklist.contains(biome.name())) {
-                                sendErrorTheme(player, "Biome %s is already in your blacklist", biomeName);
-                                return;
-                            }
-                            
-                            blacklist.add(biome.name());
-                        }
-                        
-                        StringBuilder str = new StringBuilder();
-                        str.append("[");
-                        final int width = 2;
-                        int currWidth = 0;
-                        for (int i = 0; i < blacklist.size(); i++) {
-                            str.append(blacklist.get(i)).append(", ");
-                            currWidth++;
-                            if (currWidth == width && i + 1 < blacklist.size()) {
-                                currWidth = 0;
-                                str.append("\n          ");
-                            }
-                        }
-                        
-                        String biomes = Main.replaceLast(str.toString(), ", ", "") + "]";
-                        
-                        createTeleporter(player, "BiomeTP", "BiomeTP blacklist " + biomes.replace(",", "").replace("[", "").replace("]", "")
-                                , new Pair<>("SubType", "Blacklist"), new Pair<>("Biomes", biomes));
-                    } else {
-                        sendErrorTheme(player, "Usage: %s", "/tport teleporter BiomeTP blacklist <biome...>");
-                    }
-                } else if (args[3].equalsIgnoreCase("Preset")) {
-                    if (args.length == 4) {
-                        createTeleporter(player, "BiomeTP", "BiomeTP preset", new Pair<>("SubType", "Preset"));
-                    } else {
-                        BiomeTP.BiomeTPPresets.Preset preset = BiomeTP.BiomeTPPresets.getPreset(args[4]);
-                        if (preset != null) {
-                            createTeleporter(player, "BiomeTP", "BiomeTP preset " + preset.getName()
-                                    , new Pair<>("SubType", "Preset"), new Pair<>("Preset", preset.getName()));
-                        } else {
-                            sendErrorTheme(player, "Preset %s does not exist", args[3]);
-                        }
-                    }
-                } else if (args[3].equalsIgnoreCase("Random")) {
-                    createTeleporter(player, "BiomeTP", "BiomeTP random", new Pair<>("SubType", "Random"));
-                } else {
-                    sendErrorTheme(player, "Usage: %s", "/tport teleporter BiomeTP [Whitelist|Blacklist|Preset|Random]");
-                }
-            }
-            else if (args[2].equalsIgnoreCase("FeatureTP")) {
-                
-                String type = null;
-                String mode = null;
-                
-                if (args.length > 3) {
-                    try {
-                        type = FeatureTP.FeatureType.valueOf(args[3]).name();
-                        mode = FeatureTP.FeatureTPMode.CLOSEST.name();
-                    } catch (IllegalArgumentException | NullPointerException error) {
-                        sendErrorTheme(player, "Feature %s does not exist", args[3]);
-                        return;
-                    }
-                }
-                if (args.length > 4) {
-                    try {
-                        mode = FeatureTP.FeatureTPMode.valueOf(args[4].toUpperCase()).name();
-                    } catch (IllegalArgumentException | NullPointerException error) {
-                        sendErrorTheme(player, "FeatureTP mode %s does not exist", args[4]);
-                        return;
-                    }
-                }
-                createTeleporter(player, "FeatureTP",
-                        "FeatureTP " + Main.getOrDefault(type, "") + " " + Main.getOrDefault(mode, ""),
-                        new Pair<>("Feature", type), new Pair<>("Mode", mode));
-            }
-            else if (args[2].equalsIgnoreCase("Back")) {
-                createTeleporter(player, "Back", "back");
-            }
-            else if (args[2].equalsIgnoreCase("PLTP")) {
-                if (args.length > 3) {
-                    Pair<String, UUID> profile = PlayerUUID.getProfile(args[3]);
-                    String newPlayerName = profile.getLeft();
-                    UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[3]);
-                    if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-                        sendErrorTheme(player, "Could not find a player named %s", args[3]);
-                        return;
-                    }
-                    createTeleporter(player, "PLTP", "PLTP tp " + newPlayerName, new Pair<>("Player", newPlayerName));
-                } else {
-                    sendErrorTheme(player, "Usage: %s", "/tport teleporter create PLTP <player>");
-                }
-            }
-            else if (args[2].equalsIgnoreCase("Home")) {
-                createTeleporter(player, "Home", "home");
-            }
-            else if (args[2].equalsIgnoreCase("Public")) {
-                String tportName = null;
-                if (args.length > 3) {
-                    TPort tport = Open.getPublicTPort(args[3]);
-                    if (tport == null) {
-                        sendErrorTheme(player, "No public TPort found called %s", args[3]);
-                        return;
-                    }
-                    tportName = tport.getName();
-                }
-                createTeleporter(player, "Public", "public " + tportName, new Pair<>("TPort", tportName));
-            }
-            else {
-                sendErrorTheme(player, "%s is not a Teleporter type", args[2]);
+            if (!runCommands(this.getActions(), args[2], args, player)) {
+                sendErrorTranslation(player, "tport.command.teleporter.create.noValidType", args[2]);
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport teleporter create <type> [data...]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport teleporter create <type> [data...]");
         }
     }
     
-    @SafeVarargs
-    private final void createTeleporter(Player player, String type, String command, Pair<String, String>... pairs) {
-        createTeleporter(player, type, command, null, pairs);
+    public static void createTeleporter(Player player, String type, String command) {
+        createTeleporter(player, type, command, null, Collections.emptyList());
     }
     
-    @SafeVarargs
-    private final void createTeleporter(Player player, String type, String command, String tportUUID, Pair<String, String>... pairs) {
+    public static void createTeleporter(Player player, String type, String command, Collection<Message> addedLore) {
+        createTeleporter(player, type, command, null, addedLore);
+    }
+    
+    public static void createTeleporter(Player player, String type, String command, Collection<Pair<String, String>> addedData, Collection<Message> addedLore) {
         ItemStack is = player.getInventory().getItemInMainHand();
         Teleporter.removeTeleporter(is);
-        ItemMeta im = is.getItemMeta();
-        
-        if (im == null) {
-            sendErrorTheme(player, "Could not turn it into a TPort Teleporter");
-            return;
-        }
-        List<String> lore = im.getLore();
-        if (lore == null) {
-            lore = new ArrayList<>();
-        }
         
         int size = 3;
+        ArrayList<Message> fancyLore = new ArrayList<>();
         
-        lore.add(Teleporter.teleporterTitle);
-        lore.add("");
-        lore.add(ChatColor.GRAY + "Type: " + type);
-        
-        for (Pair<String, String> pair : pairs) {
-            if (pair.getRight() != null) {
-                String[] split = pair.getRight().split("\n");
-                for (int i = 0; i < split.length; i++) {
-                    String part = split[i];
-                    lore.add(ChatColor.GRAY + (i == 0 ? pair.getLeft() + ": " : "") + part);
-                    size++;
-                }
-            }
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        if (playerLang != null) { //if player has no custom language, translate it
+            fancyLore.add(MessageUtils.translateMessage(formatTranslation(titleColor, titleColor, "tport.command.teleporter.create.format.title"), playerLang));
+            fancyLore.add(new Message());
+            fancyLore.add(MessageUtils.translateMessage(formatTranslation(infoColor, varInfoColor, "tport.command.teleporter.create.format.type", type), playerLang));
+            
+            addedLore = MessageUtils.translateMessage(addedLore, playerLang);
+        } else {
+            fancyLore.add(formatTranslation(titleColor, titleColor, "tport.command.teleporter.create.format.title"));
+            fancyLore.add(new Message());
+            fancyLore.add(formatTranslation(infoColor, varInfoColor, "tport.command.teleporter.create.format.type", type));
         }
+        
+        for (Message m : addedLore) {
+            fancyLore.add(m);
+            size++;
+        }
+        
+        ColorTheme theme = ColorTheme.getTheme(player);
+        MessageUtils.setCustomItemData(is, theme, null, fancyLore);
+        
+        ItemMeta im;
+        if ((im = is.getItemMeta()) == null) {
+            sendErrorTranslation(player, "tport.command.teleporter.create.error");
+            return;
+        }
+        
+        im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "teleporterVersion"), PersistentDataType.INTEGER, 2);
         
         im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "teleporterCommand"), PersistentDataType.STRING, StringUtils.normalizeSpace(command));
         im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "teleporterSize"), PersistentDataType.INTEGER, size);
-        if (tportUUID != null) {
-            im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "teleporterTPortUUID"), PersistentDataType.STRING, tportUUID);
+        if (addedData != null) {
+            for (Pair<String, String> addedDatum : addedData) {
+                if (addedDatum.getRight() != null)
+                    im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), addedDatum.getLeft()), PersistentDataType.STRING, addedDatum.getRight());
+            }
         }
         
-        im.setLore(lore);
         is.setItemMeta(im);
     }
 }

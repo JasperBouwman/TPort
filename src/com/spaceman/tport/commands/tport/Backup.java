@@ -1,13 +1,13 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.commands.tport.backup.Load;
 import com.spaceman.tport.commands.tport.backup.Save;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
+import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
 public class Backup extends SubCommand {
     
@@ -27,6 +27,6 @@ public class Backup extends SubCommand {
                 return;
             }
         }
-        sendErrorTheme(player, "Usage: %s", "/tport backup <save|load|auto> <name>|[state|count]");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport backup <save|load|auto> <name>|[state|count]");
     }
 }

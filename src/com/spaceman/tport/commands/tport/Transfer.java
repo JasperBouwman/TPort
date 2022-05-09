@@ -1,11 +1,14 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.commandHander.CommandTemplate;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.CommandTemplate;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.transfer.*;
+import com.spaceman.tport.commands.tport.transfer.Accept;
+import com.spaceman.tport.commands.tport.transfer.Reject;
+import com.spaceman.tport.commands.tport.transfer.Revoke;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
 public class Transfer extends SubCommand {
     
@@ -30,6 +33,6 @@ public class Transfer extends SubCommand {
                 return;
             }
         }
-        sendErrorTheme(player, "Usage: %s", "/tport transfer <offer|accept|reject|list>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport transfer <offer|accept|reject|list>");
     }
 }

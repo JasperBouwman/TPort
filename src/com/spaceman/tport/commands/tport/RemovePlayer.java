@@ -1,9 +1,8 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
@@ -24,9 +23,7 @@ public class RemovePlayer extends SubCommand {
     public RemovePlayer() {
         emptyPlayer = new EmptyCommand();
         emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
-        emptyPlayer.setCommandDescription(TextComponent.textComponent("This command is used to remove a player from the Main TPort GUI, " +
-                "this will also remove all TPorts of the given player and can not be undone. " +
-                "Mostly used when a player is not coming back and you want to clear out the Main TPort GUI", ColorType.infoColor));
+        emptyPlayer.setCommandDescription(formatInfoTranslation("tport.command.removePlayer.player.commandDescription"));
         emptyPlayer.setPermissions("TPort.admin.removePlayer");
         addAction(emptyPlayer);
     }
@@ -50,7 +47,7 @@ public class RemovePlayer extends SubCommand {
         }
         
         if (args.length != 2) {
-            sendErrorTheme(player, "Usage: %s", "/tport removePlayer <player>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport removePlayer <player>");
             return;
         }
         Files tportData = GettingFiles.getFile("TPortData");
@@ -58,20 +55,21 @@ public class RemovePlayer extends SubCommand {
         String newPlayerName = args[1];
         UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
         if (newPlayerUUID == null) {
-            sendErrorTheme(player, "Could not find a player named %s", newPlayerName);
+            sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
             return;
         }
-        if (Bukkit.getPlayer(newPlayerUUID) != null) {
-            sendErrorTheme(player, "Player %s has to be offline", newPlayerName);
+        Player newPlayer = Bukkit.getPlayer(newPlayerUUID);
+        if (newPlayer != null) {
+            sendErrorTranslation(player, "tport.command.removePlayer.player.isOnline", newPlayer);
             return;
         }
         
         if (tportData.getConfig().contains("tport." + newPlayerUUID)) {
             tportData.getConfig().set("tport." + newPlayerUUID, null);
             tportData.saveConfig();
-            sendSuccessTheme(player, "Successfully removed %s from the TPort plugin", newPlayerName);
+            sendSuccessTranslation(player, "tport.command.removePlayer.player.succeeded", newPlayerName);
         } else {
-            sendInfoTheme(player, "Player %s is not registered in the TPort plugin", newPlayerName);
+            sendInfoTranslation(player, "tport.command.removePlayer.player.alreadyRemoved", newPlayerName);
         }
     }
 }

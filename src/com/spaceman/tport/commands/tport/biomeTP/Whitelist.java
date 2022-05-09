@@ -1,43 +1,43 @@
 package com.spaceman.tport.commands.tport.biomeTP;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.BiomeTP;
 import com.spaceman.tport.cooldown.CooldownManager;
-import org.bukkit.block.Biome;
+import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.spaceman.tport.commands.tport.BiomeTP.biomeTP;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Whitelist extends SubCommand {
     
     public Whitelist() {
         EmptyCommand emptyWhitelist = new EmptyCommand();
-        emptyWhitelist.setCommandName("whitelist", ArgumentType.REQUIRED);
-        emptyWhitelist.setCommandDescription(textComponent("This command is used to teleport to a random biome in the given whitelist", infoColor));
+        emptyWhitelist.setCommandName("biome", ArgumentType.REQUIRED);
+        emptyWhitelist.setCommandDescription(formatInfoTranslation("tport.command.biomeTP.whitelist.biome.commandDescription"));
         emptyWhitelist.setTabRunnable(((args, player) -> {
-            List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toUpperCase).collect(Collectors.toList());
-            return Arrays.stream(Biome.values()).filter(biome -> !biomeList.contains(biome.name())).map(Enum::name).collect(Collectors.toList());
+            List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toLowerCase).toList();
+            return BiomeTP.availableBiomes(player.getWorld()).stream().filter(name -> biomeList.stream().noneMatch(name::equals)).toList();
         }));
         emptyWhitelist.setLooped(true);
         emptyWhitelist.setPermissions("TPort.biomeTP.whitelist", "TPort.biomeTP.biome.<biome...>");
+        emptyWhitelist.permissionsOR(false);
         addAction(emptyWhitelist);
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toUpperCase).collect(Collectors.toList());
-        return Arrays.stream(Biome.values()).filter(biome -> !biomeList.contains(biome.name())).map(Enum::name).collect(Collectors.toList());
+        List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toLowerCase).toList();
+        return BiomeTP.availableBiomes(player.getWorld()).stream().filter(name -> biomeList.stream().noneMatch(name::equals)).toList();
     }
     
     @Override
@@ -45,7 +45,7 @@ public class Whitelist extends SubCommand {
         // tport biomeTP whitelist <biome...>
         
         if (args.length == 2) {
-            sendErrorTheme(player, "Usage: %s", "/tport biomeTP whitelist <biome...>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport biomeTP whitelist <biome...>");
         } else {
             if (!hasPermission(player, true, true, "TPort.biomeTP.whitelist")) {
                 return;
@@ -54,24 +54,33 @@ public class Whitelist extends SubCommand {
                 return;
             }
             
-            List<Biome> whitelist = new ArrayList<>();
+            List<String> possibleBiomes = BiomeTP.availableBiomes(player.getWorld());
+            List<String> whitelist = new ArrayList<>();
             for (int i = 2; i < args.length; i++) {
+                String biomeName = args[i].toLowerCase();
                 
-                String biomeName = args[i].toUpperCase();
-                Biome biome;
-                try {
-                    biome = Biome.valueOf(biomeName);
-                } catch (IllegalArgumentException iae) {
-                    sendErrorTheme(player, "Biome %s does not exist", biomeName);
-                    return;
+                if (!possibleBiomes.contains(biomeName)) {
+                    sendErrorTranslation(player, "tport.command.biomeTP.whitelist.biome.worldNotGenerateBiome", biomeName);
+                    continue;
                 }
                 
-                if (!hasPermission(player, true, true, "TPort.biomeTP.biome." + biome.name())) {
-                    return;
+                if (!hasPermission(player, true, true, "TPort.biomeTP.biome." + biomeName)) {
+                    continue;
                 }
-                whitelist.add(biome);
+                
+                if (whitelist.contains(biomeName)) {
+                    sendErrorTranslation(player, "tport.command.biomeTP.blacklist.biome.biomeAlreadyInList", new BiomeEncapsulation(biomeName));
+                    continue;
+                }
+                
+                whitelist.add(biomeName);
             }
-            biomeTP(player, whitelist);
+            if (whitelist.isEmpty()) {
+                sendErrorTranslation(player, "tport.command.biomeTP.whitelist.biome.noBiomesLeft");
+                return;
+            }
+            
+            biomeTP(player, Mode.getDefMode(player.getUniqueId()), whitelist);
         }
     }
 }

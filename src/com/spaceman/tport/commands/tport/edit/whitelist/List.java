@@ -1,9 +1,7 @@
 package com.spaceman.tport.commands.tport.edit.whitelist;
 
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -11,45 +9,59 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 
 public class List extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to list all players in the whitelist of the given TPort", ColorTheme.ColorType.infoColor));
+        return formatInfoTranslation("tport.command.edit.whitelist.list.commandDescription");
     }
     
     @Override
     public void run(String[] args, Player player) {
         // tport edit <TPort name> whitelist list
         
+        if (args.length != 4) {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> whitelist list");
+            return;
+        }
+        
         TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
         
         if (tport == null) {
-            sendErrorTheme(player, "No TPort found called %s", args[1]);
+            sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
             return;
         }
-        ArrayList<UUID> list = tport.getWhitelist();
-    
-        ColorTheme theme = ColorTheme.getTheme(player);
-    
-        Message message = new Message();
-        message.addText("Players in the whitelist of the TPort " + theme.getVarInfoColor() + args[1] + theme.getInfoColor() + ": ", theme.getInfoColor());
+        ArrayList<UUID> whitelist = tport.getWhitelist();
         boolean color = true;
-        message.addText("");
         
-        for (UUID tmp : list) {
+        Message playerList = new Message();
+        for (int i = 0; i < whitelist.size(); i++) {
             if (color) {
-                message.addText(PlayerUUID.getPlayerName(tmp), theme.getVarInfoColor());
+                playerList.addMessage(formatTranslation(varInfoColor, varInfoColor, "%s",
+                        asPlayer(whitelist.get(i))));
             } else {
-                message.addText(PlayerUUID.getPlayerName(tmp), theme.getVarInfo2Color());
+                playerList.addMessage(formatTranslation(varInfo2Color, varInfo2Color, "%s",
+                        asPlayer(whitelist.get(i))));
             }
-            message.addText(", ", theme.getInfoColor());
+            
+            if (i + 2 == whitelist.size()) playerList.addMessage(formatInfoTranslation("tport.command.edit.whitelist.list.succeeded.lastDelimiter"));
+            else                           playerList.addMessage(formatInfoTranslation("tport.command.edit.whitelist.list.succeeded.delimiter"));
+            
             color = !color;
         }
-        message.removeLast();
-        message.sendMessage(player);
+        playerList.removeLast();
+        
+        if (whitelist.isEmpty()) {
+            sendInfoTranslation(player, "tport.command.edit.whitelist.list.succeeded.empty", tport);
+        } else if (whitelist.size() == 1) {
+            sendInfoTranslation(player, "tport.command.edit.whitelist.list.succeeded.singular", tport, playerList);
+        } else {
+            sendInfoTranslation(player, "tport.command.edit.whitelist.list.succeeded.multiple", tport, playerList);
+        }
     }
 }

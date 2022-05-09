@@ -1,19 +1,39 @@
 package com.spaceman.tport.tpEvents;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.commands.tport.Back;
+import com.spaceman.tport.commands.tport.Delay;
+import com.spaceman.tport.commands.tport.Features;
+import com.spaceman.tport.commands.tport.pltp.Offset;
+import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.TextType;
+import com.spaceman.tport.fancyMessage.events.ClickEvent;
+import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.tpEvents.animations.SimpleAnimation;
 import com.spaceman.tport.tpEvents.restrictions.NoneRestriction;
+import com.spaceman.tport.tport.TPort;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.Location;
+import org.bukkit.TreeSpecies;
+import org.bukkit.entity.Boat;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
+import static com.spaceman.tport.commands.tport.Back.prevTPorts;
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varErrorColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatSuccessTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class TPEManager {
@@ -27,14 +47,14 @@ public class TPEManager {
         for (UUID uuid : newLocAnimations.keySet()) {
             ParticleAnimation pa = newLocAnimations.get(uuid);
             pa.save(file.getConfig().createSection("ParticleAnimations.players." + uuid.toString() + ".new.data"));
-            file.getConfig().set("ParticleAnimations.players." + uuid.toString() + ".new.name", pa.getAnimationName());
-            file.getConfig().set("ParticleAnimations.players." + uuid.toString() + ".new.enabled", pa.isEnabled());
+            file.getConfig().set("ParticleAnimations.players." + uuid + ".new.name", pa.getAnimationName());
+            file.getConfig().set("ParticleAnimations.players." + uuid + ".new.enabled", pa.isEnabled());
         }
         for (UUID uuid : oldLocAnimations.keySet()) {
             ParticleAnimation pa = oldLocAnimations.get(uuid);
             pa.save(file.getConfig().createSection("ParticleAnimations.players." + uuid.toString() + ".old.data"));
-            file.getConfig().set("ParticleAnimations.players." + uuid.toString() + ".old.name", pa.getAnimationName());
-            file.getConfig().set("ParticleAnimations.players." + uuid.toString() + ".old.enabled", pa.isEnabled());
+            file.getConfig().set("ParticleAnimations.players." + uuid + ".old.name", pa.getAnimationName());
+            file.getConfig().set("ParticleAnimations.players." + uuid + ".old.enabled", pa.isEnabled());
         }
         for (UUID uuid : tpRestrictions.keySet()) {
             TPRestriction type = tpRestrictions.get(uuid);
@@ -67,7 +87,7 @@ public class TPEManager {
                     Main.getInstance().getLogger().warning("Could not find particle animation " + file.getConfig().getString("ParticleAnimations.players." + uuidS + ".new.name"));
                 }
             }
-    
+            
             if (file.getConfig().contains("ParticleAnimations.players." + uuidS + ".old")) {
                 ParticleAnimation oldPA = ParticleAnimation.getNewAnimation(file.getConfig().getString("ParticleAnimations.players." + uuidS + ".old.name"));
                 if (oldPA != null) {
@@ -97,7 +117,7 @@ public class TPEManager {
         return pa;
     }
     
-    public static void setTPRestriction(UUID uuid, @Nullable TPRestriction type) {
+    public static TPRestriction setTPRestriction(UUID uuid, @Nullable TPRestriction type) {
         if (type == null) {
             type = new NoneRestriction();
         }
@@ -105,6 +125,7 @@ public class TPEManager {
             tpRestrictions.get(uuid).disable();
         }
         tpRestrictions.put(uuid, type);
+        return type;
     }
     
     @Nonnull
@@ -125,13 +146,12 @@ public class TPEManager {
     
     private static TPRestriction getUnmodifiedTPRestriction(UUID uuid) {
         if (!tpRestrictions.containsKey(uuid)) {
-            setTPRestriction(uuid, null);
+            return setTPRestriction(uuid, null);
         }
         return tpRestrictions.get(uuid);
     }
     
     public static TPRestriction getTPRestriction(UUID uuid) {
-    
         if (getFile("TPortConfig").getConfig().getBoolean("restriction.permission", false)) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
@@ -168,5 +188,136 @@ public class TPEManager {
             return true;
         }
         return false;
+    }
+    
+    
+    
+    
+    @FunctionalInterface
+    public interface RequestedRunnable {
+        void send(Player player, int delay, Message tickMessage, double seconds, Message secondMessage);
+    }
+    
+    public static void tpPlayerToPlayer(Player player, Player toPlayer, Runnable postRestrictionMessage, RequestedRunnable requestedRunnable) {
+        prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.PLAYER, "playerUUID", toPlayer.getUniqueId().toString(), "prevLoc", player.getLocation()));
+        requestTeleportPlayer(player, Offset.getPLTPOffset(toPlayer).applyOffset(toPlayer.getLocation()), postRestrictionMessage, requestedRunnable);
+    }
+    
+    public static void tpPlayerToTPort(Player player, TPort tport, Runnable postRestrictionMessage, RequestedRunnable requestedRunnable) {
+        prevTPorts.put(player.getUniqueId(), new Back.PrevTPort("TPORT", "tportName", tport.getName(), "tportUUID", tport.getTportID(), "tportOwner", tport.getOwner(), "prevLoc", player.getLocation()));
+        requestTeleportPlayer(player, tport.getLocation(), postRestrictionMessage, requestedRunnable);
+    }
+    
+    public static void requestTeleportPlayer(Player player, Location l, Runnable successRunnable, RequestedRunnable requestedRunnable) {
+        if (TPEManager.hasTPRequest(player.getUniqueId())) {
+            Message hereMessage = new Message();
+            hereMessage.addText(textComponent("tport.events.inventoryClick.alreadyRequested.here", varErrorColor,
+                    new HoverEvent(textComponent("/tport cancel", varInfoColor)), ClickEvent.runCommand("/tport cancel")).setType(TextType.TRANSLATE));
+            sendErrorTranslation(player, "tport.events.inventoryClick.alreadyRequested", hereMessage);
+            return;
+        }
+        int delay = Delay.delayTime(player);
+        if (delay == 0) {
+            teleportPlayer(player, l);
+            successRunnable.run();
+        } else {
+            double seconds = delay / 20D;
+            Message secondMessage;
+            if (seconds == 1) secondMessage = formatSuccessTranslation("tport.command.second");
+            else secondMessage = formatSuccessTranslation("tport.command.seconds");
+            Message tickMessage;
+            if (delay == 1) tickMessage = formatSuccessTranslation("tport.command.minecraftTick");
+            else tickMessage = formatSuccessTranslation("tport.command.minecraftTicks");
+            
+            TPRestriction tpRestriction = TPEManager.getTPRestriction(player.getUniqueId());
+            if (tpRestriction == null) {
+                registerTP(player.getUniqueId(),
+                        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                            teleportPlayer(Bukkit.getPlayer(player.getUniqueId()), l);
+                            successRunnable.run();
+                        }, delay).getTaskId());
+            } else {
+                tpRestriction.start(player, registerTP(player.getUniqueId(),
+                        Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                            if (tpRestriction.shouldTeleport(player)) {
+                                teleportPlayer(Bukkit.getPlayer(player.getUniqueId()), l);
+                                successRunnable.run();
+                            }
+                            cancelTP(player.getUniqueId());
+                        }, delay).getTaskId())
+                );
+            }
+            requestedRunnable.send(player, delay, tickMessage, seconds, secondMessage);
+        }
+    }
+    
+    private static void teleportPlayer(@Nullable Player player, Location l) {
+        if (player == null) return;
+        
+        ArrayList<LivingEntity> slaves = new ArrayList<>();
+        for (Entity e : player.getWorld().getEntities()) {
+            if (e instanceof LivingEntity livingEntity) {
+                if (livingEntity.isLeashed()) {
+                    if (livingEntity.getLeashHolder() instanceof Player) {
+                        if (livingEntity.getLeashHolder().getUniqueId().equals(player.getUniqueId())) {
+                            slaves.add(livingEntity);
+                            livingEntity.setLeashHolder(null);
+                        }
+                    }
+                }
+            }
+        }
+        
+        LivingEntity horse = null;
+        TreeSpecies boatType = null;
+        Entity sailor = null;
+        if (player.getVehicle() instanceof LivingEntity) {
+            horse = (LivingEntity) player.getVehicle();
+        } else if (player.getVehicle() instanceof Boat b) {
+            boatType = b.getWoodType();
+            if (b.getPassengers().size() > 1) {
+                sailor = b.getPassengers().get(1);
+                sailor.leaveVehicle();
+                sailor.teleport(l);
+            }
+            b.remove();
+        }
+        
+        boolean showAnimation = Features.Feature.ParticleAnimation.isEnabled();
+        
+        if (showAnimation) TPEManager.getOldLocAnimation(player.getUniqueId()).showIfEnabled(player, player.getLocation().clone());
+        if (!player.getWorld().equals(l.getWorld())) {
+            player.teleport(l);
+        }
+        player.teleport(l);
+        TPEManager.removeTP(player.getUniqueId());
+        if (showAnimation) TPEManager.getNewLocAnimation(player.getUniqueId()).showIfEnabled(player, l.clone());
+        
+        try {
+            if (horse != null) {
+                horse.teleport(player);
+                horse.addPassenger(player);
+            } else if (boatType != null) {
+                Boat b = player.getWorld().spawn(player.getLocation(), Boat.class);
+                b.setWoodType(boatType);
+                b.teleport(player);
+                b.addPassenger(player);
+                if (sailor != null) {
+                    sailor.teleport(player);
+                    b.addPassenger(sailor);
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        
+        for (LivingEntity e : slaves) {
+            try {
+                e.teleport(player);
+                e.setLeashHolder(player);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 }

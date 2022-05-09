@@ -1,8 +1,7 @@
 package com.spaceman.tport.fancyMessage.events;
 
+import com.google.gson.JsonObject;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
-import com.spaceman.tport.fancyMessage.Message;
-import org.json.simple.JSONObject;
 
 public class ScoreEvent implements TextEvent {
     
@@ -30,10 +29,10 @@ public class ScoreEvent implements TextEvent {
     }
     
     @Override
-    public JSONObject translateJSON(ColorTheme theme) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("name", name);
-        jsonObject.put("objective", objective);
+    public JsonObject translateJSON(ColorTheme theme) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("name", name);
+        jsonObject.addProperty("objective", objective);
         return jsonObject;
     }
     

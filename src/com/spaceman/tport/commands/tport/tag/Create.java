@@ -1,15 +1,12 @@
 package com.spaceman.tport.commands.tport.tag;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.Tag;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Create extends SubCommand {
     
@@ -18,7 +15,7 @@ public class Create extends SubCommand {
     public Create() {
         emptyTag = new EmptyCommand();
         emptyTag.setCommandName("tag", ArgumentType.REQUIRED);
-        emptyTag.setCommandDescription(textComponent("This command is used to create your own tag", infoColor));
+        emptyTag.setCommandDescription(formatInfoTranslation("tport.command.tag.create.tag.commandDescription"));
         emptyTag.setPermissions("TPort.tag.create", "TPort.admin.tag");
         addAction(emptyTag);
     }
@@ -34,13 +31,13 @@ public class Create extends SubCommand {
         if (args.length == 3) {
             String tag = Tag.getTag(args[2]);
             if (tag != null) {
-                sendErrorTheme(player, "Tag %s already exist", tag);
+                sendErrorTranslation(player, "tport.command.tag.create.tag.alreadyExist", tag);
                 return;
             }
             Tag.createTag(args[2]);
-            sendSuccessTheme(player, "Successfully created the tag %s", args[2]);
+            sendSuccessTranslation(player, "tport.command.tag.create.tag.succeeded", args[2]);
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport tag create <tag>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport tag create <tag>");
         }
     }
 }

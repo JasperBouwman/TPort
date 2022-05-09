@@ -9,7 +9,7 @@ import java.util.Set;
 
 public abstract class TPRestriction {
     
-    private static HashMap<String, RestrictionCreator> restrictions = new HashMap<>();
+    private static final HashMap<String, RestrictionCreator> restrictions = new HashMap<>();
     
     public static Set<String> getRestrictions() {
         return restrictions.keySet();

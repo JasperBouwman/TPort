@@ -1,12 +1,11 @@
 package com.spaceman.tport.tpEvents.restrictions;
 
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.tpEvents.TPRestriction;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.commandHander.SubCommand.lowerCaseFirst;
+import static com.spaceman.tport.commandHandler.SubCommand.lowerCaseFirst;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 
 public class NoneRestriction extends TPRestriction {
     
@@ -32,6 +31,6 @@ public class NoneRestriction extends TPRestriction {
     
     @Override
     public Message getDescription() {
-        return new Message(TextComponent.textComponent("With this type of TP restriction you can do everything", ColorTheme.ColorType.infoColor));
+        return formatInfoTranslation("tport.tpEvents.restrictions.noneRestriction.description");
     }
 }

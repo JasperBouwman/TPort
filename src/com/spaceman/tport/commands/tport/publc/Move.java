@@ -1,8 +1,8 @@
 package com.spaceman.tport.commands.tport.publc;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.tport.TPort;
@@ -13,19 +13,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
+@SuppressWarnings("ConstantConditions")
 public class Move extends SubCommand {
     
     public static final EmptyCommand emptySlot = new EmptyCommand();
     
     public Move() {
         emptySlot.setTabRunnable((args, player) -> {
-    
             ArrayList<String> list = new ArrayList<>();
             if (emptySlot.hasPermissionToRun(player, false)) {
                 Files tportData = GettingFiles.getFile("TPortData");
@@ -47,17 +44,19 @@ public class Move extends SubCommand {
             return list;
         });
         emptySlot.setCommandName("slot", ArgumentType.REQUIRED);
-        emptySlot.setCommandDescription(textComponent("This command is used to swap the given Public TPort with the Public TPort that is on the given slot", infoColor));
+        emptySlot.setCommandDescription(formatInfoTranslation("tport.command.public.move.slot.commandDescription"));
         emptySlot.setPermissions("TPort.public.move", "TPort.admin.public");
-        EmptyCommand emptyTPort = new EmptyCommand(){
+        
+        EmptyCommand emptyTPort = new EmptyCommand() {
             @Override
             public String getName(String argument) {
                 return "";
             }
         };
         emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyTPort.setCommandDescription(textComponent("This command is used to swap the first given Public TPort with the second given Public TPort", infoColor));
+        emptyTPort.setCommandDescription(formatInfoTranslation("tport.command.public.move.TPort.commandDescription"));
         emptyTPort.setPermissions(emptySlot.getPermissions());
+        
         addAction(emptySlot);
         addAction(emptyTPort);
     }
@@ -104,15 +103,15 @@ public class Move extends SubCommand {
                                 TPort tport2 = getTPort(UUID.fromString(tportID2));
                                 if (tport2 == null) {
                                     tportData.getConfig().set("public.tports." + slot, tportID);
-                                    sendSuccessTheme(player, "Successfully moved Public TPort %s to slot %s", tport.getName(), String.valueOf(slot + 1));
+                                    sendSuccessTranslation(player, "tport.command.public.move.succeededMoved", tport, String.valueOf(slot + 1));
                                 } else {
                                     tportData.getConfig().set("public.tports." + publicTPortSlot, tportData.getConfig().getString("public.tports." + slot));
                                     tportData.getConfig().set("public.tports." + slot, tportID);
-                                    sendSuccessTheme(player, "Successfully swapped Public TPort %s with Public TPort %s", tport.getName(), tport2.getName());
+                                    sendSuccessTranslation(player, "tport.command.public.move.succeeded", tport.parseAsPublic(true), tport2.parseAsPublic(true));
                                 }
                                 tportData.saveConfig();
                             } else {
-                                sendErrorTheme(player, "There is no Public TPort at slot %s", String.valueOf(slot + 1));
+                                sendErrorTranslation(player, "tport.command.public.move.TPortSlotNotFound", String.valueOf(slot + 1));
                             }
                         } catch (NumberFormatException nfe) {
                             
@@ -124,21 +123,21 @@ public class Move extends SubCommand {
                                     if (tport2.getName().equalsIgnoreCase(args[3])) {
                                         tportData.getConfig().set("public.tports." + publicTPortSlot, tportData.getConfig().getString("public.tports." + publicTPortSlot2));
                                         tportData.getConfig().set("public.tports." + publicTPortSlot2, tportID);
-                                        sendSuccessTheme(player, "Successfully swapped Public TPort %s with Public TPort %s", tport.getName(), tport2.getName());
+                                        sendSuccessTranslation(player, "tport.command.public.move.succeeded", tport.parseAsPublic(true), tport2.parseAsPublic(true));
                                         tportData.saveConfig();
                                         return;
                                     }
                                 }
                             }
-                            sendErrorTheme(player, "No public TPort found called %s", args[3]);
+                            sendErrorTranslation(player, "tport.command.public.TPortNotFound", args[3]);
                         }
                         return;
                     }
                 }
             }
-            sendErrorTheme(player, "No public TPort found called %s", args[2]);
+            sendErrorTranslation(player, "tport.command.public.TPortNotFound", args[2]);
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport public move <TPort name> <slot|TPort name>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public move <TPort name> <slot|TPort name>");
         }
     }
 }

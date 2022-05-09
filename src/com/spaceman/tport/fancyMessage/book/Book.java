@@ -1,5 +1,7 @@
 package com.spaceman.tport.fancyMessage.book;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import io.netty.buffer.ByteBuf;
@@ -8,8 +10,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
@@ -84,13 +84,32 @@ public class Book {
         try {
             String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
             Object nmsPlayer = player.getClass().getMethod("getHandle").invoke(player);
-            Object connection = nmsPlayer.getClass().getField("playerConnection").get(nmsPlayer);
+            Object connection = nmsPlayer.getClass().getField("b").get(nmsPlayer);
             
-            Class<?> packetDataSerializer = Class.forName("net.minecraft.server." + version + ".PacketDataSerializer");
-            Constructor<?> packetDataSerializerConstructor = packetDataSerializer.getConstructor(ByteBuf.class);
-            Class<?> packetPlayOutCustomPayload = Class.forName("net.minecraft.server." + version + ".PacketPlayOutCustomPayload");
-            
-            if (Integer.parseInt(version.split("_")[1]) >= 14) {
+            if (Integer.parseInt(version.split("_")[1]) >= 18) {
+                Class enumHandClass = Class.forName("net.minecraft.world.EnumHand");
+                Field mainHand = enumHandClass.getDeclaredField("a");
+                mainHand.setAccessible(true);
+                
+                Object openBook = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenBook")
+                        .getConstructor(enumHandClass)
+                        .newInstance(mainHand.get(null));
+                
+                connection.getClass().getMethod("a", Class.forName("net.minecraft.network.protocol.Packet"))
+                        .invoke(connection, openBook);
+                
+            } else if (Integer.parseInt(version.split("_")[1]) >= 17) {
+                Class enumHandClass = Class.forName("net.minecraft.world.EnumHand");
+                Field mainHand = enumHandClass.getDeclaredField("a");
+                mainHand.setAccessible(true);
+                
+                Object openBook = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenBook")
+                        .getConstructor(enumHandClass)
+                        .newInstance(mainHand.get(null));
+                
+                connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.network.protocol.Packet"))
+                        .invoke(connection, openBook);
+            } else if (Integer.parseInt(version.split("_")[1]) >= 14) {
 //                ((CraftPlayer)player).getHandle().a(new net.minecraft.server.v1_14_R1.ItemStack(Items.WRITTEN_BOOK), EnumHand.MAIN_HAND);
 //                ((CraftPlayer)player).getHandle().playerConnection.sendPacket(new PacketPlayOutOpenBook(EnumHand.MAIN_HAND));
                 
@@ -105,6 +124,10 @@ public class Book {
                         .invoke(connection, openBook);
                 
             } else if (Integer.parseInt(version.split("_")[1]) > 12) {
+                Class<?> packetDataSerializer = Class.forName("net.minecraft.server." + version + ".PacketDataSerializer");
+                Constructor<?> packetDataSerializerConstructor = packetDataSerializer.getConstructor(ByteBuf.class);
+                Class<?> packetPlayOutCustomPayload = Class.forName("net.minecraft.server." + version + ".PacketPlayOutCustomPayload");
+                
                 Constructor<?> minecraftKeyConstructor = Class.forName("net.minecraft.server." + version + ".MinecraftKey").getConstructor(String.class);
                 
                 Constructor packetPlayOutCustomPayloadConstructor = packetPlayOutCustomPayload.getConstructor(
@@ -114,6 +137,10 @@ public class Book {
                         .invoke(connection, packetPlayOutCustomPayloadConstructor.newInstance(minecraftKeyConstructor.newInstance("minecraft:book_open"),
                                 packetDataSerializerConstructor.newInstance(buf)));
             } else {
+                Class<?> packetDataSerializer = Class.forName("net.minecraft.server." + version + ".PacketDataSerializer");
+                Constructor<?> packetDataSerializerConstructor = packetDataSerializer.getConstructor(ByteBuf.class);
+                Class<?> packetPlayOutCustomPayload = Class.forName("net.minecraft.server." + version + ".PacketPlayOutCustomPayload");
+                
                 Constructor packetPlayOutCustomPayloadConstructor = packetPlayOutCustomPayload.getConstructor(String.class,
                         Class.forName("net.minecraft.server." + version + ".PacketDataSerializer"));
                 
@@ -134,14 +161,14 @@ public class Book {
     }
     
     public String translateString() {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("title", title);
-        jsonObject.put("author", author);
-    
-        JSONArray jsonArray = new JSONArray();
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("title", title);
+        jsonObject.addProperty("author", author);
+        
+        JsonArray jsonArray = new JsonArray();
         pages.stream().map(BookPage::translateString).forEach(jsonArray::add);
-        jsonObject.put("pages", jsonArray);
-    
+        jsonObject.add("pages", jsonArray);
+        
         return jsonObject.toString().replaceAll("\\\\/", "/").replace("\\n", "\n");
     }
     
@@ -150,14 +177,14 @@ public class Book {
     }
     
     public String translateJSON(ColorTheme theme) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("title", title);
-        jsonObject.put("author", author);
-    
-        JSONArray jsonArray = new JSONArray();
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("title", title);
+        jsonObject.addProperty("author", author);
+        
+        JsonArray jsonArray = new JsonArray();
         pages.stream().map(p -> p.translateJSON(theme)).forEach(jsonArray::add);
-        jsonObject.put("pages", jsonArray);
-    
+        jsonObject.add("pages", jsonArray);
+        
         return jsonObject.toString().replaceAll("\\\\{3}/", "/");
     }
     

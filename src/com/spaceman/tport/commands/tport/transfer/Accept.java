@@ -1,9 +1,8 @@
 package com.spaceman.tport.commands.tport.transfer;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -16,6 +15,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class Accept extends SubCommand {
@@ -24,7 +25,7 @@ public class Accept extends SubCommand {
     
     public Accept() {
         emptyPlayerTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyPlayerTPort.setCommandDescription(TextComponent.textComponent("This command is used to accept the offer of the given TPort", ColorType.infoColor));
+        emptyPlayerTPort.setCommandDescription(formatInfoTranslation("tport.command.transfer.accept.player.tportName.commandDescription"));
         emptyPlayerTPort.setPermissions("TPort.transfer.accept", "TPort.basic");
         
         EmptyCommand emptyPlayer = new EmptyCommand();
@@ -63,7 +64,7 @@ public class Accept extends SubCommand {
         if (args.length == 4) {
             UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2]);
             if (newPlayerUUID == null || !getFile("TPortData").getConfig().contains("tport." + newPlayerUUID)) {
-                sendErrorTheme(player, "Could not find a player named %s", args[2]);
+                sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
                 return;
             }
             
@@ -73,31 +74,33 @@ public class Accept extends SubCommand {
                     if (TPortManager.getTPort(player.getUniqueId(), tport.getName()) == null) {
                         UUID oldOwner = tport.getOwner();
                         if (TPortManager.addTPort(player, tport, true) != null) {
-                            TPortManager.removeTPort(oldOwner, tport);
                             tport.getWhitelist().remove(player.getUniqueId());
+                            if (!tport.getWhitelist().contains(oldOwner)) tport.getWhitelist().add(oldOwner);
                             tport.save();
-                            sendSuccessTheme(player, "Successfully accepted the offer of TPort %s", tport.getName());
                             Player oldPlayer = Bukkit.getPlayer(oldOwner);
+                            sendSuccessTranslation(player, "tport.command.transfer.accept.player.tportName.succeeded", asTPort(tport),
+                                    asPlayer(oldPlayer, oldOwner));
+                            
                             if (oldPlayer != null) {
-                                sendInfoTheme(oldPlayer, "Player %s has accepted your offer of TPort %s", player.getName(), tport.getName());
+                                sendInfoTranslation(oldPlayer, "tport.command.transfer.accept.player.tportName.succeededOtherPlayer", asPlayer(player), asTPort(tport));
                             }
                         } else {
                             Player oldPlayer = Bukkit.getPlayer(oldOwner);
                             if (oldPlayer != null) {
-                                sendInfoTheme(oldPlayer, "Player %s could not accepted your offer of TPort %s", player.getName(), tport.getName());
+                                sendInfoTranslation(oldPlayer, "tport.command.transfer.accept.player.tportName.couldNotAccept", asPlayer(player), asTPort(tport));
                             }
                         }
                     } else {
-                        sendErrorTheme(player, "You already have a TPort named %s", tport.getName());
+                        sendErrorTranslation(player, "tport.command.transfer.accept.player.tportName.alreadyHasName", asTPort(tport));
                     }
                 } else {
-                    sendErrorTheme(player, "TPort %s is not offered to you", tport.getName());
+                    sendErrorTranslation(player, "tport.command.transfer.accept.player.tportName.notOffered", asTPort(tport));
                 }
             } else {
-                sendErrorTheme(player, "No TPort found called %s", args[3]);
+                sendErrorTranslation(player, "tport.command.noTPortFound", args[3]);
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport transfer accept <player> <TPort name>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport transfer accept <player> <TPort name>");
         }
     }
 }

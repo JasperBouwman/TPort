@@ -1,22 +1,19 @@
 package com.spaceman.tport.commands.tport.publc;
 
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.events.ClickEvent;
-import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
+import java.util.Collection;
 import java.util.UUID;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
@@ -30,7 +27,7 @@ public class List extends SubCommand {
             }
         };
         emptyOwn.setCommandName("own", ArgumentType.FIXED);
-        emptyOwn.setCommandDescription(textComponent("This command is used to list all your Public TPorts", ColorTheme.ColorType.infoColor));
+        emptyOwn.setCommandDescription(formatInfoTranslation("tport.command.public.list.own.commandDescription"));
         EmptyCommand emptyAll = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -38,7 +35,7 @@ public class List extends SubCommand {
             }
         };
         emptyAll.setCommandName("all", ArgumentType.FIXED);
-        emptyAll.setCommandDescription(textComponent("This command is used to list all available Public TPorts", ColorTheme.ColorType.infoColor));
+        emptyAll.setCommandDescription(formatInfoTranslation("tport.command.public.list.all.commandDescription"));
         EmptyCommand empty = new EmptyCommand() {
             @Override
             public String getName(String argument) {
@@ -46,7 +43,7 @@ public class List extends SubCommand {
             }
         };
         empty.setCommandName("", ArgumentType.FIXED);
-        empty.setCommandDescription(textComponent("This command is used to list all available Public TPorts", ColorTheme.ColorType.infoColor));
+        empty.setCommandDescription(formatInfoTranslation("tport.command.public.list.all.commandDescription"));
         addAction(empty);
         addAction(emptyOwn);
         addAction(emptyAll);
@@ -57,71 +54,51 @@ public class List extends SubCommand {
         // tport public list [own|all]
         
         if (args.length == 2) {
-            sendAllPublicTPorts(player);
+            sendPublicTPorts(player, false);
         } else if (args.length == 3) {
             if (args[2].equalsIgnoreCase("all")) {
-                sendAllPublicTPorts(player);
+                sendPublicTPorts(player, false);
             } else if (args[2].equalsIgnoreCase("own")) {
-                sendOwnPublicTPorts(player);
+                sendPublicTPorts(player, true);
             } else {
-                sendErrorTheme(player, "Usage: %s", "/tport public list [own|all]");
+                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public list [own|all]");
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport public list [own|all]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public list [own|all]");
         }
     }
     
-    private void sendAllPublicTPorts(Player player) {
+    private void sendPublicTPorts(Player player, boolean filterOwn) {
         Files tportData = getFile("TPortData");
-        Message message = new Message();
-        ColorTheme theme = ColorTheme.getTheme(player);
-        message.addText(textComponent("All Public TPorts: ", theme.getInfoColor()));
+        Message publicTPortList = new Message();
         boolean hasPublicTPorts = false;
         boolean color = true;
+        
+        Collection<String> keys = tportData.getKeys("public.tports");
+        int lastDelimiterIndex = keys.size() - 1;
+        Message delimiter = formatInfoTranslation("tport.command.public.list.delimiter");
+        int index = 0;
         
         for (String publicTPortSlot : tportData.getKeys("public.tports")) {
             String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
             TPort tport = getTPort(UUID.fromString(tportID));
             if (tport != null) {
-                hasPublicTPorts = true;
-                message.addText(textComponent(tport.getName(), color ? theme.getVarInfoColor() : theme.getVarInfo2Color(),
-                        ClickEvent.runCommand("/tport public open " + tport.getName()),
-                        new HoverEvent(textComponent("Owner: ", theme.getInfoColor()), textComponent(PlayerUUID.getPlayerName(tport.getOwner()), theme.getVarInfoColor()))));
-                message.addText(textComponent(", ", theme.getInfoColor()));
-                color = !color;
-            }
-        }
-        message.removeLast();
-        if (!hasPublicTPorts) {
-            message.addText(textComponent("There are no Public TPorts", theme.getInfoColor()));
-        }
-        message.sendMessage(player);
-    }
-    
-    private void sendOwnPublicTPorts(Player player) {
-        Files tportData = getFile("TPortData");
-        Message message = new Message();
-        ColorTheme theme = ColorTheme.getTheme(player);
-        message.addText(textComponent("All your Public TPorts: ", theme.getInfoColor()));
-        boolean hasPublicTPorts = false;
-        boolean color = true;
-        
-        for (String publicTPortSlot : tportData.getKeys("public.tports")) {
-            String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
-            TPort tport = getTPort(UUID.fromString(tportID));
-            if (tport != null) {
-                if (tport.getOwner().equals(player.getUniqueId())) {
+                if (!filterOwn || tport.getOwner().equals(player.getUniqueId())) {
                     hasPublicTPorts = true;
-                    message.addText(textComponent(tport.getName(), color ? theme.getVarInfoColor() : theme.getVarInfo2Color(), ClickEvent.runCommand("/tport public open " + tport.getName())));
-                    message.addText(textComponent(", ", theme.getInfoColor()));
+                    if (color) publicTPortList.addMessage(formatTranslation(varInfoColor, varInfoColor, "%s", tport.parseAsPublic(true)));
+                    else       publicTPortList.addMessage(formatTranslation(varInfo2Color, varInfo2Color, "%s", tport.parseAsPublic(true)));
                     color = !color;
+                    
+                    if (index + 1 == lastDelimiterIndex) publicTPortList.addMessage(formatInfoTranslation("tport.command.public.list.lastDelimiter"));
+                    else                                 publicTPortList.addMessage(delimiter);
                 }
             }
+            index++;
         }
-        message.removeLast();
-        if (!hasPublicTPorts) {
-            message.addText(textComponent("You don't have any public TPorts", theme.getInfoColor()));
-        }
-        message.sendMessage(player);
+        publicTPortList.removeLast();
+        
+        String t = (filterOwn ? "own" : "all");
+        if (!hasPublicTPorts) sendInfoTranslation(player, "tport.command.public.list." + t + ".hasNone");
+        else sendInfoTranslation(player, "tport.command.public.list." + t + ".succeeded", publicTPortList);
     }
 }

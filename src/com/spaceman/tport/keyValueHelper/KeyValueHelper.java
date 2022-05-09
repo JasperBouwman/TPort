@@ -3,12 +3,13 @@ package com.spaceman.tport.keyValueHelper;
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.events.HoverEvent;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatErrorTranslation;
 
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class KeyValueHelper {
@@ -121,7 +122,7 @@ public class KeyValueHelper {
     }
     
     private static List<KeyValueTabArgument> filterNotContaining(String arg, List<KeyValueTabArgument> keyValueTabArguments) {
-        List<String> keys = Arrays.stream(arg.split(",")).map(s -> s.split("=")[0]).collect(Collectors.toList());
+        List<String> keys = Arrays.stream(arg.split(",")).map(s -> s.split("=")[0]).toList();
         return keyValueTabArguments.stream().filter(tabArgument -> !keys.contains(tabArgument.getKey())).collect(Collectors.toList());
     }
     
@@ -177,45 +178,29 @@ public class KeyValueHelper {
         HashMap<String, Object> keysMap = new HashMap<>();
         for (String keyValue : stringObj.split(",")) {
             if (keyValue.matches(".+=.+")) {
-                Key newKey = Key.getKey(keys, keyValue.split("=")[0]);
+                String[] split = keyValue.split("=");
+                Key newKey = Key.getKey(keys, split[0]);
+                
                 if (newKey != null) {
-                    String[] split = keyValue.split("=");
-    
                     Object value = newKey.check(split[1]);
                     if (value != null || newKey.isAcceptNullValue()) {
                         keysMap.put(newKey.getKey(), split[1]);
                     } else {
-                        Message message = new Message();
-                        message.addText(textComponent(split[1], ColorTheme.ColorType.varErrorColor));
-                        message.addText(textComponent(newKey.getErrorMessage(), ColorTheme.ColorType.errorColor));
-                        throw new KeyValueError(message);
+                        throw new KeyValueError(formatErrorTranslation(newKey.getErrorMessageID(), split[1]));
                     }
                     
                     keysMap.put(split[0].toLowerCase(), value);
                     neededList.remove(split[0].toLowerCase());
                 } else {
-                    Message message = new Message();
-                    message.addText(textComponent("Key ", ColorTheme.ColorType.errorColor));
-                    message.addText(textComponent(keyValue.split("=")[0], ColorTheme.ColorType.varErrorColor));
-                    message.addText(textComponent(" is not accepted, please use the format: ", ColorTheme.ColorType.errorColor));
-                    message.addMessage(getFormat(keys));
-                    throw new KeyValueError(message);
+                    throw new KeyValueError(formatErrorTranslation("tport.keyValueHelper.keyValueHelper.keyError", split[0], getFormat(keys)));
                 }
             } else {
-                Message message = new Message();
-                message.addText(textComponent("Error in ", ColorTheme.ColorType.errorColor));
-                message.addText(textComponent(keyValue, ColorTheme.ColorType.varErrorColor));
-                message.addText(textComponent(", please use the format: ", ColorTheme.ColorType.errorColor));
-                message.addMessage(getFormat(keys));
-                throw new KeyValueError(message);
+                throw new KeyValueError(formatErrorTranslation("tport.keyValueHelper.keyValueHelper.error", keyValue, getFormat(keys)));
             }
         }
         
         if (!neededList.isEmpty()) {
-            Message message = new Message();
-            message.addText(textComponent("Not all needed keys are used, please use the format: ", ColorTheme.ColorType.errorColor));
-            message.addMessage(getFormat(keys));
-            throw new KeyValueError(message);
+            throw new KeyValueError(formatErrorTranslation("tport.keyValueHelper.keyValueHelper.notAllNeededKeysUsed", getFormat(keys)));
         }
         
         return keysMap;
@@ -226,7 +211,7 @@ public class KeyValueHelper {
         for (Key key : keys) {
             if (key.getKey() != null && !key.getKey().equals("")) {
                 if (key.isOptional()) {
-                    message.addText(textComponent(key.getKey() + "=[value]", ColorTheme.ColorType.varErrorColor, hoverEvent(textComponent("This Key is optional", ColorTheme.ColorType.errorColor))));
+                    message.addText(textComponent(key.getKey() + "=[value]", ColorTheme.ColorType.varErrorColor, new HoverEvent(formatErrorTranslation("tport.keyValueHelper.keyValueHelper.format"))));
                 } else {
                     message.addText(textComponent(key.getKey() + "=<value>", ColorTheme.ColorType.varErrorColor));
                 }

@@ -1,11 +1,12 @@
 package com.spaceman.tport.commands.tport.log;
 
 import com.spaceman.tport.Pair;
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -16,9 +17,9 @@ import java.util.TimeZone;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTheme;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class Read extends SubCommand {
@@ -26,12 +27,11 @@ public class Read extends SubCommand {
     public Read() {
         EmptyCommand emptyTPortPlayer = new EmptyCommand();
         emptyTPortPlayer.setCommandName("player", ArgumentType.OPTIONAL);
-        emptyTPortPlayer.setCommandDescription(textComponent("This command is used to filter the TPort log of the given TPort for the given player", ColorTheme.ColorType.infoColor));
+        emptyTPortPlayer.setCommandDescription(formatInfoTranslation("tport.command.log.read.tportName.player.commandDescription"));
         
         EmptyCommand emptyTPort = new EmptyCommand();
         emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyTPort.setCommandDescription(textComponent("This command is used to read the TPort log of the given TPort, the maximum log size is ", ColorTheme.ColorType.infoColor),
-                textComponent(String.valueOf(LogSize.getLogSize()), ColorTheme.ColorType.varInfoColor));
+        emptyTPort.setCommandDescription(formatInfoTranslation("tport.command.log.read.tportName.commandDescription", LogSize.getLogSize()));
         emptyTPort.setTabRunnable((args, player) -> {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
             if (tport != null) {
@@ -55,65 +55,105 @@ public class Read extends SubCommand {
         if (args.length == 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
             if (tport != null) {
+                if (!tport.isLogged()) {
+                    sendErrorTranslation(player, "tport.command.log.read.tportName.notLogged", tport);
+                    return;
+                }
                 ArrayList<Pair<Calendar, UUID>> log = tport.getLogBook();
                 if (log.isEmpty()) {
-                    sendInfoTheme(player, "The log of TPort %s is empty", tport.getName());
+                    sendInfoTranslation(player, "tport.command.log.read.tportName.isEmpty", tport);
                 } else {
-                    sendInfoTheme(player, "Log of TPort %s:", tport.getName());
-                    
                     String format = getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
-                    //noinspection ConstantConditions
                     SimpleDateFormat sdf = new SimpleDateFormat(format);
                     sdf.setTimeZone(java.util.TimeZone.getTimeZone(
                             getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeZone", TimeZone.getDefault().getID())));
-                    for (Pair<Calendar, UUID> pair : log) {
-                        Calendar time = pair.getLeft();
-                        sendInfoTheme(player, "%s -> %s", sdf.format(time.getTime()), PlayerUUID.getPlayerName(pair.getRight()));
+                    
+                    Message logMessage = new Message();
+                    boolean color = true;
+                    for (int i = 0, logSize = log.size(); i < logSize; i++) {
+                        Pair<Calendar, UUID> pair = log.get(i);
+                        Object playerRepresentation = asPlayer(pair.getRight());
+                        
+                        if (color) logMessage.addMessage(formatTranslation(infoColor, varInfoColor, "tport.command.log.read.tportName.listElement",
+                                sdf.format(pair.getLeft().getTime()),
+                                playerRepresentation));
+                        else       logMessage.addMessage(formatTranslation(infoColor, varInfo2Color, "tport.command.log.read.tportName.listElement",
+                                sdf.format(pair.getLeft().getTime()),
+                                playerRepresentation));
+                        
+                        if (i + 2 == logSize) logMessage.addMessage(formatInfoTranslation("tport.command.log.read.tportName.lastDelimiter"));
+                        else                  logMessage.addMessage(formatInfoTranslation("tport.command.log.read.tportName.delimiter"));
+                        
+                        color = !color;
                     }
+                    logMessage.removeLast();
+                    
+                    sendInfoTranslation(player, "tport.command.log.read.tportName.succeeded", tport, logMessage);
                 }
             } else {
-                sendErrorTheme(player, "No TPort found called %s", args[2]);
+                sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
             }
         } else if (args.length == 4) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
+            Files tportData = GettingFiles.getFile("TPortData");
             if (tport != null) {
+                if (!tport.isLogged()) {
+                    sendErrorTranslation(player, "tport.command.log.read.tportName.player.notLogged", tport);
+                    return;
+                }
                 ArrayList<Pair<Calendar, UUID>> log = tport.getLogBook();
                 if (log.isEmpty()) {
-                    sendInfoTheme(player, "The log of TPort %s is empty", tport.getName());
+                    sendInfoTranslation(player, "tport.command.log.read.tportName.player.isEmpty", tport);
                 } else {
-                    Message message = new Message();
-                    message.addText(textComponent("Filtered results of TPort log ", ColorTheme.ColorType.infoColor));
-                    message.addText(textComponent(tport.getName(), ColorTheme.ColorType.varInfoColor));
-                    message.addText(textComponent(" for player ", ColorTheme.ColorType.infoColor));
-                    message.addText(textComponent(args[3], ColorTheme.ColorType.varInfoColor));
-                    message.addText(textComponent(":", ColorTheme.ColorType.infoColor));
-                    message.addText(textComponent("\n"));
+                    UUID uuid = PlayerUUID.getPlayerUUID(args[3]);
+                    if (uuid == null || !tportData.getConfig().contains("tport." + uuid)) {
+                        sendErrorTranslation(player, "tport.command.playerNotFound", args[3]);
+                        return;
+                    }
+                    
                     String format = getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
-                    //noinspection ConstantConditions
                     SimpleDateFormat sdf = new SimpleDateFormat(format);
                     sdf.setTimeZone(java.util.TimeZone.getTimeZone(
                             getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeZone", TimeZone.getDefault().getID())));
-                    for (Pair<Calendar, UUID> pair : log) {
-                        if (PlayerUUID.getPlayerName(pair.getRight()).equalsIgnoreCase(args[3])) {
-                            Calendar time = pair.getLeft();
-                            message.addText(textComponent(sdf.format(time.getTime()), ColorTheme.ColorType.varInfoColor));
-                            message.addText(textComponent(" -> ", ColorTheme.ColorType.infoColor));
-                            message.addText(textComponent(PlayerUUID.getPlayerName(pair.getRight()), ColorTheme.ColorType.varInfoColor));
-                            message.addText(textComponent(",\n", ColorTheme.ColorType.infoColor));
+                    
+                    int size = 0;
+                    Message logMessage = new Message();
+                    boolean color = true;
+                    for (int i = 0, logSize = log.size(); i < logSize; i++) {
+                        Pair<Calendar, UUID> pair = log.get(i);
+                        if (!pair.getRight().equals(uuid)) {
+                            continue;
                         }
+                        Object playerRepresentation = asPlayer(pair.getRight());
+                        
+                        if (color) logMessage.addMessage(formatTranslation(infoColor, varInfoColor, "tport.command.log.read.tportName.player.listElement",
+                                sdf.format(pair.getLeft().getTime()),
+                                playerRepresentation));
+                        else       logMessage.addMessage(formatTranslation(infoColor, varInfo2Color, "tport.command.log.read.tportName.player.listElement",
+                                sdf.format(pair.getLeft().getTime()),
+                                playerRepresentation));
+                        
+                        if (i + 2 == logSize) logMessage.addMessage(formatInfoTranslation("tport.command.log.read.tportName.player.lastDelimiter"));
+                        else                  logMessage.addMessage(formatInfoTranslation("tport.command.log.read.tportName.player.delimiter"));
+                        
+                        color = !color;
+                        size++;
                     }
-                    message.removeLast();
-                    if (message.getText().size() < 6) {
-                        sendInfoTheme(player, "Player %s was not found in the log of TPort %s", args[3], tport.getName());
+                    logMessage.removeLast();
+                    
+                    if (size == 0) {
+                        sendErrorTranslation(player, "tport.command.log.read.tportName.player.playerNotInLog",
+                                asPlayer(uuid), tport);
                     } else {
-                        message.sendMessage(player);
+                        sendInfoTranslation(player, "tport.command.log.read.tportName.succeeded",
+                                tport, asPlayer(uuid), logMessage);
                     }
                 }
             } else {
-                sendErrorTheme(player, "No TPort found called %s", args[2]);
+                sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport log read <TPort name>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log read <TPort name>");
         }
     }
 }

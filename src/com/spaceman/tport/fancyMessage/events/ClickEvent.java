@@ -1,8 +1,8 @@
 package com.spaceman.tport.fancyMessage.events;
 
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
+import com.google.gson.JsonObject;
 import com.spaceman.tport.fancyMessage.book.BookPage;
-import org.json.simple.JSONObject;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 
 import static com.spaceman.tport.fancyMessage.book.BookPage.getActivePageReplacer;
 
@@ -103,10 +103,10 @@ public class ClickEvent implements TextEvent {
     }
     
     @Override
-    public JSONObject translateJSON(ColorTheme theme) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("action", action);
-        jsonObject.put("value", value.replace(getActivePageReplacer(), (pageNumber == null ? "" : String.valueOf(pageNumber.getPageNumber()))));
+    public JsonObject translateJSON(ColorTheme theme) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("action", action);
+        jsonObject.addProperty("value", value.replace(getActivePageReplacer(), (pageNumber == null ? "" : String.valueOf(pageNumber.getPageNumber()))));
         return jsonObject;
     }
     

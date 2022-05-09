@@ -1,8 +1,6 @@
 package com.spaceman.tport.tpEvents;
 
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.TextComponent;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
@@ -12,6 +10,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatErrorTranslation;
 
 public abstract class ParticleAnimation {
     
@@ -50,7 +50,7 @@ public abstract class ParticleAnimation {
     
     public abstract void show(Player player, Location l);
     
-    public abstract void edit(Player player, String[] data);
+    public abstract boolean edit(Player player, String[] data);
     
     public abstract void save(ConfigurationSection section);
     
@@ -75,7 +75,7 @@ public abstract class ParticleAnimation {
     }
     
     public Message getDescription() {
-        return new Message(TextComponent.textComponent("Description not given", ColorTheme.ColorType.infoColor));
+        return formatErrorTranslation("tport.tpEvents.particleAnimation.defaultDescription");
     }
     
     @FunctionalInterface

@@ -1,10 +1,9 @@
 package com.spaceman.tport.commands.tport.edit.tag;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.Tag;
-import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -13,10 +12,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.commands.tport.Tag.tagPermPrefix;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Add extends SubCommand {
@@ -24,7 +22,7 @@ public class Add extends SubCommand {
     public Add() {
         EmptyCommand emptyTag = new EmptyCommand();
         emptyTag.setCommandName("tag", ArgumentType.REQUIRED);
-        emptyTag.setCommandDescription(textComponent("This command is used to add the given tag to the given TPort", infoColor));
+        emptyTag.setCommandDescription(formatInfoTranslation("tport.command.edit.tag.add.commandDescription"));
         emptyTag.setPermissions("TPort.edit.tag.add.<tag>");
         addAction(emptyTag);
     }
@@ -48,33 +46,39 @@ public class Add extends SubCommand {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
             
             if (tport == null) {
-                sendErrorTheme(player, "No TPort found called %s", args[1]);
+                sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
                 return;
             }
             if (tport.isOffered()) {
-                sendErrorTheme(player, "You can't edit TPort %s while its offered to %s", tport.getName(), PlayerUUID.getPlayerName(tport.getOfferedTo()));
-                return;
-            }
-    
-            String tag = Tag.getTag(args[3]);
-    
-            if (tag == null) {
-                sendErrorTheme(player, "Tag %s does not exist", args[4]);
+                sendErrorTranslation(player, "tport.command.edit.tag.add.isOffered",
+                        tport, asPlayer(tport.getOfferedTo()));
                 return;
             }
             
-            if (!hasPermission(player, true, "TPort.tag.add." + tag)) {
+            String tag = Tag.getTag(args[4]);
+            
+            if (tag == null) {
+                sendErrorTranslation(player, "tport.command.edit.tag.add.tagNotFound", args[4]);
+                return;
+            }
+            
+            if (!hasPermission(player, true, "TPort.edit.tag.add." + tag)) {
+                return;
+            }
+            
+            if (!hasPermission(player, false, tagPermPrefix + tag)) {
+                sendErrorTranslation(player, "tport.command.edit.tag.add.noPermissionToUseTag", tagPermPrefix + tag, tag);
                 return;
             }
             
             if (tport.addTag(tag)) {
                 tport.save();
-                sendSuccessTheme(player, "Successfully added the tag %s to TPort %s", tag, tport.getName());
+                sendSuccessTranslation(player, "tport.command.edit.tag.add.succeeded", tag, tport);
             } else {
-                sendErrorTheme(player, "Tag %s is already assigned to TPort %s", tag, tport.getName());
+                sendErrorTranslation(player, "tport.command.edit.tag.add.hasAlreadyTag", tag, tport);
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport edit <TPort name> tag add <tag>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> tag add <tag>");
         }
     }
 }

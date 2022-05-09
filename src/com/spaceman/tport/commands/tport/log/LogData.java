@@ -1,36 +1,36 @@
 package com.spaceman.tport.commands.tport.log;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
+import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTheme;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 
 public class LogData extends SubCommand {
     
     public LogData() {
         EmptyCommand emptyTPortPlayer = new EmptyCommand();
         emptyTPortPlayer.setCommandName("player", ArgumentType.OPTIONAL);
-        emptyTPortPlayer.setCommandDescription(textComponent("This command is used to get the LogMode of the given player in the given TPort", infoColor));
+        emptyTPortPlayer.setCommandDescription(formatInfoTranslation("tport.command.log.logData.tportName.player.commandDescription"));
         
         EmptyCommand emptyTPort = new EmptyCommand();
         emptyTPort.setCommandName("TPort name", ArgumentType.OPTIONAL);
-        emptyTPort.setCommandDescription(textComponent("This command is used to get all logged players of the given TPort", infoColor));
+        emptyTPort.setCommandDescription(formatInfoTranslation("tport.command.log.logData.tportName.commandDescription"));
         emptyTPort.setTabRunnable((args, player) -> {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
             if (tport != null) {
@@ -44,7 +44,7 @@ public class LogData extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to get all the logged TPorts", infoColor));
+        return formatInfoTranslation("tport.command.log.logData.commandDescription");
     }
     
     @Override
@@ -52,104 +52,115 @@ public class LogData extends SubCommand {
         return TPortManager.getTPortList(player.getUniqueId()).stream().filter(TPort::isLogged).map(TPort::getName).collect(Collectors.toList());
     }
     
+    private Message getLogData(TPort tport, int limitPlayers) {
+        Message loggedPlayers = new Message();
+        int loggedSize = 0;
+        if (tport.hasLoggedPlayers()) {
+            List<UUID> logged = tport.getLogged();
+            boolean color = true;
+            for (int i = 0; i < (loggedSize = logged.size()); i++) {
+                if (i == limitPlayers) {
+                    loggedPlayers.removeLast();
+                    loggedPlayers.addMessage(formatInfoTranslation("tport.command.log.logData.tportName.succeeded.limit"));
+                    loggedPlayers.addWhiteSpace();
+                    break;
+                }
+                UUID logUUID = logged.get(i);
+                loggedPlayers.addMessage(formatTranslation(infoColor, (color ? varInfoColor : varInfo2Color), "%s:%s", asPlayer(logUUID), tport.getLogMode(logUUID)));
+                
+                if (i + 2 == loggedSize) loggedPlayers.addMessage(formatInfoTranslation("tport.command.log.logData.tportName.succeeded.lastDelimiter"));
+                else                     loggedPlayers.addMessage(formatInfoTranslation("tport.command.log.logData.tportName.succeeded.delimiter"));
+                
+                color = !color;
+            }
+            loggedPlayers.removeLast();
+        }
+        
+        String id;
+        if (loggedSize == 1) id = "tport.command.log.logData.tportName.succeeded.singular";
+        else if (loggedSize == 0) id = "tport.command.log.logData.tportName.succeeded.empty";
+        else id = "tport.command.log.logData.tportName.succeeded.multiple";
+        return formatInfoTranslation(id, tport, tport.getDefaultLogMode(), loggedPlayers);
+    }
+    
     @Override
     public void run(String[] args, Player player) {
         // tport log logData [TPort name] [player]
         
         if (args.length == 2) {
-            Message message = new Message();
-            message.addText(textComponent("All your logged TPorts: ", infoColor));
+            Message tportListMessage = new Message();
             boolean color = true;
-            for (TPort tport : TPortManager.getTPortList(player.getUniqueId())) {
+            ArrayList<TPort> tportList = TPortManager.getTPortList(player.getUniqueId());
+            int loggedSize = 0;
+            final int loggedMax = (int) tportList.stream().filter(TPort::isLogged).count();
+            
+            for (TPort tport : tportList) {
                 if (tport.isLogged()) {
                     HoverEvent hEvent = new HoverEvent();
-                    hEvent.addText(textComponent("Default log mode: ", infoColor));
-                    hEvent.addText(textComponent(tport.getDefaultLogMode().name(), varInfoColor));
+                    hEvent.addMessage(getLogData(tport, 2));
                     
-                    if (tport.hasLoggedPlayers()) {
-                        hEvent.addText(textComponent("\nLogged players: ", infoColor));
-                        hEvent.addText(textComponent("", infoColor));
-                        for (int i = 0; i < tport.getLogged().size() && i <= 10; i++) {
-                            if (i == 10) {
-                                hEvent.addText(textComponent(", and more", infoColor));
-                                hEvent.addText(textComponent(""));
-                                break;
-                            }
-                            UUID logUUID = tport.getLogged().get(i);
-                            hEvent.addText(textComponent(PlayerUUID.getPlayerName(logUUID), varInfoColor));
-                            hEvent.addText(textComponent(":", infoColor));
-                            hEvent.addText(textComponent(tport.getLogMode(logUUID).name(), varInfoColor));
-                            hEvent.addText(textComponent(", ", infoColor));
-                        }
-                        hEvent.removeLast();
-                    }
-                    
-                    message.addText(textComponent(
+                    tportListMessage.addText(textComponent(
                             tport.getName(),
                             color ? varInfoColor : varInfo2Color,
                             hEvent,
                             ClickEvent.runCommand("/tport own " + tport.getName())));
+                    
+                    if (loggedSize + 2 == loggedMax) tportListMessage.addMessage(formatInfoTranslation("tport.command.log.logData.succeeded.lastDelimiter"));
+                    else                             tportListMessage.addMessage(formatInfoTranslation("tport.command.log.logData.succeeded.delimiter"));
+                    
                     color = !color;
-                    message.addText(textComponent(", ", infoColor));
+                    loggedSize++;
                 }
             }
-            message.removeLast();
-            if (message.isEmpty()) {
-                sendInfoTheme(player, "You don't have any logged TPorts");
+            tportListMessage.removeLast();
+            
+            if (loggedSize == 0) {
+                sendInfoTranslation(player, "tport.command.log.logData.noLoggedTPorts");
             } else {
-                message.sendMessage(player);
+                String id;
+                if (loggedSize == 1) id = "tport.command.log.logData.succeeded.singular";
+                else id = "tport.command.log.logData.succeeded.multiple";
+                sendInfoTranslation(player, id, tportListMessage);
             }
         }
         else if (args.length == 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
             if (tport != null) {
-                
                 if (tport.isLogged()) {
-                    Message message = new Message();
-                    message.addText(textComponent("Log list of TPort ", infoColor));
-                    message.addText(textComponent(tport.getName(), varInfoColor, ClickEvent.runCommand("/tport own " + tport.getName())));
-                    message.addText(textComponent("\nDefault log mode: ", infoColor));
-                    message.addText(textComponent(tport.getDefaultLogMode().name(), varInfoColor));
-                    
-                    if (tport.hasLoggedPlayers()) {
-                        message.addText(textComponent("\nLogged players: ", infoColor));
-                        message.addText(textComponent(""));
-                        for (UUID logUUID : tport.getLogged()) {
-                            message.addText(textComponent(PlayerUUID.getPlayerName(logUUID), varInfoColor));
-                            message.addText(textComponent(":", infoColor));
-                            message.addText(textComponent(tport.getLogMode(logUUID).name(), varInfoColor));
-                            message.addText(textComponent(", ", infoColor));
-                        }
-                        message.removeLast();
-                    }
-                    message.sendMessage(player);
+                    getLogData(tport, -1).sendAndTranslateMessage(player);
                 } else {
-                    sendInfoTheme(player, "TPort %s is not logged", tport.getName());
+                    sendInfoTranslation(player, "tport.command.log.logData.tportName.tportNotLogged", tport);
                 }
-                
             } else {
-                sendErrorTheme(player, "No TPort found called %s", args[2]);
+                sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
             }
         }
         else if (args.length == 4) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
+            Files tportData = GettingFiles.getFile("TPortData");
             if (tport != null) {
-                UUID uuid = PlayerUUID.getPlayerUUID(args[3]);
-                if (uuid == null) {
-                    sendErrorTheme(player, "Could not find a player named %s", args[3]);
-                    return;
-                }
-                if (tport.getLogged().contains(uuid)) {
-                    sendInfoTheme(player, "Log mode of player %s in TPort %s is %s", args[3], tport.getName(), tport.getLogMode(uuid).name());
+                if (tport.isLogged()) {
+                    UUID uuid = PlayerUUID.getPlayerUUID(args[3]);
+                    if (uuid == null || !tportData.getConfig().contains("tport." + uuid)) {
+                        sendErrorTranslation(player, "tport.command.playerNotFound", args[3]);
+                        return;
+                    }
+                    if (tport.getLogged().contains(uuid)) {
+                        sendInfoTranslation(player, "tport.command.log.logData.tportName.player.succeeded",
+                                asPlayer(uuid), tport, tport.getLogMode(uuid));
+                    } else {
+                        sendErrorTranslation(player, "tport.command.log.logData.tportName.player.notLogged",
+                                asPlayer(uuid), tport);
+                    }
                 } else {
-                    sendErrorTheme(player, "Player %s is not logged", args[3]);
+                    sendErrorTranslation(player, "tport.command.log.logData.tportName.player.tportNotLogged", tport);
                 }
             } else {
-                sendErrorTheme(player, "No TPort found called %s", args[2]);
+                sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
             }
         }
         else {
-            sendErrorTheme(player, "Usage: %s", "/tport log logData [TPort name] [player]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log logData [TPort name] [player]");
         }
     }
 }

@@ -4,5 +4,9 @@ public enum TextType {
     TEXT,
     KEYBIND,
     TRANSLATE,
-    SELECTOR
+    SELECTOR;
+    
+    public boolean equals(String textType) {
+        return this.name().equalsIgnoreCase(textType);
+    }
 }

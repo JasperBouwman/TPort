@@ -1,42 +1,39 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
-
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 
 public class Version extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to get the TPort plugin version (version: ", infoColor),
-                textComponent(Main.getInstance().getDescription().getVersion(), ColorTheme.ColorType.varInfoColor),
-                textComponent(")", infoColor));
+        return formatInfoTranslation("tport.command.version.commandDescription", Main.getInstance().getDescription().getVersion());
     }
     
     @Override
     public void run(String[] args, Player player) {
-        Message message = new Message();
+        //tport version
         
-        message.addText(textComponent("This server is running TPort version: ", infoColor));
-        message.addText(textComponent(Main.getInstance().getDescription().getVersion(), varInfoColor));
-        message.addText(textComponent("\nThis version is compatible with Bukkit versions: ", infoColor));
-        for (String version : Arrays.asList("1.16.4", "1.16.5")) {
-            message.addText(textComponent(version, varInfoColor));
-            message.addText(textComponent(", ", infoColor));
+        if (args.length == 1) {
+            sendInfoTranslation(player, "tport.command.version.succeeded",
+                    Main.getInstance().getDescription().getVersion(),
+                    "1.18.2", //todo update compatible version
+                    textComponent(
+                            Main.getInstance().getDescription().getWebsite(),
+                            varInfoColor,
+                            hoverEvent(textComponent(Main.getInstance().getDescription().getWebsite(), varInfoColor)),
+                            ClickEvent.openUrl(Main.getInstance().getDescription().getWebsite())
+                    ));
+        } else {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport version");
         }
-        message.removeLast();
-        message.addText(textComponent("\nWebsite: ", infoColor));
-        message.addText(textComponent(Main.getInstance().getDescription().getWebsite(), varInfoColor, ClickEvent.openUrl(Main.getInstance().getDescription().getWebsite())));
-        
-        message.sendMessage(player);
     }
 }

@@ -1,14 +1,16 @@
 package com.spaceman.tport.commands.tport.pa;
 
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
 import org.bukkit.entity.Player;
 
+import java.util.Set;
+
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
 
 public class List extends SubCommand {
     
@@ -18,36 +20,39 @@ public class List extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to get all the available particle animations", infoColor));
+        return formatInfoTranslation("tport.command.particleAnimationCommand.list.commandDescription");
     }
     
     @Override
     public void run(String[] args, Player player) {
         // tport particleAnimation list
         
-        if (!hasPermissionToRun(player, true)) {
-            return;
-        }
-        
         if (args.length == 2) {
-            Message message = new Message();
+            if (!hasPermissionToRun(player, true)) {
+                return;
+            }
+            Message animationsMessage = new Message();
             
-            message.addText(textComponent("The available Particle Animations are: ", infoColor));
             boolean color = true;
             
-            for (String pa : ParticleAnimation.getAnimations()) {
+            Set<String> particleAnimations = ParticleAnimation.getAnimations();
+            int i = particleAnimations.size();
+            for (String pa : particleAnimations) {
                 ParticleAnimation particleAnimation = ParticleAnimation.getNewAnimation(pa);
-                HoverEvent hEvent = new HoverEvent();
-                hEvent.addMessage(particleAnimation.getDescription());
-                message.addText(textComponent(pa, color ? varInfoColor : varInfo2Color, hEvent));
-                message.addText(textComponent(", ", infoColor));
+                HoverEvent hEvent = new HoverEvent(particleAnimation.getDescription());
+                animationsMessage.addText(textComponent(pa, color ? varInfoColor : varInfo2Color, hEvent));
+                
+                if (i == 2) animationsMessage.addMessage(formatInfoTranslation("tport.command.particleAnimationCommand.list.lastDelimiter"));
+                else        animationsMessage.addMessage(formatInfoTranslation("tport.command.particleAnimationCommand.list.delimiter"));
+                
+                i--;
                 color = !color;
             }
-            message.removeLast();
+            animationsMessage.removeLast();
             
-            message.sendMessage(player);
+            sendInfoTranslation(player, "tport.command.particleAnimationCommand.list.succeeded", animationsMessage);
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport particleAnimation list");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport particleAnimation list");
         }
     }
 }

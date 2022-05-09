@@ -24,9 +24,9 @@ public class CommandEvent implements Listener {
         
         if (Redirect.Redirects.Locate_FeatureTP.isEnabled() && e.getMessage().matches("/locate .+")) {
             e.setCancelled(true);
-            TPortCommand.executeInternal(e.getPlayer(), "FeatureTP" + e.getMessage().substring(7));
+            TPortCommand.executeInternal(e.getPlayer(), "FeatureTP search" + e.getMessage().substring(7));
             if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
-                Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "FeatureTP" + e.getMessage().substring(7) + "'");
+                Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "FeatureTP search" + e.getMessage().substring(7) + "'");
             }
         }
         

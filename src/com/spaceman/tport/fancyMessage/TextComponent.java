@@ -1,39 +1,42 @@
 package com.spaceman.tport.fancyMessage;
 
 import com.google.common.base.Strings;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.spaceman.tport.fancyMessage.book.BookPage;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
-import com.spaceman.tport.fancyMessage.book.BookPage;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fancyMessage.events.ScoreEvent;
 import com.spaceman.tport.fancyMessage.events.TextEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.Main.getOrDefault;
-
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "unused"})
-public class TextComponent {
+public class TextComponent implements Cloneable {
     
     public final static String APOSTROPHE = "\"";
     public final static String NEW_LINE = "\n";
+    public final static String PLACE_HOLDER = "%s";
+    public static String indexedPlaceHolder(int index) { return "%" + index + "$s"; }
     
     private String type = "text";
     private BookPage pageNumber = null;
     private String text;
     private String color;
     private String insertion = null;
-    private List<Attribute> attributes;
-    private List<TextEvent> textEvents;
-    private Message with = new Message();
+    private ArrayList<Attribute> attributes;
+    private ArrayList<TextEvent> textEvents;
+    public ArrayList<Message> translateWith = new ArrayList<>();
+    public Message separator = new Message();
+    private boolean ignoreTranslator = false;
     
     public TextComponent() {
         this("", new MultiColor("#ffffff").getColorAsValue(), new ArrayList<>(), new ArrayList<>());
@@ -66,8 +69,10 @@ public class TextComponent {
     public TextComponent(String text, String color, List<TextEvent> textEvents, List<Attribute> attribute) {
         this.text = text;
         setColor(color);
-        this.textEvents = getOrDefault(textEvents, new ArrayList<>());
-        this.attributes = getOrDefault(attribute, new ArrayList<>());
+        if (textEvents != null) this.textEvents = new ArrayList<>(textEvents);
+        else this.textEvents = new ArrayList<>();
+        if (attribute != null) this.attributes = new ArrayList<>(attribute);
+        else this.attributes = new ArrayList<>();
     }
     
     public TextComponent(String text, ChatColor color, List<TextEvent> textEvents, List<Attribute> attribute) {
@@ -88,7 +93,7 @@ public class TextComponent {
     }
     
     public static TextComponent textComponent(String text, String color) {
-        return new TextComponent(text, new MultiColor(color).getColorAsValue());
+        return new TextComponent(text, color);
     }
     
     public static TextComponent textComponent(String text, ChatColor color) {
@@ -108,7 +113,7 @@ public class TextComponent {
     }
     
     public static TextComponent textComponent(String text, String color, String insertion) {
-        return new TextComponent(text, new MultiColor(color).getColorAsValue()).setInsertion(insertion);
+        return new TextComponent(text, color).setInsertion(insertion);
     }
     
     public static TextComponent textComponent(String text, ChatColor color, String insertion) {
@@ -128,7 +133,7 @@ public class TextComponent {
     }
     
     public static TextComponent textComponent(String text, String color, TextEvent... textEvents) {
-        return new TextComponent(text, new MultiColor(color).getColorAsValue(), Arrays.asList(textEvents), new ArrayList<>());
+        return new TextComponent(text, color, Arrays.asList(textEvents), new ArrayList<>());
     }
     
     public static TextComponent textComponent(String text, ChatColor color, TextEvent... textEvents) {
@@ -148,7 +153,7 @@ public class TextComponent {
     }
     
     public static TextComponent textComponent(String text, String color, Attribute... attributes) {
-        return new TextComponent(text, new MultiColor(color).getColorAsValue(), new ArrayList<>(), Arrays.asList(attributes));
+        return new TextComponent(text, color, new ArrayList<>(), Arrays.asList(attributes));
     }
     
     public static TextComponent textComponent(String text, ChatColor color, Attribute... attributes) {
@@ -168,7 +173,7 @@ public class TextComponent {
     }
     
     public static TextComponent textComponent(String text, String color, List<TextEvent> textEvents, List<Attribute> attributes) {
-        return new TextComponent(text, new MultiColor(color).getColorAsValue(), textEvents, attributes);
+        return new TextComponent(text, color, textEvents, attributes);
     }
     
     public static TextComponent textComponent(String text, ChatColor color, List<TextEvent> textEvents, List<Attribute> attributes) {
@@ -187,15 +192,31 @@ public class TextComponent {
         return new TextComponent(text, color.getColorAsValue(), textEvents, attributes);
     }
     
-    public JSONObject translateJSON(ColorTheme theme) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put(type, getText());
-        jsonObject.put("color", translateColor(theme));
-        if (!Strings.isNullOrEmpty(insertion)) jsonObject.put("insertion", insertion);
-        attributes.forEach(attribute -> jsonObject.put(attribute.name().toLowerCase(), "true"));
-        textEvents.forEach(event -> jsonObject.put(event.name(), event.translateJSON(theme)));
-        if (!with.isEmpty()) {
-            jsonObject.put("with", with.getText().stream().map(s -> s.translateJSON(theme)).collect(Collectors.toCollection(JSONArray::new)));
+    public JsonObject translateJSON(ColorTheme theme) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty(type, getText());
+        jsonObject.addProperty("color", translateColor(theme));
+        if (!Strings.isNullOrEmpty(insertion)) jsonObject.addProperty("insertion", insertion);
+        
+        for (Attribute attribute : Attribute.values()) {
+            jsonObject.addProperty(attribute.name().toLowerCase(), (attributes.contains(attribute) ? "true" : "false"));
+        }
+        textEvents.forEach(event -> jsonObject.add(event.name(), event.translateJSON(theme)));
+        
+        if (!translateWith.isEmpty()) {
+            JsonArray withMessages = new JsonArray();
+            for (Message m : translateWith) {
+                JsonArray withMessageComponents = new JsonArray();
+                m.getText().stream().map(t -> t.translateJSON(theme)).forEach(withMessageComponents::add);
+                withMessages.add(withMessageComponents);
+            }
+            jsonObject.add("with", withMessages);
+        }
+        
+        if (!separator.isEmpty()) {
+            JsonArray separatorMessage = new JsonArray();
+            separator.getText().stream().map(t -> t.translateJSON(theme)).forEach(separatorMessage::add);
+            jsonObject.add("separator", separatorMessage);
         }
         
         return jsonObject;
@@ -246,8 +267,6 @@ public class TextComponent {
     public void setColor(String color) {
         if (Arrays.stream(ColorTheme.ColorType.values()).anyMatch(type -> type.name().equalsIgnoreCase(color))) {
             this.color = color;
-        } else if (color.matches("#[0-9a-fA-F]{6}")) {
-            this.color = color;
         } else {
             this.color = new MultiColor(color).getColorAsValue();
         }
@@ -270,7 +289,8 @@ public class TextComponent {
     }
     
     public void setAttributes(List<Attribute> attributes) {
-        this.attributes = attributes;
+        for (Attribute attribute : attributes)
+            this.addAttribute(attribute);
     }
     
     public void addAttribute(Attribute attribute) {
@@ -326,9 +346,11 @@ public class TextComponent {
         return (E) toRemove;
     }
     
-    public void addTextEvent(TextEvent textEvent) {
+    public TextComponent addTextEvent(@Nullable TextEvent textEvent) {
+        if (textEvent == null) return this;
         removeTextEvent(textEvent.getClass());
         textEvents.add(textEvent);
+        return this;
     }
     
     public String getType() {
@@ -368,42 +390,73 @@ public class TextComponent {
         return this;
     }
     
+    public TextComponent resetTranslateWith() {
+        this.translateWith = new ArrayList<>();
+        return this;
+    }
+    
     public TextComponent addTranslateWith(TextComponent... text) {
-        with.addText(text);
+        for (TextComponent component : text) {
+            this.addTranslateWith(new Message(component));
+        }
         return this;
     }
     
-    public TextComponent addTranslateWith(Message message) {
-        with.addMessage(message);
-        return this;
-    }
-    
-    public TextComponent removeTranslateWith(String simpleText) {
-        with.removeText(simpleText);
-        return this;
-    }
-    
-    public TextComponent removeTranslateWith(TextComponent text) {
-        with.removeText(text);
+    public TextComponent addTranslateWith(Message... messages) {
+        translateWith.addAll(Arrays.asList(messages));
         return this;
     }
     
     public TextComponent removeTranslateWith(Message message) {
-        with.removeMessage(message);
+        translateWith.remove(message);
         return this;
     }
     
-    public TextComponent setTranslateWith(TextComponent... text) {
-        with = new Message(text);
+    public ArrayList<Message> getTranslateWith() {
+        return translateWith;
+    }
+    
+    public TextComponent resetSeparator() {
+        this.separator = new Message();
         return this;
     }
     
-    public TextComponent setTranslateWith(Message message) {
-        with = message;
+    public Message getSeparator() {
+        return separator;
+    }
+    
+    public TextComponent setSeparator(Message separator) {
+        this.separator = separator;
         return this;
     }
     
-    public Message getTranslateWith() {
-        return with;
+    public boolean ignoreTranslator() {
+        return ignoreTranslator;
+    }
+    
+    public TextComponent ignoreTranslator(boolean ignore) {
+        this.ignoreTranslator = ignore;
+        return this;
+    }
+    
+    @Override
+    public Object clone() {
+        TextComponent textComponent = new TextComponent(this.text, this.color);
+        for (Attribute attribute : this.attributes) {
+            textComponent.addAttribute(attribute);
+        }
+//        textComponent.attributes = new ArrayList<>(this.attributes);
+        for (Message message : translateWith) textComponent.translateWith.add((Message) message.clone());
+        textComponent.pageNumber = this.pageNumber;
+        textComponent.insertion = this.insertion;
+        textComponent.type = this.type;
+        textComponent.textEvents = this.textEvents;
+        textComponent.ignoreTranslator = this.ignoreTranslator;
+        textComponent.separator = (Message) this.separator.clone();
+        return textComponent;
+//        try {
+//            return super.clone();
+//        } catch (CloneNotSupportedException e) {
+//        }
     }
 }

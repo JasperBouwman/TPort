@@ -1,10 +1,8 @@
 package com.spaceman.tport.commands.tport.log;
 
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -14,15 +12,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Clear extends SubCommand {
     
     public Clear() {
         EmptyCommand emptyTPort = new EmptyCommand();
         emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyTPort.setCommandDescription(TextComponent.textComponent("This command is used to clear the TPort log of the given TPort", ColorTheme.ColorType.infoColor));
+        emptyTPort.setCommandDescription(formatInfoTranslation("tport.command.log.clear.tportName.commandDescription"));
         emptyTPort.setTabRunnable((args, player) -> {
             List<String> list = TPortManager.getTPortList(player.getUniqueId()).stream().filter(tport -> !tport.isLogBookEmpty()).map(TPort::getName).collect(Collectors.toList());
             list.removeAll(Arrays.asList(args).subList(2, args.length));
@@ -47,13 +44,13 @@ public class Clear extends SubCommand {
                 if (tport != null) {
                     tport.clearLogBook();
                     tport.save();
-                    sendSuccessTheme(player, "Successfully cleared the log of TPort %s", tport.getName());
+                    sendSuccessTranslation(player, "tport.command.log.clear.tportName.succeeded", tport);
                 } else {
-                    sendErrorTheme(player, "No TPort found called %s", args[i]);
+                    sendErrorTranslation(player, "tport.command.noTPortFound", args[i]);
                 }
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport log clear <TPort name...>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log clear <TPort name...>");
         }
     }
 }

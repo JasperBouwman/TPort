@@ -5,10 +5,6 @@ cooldown:
   FeatureTP: 3000         # cooldown of teleporting to a feature
   BiomeTP: 3000           # cooldown of teleporting to a biome
   Search: 10000           # cooldown of searching for TPorts
-Permissions:
-  enabled: false
-public:
-  enabled: true
 delay:
   permission: false
 restriction:

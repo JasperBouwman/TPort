@@ -18,7 +18,7 @@ public class KeyValueError extends Exception {
     }
     
     public void sendMessage(Player player) {
-        message.sendMessage(player);
+        message.sendAndTranslateMessage(player);
     }
     
 }

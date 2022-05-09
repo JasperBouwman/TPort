@@ -1,13 +1,12 @@
 package com.spaceman.tport.commands.tport.log;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
@@ -18,7 +17,7 @@ public class LogSize extends SubCommand {
     public LogSize() {
         emptySize = new EmptyCommand();
         emptySize.setCommandName("size", ArgumentType.OPTIONAL);
-        emptySize.setCommandDescription(textComponent("This command is used to set the size of a TPort log", ColorType.infoColor));
+        emptySize.setCommandDescription(formatInfoTranslation("tport.command.log.logSize.size.commandDescription"));
         emptySize.setPermissions("TPort.log.logSize", "TPort.admin.log");
         addAction(emptySize);
     }
@@ -35,7 +34,7 @@ public class LogSize extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to get the size of a TPort log", ColorType.infoColor));
+        return formatInfoTranslation("tport.command.log.logSize.commandDescription");
     }
     
     @Override
@@ -43,18 +42,19 @@ public class LogSize extends SubCommand {
         // tport log logSize [size]
     
         if (args.length == 2) {
-            sendInfoTheme(player, "The size of the log entries is set to %s", String.valueOf(getLogSize()));
+            sendInfoTranslation(player, "tport.command.log.logSize.succeeded", getLogSize());
         } else if (args.length == 3) {
             if (emptySize.hasPermissionToRun(player, true)) {
                 try {
-                    setLogSize(Integer.parseInt(args[2]));
-                    sendSuccessTheme(player, "Successfully set the log entry size to %s", args[2]);
+                    int logSize = Integer.parseInt(args[2]);
+                    setLogSize(logSize);
+                    sendSuccessTranslation(player, "tport.command.log.logSize.size.succeeded", logSize);
                 } catch (NumberFormatException nfe) {
-                    sendErrorTheme(player, "%s is not a valid number", args[2]);
+                    sendErrorTranslation(player, "tport.command.log.logSize.size.notValidNumber", args[2]);
                 }
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport log logSize [size]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log logSize [size]");
         }
     }
 }

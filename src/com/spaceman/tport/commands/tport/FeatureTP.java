@@ -1,30 +1,49 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.CommandTemplate;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.google.gson.JsonObject;
+import com.spaceman.tport.Glow;
+import com.spaceman.tport.Main;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.CommandTemplate;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.featureTP.Mode;
 import com.spaceman.tport.commands.tport.featureTP.Search;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.searchAreaHander.SearchAreaHandler;
+import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
+import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.IRegistry;
+import net.minecraft.core.IRegistryCustom;
+import net.minecraft.resources.MinecraftKey;
+import net.minecraft.server.level.WorldServer;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.levelgen.feature.StructureFeature;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.UUID;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.spaceman.tport.TPortInventories.openFeatureTP;
-import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
+import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 
 public class FeatureTP extends SubCommand {
     
@@ -38,196 +57,303 @@ public class FeatureTP extends SubCommand {
             }
         };
         empty.setCommandName("", ArgumentType.FIXED);
-        empty.setCommandDescription(textComponent("This command is used to open the FeatureTP GUI", infoColor));
+        empty.setCommandDescription(formatInfoTranslation("tport.command.featureTP.commandDescription"));
         empty.setPermissions("TPort.featureTP.open");
         addAction(empty);
         
         addAction(new Mode());
         addAction(new Search());
-//        addAction(new SearchTries()); //todo uncomment for SearchArea
-    }
-    
-    public static FeatureTPMode getDefMode(UUID uuid) {
-        Files tportConfig = getFile("TPortConfig");
-        return FeatureTPMode.valueOf(tportConfig.getConfig().getString("featureTP.defaultMode." + uuid.toString(), "CLOSEST"));
-    }
-    
-    public static void setDefMode(UUID uuid, FeatureTPMode mode) {
-        Files tportConfig = getFile("TPortConfig");
-        tportConfig.getConfig().set("featureTP.defaultMode." + uuid.toString(), mode.name());
-        tportConfig.saveConfig();
     }
     
     @Override
     public void run(String[] args, Player player) {
         // tport featureTP
-        // tport featureTP search <feature> [mode]
+        // tport featureTP search [mode] <feature...>
         // tport featureTP mode [mode]
         
         if (args.length == 1) {
-            if (!empty.hasPermissionToRun(player, true)) {
-                return;
+            if (empty.hasPermissionToRun(player, true)) {
+                openFeatureTP(player);
             }
-            openFeatureTP(player, 0);
             return;
         }
         if (runCommands(getActions(), args[1], args, player)) {
             return;
         }
-        sendErrorTheme(player, "Usage: %s", "/tport featureTP " + CommandTemplate.convertToArgs(getActions(), true));
-        
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport featureTP " + CommandTemplate.convertToArgs(getActions(), true));
     }
     
-    public enum FeatureType {
-        Buried_Treasure(new ItemStack(Material.CHEST), safeYSetter(), "buried_treasure", null),
-        Desert_Pyramid(new ItemStack(Material.SAND), safeYSetter(), "desert_pyramid", null),
-        EndCity(new ItemStack(Material.END_STONE), safeYSetter(), "endcity", null),
-        Fortress(new ItemStack(Material.NETHER_BRICKS), safeYSetter(), "fortress", null),
-        Igloo(new ItemStack(Material.SNOW_BLOCK), safeYSetter(), "igloo", null),
-        Jungle_Pyramid(new ItemStack(Material.MOSSY_COBBLESTONE), safeYSetter(), "jungle_pyramid", null),
-        Mansion(new ItemStack(Material.DARK_OAK_WOOD), safeYSetter(), "mansion", null),
-        Mineshaft(new ItemStack(Material.CHEST_MINECART), safeYSetter(), "mineshaft", null),
-        Monument(new ItemStack(Material.PRISMARINE_BRICKS), safeYSetter(), "monument", null),
-        Ocean_Ruin(new ItemStack(Material.WATER_BUCKET), safeYSetter(), "ocean_ruin", null),
-        Pillager_Outpost(new ItemStack(Material.CROSSBOW), safeYSetter(), "pillager_outpost", null),
-        Shipwreck(new ItemStack(Material.OAK_BOAT), safeYSetter(), "shipwreck", null),
-        Stronghold(new ItemStack(Material.END_PORTAL_FRAME), safeYSetter(), "stronghold", null),
-        Swamp_Hut(new ItemStack(Material.CAULDRON), safeYSetter(), "swamp_hut", null),
-        Village(new ItemStack(Material.EMERALD), safeYSetter(), "village", null),
-        Village_Desert(new ItemStack(Material.SANDSTONE), safeYSetter(), "village", "BiomeDesert"),
-        Village_Plains(new ItemStack(Material.GRASS_BLOCK), safeYSetter(), "village", "BiomePlains"),
-        Village_Savanna(new ItemStack(Material.ACACIA_PLANKS), safeYSetter(), "village", "BiomeSavanna"),
-        Village_Taiga(new ItemStack(Material.SPRUCE_PLANKS), safeYSetter(), "village", "BiomeTaiga"),
-        Village_Snowy(new ItemStack(Material.ICE), safeYSetter(), "village", "BiomeIcePlains"),
-        Bastion_Remnant(new ItemStack(Material.POLISHED_BLACKSTONE_BRICKS), safeYSetter(), "bastion_remnant", null),
-        Nether_Fossil(new ItemStack(Material.BONE_BLOCK), safeYSetter(), "nether_fossil", null),
-        Ruined_Portal(new ItemStack(Material.OBSIDIAN), safeYSetter(), "ruined_portal", null);
-        
-        private final ItemStack itemStack;
-        private final YSetter ySetter;
-        private final String name;
-        private final String biome;
-        
-        FeatureType(ItemStack itemStack, YSetter ySetter, String mcName, String biome) {
-            this.itemStack = itemStack;
-            this.ySetter = ySetter;
-            this.name = mcName;
-            this.biome = biome;
+    public static List<String> getFeatures(World world) {
+        try {
+            Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
+            WorldServer worldServer = (WorldServer) nmsWorld;
+            
+            IRegistryCustom registry = worldServer.s();
+            IRegistry<StructureFeature<?, ?>> structureRegistry = registry.d(IRegistry.aL);
+            
+            return structureRegistry.d().stream().map(MinecraftKey::a).map(String::toLowerCase).toList();
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+            e.printStackTrace();
+            return new ArrayList<>();
         }
+    }
+    public static List<com.spaceman.tport.Pair<String, List<String>>> getTags(World world) {
+        List<com.spaceman.tport.Pair<String, List<String>>> list = new ArrayList<>();
         
-        public static YSetter safeYSetter() {
-            return ((world, x, z) -> {
-                if (world.getEnvironment().equals(World.Environment.NETHER)) {
-                    int originalX = x;
-                    int originalZ = z;
-                    int searches = 0;
-                    Random random = new Random();
+        try {
+            Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
+            WorldServer worldServer = (WorldServer) nmsWorld;
+            
+            IRegistryCustom registry = worldServer.s();
+            IRegistry<StructureFeature<?, ?>> structureRegistry = registry.d(IRegistry.aL);
+            
+            List<String> tags = structureRegistry.h().map((tagKey) -> tagKey.b().a()).toList();
+            
+            for (String tagKeyName : tags) {
+                TagKey<StructureFeature<?, ?>> tagKey = TagKey.a(IRegistry.aL, new MinecraftKey(tagKeyName));
+                
+                Optional<HolderSet.Named<StructureFeature<?, ?>>> optional = structureRegistry.c(tagKey);
+                if (optional.isPresent()) {
+                    HolderSet.Named<StructureFeature<?, ?>> named = optional.get();
+                    Stream<Holder<StructureFeature<?, ?>>> values = named.a();
                     
-                    for (int y = 1; y < world.getMaxHeight(); y++) {
-                        Location tempFeet = new Location(world, x, y, z);
-                        
-                        if (SafetyCheck.isSafe(tempFeet)) {
-                            return tempFeet;
-                        } else if (tempFeet.getBlock().getType().equals(Material.BEDROCK) && y > 10) {
-                            //spread location, reset search
-                            if (searches == 20) {
-                                return null;
-                            }
-                            int spread = 10;
-                            x += random.nextInt(spread) - spread * 0.5;
-                            z += random.nextInt(spread) - spread * 0.5;
-                            y = 1;
-                            searches++;
+                    List<String> features = values.map((holder) -> {
+                        return holder.a(); //Holder -> StructureFeature
+                    }).map((structureFeature) -> {
+                        structureFeature.a(); //biomes
+                        MinecraftKey key = structureRegistry.b(structureFeature);
+                        if (key != null) {
+                            return key.a().toLowerCase();
                         }
-                    }
-                    return new Location(world, originalX, world.getHighestBlockYAt(originalX, originalZ), originalZ);
-                } else {
-                    int y = world.getHighestBlockYAt(x, z);
-                    Location l = new Location(world, x, y + 1, z);
-                    Random random = new Random();
-                    int spread = 10;
-                    int searches = 0;
-    
-                    while (y <= 1 || !SafetyCheck.isSafe(l)) {
-                        if (searches == 20) {
-                            return null;
-                        }
-                        x += random.nextInt(spread) - spread * 0.5;
-                        z += random.nextInt(spread) - spread * 0.5;
-                        y = world.getHighestBlockYAt(x, z);
-                        l = new Location(world, x, y + 1, z);
-                        searches++;
-                    }
-                    return l;
-                }
-            });
-        }
-        
-        public String getMCName() {
-            return name;
-        }
-        
-        public String getBiome() {
-            return biome;
-        }
-        
-        public static FeatureType get(String name) {
-            for (FeatureType type : values()) {
-                if (type.name().equalsIgnoreCase(name)) {
-                    return type;
+                        return null;
+                    }).filter(Objects::nonNull).toList();
+                    
+                    list.add(new com.spaceman.tport.Pair<>("#" + tagKeyName.toLowerCase(), features));
                 }
             }
-            throw new IllegalArgumentException(name + " does not exist");
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+            e.printStackTrace();
         }
         
-        public ItemStack getItemStack() {
-            return itemStack;
-        }
-        
-        public Location setY(World world, int x, int z) {
-            return ySetter.setY(world, x, z);
-        }
-        
-        @FunctionalInterface
-        public interface YSetter {
-            Location setY(World world, int x, int z);
-        }
+        return list;
     }
     
-    public enum FeatureTPMode {
-        RANDOM(SearchAreaHandler.getSearchAreaHandler()::getRandomLocation),
-        CLOSEST(SearchAreaHandler.getSearchAreaHandler()::getClosestLocation);
+    public static Material getMaterial(String feature) {
+        return switch (feature) {
+            case "desert_pyramid" -> Material.SANDSTONE;
+            case "end_city" -> Material.PURPUR_BLOCK;
+            case "nether_fossil" -> Material.BONE_BLOCK;
+            case "buried_treasure" -> Material.CHEST;
+            case "bastion_remnant" -> Material.GILDED_BLACKSTONE;
+            case "swamp_hut" -> Material.CAULDRON;
+            case "jungle_pyramid", "jungle_temple" -> Material.TRIPWIRE_HOOK;
+            case "igloo" -> Material.SNOW_BLOCK;
+            case "fortress", "nether_fortress" -> Material.NETHER_BRICKS;
+            case "mansion", "woodland_mansion" -> Material.TOTEM_OF_UNDYING;
+            case "pillager_outpost" -> Material.CROSSBOW;
+            case "monument", "ocean_monument" -> Material.PRISMARINE_BRICKS;
+            case "stronghold" -> Material.END_PORTAL_FRAME;
+            case "mineshaft", "mineshaft_mesa" -> Material.CHEST_MINECART;
+            case "ocean_ruin_warm", "ocean_ruin_cold" -> Material.TRIDENT;
+            case "shipwreck", "shipwreck_beached" -> Material.OAK_BOAT;
+            
+            case "village_taiga", "village_snowy" -> Material.SPRUCE_DOOR;
+            case "village_desert" -> Material.BIRCH_DOOR;
+            case "village_plains" -> Material.OAK_DOOR;
+            case "village_savanna" -> Material.ACACIA_DOOR;
+            
+            case "ruined_portal",
+                    "ruined_portal_swamp",
+                    "ruined_portal_nether",
+                    "ruined_portal_mountain",
+                    "ruined_portal_standard",
+                    "ruined_portal_jungle",
+                    "ruined_portal_ocean",
+                    "ruined_portal_desert" -> Material.CRYING_OBSIDIAN;
+            
+            default -> Material.DIAMOND_BLOCK;
+        };
+    }
+    public static List<ItemStack> getItems(Player player, ArrayList<String> featureSelection) {
+        ColorTheme theme = ColorTheme.getTheme(player);
+        ArrayList<ItemStack> features = new ArrayList<>();
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
-        private final LocationGetter locationGetter;
-        
-        FeatureTPMode(LocationGetter locationGetter) {
-            this.locationGetter = locationGetter;
+        for (String feature : FeatureTP.getFeatures(player.getWorld())) {
+            ItemStack item = new ItemStack(getMaterial(feature));
+            
+            boolean selected = false;
+            Message selectedMessage;
+            if (featureSelection.contains(feature)) {
+                selected = true;
+                selectedMessage = formatTranslation(varInfoColor, varInfoColor, "tport.tportInventories.openFeatureTP.feature.unselect");
+            } else {
+                selectedMessage = formatTranslation(varInfoColor, varInfoColor, "tport.tportInventories.openFeatureTP.feature.select");
+            }
+            Message featureLClick = formatInfoTranslation("tport.tportInventories.openFeatureTP.feature.LClick", ClickType.LEFT, selectedMessage);
+            Message featureRClick = formatInfoTranslation("tport.tportInventories.openFeatureTP.feature.RClick", ClickType.RIGHT);
+            if (playerLang != null) { //if player has no custom language, translate it
+                featureLClick = MessageUtils.translateMessage(featureLClick, playerLang);
+                featureRClick = MessageUtils.translateMessage(featureRClick, playerLang);
+            }
+            MessageUtils.setCustomItemData(item, theme, null, Arrays.asList(featureLClick, featureRClick));
+            
+            ItemMeta im = item.getItemMeta();
+            im.setDisplayName(theme.getVarInfoColor() + feature);
+            
+            im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "feature"), PersistentDataType.STRING, feature.toLowerCase());
+            if (selected) Glow.addGlow(im);
+            
+            FancyClickEvent.addFunction(im, ClickType.LEFT, "featureTP_select", ((whoClicked, clickType, pdc, fancyInventory) -> {
+                NamespacedKey featureKey = new NamespacedKey(Main.getInstance(), "feature");
+                if (pdc.has(featureKey, PersistentDataType.STRING)) {
+                    ArrayList<String> innerFeatureSelection = fancyInventory.getData("featureSelection", ArrayList.class, new ArrayList<String>());
+                    String innerFeature = pdc.get(featureKey, PersistentDataType.STRING);
+                    if (innerFeatureSelection.contains(innerFeature)) {
+                        innerFeatureSelection.remove(innerFeature);
+                    } else {
+                        innerFeatureSelection.add(innerFeature);
+                    }
+                    fancyInventory.setData("featureSelection", innerFeatureSelection);
+                    openFeatureTP(whoClicked, fancyInventory.getData("page", Integer.class, 0), fancyInventory);
+                }
+            }));
+            FancyClickEvent.addCommand(im, ClickType.RIGHT, "tport featureTP search " + feature);
+            
+            im.setDisplayName(theme.getVarInfoColor() + feature);
+            item.setItemMeta(im);
+            if (selected) features.add(0, item);
+            else features.add(item);
         }
-        
-        @Nullable
-        public Location getLoc(Player player) {
-            return locationGetter.getLoc(player);
+        for (com.spaceman.tport.Pair<String, List<String>> pair : FeatureTP.getTags(player.getWorld())) {
+            Material m = switch (pair.getLeft().substring(1)) { //remove #
+                case "ruined_portal" -> Material.CRYING_OBSIDIAN;
+                case "dolphin_located" -> Material.DOLPHIN_SPAWN_EGG;
+                case "on_woodland_explorer_maps", "on_ocean_explorer_maps", "on_treasure_maps" -> Material.MAP;
+                case "ocean_ruin" -> Material.TRIDENT;
+                case "village" -> Material.EMERALD;
+                case "eye_of_ender_located" -> Material.ENDER_EYE;
+                case "mineshaft" -> Material.CHEST_MINECART;
+                case "shipwreck" -> Material.OAK_BOAT;
+                default -> Material.DIAMOND_BLOCK;
+            };
+            ItemStack is = new ItemStack(m);
+            
+            List<String> featureList = pair.getRight();
+            
+            Collection<Message> lore = new LinkedList<>();
+            
+            lore.add(formatInfoTranslation("tport.commands.tport.featureTP.getItems.list." + ((featureList.size() == 1) ? "singular" : "multiple")));
+            
+            Message lorePiece = new Message();
+            boolean color = true;
+            
+            for (int i = 0; i < featureList.size(); i++) {
+                if ((i % 2) == 0 && i != 0) {
+                    lore.add(lorePiece);
+                    lorePiece = new Message();
+                }
+                
+                if (color) {
+                    lorePiece.addText((textComponent(featureList.get(i), varInfoColor)));
+                } else {
+                    lorePiece.addText((textComponent(featureList.get(i), varInfo2Color)));
+                }
+                lorePiece.addText(textComponent(", ", infoColor));
+                color = !color;
+            }
+            lorePiece.removeLast();
+            lore.add(lorePiece);
+            
+            lore.add(new Message());
+            lore.add(formatInfoTranslation("tport.commands.tport.featureTP.getItems.selectFeatures.additive." + ((featureList.size() == 1) ? "singular" : "multiple"), ClickType.LEFT));
+            lore.add(formatInfoTranslation("tport.commands.tport.featureTP.getItems.selectFeatures.overwrite." + ((featureList.size() == 1) ? "singular" : "multiple"), ClickType.SHIFT_LEFT));
+            lore.add(formatInfoTranslation("tport.commands.tport.featureTP.getItems.selectFeatures.run", ClickType.RIGHT));
+            
+            if (playerLang != null) { //if player has no custom language, translate it
+                lore = MessageUtils.translateMessage(lore, playerLang);
+            }
+            MessageUtils.setCustomItemData(is, theme, null, lore);
+            
+            ItemMeta im = is.getItemMeta();
+            im.setDisplayName(theme.getVarInfo2Color() + pair.getLeft());
+            String featuresAsString = String.join("|", pair.getRight());
+            im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "featureTag/name"), PersistentDataType.STRING, pair.getLeft());
+            im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "featureTag/features"), PersistentDataType.STRING, featuresAsString);
+            
+            FancyClickEvent.addFunction(im, ClickType.LEFT, "featureTP_selectAdditive", ((whoClicked, clickType, pdc, fancyInventory) -> {
+                NamespacedKey tagKey = new NamespacedKey(Main.getInstance(), "featureTag/features");
+                if (pdc.has(tagKey, PersistentDataType.STRING)) {
+                    String innerFeatures = pdc.get(tagKey, PersistentDataType.STRING);
+                    String[] featureArray = innerFeatures.split("\\|");
+                    ArrayList<String> innerFeatureSelection = fancyInventory.getData("featureSelection", ArrayList.class, new ArrayList<String>());
+                    Arrays.stream(featureArray).filter(s -> !innerFeatureSelection.contains(s)).forEach(innerFeatureSelection::add);
+                    fancyInventory.setData("featureSelection", innerFeatureSelection);
+                    openFeatureTP(whoClicked, fancyInventory.getData("page", Integer.class, 0), fancyInventory);
+                }
+            }));
+            FancyClickEvent.addFunction(im, ClickType.SHIFT_LEFT, "featureTP_selectOverwrite", ((whoClicked, clickType, pdc, fancyInventory) -> {
+                NamespacedKey tagKey = new NamespacedKey(Main.getInstance(), "featureTag/features");
+                if (pdc.has(tagKey, PersistentDataType.STRING)) {
+                    String innerFeatures = pdc.get(tagKey, PersistentDataType.STRING);
+                    String[] featureArray = innerFeatures.split("\\|");
+                    ArrayList<String> innerFeatureSelection = Arrays.stream(featureArray).collect(Collectors.toCollection(ArrayList::new));
+                    fancyInventory.setData("featureSelection", innerFeatureSelection);
+                    openFeatureTP(whoClicked, fancyInventory.getData("page", Integer.class, 0), fancyInventory);
+                }
+            }));
+            FancyClickEvent.addCommand(im, ClickType.RIGHT, "tport featureTP search " + pair.getLeft());
+            
+            is.setItemMeta(im);
+            features.add(is);
         }
-        
-        public String getPerm() {
-            return "TPort.featureTP.mode." + name();
-        }
-        
-        public FeatureTPMode getNext() {
-            boolean next = false;
-            for (FeatureTPMode mode : values()) {
-                if (mode.equals(this)) {
-                    next = true;
-                } else if (next) {
-                    return mode;
+        return features;
+    }
+    
+    @Nullable
+    public static Location setSafeY(@Nonnull World world, int x, int z) {
+        if (world.getEnvironment().equals(World.Environment.NETHER)) {
+            int originalX = x;
+            int originalZ = z;
+            int searches = 0;
+            Random random = new Random();
+            
+            for (int y = 1; y < world.getMaxHeight(); y++) {
+                Location tempFeet = new Location(world, x, y, z);
+                
+                if (SafetyCheck.isSafe(tempFeet)) {
+                    return tempFeet;
+                } else if (tempFeet.getBlock().getType().equals(Material.BEDROCK) && y > 10) {
+                    //spread location, reset search
+                    if (searches == 20) {
+                        return null;
+                    }
+                    int spread = 10;
+                    x += random.nextInt(spread) - spread * 0.5;
+                    z += random.nextInt(spread) - spread * 0.5;
+                    y = 1;
+                    searches++;
                 }
             }
-            return Arrays.asList(values()).get(0);
-        }
-        
-        @FunctionalInterface
-        private interface LocationGetter {
-            Location getLoc(Player player);
+            return new Location(world, originalX, world.getHighestBlockYAt(originalX, originalZ), originalZ);
+        } else {
+            int y = world.getHighestBlockYAt(x, z);
+            Location l = new Location(world, x, y + 1, z);
+            Random random = new Random();
+            int spread = 10;
+            int searches = 0;
+            
+            while (y <= 1 || !SafetyCheck.isSafe(l)) {
+                if (searches == 20) {
+                    return null;
+                }
+                x += random.nextInt(spread) - spread * 0.5;
+                z += random.nextInt(spread) - spread * 0.5;
+                y = world.getHighestBlockYAt(x, z);
+                l = new Location(world, x, y + 1, z);
+                searches++;
+            }
+            return l;
         }
     }
 }

@@ -8,6 +8,7 @@ import com.spaceman.tport.keyValueHelper.KeyValueTabArgument;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
 import org.bukkit.Location;
 import org.bukkit.Particle;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -16,9 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 
 public class ExplosionAnimation extends ParticleAnimation {
     
@@ -55,6 +54,9 @@ public class ExplosionAnimation extends ParticleAnimation {
     
     @Override
     public void show(Player player, Location l) {
+        World world = l.getWorld();
+        if (world == null) return;
+        
         l = l.add(0, 1, 0);
         
         double two_pi = Math.PI * 2;
@@ -69,9 +71,9 @@ public class ExplosionAnimation extends ParticleAnimation {
                 
                 try {
                     if (explosion)
-                        l.getWorld().spawnParticle(particle, l.getX(), l.getY(), l.getZ(), 0, (float) xOffset * sinPhi, (float) cosPhi, (float) zOffset * sinPhi, velocity);
+                        world.spawnParticle(particle, l.getX(), l.getY(), l.getZ(), 0, (float) xOffset * sinPhi, (float) cosPhi, (float) zOffset * sinPhi, velocity);
                     else
-                        l.getWorld().spawnParticle(particle,
+                        world.spawnParticle(particle,
                                 l.getX() + xOffset * sinPhi * radius,
                                 l.getY() + cosPhi * radius,
                                 l.getZ() + zOffset * sinPhi * radius,
@@ -83,17 +85,19 @@ public class ExplosionAnimation extends ParticleAnimation {
     }
     
     @Override
-    public void edit(Player player, String[] data) {
+    public boolean edit(Player player, String[] data) {
         try {
             KeyValueHelper.extendedConstructObject(data[0], this,
-                    (ExtendedKey) new ExtendedKey("particle", (s) -> Particle.valueOf(s.toUpperCase()), true, ((o, value) -> ((ExplosionAnimation) o).setParticle((Particle) value))).setErrorMessage(" is not a valid particle"),
-                    (ExtendedKey) new ExtendedKey("explosion", Boolean::parseBoolean, true, (o, value) -> ((ExplosionAnimation) o).setExplosion((Boolean) value)).setErrorMessage(" is not a state"),
-                    (ExtendedKey) new ExtendedKey("radius", Double::parseDouble, true, (o, value) -> ((ExplosionAnimation) o).setRadius((Double) value)).setErrorMessage(" is not a number"),
-                    (ExtendedKey) new ExtendedKey("velocity", Double::parseDouble, true, (o, value) -> ((ExplosionAnimation) o).setVelocity((Double) value)).setErrorMessage(" is not a number"),
-                    (ExtendedKey) new ExtendedKey("resolution", Double::parseDouble, true, (o, value) -> ((ExplosionAnimation) o).setResolution((Double) value)).setErrorMessage(" is not a number")
+                    (ExtendedKey) new ExtendedKey("particle", (s) -> Particle.valueOf(s.toUpperCase()), true, ((o, value) -> ((ExplosionAnimation) o).setParticle((Particle) value))).setErrorMessageID("tport.tpEvents.animations.explosionAnimation.notAParticle"),
+                    (ExtendedKey) new ExtendedKey("explosion", Boolean::parseBoolean, true, (o, value) -> ((ExplosionAnimation) o).setExplosion((Boolean) value)).setErrorMessageID("tport.tpEvents.animations.explosionAnimation.notAState"),
+                    (ExtendedKey) new ExtendedKey("radius", Double::parseDouble, true, (o, value) -> ((ExplosionAnimation) o).setRadius((Double) value)).setErrorMessageID("tport.tpEvents.animations.explosionAnimation.notANumber"),
+                    (ExtendedKey) new ExtendedKey("velocity", Double::parseDouble, true, (o, value) -> ((ExplosionAnimation) o).setVelocity((Double) value)).setErrorMessageID("tport.tpEvents.animations.explosionAnimation.notANumber"),
+                    (ExtendedKey) new ExtendedKey("resolution", Double::parseDouble, true, (o, value) -> ((ExplosionAnimation) o).setResolution((Double) value)).setErrorMessageID("tport.tpEvents.animations.explosionAnimation.notANumber")
             );
+            return true;
         } catch (KeyValueError keyValueError) {
             keyValueError.sendMessage(player);
+            return false;
         }
     }
     
@@ -128,8 +132,6 @@ public class ExplosionAnimation extends ParticleAnimation {
     
     @Override
     public Message getDescription() {
-        return new Message(textComponent("This particle animation creates a ball with the given parameters, when the '", infoColor),
-                textComponent("explosion", varInfoColor),
-                textComponent("' is set to true the ball will grow in size, when set to false it shrinks like an implosion", infoColor));
+        return formatInfoTranslation("tport.tpEvents.animations.explosionAnimation.description", "explosion");
     }
 }

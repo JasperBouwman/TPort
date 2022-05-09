@@ -1,18 +1,18 @@
 package com.spaceman.tport.commands.tport.pltp;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.Main;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.Collection;
 
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class State extends SubCommand {
@@ -22,18 +22,16 @@ public class State extends SubCommand {
     public State() {
         emptyState = new EmptyCommand();
         emptyState.setCommandName("state", ArgumentType.OPTIONAL);
-        emptyState.setCommandDescription(textComponent("This command is used to set your PLTP statement. If ", ColorTheme.ColorType.infoColor),
-                textComponent("true", ColorTheme.ColorType.varInfoColor),
-                textComponent(" players can teleport to you, if ", ColorTheme.ColorType.infoColor),
-                textComponent("false", ColorTheme.ColorType.varInfoColor),
-                textComponent(" only players in your PLTP whitelist can teleport to you", ColorTheme.ColorType.infoColor));
+        emptyState.setCommandDescription(formatInfoTranslation("tport.command.PLTP.state.state.commandDescription",
+                formatTranslation(goodColor, varInfo2Color, "tport.command.PLTP.state.enabled"),
+                formatTranslation(badColor, varInfo2Color, "tport.command.PLTP.state.disabled")));
         emptyState.setPermissions("TPort.PLTP.state.set", "TPort.basic");
         addAction(emptyState);
     }
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to get your PLTP statement", ColorTheme.ColorType.infoColor));
+        return formatInfoTranslation("tport.command.PLTP.state.commandDescription");
     }
     
     @Override
@@ -47,25 +45,35 @@ public class State extends SubCommand {
         
         if (args.length == 2) {
             Files tportData = getFile("TPortData");
-            boolean pltpState = tportData.getConfig().getBoolean("tport." + player.getUniqueId().toString() + ".tp.statement", true);
-            Message message = new Message();
-            message.addText(textComponent("Your PLTP state is: ", ColorTheme.ColorType.infoColor));
-            message.addText(textComponent(String.valueOf(pltpState), ColorTheme.ColorType.varInfoColor));
-            message.sendMessage(player);
+            boolean pltpState = tportData.getConfig().getBoolean("tport." + player.getUniqueId() + ".tp.statement", true);
+            sendInfoTranslation(player, "tport.command.PLTP.state.succeeded", (pltpState ?
+                    formatTranslation(goodColor, varInfo2Color, "tport.command.PLTP.state.enabled") :
+                    formatTranslation(badColor, varInfo2Color, "tport.command.PLTP.state.disabled")));
         } else if (args.length == 3) {
             if (!emptyState.hasPermissionToRun(player, true)) {
                 return;
             }
             Files tportData = getFile("TPortData");
-            boolean pltpState = Boolean.parseBoolean(args[2]);
-            tportData.getConfig().set("tport." + player.getUniqueId().toString() + ".tp.statement", pltpState);
-            tportData.saveConfig();
-            Message message = new Message();
-            message.addText(textComponent("Your PLTP state is set to: ", ColorTheme.ColorType.infoColor));
-            message.addText(textComponent(String.valueOf(pltpState), ColorTheme.ColorType.varInfoColor));
-            message.sendMessage(player);
+            Boolean pltpState = Main.toBoolean(args[2]);
+            if (pltpState == null) {
+                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP state [true|false]");
+                return;
+            }
+            boolean oldPltpState = tportData.getConfig().getBoolean("tport." + player.getUniqueId() + ".tp.statement", true);
+            
+            if (pltpState == oldPltpState) {
+                sendErrorTranslation(player, "tport.command.PLTP.state.state.alreadyInState", (pltpState ?
+                        formatTranslation(goodColor, varInfo2Color, "tport.command.PLTP.state.enabled") :
+                        formatTranslation(badColor, varInfo2Color, "tport.command.PLTP.state.disabled")));
+            } else {
+                tportData.getConfig().set("tport." + player.getUniqueId() + ".tp.statement", pltpState);
+                tportData.saveConfig();
+                sendSuccessTranslation(player, "tport.command.PLTP.state.state.succeeded", (pltpState ?
+                        formatTranslation(goodColor, varInfo2Color, "tport.command.PLTP.state.enabled") :
+                        formatTranslation(badColor, varInfo2Color, "tport.command.PLTP.state.disabled")));
+            }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport PLTP state [state]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP state [state]");
         }
     }
 }

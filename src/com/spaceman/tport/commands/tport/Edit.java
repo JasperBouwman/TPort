@@ -1,17 +1,17 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.commands.tport.edit.*;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.edit.Tag;
+import com.spaceman.tport.commands.tport.edit.*;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.commandHander.CommandTemplate.convertToArgs;
-import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
+import static com.spaceman.tport.commandHandler.CommandTemplate.convertToArgs;
+import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
 public class Edit extends SubCommand {
     
@@ -29,7 +29,7 @@ public class Edit extends SubCommand {
         emptyOwnTPort.addAction(new Move());
         emptyOwnTPort.addAction(new Range());
         emptyOwnTPort.addAction(new Tag());
-        emptyOwnTPort.addAction(new Dynmap());
+        if (Features.Feature.Dynmap.isEnabled()) emptyOwnTPort.addAction(new Dynmap());
         addAction(emptyOwnTPort);
     }
     
@@ -40,14 +40,14 @@ public class Edit extends SubCommand {
     
     @Override
     public void run(String[] args, Player player) {
-        
-        // tport edit <TPort name> lore set <lore...>
-        // tport edit <TPort name> lore remove
+        // tport edit <TPort name> description set <description...>
+        // tport edit <TPort name> description remove
+        // tport edit <TPort name> description get
         // tport edit <TPort name> name <new TPort name>
         // tport edit <TPort name> item
         // tport edit <TPort name> location
         // tport edit <TPort name> private
-        // tport edit <TPort name> private <statement>
+        // tport edit <TPort name> private <state>
         // tport edit <TPort name> whitelist <add|remove> <players names...>
         // tport edit <TPort name> whitelist list
         // tport edit <TPort name> move <slot|TPort name>
@@ -62,6 +62,6 @@ public class Edit extends SubCommand {
                 return;
             }
         }
-        sendErrorTheme(player, "Usage: %s", "/tport edit <TPort name> " + convertToArgs(getActions().get(0).getActions(), false));
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> " + convertToArgs(getActions().get(0).getActions(), false));
     }
 }

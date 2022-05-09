@@ -2,10 +2,9 @@ package com.spaceman.tport.events;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.commands.TPortCommand;
-import com.spaceman.tport.commands.tport.searchArea.Show;
+import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -16,41 +15,64 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.UUID;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static org.bukkit.persistence.PersistentDataType.STRING;
 
 public class TeleporterEvents implements Listener {
     
+    public static boolean isTeleporter(ItemStack is) {
+        ItemMeta im = is.getItemMeta();
+        if (im != null) {
+            PersistentDataContainer dataContainer = im.getPersistentDataContainer();
+            NamespacedKey keyCommand = new NamespacedKey(Main.getInstance(), "teleporterCommand");
+            return dataContainer.has(keyCommand, STRING);
+        }
+        return false;
+    }
+    
     private boolean useTeleporter(Player player, ItemStack is) {
-        if (hasPermission(player, true, true, "TPort.teleporter.use")) {
-            ItemMeta im = is.getItemMeta();
-            if (im != null) {
-                PersistentDataContainer dataContainer = im.getPersistentDataContainer();
-                NamespacedKey keyCommand = new NamespacedKey(Main.getInstance(), "teleporterCommand");
-                NamespacedKey keyTPortUUID = new NamespacedKey(Main.getInstance(), "teleporterTPortUUID");
-                if (dataContainer.has(keyTPortUUID, PersistentDataType.STRING) && dataContainer.has(keyCommand, PersistentDataType.STRING)) {
-                    TPort tport = TPortManager.getTPort(UUID.fromString(dataContainer.get(keyTPortUUID, PersistentDataType.STRING)));
-                    if (tport != null) {
-                        TPortCommand.executeInternal(player, dataContainer.get(keyCommand, PersistentDataType.STRING) + " " + tport.getName());
-                    } else {
-                        sendErrorTheme(player, "TPort of this teleporter does not exist anymore");
+        if (isTeleporter(is)) {
+            if (hasPermission(player, true, true, "TPort.teleporter.use")) {
+                ItemMeta im = is.getItemMeta();
+                if (im != null) {
+                    PersistentDataContainer dataContainer = im.getPersistentDataContainer();
+                    NamespacedKey keyCommand = new NamespacedKey(Main.getInstance(), "teleporterCommand");
+                    NamespacedKey keyTPortUUID = new NamespacedKey(Main.getInstance(), "teleporterTPortUUID");
+                    NamespacedKey keyPlayerUUID = new NamespacedKey(Main.getInstance(), "teleporterPlayerUUID");
+                    if (dataContainer.has(keyCommand, STRING)) {
+                        if (dataContainer.has(keyTPortUUID, STRING)) {
+                            String uuid = dataContainer.get(keyTPortUUID, STRING);
+                            assert uuid != null;
+                            TPort tport = TPortManager.getTPort(UUID.fromString(uuid));
+                            
+                            if (tport != null) {
+                                String command = dataContainer.get(keyCommand, STRING);
+                                assert command != null;
+                                if (command.contains(" ")) command = "open";
+                                command += " " + PlayerUUID.getPlayerName(tport.getOwner());
+                                TPortCommand.executeInternal(player, command + " " + tport.getName());
+                            } else {
+                                sendErrorTranslation(player, "tport.events.teleporterEvents.TPortNotExistAnymore", uuid);
+                            }
+                        } else if (dataContainer.has(keyPlayerUUID, STRING)) {
+                            String command = dataContainer.get(keyCommand, STRING);
+                            command += " " + PlayerUUID.getPlayerName(dataContainer.get(keyPlayerUUID, STRING));
+                            TPortCommand.executeInternal(player, command);
+                        } else {
+                            TPortCommand.executeInternal(player, dataContainer.get(keyCommand, STRING));
+                        }
+                        return true;
                     }
-                    return true;
-                }
-                if (dataContainer.has(keyCommand, PersistentDataType.STRING)) {
-                    TPortCommand.executeInternal(player, dataContainer.get(keyCommand, PersistentDataType.STRING));
-                    return true;
                 }
             }
         }
@@ -62,9 +84,8 @@ public class TeleporterEvents implements Listener {
     public void interactEvent(PlayerInteractEntityEvent e) {
         Entity entity = e.getRightClicked();
         
-        if (entity instanceof ItemFrame) {
-            ItemFrame itemFrame = (ItemFrame) entity;
-            
+        if (entity instanceof ItemFrame itemFrame) {
+    
             ItemStack is = itemFrame.getItem();
             if (!e.getPlayer().isSneaking()) {
                 if (useTeleporter(e.getPlayer(), is)) {
@@ -84,17 +105,6 @@ public class TeleporterEvents implements Listener {
             ItemStack is = e.getPlayer().getInventory().getItemInMainHand();
             if (useTeleporter(e.getPlayer(), is)) {
                 e.setCancelled(true);
-            } else if (is.getType().equals(Material.FILLED_MAP)) {
-                MapMeta im = (MapMeta) is.getItemMeta();
-                
-                if (im != null) {
-                    if (im.getPersistentDataContainer().has(new NamespacedKey(Main.getInstance(), "PolygonMapRenderer"), PersistentDataType.STRING)) {
-                        if (im.hasMapView()) {
-                            Show.updatePolygonMap(is, e.getPlayer());
-                            sendInfoTheme(e.getPlayer(), "Updated the map view to your SearchArea");
-                        }
-                    }
-                }
             }
         }
     }
@@ -107,51 +117,20 @@ public class TeleporterEvents implements Listener {
         if (block.getState() instanceof InventoryHolder) {
             return true;
         }
-        
-        switch (block.getType()) {
-            case ENCHANTING_TABLE:
-            case CRAFTING_TABLE:
-            case ENDER_CHEST:
-            case ANVIL:
-            case DAMAGED_ANVIL:
-            case CHIPPED_ANVIL:
-            case BEACON:
-            case BREWING_STAND:
-            case COMMAND_BLOCK:
-            case CHAIN_COMMAND_BLOCK:
-            case REPEATING_COMMAND_BLOCK:
-            case FURNACE:
-            case HOPPER:
-            case CHEST:
-            case TRAPPED_CHEST:
-            case NOTE_BLOCK:
-            case STRUCTURE_BLOCK:
-            case COMPARATOR:
-            case REPEATER:
-            case LEVER:
-            case DISPENSER:
-            case DROPPER:
-            case JUKEBOX:
-            case DAYLIGHT_DETECTOR:
-            case BLAST_FURNACE:
-            case LOOM:
-            case SMOKER:
-            case CARTOGRAPHY_TABLE:
-            case STONECUTTER:
-            case GRINDSTONE:
-            case BARREL:
-            case JIGSAW:
-            case LECTERN:
-            case SMITHING_TABLE:
-            case FLETCHING_TABLE:
-                return true;
-        }
-        
-        return block.getType().toString().endsWith("DOOR")
-                || block.getType().toString().endsWith("BED")
-                || block.getType().toString().endsWith("TRAPDOOR")
-                || block.getType().toString().endsWith("BUTTON")
-                || block.getType().toString().endsWith("SHULKER_BOX");
-        
+    
+        return switch (block.getType()) {
+            case ENCHANTING_TABLE, CRAFTING_TABLE, ENDER_CHEST, ANVIL, DAMAGED_ANVIL,
+                    CHIPPED_ANVIL, BEACON, BREWING_STAND, COMMAND_BLOCK, CHAIN_COMMAND_BLOCK,
+                    REPEATING_COMMAND_BLOCK, FURNACE, HOPPER, CHEST, TRAPPED_CHEST, NOTE_BLOCK,
+                    STRUCTURE_BLOCK, COMPARATOR, REPEATER, LEVER, DISPENSER, DROPPER, JUKEBOX,
+                    DAYLIGHT_DETECTOR, BLAST_FURNACE, LOOM, SMOKER, CARTOGRAPHY_TABLE, STONECUTTER,
+                    GRINDSTONE, BARREL, JIGSAW, LECTERN, SMITHING_TABLE, FLETCHING_TABLE -> true;
+            default -> block.getType().toString().endsWith("DOOR")
+                    || block.getType().toString().endsWith("BED")
+                    || block.getType().toString().endsWith("TRAPDOOR")
+                    || block.getType().toString().endsWith("BUTTON")
+                    || block.getType().toString().endsWith("SHULKER_BOX");
+        };
+    
     }
 }

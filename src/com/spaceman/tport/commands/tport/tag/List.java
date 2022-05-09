@@ -1,21 +1,23 @@
 package com.spaceman.tport.commands.tport.tag;
 
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.Tag;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import java.util.ArrayList;
+
+import static com.spaceman.tport.commands.tport.Tag.tagPermPrefix;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class List extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to list all the available tags", infoColor));
+        return formatInfoTranslation("tport.command.tag.list.commandDescription");
     }
     
     @Override
@@ -23,20 +25,34 @@ public class List extends SubCommand {
         // tport tag list
         
         if (args.length == 2) {
-            Message message = new Message();
-            message.addText(textComponent("Available tags: ", infoColor));
             
-            message.addText(textComponent(""));
-            for (String tag : Tag.getTags()) {
-                message.addText(textComponent(tag, varInfoColor,
-                        new HoverEvent(textComponent("Permission: ", infoColor), textComponent("TPort.tags.type." + tag, varInfoColor))));
-                message.addText(textComponent(", ", infoColor));
+            ArrayList<String> tags = Tag.getTags();
+            int size = tags.size();
+            Message tagsMessage = new Message();
+            Message delimiter = formatInfoTranslation("tport.command.tag.list.delimiter");
+            boolean color = true;
+            
+            for (int i = 0; i < size; i++) {
+                String tag = tags.get(i);
+                HoverEvent hEvent = new HoverEvent();
+                hEvent.addMessage(formatInfoTranslation("tport.command.tag.list.hoverText", tagPermPrefix + tag));
+                
+                Message tagMessage;
+                if (color) tagMessage = new Message(textComponent(tag, varInfoColor).addTextEvent(hEvent));
+                else       tagMessage = new Message(textComponent(tag, varInfo2Color).addTextEvent(hEvent));
+                color = !color;
+                tagsMessage.addMessage(tagMessage);
+                
+                if (i + 2 == size) tagsMessage.addMessage(formatInfoTranslation("tport.command.tag.list.lastDelimiter"));
+                else               tagsMessage.addMessage(delimiter);
             }
-            message.removeLast();
             
-            message.sendMessage(player);
+            tagsMessage.removeLast();
+            
+            sendInfoTranslation(player, "tport.command.tag.list.succeeded", tagsMessage);
+            
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport tag list");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport tag list");
         }
     }
 }

@@ -1,13 +1,13 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.pa.List;
 import com.spaceman.tport.commands.tport.pa.New;
 import com.spaceman.tport.commands.tport.pa.Old;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
+import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
 public class ParticleAnimationCommand extends SubCommand {
     
@@ -38,6 +38,6 @@ public class ParticleAnimationCommand extends SubCommand {
                 return;
             }
         }
-        sendErrorTheme(player, "Usage %s", "/tport particleAnimation <new|old|list>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport particleAnimation <new|old|list>");
     }
 }

@@ -1,5 +1,7 @@
 package com.spaceman.tport.fancyMessage;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.spaceman.tport.fancyMessage.book.Book;
 import com.spaceman.tport.fancyMessage.book.BookPage;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
@@ -7,6 +9,13 @@ import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fancyMessage.events.ScoreEvent;
+import net.minecraft.network.chat.ChatMessageType;
+import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.network.chat.IChatMutableComponent;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
+import net.minecraft.network.protocol.game.PacketPlayOutChat;
+import net.minecraft.server.level.EntityPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -17,26 +26,18 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.json.simple.JSONArray;
 
-import java.awt.*;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
+import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 
-public class Message {
+public class Message implements Cloneable {
     
-    public static final String PLACE_HOLDER = "%s";
     private final ArrayList<TextComponent> components = new ArrayList<>();
     
     public Message() {
@@ -50,13 +51,25 @@ public class Message {
         this.components.addAll(Arrays.asList(text));
     }
     
+    public Message(List<TextComponent> message) {
+        this.components.addAll(message);
+    }
+    
     public Message(String simpleText, ChatColor color) {
         this.components.add(textComponent(simpleText, color));
+    }
+    
+    public Message(String simpleText) {
+        this.components.add(textComponent(simpleText));
     }
     
     @Override
     public String toString() {
         return components.stream().map(TextComponent::toString).collect(Collectors.joining());
+    }
+    
+    public String translateString() {
+        return components.stream().map(TextComponent::getText).collect(Collectors.joining());
     }
     
     public static void testAll(Player player) { //todo check all functions
@@ -84,7 +97,7 @@ public class Message {
         color2.addAttribute(Attribute.ITALIC);
         color3.addAttribute(Attribute.OBFUSCATED);
         color4.addAttribute(Attribute.STRIKETHROUGH);
-        color5.addAttribute(Attribute.UNDERLINE);
+        color5.addAttribute(Attribute.UNDERLINED);
         
         TextComponent color1RGB = new TextComponent("c", Color.fromBGR(100, 100, 100));
         TextComponent color2RGB = new TextComponent("o", Color.TEAL);
@@ -95,7 +108,7 @@ public class Message {
         color2RGB.addAttribute(Attribute.ITALIC);
         color3RGB.addAttribute(Attribute.OBFUSCATED);
         color4RGB.addAttribute(Attribute.STRIKETHROUGH);
-        color5RGB.addAttribute(Attribute.UNDERLINE);
+        color5RGB.addAttribute(Attribute.UNDERLINED);
         
         TextComponent hover = new TextComponent("hover event", ChatColor.RED);
         HoverEvent hoverEvent = new HoverEvent();
@@ -167,6 +180,18 @@ public class Message {
         
         message.sendMessage(player);
         
+        ItemStack is = new ItemStack(Material.STONE);
+        Message displayName = new Message();
+        displayName.addText(textComponent("key of forward: ", ChatColor.RED));
+        displayName.addText(textComponent(Keybinds.FORWARD, ChatColor.BLUE).setType(TextType.KEYBIND));
+        MessageUtils.setCustomItemData(is, ColorTheme.getTheme(player), displayName, null);
+        Message lore1 = new Message();
+        lore1.addText(textComponent("line 1, component 1", ChatColor.DARK_AQUA), textComponent("line 1, component 2", ChatColor.BLUE));
+        Message lore2 = new Message();
+        lore2.addText(textComponent("line 2", ChatColor.AQUA));
+        MessageUtils.setCustomLore(is, ColorTheme.getTheme(player), lore1, lore2);
+        player.getInventory().addItem(is);
+        
         Message title = new Message();
         title.addText(textComponent("title", ChatColor.GREEN));
         title.sendTitle(player, TitleTypes.TITLE);
@@ -191,10 +216,6 @@ public class Message {
         book.openBook(player);
         player.getInventory().addItem(book.getWritableBook());
         player.getInventory().addItem(book.getWrittenBook(player));
-    }
-    
-    public static String indexedPlaceHolder(int index) {
-        return "%" + index + "$s";
     }
     
     public void removeLast() {
@@ -224,6 +245,10 @@ public class Message {
     }
     
     public void addText(String simpleText, MultiColor color) {
+        addText(textComponent(simpleText, color));
+    }
+    
+    public void addText(String simpleText, ColorTheme.ColorType color) {
         addText(textComponent(simpleText, color));
     }
     
@@ -257,6 +282,10 @@ public class Message {
         addText(" ");
     }
     
+    public void addNewLine() {
+        addText(TextComponent.NEW_LINE);
+    }
+    
     public ArrayList<TextComponent> getText() {
         return components;
     }
@@ -270,53 +299,36 @@ public class Message {
     }
     
     public void sendTitle(Player player, TitleTypes titleTypes) {
-        sendTitle(player, titleTypes.name(), -1, -1, -1);
-    }
-    
-    public void sendTitle(Player player, String titleTypes) {
         sendTitle(player, titleTypes, -1, -1, -1);
     }
     
     public void sendTitle(Player player, TitleTypes titleType, int fadeIn, int displayTime, int fadeOut) {
-        sendTitle(player, titleType.name(), fadeIn, displayTime, fadeOut);
-    }
-    
-    public void sendTitle(Player player, String titleType, int fadeIn, int displayTime, int fadeOut) {
-        
-        boolean b = true;
-        for (TitleTypes type : TitleTypes.values()) {
-            if (type.name().equalsIgnoreCase(titleType)) {
-                b = false;
-                break;
-            }
-        }
-        if (b) {
-            titleType = "title";
-        }
         
         try {
-            String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
-            Object nmsPlayer = player.getClass().getMethod("getHandle").invoke(player);
-            Object connection = nmsPlayer.getClass().getField("playerConnection").get(nmsPlayer);
-            Class<?> chatSerializer = Class.forName("net.minecraft.server." + version + ".IChatBaseComponent$ChatSerializer");
-            Class<?> chatComponent = Class.forName("net.minecraft.server." + version + ".IChatBaseComponent");
+            EntityPlayer entityPlayer = (EntityPlayer) player.getClass().getMethod("getHandle").invoke(player);
             
-            Class<?> packet = Class.forName("net.minecraft.server." + version + ".PacketPlayOutTitle");
+            IChatMutableComponent text = IChatBaseComponent.ChatSerializer.a(this.translateJSON(player));
             
-            String message = translateJSON(player);
+            Class<?> packetClass = Class.forName("net.minecraft.network.protocol.game." + titleType.mcClass);
+            Class<?> chatComponent = Class.forName("net.minecraft.network.chat.IChatBaseComponent");
+            Packet<?> packetObject = (Packet<?>) packetClass.getConstructor(chatComponent).newInstance(text);
             
-            Class<?> enumClass = Class.forName("net.minecraft.server." + version + ".PacketPlayOutTitle$EnumTitleAction");
-            Field actionF = enumClass.getDeclaredField(titleType.toUpperCase());
-            actionF.setAccessible(true);
-            
-            Constructor<?> constructor = packet.getConstructor(enumClass, chatComponent, int.class, int.class, int.class);
-            
-            Object text = chatSerializer.getMethod("a", String.class).invoke(chatSerializer, message);
-            Object packetFinal = constructor.newInstance(actionF.get(null), text, fadeIn, displayTime, fadeOut);
-            
-            connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + version + ".Packet")).invoke(connection, packetFinal);
+            if (fadeIn != -1 || displayTime != -1 || fadeOut != -1) {
+                ClientboundSetTitlesAnimationPacket clientboundSetTitlesAnimationPacket = new ClientboundSetTitlesAnimationPacket(fadeIn, displayTime, fadeOut);
+                entityPlayer.b.a(clientboundSetTitlesAnimationPacket);
+            }
+            entityPlayer.b.a(packetObject);
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+    
+    public void sendAndTranslateMessage(Player player) {
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        if (playerLang == null) { //custom language
+            sendMessage(player);
+        } else {
+            MessageUtils.translateMessage(this, playerLang).sendMessage(player);
         }
     }
     
@@ -329,26 +341,11 @@ public class Message {
             return;
         }
         try {
-            String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
-            Object nmsPlayer = player.getClass().getMethod("getHandle").invoke(player);
-            Object connection = nmsPlayer.getClass().getField("playerConnection").get(nmsPlayer);
-            Class<?> chatSerializer = Class.forName("net.minecraft.server." + version + ".IChatBaseComponent$ChatSerializer");
-            Class<?> chatComponent = Class.forName("net.minecraft.server." + version + ".IChatBaseComponent");
+            IChatMutableComponent text = IChatBaseComponent.ChatSerializer.a(this.translateJSON(player));
+            PacketPlayOutChat packetPlayOutChat = new PacketPlayOutChat(text, type.chatMessageType, player.getUniqueId());
             
-            Field chatMessageType = Class.forName("net.minecraft.server." + version + ".ChatMessageType").getField(type.name());
-            chatMessageType.setAccessible(true);
-            
-            String message = translateJSON(ColorTheme.getTheme(player));
-            Object text = chatSerializer.getMethod("a", String.class).invoke(chatSerializer, message);
-            
-            Class<?> packetPlayOutChatClass = Class.forName("net.minecraft.server." + version + ".PacketPlayOutChat");
-            Object packetPlayOutChat = packetPlayOutChatClass.getConstructor(chatComponent, chatMessageType.get(null).getClass(), UUID.class)
-                    .newInstance(text, chatMessageType.get(null), player.getUniqueId());
-            
-            Field field = packetPlayOutChat.getClass().getDeclaredField("a");
-            field.setAccessible(true);
-            field.set(packetPlayOutChat, text);
-            connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + version + ".Packet")).invoke(connection, packetPlayOutChat);
+            EntityPlayer entityPlayer = (EntityPlayer) player.getClass().getMethod("getHandle").invoke(player);
+            entityPlayer.b.a(packetPlayOutChat);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -360,30 +357,45 @@ public class Message {
         }
     }
     
-    public String translateString() {
-        return components.stream().map(TextComponent::getText).collect(Collectors.joining());
-    }
-    
     public String translateJSON(Player player) {
         return translateJSON(ColorTheme.getTheme(player));
     }
     
     public String translateJSON(ColorTheme theme) {
-        JSONArray jsonArray = new JSONArray();
+        JsonArray jsonArray = new JsonArray();
         jsonArray.add("");
         components.stream().map(t -> t.translateJSON(theme)).forEach(jsonArray::add);
-        return jsonArray.toJSONString();
+        return jsonArray.toString();
+    }
+    
+    @Override
+    public Object clone() {
+        Message message = new Message();
+        this.components.stream().map(component -> (TextComponent) component.clone()).forEach(message::addText);
+        return message;
     }
     
     public enum MessageTypes {
-        CHAT,
-        SYSTEM,
-        GAME_INFO
+        CHAT(ChatMessageType.a),
+        SYSTEM(ChatMessageType.b),
+        GAME_INFO(ChatMessageType.c);
+        
+        private ChatMessageType chatMessageType;
+        
+        MessageTypes(ChatMessageType type) {
+            this.chatMessageType = type;
+        }
     }
     
     public enum TitleTypes {
-        TITLE,
-        ACTIONBAR,
-        SUBTITLE
+        TITLE("ClientboundSetTitleTextPacket"),
+        ACTIONBAR("ClientboundSetActionBarTextPacket"),
+        SUBTITLE("ClientboundSetSubtitleTextPacket");
+        
+        private String mcClass;
+        
+        TitleTypes(String mcClass) {
+            this.mcClass = mcClass;
+        }
     }
 }

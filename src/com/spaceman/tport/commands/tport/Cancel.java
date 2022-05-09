@@ -1,14 +1,11 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.tpEvents.TPEManager;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Cancel extends SubCommand {
     
@@ -18,18 +15,23 @@ public class Cancel extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to cancel your teleport request", ColorTheme.ColorType.infoColor));
+        return formatInfoTranslation("tport.command.cancel.commandDescription");
     }
     
     @Override
     public void run(String[] args, Player player) {
         // tport cancel
         
+        if (args.length != 1) {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport cancel");
+            return;
+        }
+        
         if (hasPermissionToRun(player, true)) {
             if (TPEManager.cancelTP(player.getUniqueId())) {
-                sendSuccessTheme(player, "Successfully canceled your teleport request");
+                sendSuccessTranslation(player, "tport.command.cancel.succeeded");
             } else {
-                sendErrorTheme(player, "You don't have a teleport request");
+                sendErrorTranslation(player, "tport.command.cancel.noTPRequest");
             }
         }
     }

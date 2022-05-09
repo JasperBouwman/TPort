@@ -1,13 +1,10 @@
 package com.spaceman.tport.commands.tport.publc;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.fancyMessage.TextComponent;
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.fileHander.GettingFiles;
-import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -17,8 +14,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class Add extends SubCommand {
@@ -28,7 +25,7 @@ public class Add extends SubCommand {
     public Add() {
         emptyTPort = new EmptyCommand();
         emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyTPort.setCommandDescription(TextComponent.textComponent("This command is used to add the given TPort to the Public TPort list", ColorTheme.ColorType.infoColor));
+        emptyTPort.setCommandDescription(formatInfoTranslation("tport.command.public.add.tport.commandDescription"));
         emptyTPort.setPermissions("TPort.public.add");
         addAction(emptyTPort);
     }
@@ -40,7 +37,6 @@ public class Add extends SubCommand {
             Files tportData = GettingFiles.getFile("TPortData");
             for (String publicTPortSlot : tportData.getKeys("public.tports")) {
                 String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
-                //noinspection ConstantConditions
                 TPort tport = getTPort(UUID.fromString(tportID));
                 if (tport != null) {
                     if (tport.getOwner().equals(player.getUniqueId())) {
@@ -67,7 +63,8 @@ public class Add extends SubCommand {
             if (tport != null) {
                 Files tportData = GettingFiles.getFile("TPortData");
                 if (tport.isOffered()) {
-                    sendErrorTheme(player, "You can't make TPort %s public while its offered to player %s", tport.getName(), PlayerUUID.getPlayerName(tport.getOfferedTo()));
+                    sendErrorTranslation(player, "tport.command.public.add.tport.isOffered",
+                            tport, asPlayer(tport.getOfferedTo()));
                     return;
                 }
                 
@@ -77,25 +74,24 @@ public class Add extends SubCommand {
                         tportData.saveConfig();
                         tport.setPublicTPort(true, player);
                         tport.save();
-                        sendSuccessTheme(player, "Successfully made TPort %s public", tport.getName());
+                        sendSuccessTranslation(player, "tport.command.public.add.tport.succeeded", tport.parseAsPublic(true));
                         return;
                     } else {
                         String tportID = tportData.getConfig().getString("public.tports." + publicSlot, TPortManager.defUUID.toString());
-                        //noinspection ConstantConditions
                         TPort tmpTPort = getTPort(UUID.fromString(tportID));
                         
                         if (tmpTPort != null && tmpTPort.getName().equalsIgnoreCase(tport.getName())) {
-                            sendErrorTheme(player, "TPort %s name is already used", tport.getName());
+                            sendErrorTranslation(player, "tport.command.public.add.tport.nameUsed", tport, tmpTPort.parseAsPublic(true));
                             return;
                         }
                     }
                 }
-                sendErrorTheme(player, "The Public TPort list is full, could not make TPort %s public", tport.getName());
+                sendErrorTranslation(player, "tport.command.public.add.tport.isFull", tport);
             } else {
-                sendErrorTheme(player, "No TPort found called %s", args[2]);
+                sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport public add <TPort name>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public add <TPort name>");
         }
         
     }

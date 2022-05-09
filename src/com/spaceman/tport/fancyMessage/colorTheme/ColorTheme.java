@@ -1,21 +1,30 @@
 package com.spaceman.tport.fancyMessage.colorTheme;
 
+import com.spaceman.tport.Pair;
+import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.TextType;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public class ColorTheme implements ConfigurationSerializable {
     
     public static HashMap<String, ColorTheme> defaultThemes = new HashMap<>();
     private static HashMap<UUID, ColorTheme> colorThemeMap = new HashMap<>();
+    private static final ColorTheme defaultTheme = new ColorTheme(new Color(35, 119, 164), new Color(80, 163, 198), new Color(80, 163, 198), new Color(121, 192, 215), new Color(248, 248, 248), new Color(248, 248, 248), new Color(134, 124, 124), new Color(221, 223, 223), new Color(221, 223, 223));
     
     static {
         defaultThemes.put("fallTheme", new ColorTheme(new Color(251, 246, 1), new Color(251, 205, 38), new Color(251, 205, 38), new Color(143, 187, 9), new Color(214, 231, 21), new Color(214, 231, 21), new Color(246, 77, 13), new Color(250, 142, 4), new Color(250, 142, 4)));
@@ -39,11 +48,14 @@ public class ColorTheme implements ConfigurationSerializable {
     private MultiColor errorColor;
     private MultiColor varErrorColor;
     private MultiColor varError2Color;
+    private MultiColor goodColor = new MultiColor(ChatColor.GREEN);
+    private MultiColor badColor = new MultiColor(ChatColor.RED);
+    private MultiColor titleColor = new MultiColor(ChatColor.YELLOW);
     
     public ColorTheme() {
         if (!defaultThemes.isEmpty()) {
             for (ColorType type : ColorType.values()) {
-                type.setColor(this, type.getColor(defaultThemes.values().toArray(new ColorTheme[0])[0]));
+                type.setColor(this, type.getColor(defaultTheme));
             }
         } else {
             for (ColorType type : ColorType.values()) {
@@ -156,6 +168,60 @@ public class ColorTheme implements ConfigurationSerializable {
     }
     public static void sendSuccessTheme(Player player, String baseMessage, Object... args) {
         if (player != null) player.sendMessage(formatSuccessTheme(player, baseMessage, args));
+    }
+    
+    private static Message formatTranslation(String color, String varColor, String id, Object... objects) {
+        TextComponent text = textComponent(id, color);
+        text.setType(TextType.TRANSLATE);
+        for (Object o : objects) {
+            if (o instanceof Pair) {
+                if (((Pair<?, ?>) o).getLeft() == null) {
+                    o = ((Pair<?, ?>) o).getRight();
+                } else {
+                    o = ((Pair<?, ?>) o).getLeft();
+                }
+            }
+            
+            MessageUtils.ArgumentTranslator defaultArgumentTranslator = null;
+            for (String translatorName : MessageUtils.argumentTranslator.keySet()) {
+                if (!translatorName.equalsIgnoreCase("default")) {
+                    if (MessageUtils.argumentTranslator.get(translatorName).format(text, o, color, varColor)) {
+                        defaultArgumentTranslator = null;
+                        break;
+                    }
+                } else {
+                    defaultArgumentTranslator = MessageUtils.argumentTranslator.get(translatorName);
+                }
+            }
+            if (defaultArgumentTranslator != null) {
+                defaultArgumentTranslator.format(text, o, color, varColor);
+            }
+        }
+        return new Message(text);
+    }
+    public static Message formatTranslation(ChatColor color, ChatColor varColor, String id, Object... objects) {
+        return formatTranslation(color.name(), varColor.name(), id, objects);
+    }
+    public static Message formatTranslation(ColorType color, ColorType varColor, String id, Object... objects) {
+        return formatTranslation(color.name(), varColor.name(), id, objects);
+    }
+    public static Message formatInfoTranslation(String id, Object... objects) {
+        return formatTranslation(ColorType.infoColor, ColorType.varInfoColor, id, objects);
+    }
+    public static Message formatErrorTranslation(String id, Object... objects) {
+        return formatTranslation(ColorType.errorColor, ColorType.varErrorColor, id, objects);
+    }
+    public static Message formatSuccessTranslation(String id, Object... objects) {
+        return formatTranslation(ColorType.successColor, ColorType.varSuccessColor, id, objects);
+    }
+    public static void sendInfoTranslation(@Nullable Player player, String id, Object... objects) {
+        if (player != null) formatInfoTranslation(id, objects).sendAndTranslateMessage(player);
+    }
+    public static void sendErrorTranslation(@Nullable Player player, String id, Object... objects) {
+        if (player != null) formatErrorTranslation(id, objects).sendAndTranslateMessage(player);
+    }
+    public static void sendSuccessTranslation(@Nullable Player player, String id, Object... objects) {
+        if (player != null) formatSuccessTranslation(id, objects).sendAndTranslateMessage(player);
     }
     
     public static ColorTheme getTheme(Player player) {
@@ -301,6 +367,27 @@ public class ColorTheme implements ConfigurationSerializable {
         this.varError2Color = varError2Color;
     }
     
+    public MultiColor getGoodColor() {
+        return goodColor;
+    }
+    public void setGoodColor(MultiColor goodColor) {
+        this.goodColor = goodColor;
+    }
+    
+    public MultiColor getBadColor() {
+        return badColor;
+    }
+    public void setBadColor(MultiColor badColor) {
+        this.badColor = badColor;
+    }
+    
+    public MultiColor getTitleColor() {
+        return titleColor;
+    }
+    public void setTitleColor(MultiColor titleColor) {
+        this.titleColor = titleColor;
+    }
+    
     public enum ColorType {
         infoColor(ColorTheme::getInfoColor, ColorTheme::setInfoColor),
         varInfoColor(ColorTheme::getVarInfoColor, ColorTheme::setVarInfoColor),
@@ -310,7 +397,10 @@ public class ColorTheme implements ConfigurationSerializable {
         varSuccess2Color(ColorTheme::getVarSuccess2Color, ColorTheme::setVarSuccess2Color),
         errorColor(ColorTheme::getErrorColor, ColorTheme::setErrorColor),
         varErrorColor(ColorTheme::getVarErrorColor, ColorTheme::setVarErrorColor),
-        varError2Color(ColorTheme::getVarError2Color, ColorTheme::setVarError2Color);
+        varError2Color(ColorTheme::getVarError2Color, ColorTheme::setVarError2Color),
+        goodColor(ColorTheme::getGoodColor, ColorTheme::setGoodColor),
+        badColor(ColorTheme::getBadColor, ColorTheme::setBadColor),
+        titleColor(ColorTheme::getTitleColor, ColorTheme::setTitleColor);
         
         private final ColorGetter colorGetter;
         private final ColorSetter colorSetter;

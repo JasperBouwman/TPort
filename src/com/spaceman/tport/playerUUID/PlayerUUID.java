@@ -3,11 +3,8 @@ package com.spaceman.tport.playerUUID;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class PlayerUUID {
@@ -29,15 +26,6 @@ public class PlayerUUID {
     // returns null if not found
     public static UUID getPlayerUUID(String playerName) {
         return Main.getOrDefault(getProfile(playerName), new Pair<String, UUID>(null, null)).getRight();
-    }
-    
-    public static UUID getPlayerUUID(Player player, String name) {
-        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(name);
-        if (newPlayerUUID == null) {
-            player.sendMessage(ChatColor.RED + "Could not find a player named " + ChatColor.DARK_RED + name);
-            return null;
-        }
-        return newPlayerUUID;
     }
     
     // returns null values if not found

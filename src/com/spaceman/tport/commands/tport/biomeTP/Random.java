@@ -1,16 +1,13 @@
 package com.spaceman.tport.commands.tport.biomeTP;
 
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.BiomeTP;
 import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 
-import java.util.Collections;
-
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
 public class Random extends SubCommand {
     
@@ -20,7 +17,7 @@ public class Random extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to teleport to a random biome", infoColor));
+        return formatInfoTranslation("tport.command.biomeTP.random.commandDescription");
     }
     
     @Override
@@ -34,10 +31,10 @@ public class Random extends SubCommand {
             if (!CooldownManager.BiomeTP.hasCooled(player)) {
                 return;
             }
-    
-            BiomeTP.biomeTP(player, Collections.emptyList(), true);
+            
+            BiomeTP.randomTP(player);
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport biomeTP random");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport biomeTP random");
         }
     }
 }

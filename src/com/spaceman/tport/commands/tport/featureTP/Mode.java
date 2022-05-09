@@ -1,42 +1,55 @@
 package com.spaceman.tport.commands.tport.featureTP;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.commands.tport.FeatureTP;
+import com.spaceman.tport.Main;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fileHander.Files;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.commands.tport.FeatureTP.getDefMode;
-import static com.spaceman.tport.commands.tport.FeatureTP.setDefMode;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Mode extends SubCommand {
     
-    public static final EmptyCommand emptyModeMode = new EmptyCommand();
+    public static String worldSearchString = "TPort.worldSearch.mode.<mode>";
     
     public Mode() {
+        EmptyCommand emptyModeMode = new EmptyCommand();
         emptyModeMode.setCommandName("mode", ArgumentType.OPTIONAL);
-        emptyModeMode.setCommandDescription(textComponent("This command is used to set your default FeatureTP Mode", infoColor));
-        emptyModeMode.setPermissions("TPort.featureTP.mode.<mode>");
+        emptyModeMode.setCommandDescription(formatInfoTranslation("tport.command.featureTP.mode.mode.commandDescription"));
+        emptyModeMode.setPermissions(worldSearchString);
         addAction(emptyModeMode);
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        return Arrays.stream(FeatureTP.FeatureTPMode.values()).map(Enum::name).collect(Collectors.toList());
+        return Arrays.stream(WorldSearchMode.values()).map(Enum::name).collect(Collectors.toList());
     }
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to get your default FeatureTP Mode", infoColor));
+        return formatInfoTranslation("tport.command.featureTP.mode.commandDescription");
+    }
+    
+    public static WorldSearchMode getDefMode(UUID uuid) {
+        Files tportConfig = getFile("TPortConfig");
+        return WorldSearchMode.valueOf(tportConfig.getConfig().getString("featureTP.defaultMode." + uuid.toString(), "CLOSEST"));
+    }
+    
+    public static void setDefMode(UUID uuid, WorldSearchMode mode) {
+        Files tportConfig = getFile("TPortConfig");
+        tportConfig.getConfig().set("featureTP.defaultMode." + uuid.toString(), mode.name());
+        tportConfig.saveConfig();
     }
     
     @Override
@@ -44,20 +57,70 @@ public class Mode extends SubCommand {
         // tport featureTP mode [mode]
         
         if (args.length == 2) {
-            sendInfoTheme(player, "Your default FeatureTP Mode is set to %s", getDefMode(player.getUniqueId()).name());
+            sendInfoTranslation(player, "tport.command.featureTP.mode.succeeded", getDefMode(player.getUniqueId()).name());
         } else if (args.length == 3) {
             try {
-                FeatureTP.FeatureTPMode mode = FeatureTP.FeatureTPMode.valueOf(args[2].toUpperCase());
+                WorldSearchMode mode = WorldSearchMode.valueOf(args[2].toUpperCase());
                 if (!hasPermission(player, true, mode.getPerm())) {
                     return;
                 }
                 setDefMode(player.getUniqueId(), mode);
-                sendSuccessTheme(player, "Successfully set you default FeatureTP Mode to %s", mode.name());
+                sendSuccessTranslation(player, "tport.command.featureTP.mode.mode.succeeded", mode.name());
             } catch (IllegalArgumentException iae) {
-                sendErrorTheme(player, "FeatureTP mode %s does not exist", args[2]);
+                sendErrorTranslation(player, "tport.command.featureTP.mode.mode.modeNotExist", args[2]);
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport featureTP mode [mode]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport featureTP mode [mode]");
+        }
+    }
+    
+    public enum WorldSearchMode {
+        RANDOM(Main::getRandomLocation),
+        CLOSEST(Main::getClosestLocation);
+        
+        private final LocationGetter locationGetter;
+        
+        WorldSearchMode(LocationGetter locationGetter) {
+            this.locationGetter = locationGetter;
+        }
+        
+        public Location getLoc(Player player) {
+            return locationGetter.getLoc(player);
+        }
+        
+        public String getPerm() {
+            return "TPort.worldSearch.mode." + this.name();
+        }
+        
+        public WorldSearchMode getNext() {
+            boolean next = false;
+            for (WorldSearchMode mode : values()) {
+                if (mode.equals(this)) {
+                    next = true;
+                } else if (next) {
+                    return mode;
+                }
+            }
+            return Arrays.asList(values()).get(0);
+        }
+        
+        @Nullable
+        public static WorldSearchMode getForPlayer(String name, Player player, boolean checkPerm) {
+            for (WorldSearchMode mode : values()) {
+                if (mode.name().equalsIgnoreCase(name)) {
+                    if (!checkPerm || hasPermission(player, true, mode.getPerm())) {
+                        return mode;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            return null;
+        }
+        
+        @FunctionalInterface
+        private interface LocationGetter {
+            Location getLoc(Player player);
         }
     }
 }

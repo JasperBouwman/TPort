@@ -1,28 +1,28 @@
 package com.spaceman.tport.commands.tport.log;
 
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 
 public class Remove extends SubCommand {
     
     public Remove() {
         EmptyCommand emptyTPortPlayer = new EmptyCommand();
         emptyTPortPlayer.setCommandName("player", ArgumentType.REQUIRED);
-        emptyTPortPlayer.setCommandDescription(TextComponent.textComponent("This command is used to remove the player form the TPort log", ColorTheme.ColorType.infoColor));
+        emptyTPortPlayer.setCommandDescription(formatInfoTranslation("tport.command.log.remove.tportName.player.commandDescription"));
         emptyTPortPlayer.setTabRunnable((args, player) -> {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
             if (tport != null) {
@@ -37,6 +37,7 @@ public class Remove extends SubCommand {
         
         EmptyCommand emptyTPort = new EmptyCommand();
         emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyTPort.setTabRunnable(emptyTPortPlayer.getTabRunnable());
         emptyTPort.addAction(emptyTPortPlayer);
         
         addAction(emptyTPort);
@@ -53,26 +54,28 @@ public class Remove extends SubCommand {
         
         if (args.length > 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
+            Files tportData = GettingFiles.getFile("TPortData");
             if (tport != null) {
                 for (int i = 3; i < args.length; i++) {
                     String playerName = args[i];
                     UUID playerUUID = PlayerUUID.getPlayerUUID(playerName);
-                    if (playerUUID == null) {
-                        sendErrorTheme(player, "Could not find a player named %s", playerName);
-                        continue;
+                    if (playerUUID == null || !tportData.getConfig().contains("tport." + playerUUID)) {
+                        sendErrorTranslation(player, "tport.command.playerNotFound", playerName);
+                        return;
                     }
                     if (tport.removeLogged(playerUUID)) {
-                        sendSuccessTheme(player, "Successfully stopped logging player %s", playerName);
+                        sendSuccessTranslation(player, "tport.command.log.remove.tportName.player.succeeded", asPlayer(playerUUID));
+                        sendInfoTranslation(Bukkit.getPlayer(playerUUID), "tport.command.log.remove.tportName.player.succeededOtherPlayer", player, tport);
                     } else {
-                        sendErrorTheme(player, "Player %s was nog logged", playerName);
+                        sendErrorTranslation(player, "tport.command.log.remove.tportName.player.playerNotLogged", asPlayer(playerUUID));
                     }
                 }
                 tport.save();
             } else {
-                sendErrorTheme(player, "No TPort found called %s", args[2]);
+                sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport log remove <TPort name> <player...>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log remove <TPort name> <player...>");
         }
     }
 }

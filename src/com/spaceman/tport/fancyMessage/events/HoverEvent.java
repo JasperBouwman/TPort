@@ -1,15 +1,15 @@
 package com.spaceman.tport.fancyMessage.events;
 
-import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.inventory.ItemStack;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -86,16 +86,16 @@ public class HoverEvent implements TextEvent {
     }
     
     @Override
-    public JSONObject translateJSON(ColorTheme theme) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("action", type);
+    public JsonObject translateJSON(ColorTheme theme) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("action", type);
         if (type.equals(SHOW_TEXT)) {
-            JSONArray jsonArray = new JSONArray();
+            JsonArray jsonArray = new JsonArray();
             text.stream().map(t -> t.translateJSON(theme)).forEach(jsonArray::add);
-            jsonObject.put("contents", jsonArray);
+            jsonObject.add("contents", jsonArray);
         }
         if (type.equals(SHOW_ITEM)) {
-            jsonObject.put("value", MessageUtils.toString(item).toString());
+            jsonObject.addProperty("value", MessageUtils.toString(item).toString());
         }
         return jsonObject;
     }

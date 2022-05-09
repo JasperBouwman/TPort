@@ -25,9 +25,8 @@ public class CommandCounter {
     }
     
     public static Map<String, Integer> getData() {
-        Map<String, Integer> data = new HashMap<>();
-        
-        getInstance().count.forEach(data::put);
+    
+        Map<String, Integer> data = new HashMap<>(getInstance().count);
         getInstance().count.clear();
         
         return data;

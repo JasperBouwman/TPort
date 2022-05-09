@@ -1,13 +1,14 @@
 package com.spaceman.tport.commands.tport.edit;
 
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.DynmapCommand;
 import com.spaceman.tport.commands.tport.edit.dynmap.Icon;
 import com.spaceman.tport.commands.tport.edit.dynmap.Show;
 import com.spaceman.tport.dynmap.DynmapHandler;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
 public class Dynmap extends SubCommand {
     
@@ -22,7 +23,7 @@ public class Dynmap extends SubCommand {
         // tport edit <TPort name> dynmap icon [icon]
         
         if (!DynmapHandler.isEnabled()) {
-            DynmapHandler.sendDisableError(player);
+            DynmapCommand.sendDisableError(player);
             return;
         }
         
@@ -31,6 +32,6 @@ public class Dynmap extends SubCommand {
                 return;
             }
         }
-        sendErrorTheme(player, "Usage: %s", "/tport edit <TPort name> dynmap <show|icon>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> dynmap <show|icon>");
     }
 }

@@ -2,6 +2,7 @@ package com.spaceman.tport;
 
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,6 +42,7 @@ public class Pair<L, R> implements ConfigurationSerializable {
         return String.format("Pair={left:%s, right:%s}", left.toString(), right.toString());
     }
     
+    @Nonnull
     @Override
     public Map<String, Object> serialize() {
         HashMap<String, Object> map = new HashMap<>();

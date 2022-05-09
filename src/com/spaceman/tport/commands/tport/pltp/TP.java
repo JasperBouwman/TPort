@@ -1,14 +1,16 @@
 package com.spaceman.tport.commands.tport.pltp;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.commands.tport.Delay;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.fileHander.GettingFiles;
+import com.spaceman.tport.playerUUID.PlayerUUID;
+import com.spaceman.tport.tpEvents.TPRequest;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -17,13 +19,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.commands.tport.pltp.Consent.pltpConsentMap;
-import static com.spaceman.tport.events.InventoryClick.tpPlayerToPlayer;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.tpEvents.TPEManager.tpPlayerToPlayer;
 
 public class TP extends SubCommand {
     
@@ -32,8 +32,7 @@ public class TP extends SubCommand {
     public TP() {
         emptyPlayer = new EmptyCommand();
         emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
-        emptyPlayer.setCommandDescription(textComponent("This command is used to teleport to players, but only if the given player has his PLTP on," +
-                        " when it's turned off only players in his whitelist can teleport", infoColor));
+        emptyPlayer.setCommandDescription(formatInfoTranslation("tport.command.PLTP.TP.player.commandDescription"));
         emptyPlayer.setPermissions("TPort.PLTP.tp", "TPort.basic");
         addAction(emptyPlayer);
     }
@@ -57,49 +56,63 @@ public class TP extends SubCommand {
                 return;
             }
             
-            Player warp = Bukkit.getPlayer(args[2]);
-            if (warp == null) {
-                sendErrorTheme(player, "Player %s is not online", args[2]);
+            Files tportData = GettingFiles.getFile("TPortData");
+            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2]);
+            
+            if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
+                sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
                 return;
             }
             
-            Files tportData = getFile("TPortData");
+            Player warp = Bukkit.getPlayer(newPlayerUUID);
+            if (warp == null) {
+                sendErrorTranslation(player, "tport.command.playerNotOnline", asPlayer(newPlayerUUID));
+                return;
+            }
             
             ArrayList<String> whitelist = (ArrayList<String>) tportData.getConfig().getStringList("tport." + warp.getUniqueId() + ".tp.players");
             if (!tportData.getConfig().getBoolean("tport." + warp.getUniqueId() + ".tp.statement", true)) {
                 if (!whitelist.contains(player.getUniqueId().toString())) {
-                    sendErrorTheme(player, "%s has set his PLTP to off, and you are not whitelisted", warp.getName());
+                    sendErrorTranslation(player, "tport.command.PLTP.TP.player.setOffNotWhitelisted", warp);
                     return;
                 }
             }
+            
             if (tportData.getConfig().getBoolean("tport." + warp.getUniqueId() + ".tp.consent", false)) {
                 if (!whitelist.contains(player.getUniqueId().toString())) {
-                    Message message = new Message();
-                    message.addText(textComponent("Player ", infoColor));
-                    message.addText(textComponent(player.getName(), varInfoColor));
-                    message.addText(textComponent(" wants to teleport to you, click ", infoColor));
-                    message.addText(textComponent("here", varInfoColor,
-                            ClickEvent.runCommand("/tport PLTP accept " + player.getName()), new HoverEvent(textComponent("/tport PLTP accept " + player.getName(), infoColor))));
-                    message.addText(textComponent(" to accept, click ", infoColor));
-                    message.addText(textComponent("here", varInfoColor,
-                            ClickEvent.runCommand("/tport PLTP reject " + player.getName()), new HoverEvent(textComponent("/tport PLTP reject " + player.getName(), infoColor))));
-                    message.addText(textComponent(" to reject", infoColor));
-                    message.sendMessage(warp);
                     
-                    ArrayList<UUID> list = pltpConsentMap.getOrDefault(warp.getUniqueId(), new ArrayList<>());
-                    if (!list.contains(player.getUniqueId())) {
-                        list.add(player.getUniqueId());
-                        pltpConsentMap.put(warp.getUniqueId(), list);
+                    if (!CooldownManager.PlayerTP.hasCooled(player, true)) {
+                        return;
                     }
                     
-                    sendInfoTheme(player, "Player %s has set his PLTP consent state to %s, it is asked", warp.getName(), "true");
+                    if (TPRequest.hasRequest(player, true)) {
+                        return;
+                    }
+                    TPRequest.createPLTPRequest(player.getUniqueId(), warp.getUniqueId());
+                    
+                    Message accept = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
+                    accept.getText().forEach(t -> t
+                            .addTextEvent(ClickEvent.runCommand("/tport requests accept " + player.getName()))
+                            .addTextEvent(new HoverEvent(textComponent("/tport requests accept " + player.getName(), infoColor))));
+                    Message reject = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
+                    reject.getText().forEach(t -> t
+                            .addTextEvent(ClickEvent.runCommand("/tport requests reject " + player.getName()))
+                            .addTextEvent(new HoverEvent(textComponent("/tport requests reject " + player.getName(), infoColor))));
+                    Message revoke = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
+                    revoke.getText().forEach(t -> t
+                            .addTextEvent(ClickEvent.runCommand("/tport requests revoke"))
+                            .addTextEvent(new HoverEvent(textComponent("/tport requests revoke", infoColor))));
+                    
+                    sendInfoTranslation(warp, "tport.command.PLTP.TP.player.askConsent", player, accept, reject);
+                    sendInfoTranslation(player, "tport.command.PLTP.TP.player.consentAsked", warp, "true", revoke);
+                    
                     return;
                 }
             }
             
             tp(player, warp);
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport PLTP tp <player>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP tp <player>");
         }
     }
     
@@ -109,17 +122,13 @@ public class TP extends SubCommand {
         }
         
         tpPlayerToPlayer(player, toPlayer, () -> {
-            sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Teleported to %s", toPlayer.getName());
-            sendInfoTheme(Bukkit.getPlayer(toPlayer.getUniqueId()), "Player %s has teleported to you", player.getName());
-        });
-        int delay = Delay.delayTime(player);
-        if (delay == 0) {
-            sendSuccessTheme(player, "Successfully teleported to %s", toPlayer.getName());
-            sendInfoTheme(toPlayer, "Player %s has teleported to you", player.getName());
-        } else {
-            sendSuccessTheme(player, "Successfully requested teleportation to %s, delay time is %s ticks", toPlayer.getName(), delay);
-            sendInfoTheme(toPlayer, "Player %s has requested to teleported to you, delay time is %s ticks", player.getName(), delay);
-        }
+                    sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.PLTP.TP.player.succeeded", toPlayer);
+                    sendInfoTranslation(Bukkit.getPlayer(toPlayer.getUniqueId()), "tport.command.PLTP.TP.player.succeededOtherPlayer", player);
+                },
+                ((p, delay, tickMessage, seconds, secondMessage) -> {
+                    sendSuccessTranslation(p, "tport.command.PLTP.TP.player.succeededRequested", toPlayer, delay, tickMessage, seconds, secondMessage);
+                    sendInfoTranslation(toPlayer, "tport.command.PLTP.TP.player.succeededOtherPlayerRequested", p, delay, tickMessage, seconds, secondMessage);
+                }));
         CooldownManager.PlayerTP.update(player);
         return true;
     }

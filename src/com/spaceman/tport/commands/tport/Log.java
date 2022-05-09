@@ -1,14 +1,14 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.commandHander.SubCommand;
-import com.spaceman.tport.commands.tport.log.*;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.log.Add;
 import com.spaceman.tport.commands.tport.log.Remove;
+import com.spaceman.tport.commands.tport.log.*;
 import org.bukkit.entity.Player;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.commandHander.CommandTemplate.convertToArgs;
-import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
+import static com.spaceman.tport.commandHandler.CommandTemplate.convertToArgs;
+import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
 public class Log extends SubCommand {
     
@@ -42,6 +42,6 @@ public class Log extends SubCommand {
                 return;
             }
         }
-        sendErrorTheme(player, "Usage: %s", "/tport log " + convertToArgs(getActions(), false));
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log " + convertToArgs(getActions(), false));
     }
 }

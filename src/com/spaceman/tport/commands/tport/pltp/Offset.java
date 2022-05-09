@@ -1,10 +1,11 @@
 package com.spaceman.tport.commands.tport.pltp;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.SafetyCheck;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -13,10 +14,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class Offset extends SubCommand {
@@ -24,7 +22,7 @@ public class Offset extends SubCommand {
     public Offset() {
         EmptyCommand emptyOffset = new EmptyCommand();
         emptyOffset.setCommandName("offset", ArgumentType.OPTIONAL);
-        emptyOffset.setCommandDescription(textComponent("This command is used to set your PLTP offset", infoColor));
+        emptyOffset.setCommandDescription(formatInfoTranslation("tport.command.PLTP.offset.offset.commandDescription"));
         addAction(emptyOffset);
     }
     
@@ -35,10 +33,7 @@ public class Offset extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to get your PLTP offset. " +
-                "When the offset is set to ", infoColor),
-                textComponent("BEHIND", varInfoColor),
-                textComponent(" players will teleport 1 meter behind you, instead of in you with the exact same location", infoColor));
+        return formatInfoTranslation("tport.command.PLTP.offset.commandDescription", "IN", "BEHIND");
     }
     
     @Override
@@ -52,23 +47,23 @@ public class Offset extends SubCommand {
         // tport PLTP offset <offset>
         
         if (args.length == 2) {
-            sendInfoTheme(player, "Your PLTP offset is set to %s", getPLTPOffset(player).name());
+            sendInfoTranslation(player, "tport.command.PLTP.offset.succeeded", getPLTPOffset(player));
         } else if (args.length == 3) {
             PLTPOffset newOffset = PLTPOffset.get(args[2]);
             if (newOffset != null) {
                 Files tportData = getFile("TPortData");
                 tportData.getConfig().set("tport." + player.getUniqueId() + ".tp.offset", newOffset.name());
                 tportData.saveConfig();
-                sendSuccessTheme(player, "Successfully set your PLTP offset to %s", newOffset.name());
+                sendSuccessTranslation(player, "tport.command.PLTP.offset.offset.succeeded", newOffset);
             } else {
-                sendErrorTheme(player, "Offset %s does not exist", args[2]);
+                sendErrorTranslation(player, "tport.command.PLTP.offset.offset.offsetNotExist", args[2]);
             }
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport PLTP offset <offset>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP offset [offset]");
         }
     }
     
-    public enum PLTPOffset {
+    public enum PLTPOffset implements MessageUtils.MessageDescription {
         IN(origin -> origin),
         BEHIND(origin -> {
             Location l = origin.clone();
@@ -107,6 +102,21 @@ public class Offset extends SubCommand {
                 }
             }
             return Arrays.asList(values()).get(0);
+        }
+        
+        @Override
+        public Message getDescription() {
+            return formatInfoTranslation("tport.tport.tport.privateState." + this.name() + ".description", this.name());
+        }
+        
+        @Override
+        public String getName() {
+            return name();
+        }
+        
+        @Override
+        public String getInsertion() {
+            return getName();
         }
         
         @FunctionalInterface

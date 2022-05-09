@@ -1,8 +1,8 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Pair;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.cooldown.CooldownManager;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Search extends SubCommand {
@@ -67,7 +67,7 @@ public class Search extends SubCommand {
                 }
             }
         }
-        sendErrorTheme(player, "Usage: %s", "/tport search <type> [mode] <query...>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport search <type> [mode] <query...>");
         
     }
     

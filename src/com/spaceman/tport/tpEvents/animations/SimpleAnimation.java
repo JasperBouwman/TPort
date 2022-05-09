@@ -1,7 +1,6 @@
 package com.spaceman.tport.tpEvents.animations;
 
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.keyValueHelper.ExtendedKey;
 import com.spaceman.tport.keyValueHelper.KeyValueError;
@@ -18,7 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 
 public class SimpleAnimation extends ParticleAnimation {
     
@@ -41,7 +40,7 @@ public class SimpleAnimation extends ParticleAnimation {
     @Override
     public void show(Player player, Location l) {
         try {
-            l.getWorld().spawnParticle(particle, l, amount);
+            if (l.getWorld() != null) l.getWorld().spawnParticle(particle, l, amount);
         } catch (IllegalArgumentException ignore) {
         }
     }
@@ -55,20 +54,22 @@ public class SimpleAnimation extends ParticleAnimation {
     }
     
     @Override
-    public void edit(Player player, String[] data) {
+    public boolean edit(Player player, String[] data) {
         if (data == null || data.length == 0) {
             this.setParticle(Particle.EXPLOSION_NORMAL);
         } else {
             try {
                 KeyValueHelper.extendedConstructObject(data[0], this,
                         (ExtendedKey) new ExtendedKey("particle", Particle::valueOf, false,
-                                ((o, value) -> ((SimpleAnimation) o).setParticle((Particle) value))).setErrorMessage("is not a valid particle"),
+                                ((o, value) -> ((SimpleAnimation) o).setParticle((Particle) value))).setErrorMessageID("tport.tpEvents.animations.simpleAnimation.notAParticle"),
                         (ExtendedKey) new ExtendedKey("amount", Integer::parseInt, true,
-                                (o, value) -> ((SimpleAnimation) o).setAmount((Integer) value)).setErrorMessage("is not a number"));
+                                (o, value) -> ((SimpleAnimation) o).setAmount((Integer) value)).setErrorMessageID("tport.tpEvents.animations.simpleAnimation.notANumber"));
             } catch (KeyValueError keyValueError) {
                 keyValueError.sendMessage(player);
+                return false;
             }
         }
+        return true;
     }
     
     @Override
@@ -92,6 +93,6 @@ public class SimpleAnimation extends ParticleAnimation {
     
     @Override
     public Message getDescription() {
-        return new Message(textComponent("This particle animation spawns a particle at the given location", ColorTheme.ColorType.infoColor));
+        return formatInfoTranslation("tport.tpEvents.animations.simpleAnimation.description");
     }
 }

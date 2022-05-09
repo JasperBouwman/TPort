@@ -1,8 +1,8 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -11,49 +11,36 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
 public class Add extends SubCommand {
     
-    private final EmptyCommand emptyTPortDescription;
+    private final EmptyCommand emptyAddTPortDescription;
     
     public Add() {
-        emptyTPortDescription = new EmptyCommand(){
+        emptyAddTPortDescription = new EmptyCommand() {
             @Override
             public Message permissionsHover() {
-                Message message = new Message();
-                message.addText(
-                        textComponent("Permissions: (", infoColor),
-                        textComponent("TPort.add.[X]", varInfoColor),
-                        textComponent(" and ", infoColor),
-                        textComponent("TPort.edit.description", varInfoColor),
-                        textComponent(") or ", infoColor),
-                        textComponent("TPort.basic", varInfoColor),
-                        textComponent(". Permission '", infoColor),
-                        textComponent("TPort.add.<X>", varInfoColor),
-                        textComponent("' overrules all other permissions", infoColor));
-                return message;
+                return formatInfoTranslation("tport.command.add.description.permissionHover", "tport.add.[X]", "tport.edit.description", "tport.basic", "tport.add.<X>");
             }
         };
-        emptyTPortDescription.setCommandName("description...", ArgumentType.OPTIONAL);
-        emptyTPortDescription.setCommandDescription(textComponent("This command is used to add a TPort to your saved TPorts list, " +
-                "and all arguments after the name are the description of that TPort. With ", infoColor),
-                textComponent("\\\\n", varInfoColor),
-                textComponent(" you can add a new line. With the character ", infoColor),
-                textComponent("&", varInfoColor),
-                textComponent(" and a color code you can add colors to your description", infoColor));
-        emptyTPortDescription.setPermissions("TPort.add.[X]", "TPort.edit.description", "TPort.basic");
-    
-        EmptyCommand emptyTPort = new EmptyCommand();
-        emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyTPort.setCommandDescription(textComponent("This command is used to add a TPort to your saved TPorts list", infoColor));
-        emptyTPort.addAction(emptyTPortDescription);
-        emptyTPort.setPermissions("TPort.add.[X]", "TPort.basic");
+        emptyAddTPortDescription.setCommandName("description...", ArgumentType.OPTIONAL);
+        emptyAddTPortDescription.setCommandDescription(formatInfoTranslation("tport.command.add.description.commandDescription", "\\n", "&"));
+        emptyAddTPortDescription.setPermissions("TPort.add.[X]", "TPort.edit.description", "TPort.basic");
         
-        addAction(emptyTPort);
+        EmptyCommand emptyAddTPort = new EmptyCommand() {
+            @Override
+            public Message permissionsHover() {
+                return formatInfoTranslation("tport.command.add.permissionHover", "TPort.add.<X>", "TPort.add", "TPort.basic");
+            }
+        };
+        emptyAddTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyAddTPort.setCommandDescription(formatInfoTranslation("tport.command.add.commandDescription"));
+        emptyAddTPort.addAction(emptyAddTPortDescription);
+        emptyAddTPort.setPermissions("TPort.add.<X>", "TPort.add", "TPort.basic");
+        
+        addAction(emptyAddTPort);
     }
     
     @Override
@@ -61,24 +48,26 @@ public class Add extends SubCommand {
         // tport add <TPort name> [description...]
         
         if (args.length == 1) {
-            sendErrorTheme(player, "Usage: %s", "/tport add <TPort name> [description...]");
-            sendErrorTheme(player, "Name is one word, and the description can be more");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport add <TPort name> [description...]");
+            sendErrorTranslation(player, "tport.command.add.wrongUsage2");
             return;
         }
         
         ItemStack item = new ItemStack(player.getInventory().getItemInMainHand());
         if (item.getType().equals(Material.AIR)) {
-            sendErrorTheme(player, "You must hold an item in your main hand");
+            sendErrorTranslation(player, "tport.command.add.noItem");
             return;
         }
         TPort newTPort = new TPort(player.getUniqueId(), args[1], player.getLocation(), item);
-        if (emptyTPortDescription.hasPermissionToRun(player, false)) {
-            if (args.length > 2) {
+        
+        if (args.length > 2) {
+            if (emptyAddTPortDescription.hasPermissionToRun(player, false)) {
                 newTPort.setDescription(StringUtils.join(args, " ", 2, args.length));
+            } else {
+                sendErrorTranslation(player, "tport.command.add.noDescription", "TPort.edit.description", "TPort.basic");
             }
-        } else {
-            sendErrorTheme(player, "Could not add description to TPort, missing permissions: %s or %s", "TPort.edit.description", "TPort.basic");
         }
+        
         if (TPortManager.addTPort(player, newTPort, true) != null) {
             player.getInventory().setItem(player.getInventory().getHeldItemSlot(), new ItemStack(Material.AIR));
         }

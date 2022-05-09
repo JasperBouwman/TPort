@@ -25,8 +25,8 @@ public class MultiColor implements ConfigurationSerializable {
         return multiColor;
     }
     
-    public MultiColor(String hexColor) {
-        this.setColor(hexColor);
+    public MultiColor(String color) {
+        this.setColor(color);
     }
     
     public MultiColor(ChatColor color) {
@@ -41,66 +41,40 @@ public class MultiColor implements ConfigurationSerializable {
         this.setColor(color);
     }
     
-    public void setColor(String hexColor) {
-        if (hexColor.matches("#[0-9a-fA-F]{6}")) {
-            this.hexColor = hexColor;
-        } else if (hexColor.matches("[0-9a-fA-F]{6}")) {
-            this.hexColor = "#" + hexColor;
+    public void setColor(String color) {
+        if (color.matches("#[0-9a-fA-F]{6}")) {
+            this.hexColor = color;
+        } else if (color.matches("[0-9a-fA-F]{6}")) {
+            this.hexColor = "#" + color;
         } else {
-            this.hexColor = "#ffffff";
+            try {
+                ChatColor c = ChatColor.valueOf(color.toUpperCase());
+                setColor(c);
+            } catch (IllegalArgumentException iae) {
+                this.hexColor = "#ffffff";
+            }
         }
     }
     
     public void setColor(ChatColor color) {
         switch (color) {
-            case DARK_BLUE:
-                this.hexColor = "#0000aa";
-                break;
-            case DARK_GREEN:
-                this.hexColor = "#00aa00";
-                break;
-            case DARK_AQUA:
-                this.hexColor = "#00aaaa";
-                break;
-            case DARK_RED:
-                this.hexColor = "#aa0000";
-                break;
-            case DARK_PURPLE:
-                this.hexColor = "#aa00aa";
-                break;
-            case GOLD:
-                this.hexColor = "#ffaa00";
-                break;
-            case GRAY:
-                this.hexColor = "#aaaaaa";
-                break;
-            case DARK_GRAY:
-                this.hexColor = "#555555";
-                break;
-            case BLUE:
-                this.hexColor = "#5555ff";
-                break;
-            case GREEN:
-                this.hexColor = "#55ff55";
-                break;
-            case AQUA:
-                this.hexColor = "#55ffff";
-                break;
-            case RED:
-                this.hexColor = "#ff5555";
-                break;
-            case LIGHT_PURPLE:
-                this.hexColor = "#ff55ff";
-                break;
-            case YELLOW:
-                this.hexColor = "#ffff55";
-                break;
-            case WHITE:
-                this.hexColor = "#ffffff";
-                break;
-            case BLACK:
-            default:
-                this.hexColor = "#000000";
+            case DARK_BLUE -> this.hexColor = "#0000aa";
+            case DARK_GREEN -> this.hexColor = "#00aa00";
+            case DARK_AQUA -> this.hexColor = "#00aaaa";
+            case DARK_RED -> this.hexColor = "#aa0000";
+            case DARK_PURPLE -> this.hexColor = "#aa00aa";
+            case GOLD -> this.hexColor = "#ffaa00";
+            case GRAY -> this.hexColor = "#aaaaaa";
+            case DARK_GRAY -> this.hexColor = "#555555";
+            case BLUE -> this.hexColor = "#5555ff";
+            case GREEN -> this.hexColor = "#55ff55";
+            case AQUA -> this.hexColor = "#55ffff";
+            case RED -> this.hexColor = "#ff5555";
+            case LIGHT_PURPLE -> this.hexColor = "#ff55ff";
+            case YELLOW -> this.hexColor = "#ffff55";
+            case WHITE -> this.hexColor = "#ffffff";
+            case BLACK -> this.hexColor = "#000000";
+            default -> this.hexColor = "#000000";
         }
     }
     

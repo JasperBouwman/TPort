@@ -1,36 +1,30 @@
 package com.spaceman.tport.tport;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
-import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fileHander.Files;
-import org.apache.commons.lang.RandomStringUtils;
+import com.spaceman.tport.tpEvents.TPRequest;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.events.InventoryClick.TPortSize;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 import static com.spaceman.tport.permissions.PermissionHandler.sendNoPermMessage;
 
 public class TPortManager {
     
+    public static final int TPortSize = 24;
     public final static UUID defUUID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     
     public static ArrayList<TPort> getTPortList(UUID owner) {
         return getTPortList(getFile("TPortData"), owner);
     }
+    
     public static ArrayList<TPort> getTPortList(Files tportData, UUID owner) {
         ArrayList<TPort> tportList = new ArrayList<>();
         for (String tportID : tportData.getKeys("tport." + owner + ".tports")) {
@@ -42,6 +36,19 @@ public class TPortManager {
             }
         }
         return tportList;
+    }
+    //returns list of TPorts where the TPort slot is in the correct index
+    public static List<TPort> getSortedTPortList(Files tportData, UUID owner) {
+        TPort[] tportList = new TPort[TPortSize];
+        for (String tportID : tportData.getKeys("tport." + owner + ".tports")) {
+            TPort tport = (TPort) tportData.getConfig().get("tport." + owner + ".tports." + tportID);
+            if (tport != null) {
+                tport.setOwner(owner);
+                tport.setTportID(UUID.fromString(tportID));
+                tportList[tport.getSlot()] = tport;
+            }
+        }
+        return Arrays.asList(tportList);
     }
     
     /*
@@ -68,46 +75,45 @@ public class TPortManager {
         
         try {
             Long.parseLong(tport.getName());
-            sendErrorTheme(owner, "TPort name can't be a number, but it can contain a number");
+            sendErrorTranslation(owner, "tport.tport.tportManager.addTPort.numberName");
             return null;
         } catch (NumberFormatException ignore) {
         }
         
         if (Main.containsSpecialCharacter(tport.getName())) {
-            sendErrorTheme(owner, "TPort name can't contain any special characters");
+            sendErrorTranslation(owner, "tport.tport.tportManager.addTPort.specialChars", "A-Z", "0-9", "-", "_");
             return null;
         }
         
         for (TPort tmpTPort : getTPortList(owner.getUniqueId())) {
             if (tmpTPort.getName().equalsIgnoreCase(tport.getName())) {
-                if (sendMessage) sendErrorTheme(owner, "TPort %s name is already used", tmpTPort.getName());
+                if (sendMessage) sendErrorTranslation(owner, "tport.tport.tportManager.addTPort.nameUsed", tmpTPort, tport.getName());
                 return null;
             }
         }
-
+        
         int slot = getNextSlot(owner.getUniqueId(), 0, maxTPorts);
         
         if (slot == -1) {
-            if (sendMessage) sendErrorTheme(owner, "Your TPort list is full, remove an old one if possible");
+            if (sendMessage) sendErrorTranslation(owner, "tport.tport.tportManager.addTPort.fullList");
             return null;
         } else if (slot == -2) {
             if (sendMessage)
-                sendErrorTheme(owner, "You have exceeded your maximal TPort list size, permission: %s", "TPort.add." + maxTPorts);
+                sendErrorTranslation(owner, "tport.tport.tportManager.addTPort.maxExceeded", "TPort.add." + maxTPorts);
             return null;
         } else {
             tport.setSlot(slot);
             if (tport.getTportID() == null) {
                 tport.setTportID(getNextUUID());
             }
-            tport.setOwner(owner.getUniqueId());
+            if (!tport.getOwner().equals(owner.getUniqueId())) {
+                removeTPort(tport);
+                tport.setOwner(owner.getUniqueId());
+            }
             tport.setOfferedTo(null);
             saveTPort(tport);
             if (sendMessage) {
-                Message message = new Message();
-                message.addText(textComponent("Successfully added the TPort ", ColorTheme.ColorType.infoColor));
-                message.addText(textComponent(tport.getName(), ColorTheme.ColorType.varSuccessColor,
-                        ClickEvent.runCommand("/tport open " + owner.getName() + " " + tport.getName())));
-                message.sendMessage(owner);
+                sendSuccessTranslation(owner, "tport.tport.tportManager.addTPort.succeeded", tport);
             }
             return tport;
         }
@@ -135,22 +141,12 @@ public class TPortManager {
         return testSlot;
     }
     
-    /*
-     * returns TPort if removed
-     * returns null if TPort was not found
-     * */
-    public static TPort removeTPort(UUID owner, TPort tport) {
-        if (tport != null) {
-            Files tportData = getFile("TPortData");
-            tportData.getConfig().set("tport." + owner + ".tports." + tport.getTportID(), null);
-            tportData.saveConfig();
-            return tport;
-        }
-        return null;
-    }
-    
-    public static TPort removeTPort(UUID owner, String name) {
-        return removeTPort(owner, getTPort(owner, name));
+    public static void removeTPort(TPort tport) {
+        Files tportData = getFile("TPortData");
+        tportData.getConfig().set("tport." + tport.getOwner().toString() + ".tports." + tport.getTportID(), null);
+        tportData.saveConfig();
+        
+        TPRequest.tportRemoved(tport);
     }
     
     public static TPort getTPort(UUID tportID) {
@@ -167,8 +163,8 @@ public class TPortManager {
     public static TPort getTPort(UUID owner, int slot) {
         Files tportData = getFile("TPortData");
         
-        for (String tportID : tportData.getKeys("tport." + owner.toString() + ".tports")) {
-            TPort tport = (TPort) tportData.getConfig().get("tport." + owner.toString() + ".tports." + tportID);
+        for (String tportID : tportData.getKeys("tport." + owner + ".tports")) {
+            TPort tport = (TPort) tportData.getConfig().get("tport." + owner + ".tports." + tportID);
             if (tport != null) {
                 if (tport.getSlot() == slot) {
                     tport.setOwner(owner);
@@ -181,8 +177,11 @@ public class TPortManager {
     }
     
     public static TPort getTPort(UUID owner, UUID tportID) {
+        if (tportID.equals(defUUID)) {
+            return new TPort(owner, null, new Location(Bukkit.getWorlds().get(0), 0, 0, 0), new ItemStack(Material.AIR));
+        }
         Files tportData = getFile("TPortData");
-        TPort tport = (TPort) tportData.getConfig().get("tport." + owner.toString() + ".tports." + tportID);
+        TPort tport = (TPort) tportData.getConfig().get("tport." + owner + ".tports." + tportID);
         if (tport != null) {
             tport.setOwner(owner);
             tport.setTportID(tportID);
@@ -191,9 +190,12 @@ public class TPortManager {
     }
     
     public static TPort getTPort(UUID owner, String name) {
+        if (name == null) {
+            return new TPort(owner, null, new Location(Bukkit.getWorlds().get(0), 0, 0, 0), new ItemStack(Material.AIR));
+        }
         Files tportData = getFile("TPortData");
         for (String tportID : tportData.getKeys("tport." + owner.toString() + ".tports")) {
-            TPort tport = (TPort) tportData.getConfig().get("tport." + owner.toString() + ".tports." + tportID);
+            TPort tport = (TPort) tportData.getConfig().get("tport." + owner + ".tports." + tportID);
             if (tport != null) {
                 if (name.equalsIgnoreCase(tport.getName())) {
                     tport.setOwner(owner);
@@ -209,61 +211,6 @@ public class TPortManager {
         Files tportData = getFile("TPortData");
         tportData.getConfig().set("tport." + tport.getOwner() + ".tports." + tport.getTportID(), tport);
         tportData.saveConfig();
-    }
-    
-    public static void convertOldToNew(Files saveFile) {
-        for (String uuid : saveFile.getKeys("tport")) {
-            for (String slot : saveFile.getKeys("tport." + uuid + ".items")) {
-                ItemStack is = saveFile.getConfig().getItemStack("tport." + uuid + ".items." + slot + ".item");
-                ItemMeta im = is.getItemMeta();
-                im.setDisplayName(null);
-                String lore = null;
-                if (im.hasLore()) {
-                    lore = String.join(" ", im.getLore());
-                    im.setLore(new ArrayList<>());
-                }
-                is.setItemMeta(im);
-                String name = saveFile.getConfig().getString("tport." + uuid + ".items." + slot + ".name", RandomStringUtils.randomAlphabetic(5));
-                
-                try {
-                    Long.parseLong(name);
-                    name += "S";
-                } catch (NumberFormatException ignore) {
-                }
-                
-                Location location = Main.getLocation("tport." + uuid + ".items." + slot + ".location");
-                String privateStatement = saveFile.getConfig().getString("tport." + uuid + ".items." + slot + ".private.statement", "OFF");
-                List<String> whiteList = saveFile.getConfig().getStringList("tport." + uuid + ".items." + slot + ".private.players");
-                whiteList.remove(uuid);
-                
-                TPort newTPort = new TPort(UUID.fromString(uuid), name, location, is);
-                newTPort.setDescription(lore);
-                if (newTPort.getLocation() == null) {
-                    location = new Location(Bukkit.getWorlds().get(0), 1, 1, 1);
-                    location.setX(saveFile.getConfig().getDouble("tport." + uuid + ".items." + slot + ".location.x"));
-                    location.setY(saveFile.getConfig().getDouble("tport." + uuid + ".items." + slot + ".location.y"));
-                    location.setZ(saveFile.getConfig().getDouble("tport." + uuid + ".items." + slot + ".location.z"));
-                    location.setYaw(saveFile.getConfig().getInt("tport." + uuid + ".items." + slot + ".location.yaw"));
-                    location.setPitch(saveFile.getConfig().getInt("tport." + uuid + ".items." + slot + ".location.pitch"));
-                    World world = Bukkit.getWorld(saveFile.getConfig().getString("tport." + uuid + ".items." + slot + ".location.world", ""));
-                    if (world == null) {
-                        newTPort.setInactiveWorldName(saveFile.getConfig().getString("tport." + uuid + ".items." + slot + ".location.world", ""));
-                    }
-                    newTPort.setLocation(location);
-                }
-                
-                //noinspection ConstantConditions
-                newTPort.setPrivateStatement(TPort.PrivateStatement.valueOf(privateStatement.toUpperCase()));
-                for (String tmpUUID : whiteList) {
-                    newTPort.addWhitelist(UUID.fromString(tmpUUID));
-                }
-                newTPort.setSlot(Integer.parseInt(slot));
-                saveFile.getConfig().set("tport." + uuid + ".tports." + getNextUUID(), newTPort);
-            }
-            saveFile.getConfig().set("tport." + uuid + ".items", null);
-        }
-        
-        saveFile.saveConfig();
     }
     
     public static UUID getNextUUID() {

@@ -1,400 +1,546 @@
 package com.spaceman.tport.commands.tport.featureTP;
 
-import com.google.common.collect.BiMap;
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.Pair;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.Back;
-import com.spaceman.tport.commands.tport.Delay;
 import com.spaceman.tport.commands.tport.FeatureTP;
 import com.spaceman.tport.cooldown.CooldownManager;
+import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.encapsulation.FeatureEncapsulation;
 import com.spaceman.tport.metrics.FeatureSearchCounter;
-import com.spaceman.tport.searchAreaHander.SearchAreaHandler;
-import org.bukkit.Bukkit;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.ObjectArraySet;
+import net.minecraft.core.*;
+import net.minecraft.resources.MinecraftKey;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.WorldServer;
+import net.minecraft.world.level.IWorldReader;
+import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.biome.BiomeBase;
+import net.minecraft.world.level.biome.WorldChunkManager;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.feature.StructureFeature;
+import net.minecraft.world.level.levelgen.structure.placement.ConcentricRingsStructurePlacement;
+import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
+import net.minecraft.world.level.levelgen.structure.placement.StructurePlacement;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.awt.*;
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.commands.tport.Back.prevTPorts;
-import static com.spaceman.tport.commands.tport.FeatureTP.getDefMode;
-import static com.spaceman.tport.events.InventoryClick.requestTeleportPlayer;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.commands.tport.featureTP.Mode.getDefMode;
+import static com.spaceman.tport.commands.tport.featureTP.Mode.worldSearchString;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
+import static com.spaceman.tport.tpEvents.TPEManager.requestTeleportPlayer;
 
 public class Search extends SubCommand {
     
     public Search() {
-        EmptyCommand emptySearchFeatureMode = new EmptyCommand();
         EmptyCommand emptySearchFeature = new EmptyCommand();
+        EmptyCommand emptySearchModeFeature = new EmptyCommand();
         emptySearchFeature.setPermissions("TPort.featureTP.type.<feature>");
         
-        emptySearchFeatureMode.setCommandName("mode", ArgumentType.OPTIONAL);
-        emptySearchFeatureMode.setCommandDescription(textComponent("This command is used to teleport to the given feature using the given mode", infoColor));
+        emptySearchModeFeature.setCommandName("feature", ArgumentType.REQUIRED);
+        emptySearchModeFeature.setCommandDescription(formatInfoTranslation("tport.command.featureTP.search.mode.feature.commandDescription"));
         List<String> permissions = new ArrayList<>(emptySearchFeature.getPermissions());
-        permissions.addAll(Mode.emptyModeMode.getPermissions());
-        emptySearchFeatureMode.setPermissions(permissions);
-    
-        emptySearchFeature.setCommandName("feature", ArgumentType.REQUIRED);
-        emptySearchFeature.setCommandDescription(textComponent("This command is used to teleport to the given feature using your default FeatureTP Mode", infoColor));
-        emptySearchFeature.setTabRunnable((args, player) -> Arrays.stream(FeatureTP.FeatureTPMode.values()).filter(mode -> hasPermission(player, false, true, mode.getPerm())).map(Enum::name).collect(Collectors.toList()));
-        emptySearchFeature.addAction(emptySearchFeatureMode);
+        permissions.add(worldSearchString);
+        emptySearchModeFeature.setPermissions(permissions);
+        emptySearchModeFeature.permissionsOR(false);
+        emptySearchModeFeature.setTabRunnable((args, player) -> {
+            ArrayList<String> list = new ArrayList<>(FeatureTP.getFeatures(player.getWorld()));
+            FeatureTP.getTags(player.getWorld()).stream().map(Pair::getLeft).forEach(list::add);
+            List<String> featureList = Arrays.asList(args).subList(2, args.length).stream().map(String::toLowerCase).toList();
+            return list.stream().filter(name -> featureList.stream().noneMatch(name::equalsIgnoreCase)).toList();
+        });
+        emptySearchModeFeature.setLooped(true);
         
+        EmptyCommand emptySearchMode = new EmptyCommand();
+        emptySearchMode.setCommandName("mode", ArgumentType.REQUIRED);
+        emptySearchMode.addAction(emptySearchModeFeature);
+        
+        emptySearchFeature.setCommandName("feature", ArgumentType.REQUIRED);
+        emptySearchFeature.setCommandDescription(formatInfoTranslation("tport.command.featureTP.search.feature.commandDescription"));
+        emptySearchFeature.setTabRunnable(emptySearchModeFeature.getTabRunnable());
+        emptySearchFeature.setLooped(true);
+        
+        addAction(emptySearchMode);
         addAction(emptySearchFeature);
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        return Arrays.stream(FeatureTP.FeatureType.values()).map(FeatureTP.FeatureType::name).collect(Collectors.toList());
+        ArrayList<String> list = new ArrayList<>(FeatureTP.getFeatures(player.getWorld()));
+        FeatureTP.getTags(player.getWorld()).stream().map(Pair::getLeft).forEach(list::add);
+        Arrays.stream(Mode.WorldSearchMode.values()).map(Enum::name).forEach(list::add);
+        return list;
     }
     
     @Override
     public void run(String[] args, Player player) {
-        // tport featureTP search <feature> [mode]
+        // tport featureTP search [mode] <feature...>
+        // ->
+        // tport featureTP search <mode> <feature...>
+        // tport featureTP search <feature...>
         
-        if (args.length == 3 || args.length == 4) {
+        if (args.length > 2) {
+            int startArgumentAt = 3;
+            Mode.WorldSearchMode mode = Mode.WorldSearchMode.getForPlayer(args[2].toUpperCase(), player, true);
+            if (mode == null) {
+                mode = getDefMode(player.getUniqueId());
+                startArgumentAt--;
+            }
             
-            FeatureTP.FeatureType featureType;
-            FeatureTP.FeatureTPMode mode = getDefMode(player.getUniqueId());
-            try {
-                featureType = FeatureTP.FeatureType.get(args[2]);
-            } catch (IllegalArgumentException iae) {
-                sendErrorTheme(player, "Feature %s does not exist", args[2]);
-                return;
-            }
-            if (!hasPermission(player, true, "TPort.featureTP.type." + featureType.name())) {
-                return;
-            }
-            if (args.length == 4) {
-                try {
-                    mode = FeatureTP.FeatureTPMode.valueOf(args[3].toUpperCase());
-                    if (!hasPermission(player, true, "TPort.featureTP.mode." + mode.name())) {
-                        return;
+            List<String> features = FeatureTP.getFeatures(player.getWorld());
+            List<Pair<String, List<String>>> tags = FeatureTP.getTags(player.getWorld());
+            
+            ArrayList<String> selectedFeatures = new ArrayList<>(args.length - 2);
+            label:
+            for (int i = startArgumentAt; i < args.length; i++) {
+                String argument = args[i].toLowerCase();
+                
+                if (argument.charAt(0) == '#') { //tag list
+                    for (Pair<String, List<String>> tag : tags) {
+                        if (tag.getLeft().equals(argument)) {
+                            for (String feature : tag.getRight()) {
+                                if (selectedFeatures.contains(feature)) {
+                                    sendInfoTranslation(player, "tport.command.featureTP.search.tag.featureAlreadySelected", tag.getLeft(), feature);
+                                } else {
+                                    if (hasPermission(player, true, "TPort.featureTP.type." + feature)) {
+                                        selectedFeatures.add(feature);
+                                    }
+                                }
+                            }
+                            continue label;
+                        }
                     }
-                } catch (IllegalArgumentException iae) {
-                    sendErrorTheme(player, "FeatureTP mode %s does not exist", args[3]);
-                    return;
+                    sendErrorTranslation(player, "tport.command.featureTP.search.tag.tagNotExist", argument);
+                } else { //feature
+                    for (String feature : features) {
+                        if (feature.equals(argument)) {
+                            if (selectedFeatures.contains(feature)) {
+                                sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureAlreadySelected", feature);
+                            } else {
+                                if (hasPermission(player, true, "TPort.featureTP.type." + feature)) {
+                                    selectedFeatures.add(feature);
+                                }
+                            }
+                            continue label;
+                        }
+                    }
+                    sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotExist", argument);
                 }
             }
             
-            if (!CooldownManager.FeatureTP.hasCooled(player)) {
-                return;
-            }
-            
-            featureTP(player, mode, featureType);
-            
+            featureTP(player, mode, selectedFeatures);
         } else {
-            sendErrorTheme(player, "Usage %s", "/tport featureTP search <feature> [mode]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport featureTP search [mode] <feature...>");
         }
     }
     
-    public static void featureTP(Player player, FeatureTP.FeatureTPMode mode, FeatureTP.FeatureType featureType) {
-        FeatureSearchCounter.add(featureType);
-        Location l = mode.getLoc(player);
+    private static Message featuresToMessageInfo(List<String> features) {
+        Message featureList = new Message();
+        int listSize = features.size();
+        boolean color = true;
         
-        if (l == null) {
-            sendErrorTheme(player, "Could not find a location in your search area, you could try again");
-            return;
-        }
-        sendInfoTheme(player, "Searching for feature " + featureType.name());
-        Location featureLoc = featureFinder(player, l, featureType);
-        if (featureLoc != null) {
-            featureLoc = featureType.setY(player.getWorld(), featureLoc.getBlockX(), featureLoc.getBlockZ());
-        
-            if (featureLoc != null) {
-                featureLoc.add(0.5, 0.1, 0.5);
-                featureLoc.setPitch(player.getLocation().getPitch());
-                featureLoc.setYaw(player.getLocation().getYaw());
-            
-                prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.FEATURE, "featureLoc", featureLoc,
-                        "prevLoc", player.getLocation(), "featureName", featureType.name()));
-
-                requestTeleportPlayer(player, featureLoc,
-                        () -> sendSuccessTheme(Bukkit.getPlayer(player.getUniqueId()), "Successfully teleported to feature %s", featureType.name()));
-                int delay = Delay.delayTime(player);
-                if (delay == 0) {
-                    sendSuccessTheme(player, "Successfully teleported to feature %s", featureType.name());
-                } else {
-                    sendSuccessTheme(player, "Successfully requested teleportation to feature %s, delay time is %s ticks", featureType.name(), delay);
-                }
+        for (int i = 0; i < listSize; i++) {
+            String feature = features.get(i).toLowerCase();
+            if (color) {
+                featureList.addMessage(formatTranslation(varInfoColor, varInfoColor, "%s", new FeatureEncapsulation(feature)));
             } else {
-                sendErrorTheme(player, "Could not find a place to teleport to, try again");
+                featureList.addMessage(formatTranslation(varInfo2Color, varInfo2Color, "%s", new FeatureEncapsulation(feature)));
+            }
+            
+            if (i + 2 == listSize)
+                featureList.addMessage(formatInfoTranslation("tport.command.featureTP.listFeatures.info.lastDelimiter"));
+            else featureList.addMessage(formatInfoTranslation("tport.command.featureTP.listFeatures.info.delimiter"));
+        
+            color = !color;
+        }
+        featureList.removeLast();
+        return featureList;
+    }
+    private static Message featuresToMessageError(List<String> features) {
+        Message featureList = new Message();
+        int listSize = features.size();
+        boolean color = true;
+        
+        for (int i = 0; i < listSize; i++) {
+            String feature = features.get(i).toLowerCase();
+            if (color) {
+                featureList.addMessage(formatTranslation(varInfoColor, varInfoColor, "%s", new FeatureEncapsulation(feature)));
+            } else {
+                featureList.addMessage(formatTranslation(varInfo2Color, varInfo2Color, "%s", new FeatureEncapsulation(feature)));
+            }
+            
+            if (i + 2 == listSize)
+                featureList.addMessage(formatInfoTranslation("tport.command.featureTP.listFeatures.error.lastDelimiter"));
+            else featureList.addMessage(formatInfoTranslation("tport.command.featureTP.listFeatures.error.delimiter"));
+        
+            color = !color;
+        }
+        featureList.removeLast();
+        return featureList;
+    }
+    
+    public static void featureTP(Player player, Mode.WorldSearchMode mode, List<String> features) {
+        FeatureSearchCounter.add(features);
+        Location startLocation = mode.getLoc(player);
+        
+        if (features.size() == 1) sendInfoTranslation(player, "tport.command.featureTP.search.feature.starting.singular", featuresToMessageInfo(features));
+        else                      sendInfoTranslation(player, "tport.command.featureTP.search.feature.starting.multiple", featuresToMessageInfo(features));
+        Pair<Location, String> featureLoc = searchFeature(player, startLocation, features);
+        if (featureLoc != null) {
+            Location loc = featureLoc.getLeft();
+            loc = FeatureTP.setSafeY(player.getWorld(), loc.getBlockX(), loc.getBlockZ());
+            
+            if (loc != null) {
+                loc.add(0.5, 0.1, 0.5);
+                loc.setPitch(player.getLocation().getPitch());
+                loc.setYaw(player.getLocation().getYaw());
+                
+                prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.FEATURE, "featureLoc", loc,
+                        "prevLoc", player.getLocation(), "featureName", featureLoc.getRight()));
+                
+                requestTeleportPlayer(player, loc,
+                        () -> sendSuccessTranslation(player, "tport.command.featureTP.search.feature.succeeded", new FeatureEncapsulation(featureLoc.getRight())),
+                        (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.featureTP.search.feature.tpRequested", new FeatureEncapsulation(featureLoc.getRight()), delay, tickMessage, seconds, secondMessage));
+            } else {
+                sendErrorTranslation(player, "tport.command.featureTP.search.feature.noSafeLocation");
             }
             CooldownManager.FeatureTP.update(player);
         }
     }
     
-    private static Location featureFinder(Player player, Location startLocation, FeatureTP.FeatureType feature) {
+    public static Pair<Location, String> searchFeature(Player player, Location startLocation, List<String> features) {
         
-        int x = startLocation.getBlockX() >> 4;
-        int z = startLocation.getBlockZ() >> 4;
-        World world = startLocation.getWorld();
-        
-        if (feature == FeatureTP.FeatureType.Stronghold) {
-            
-            try {
-                Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
-                String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
-    
-                Field minecraftServerField = nmsWorld.getClass().getDeclaredField("server");
-                minecraftServerField.setAccessible(true);
-                Object minecraftServer = minecraftServerField.get(nmsWorld);
-                Object saveData = minecraftServer.getClass().getMethod("getSaveData").invoke(minecraftServer);
-                Object generatorSettings = saveData.getClass().getMethod("getGeneratorSettings").invoke(saveData);
-                if (!(boolean) generatorSettings.getClass().getMethod("shouldGenerateMapFeatures").invoke(generatorSettings)) {
-                    sendErrorTheme(player, "This world does not generate features");
-                    return null;
-                }
-                
-                Object chunkProvider = nmsWorld.getClass().getMethod("getChunkProvider").invoke(nmsWorld);
-                Object chunkGenerator = chunkProvider.getClass().getMethod("getChunkGenerator").invoke(chunkProvider);
-                
-                Method g = chunkGenerator.getClass().getSuperclass().getDeclaredMethod("g");
-                g.setAccessible(true);
-                g.invoke(chunkGenerator);
-                
-                Field iteratorField = chunkGenerator.getClass().getSuperclass().getDeclaredField("f");
-                iteratorField.setAccessible(true);
-                List list = (List) iteratorField.get(chunkGenerator);
-                Iterator iterator = (Iterator) list.getClass().getMethod("iterator").invoke(list);
-    
-                Object currentPosition = Class.forName("net.minecraft.server." + version + ".BaseBlockPosition")
-                        .getConstructor(int.class, int.class, int.class).newInstance(startLocation.getBlockX(), startLocation.getBlockY(), startLocation.getBlockZ());
-                
-                Location positionCandidate = null;
-                double d0 = 1.7976931348623157E308D;
-                Object mutableBlockPosition = Class.forName("net.minecraft.server." + version + ".BlockPosition$MutableBlockPosition").getConstructor().newInstance();
-                
-                Method mutableBlockPosition_d = mutableBlockPosition.getClass().getMethod("d", int.class, int.class, int.class); //set position method
-                Method mutableBlockPosition_j = mutableBlockPosition.getClass().getMethod("j", currentPosition.getClass()); //get distance
-    
-                Polygon searchArea = SearchAreaHandler.getSearchAreaHandler().getSearchArea(player);
-                
-                while (iterator.hasNext()) {
-                    Object chunkCoordIntPair = iterator.next();
-                    int tmpX = (int) chunkCoordIntPair.getClass().getField("x").get(chunkCoordIntPair);
-                    int tmpZ = (int) chunkCoordIntPair.getClass().getField("z").get(chunkCoordIntPair);
-                    mutableBlockPosition_d.invoke(mutableBlockPosition, (tmpX << 4) + 8, 64, (tmpZ << 4) + 8);
-                    double distance = (double) mutableBlockPosition_j.invoke(mutableBlockPosition, currentPosition);
-                    
-                    if (positionCandidate == null || distance < d0) {
-                        int newX = (int) mutableBlockPosition.getClass().getMethod("getX").invoke(mutableBlockPosition);
-                        int newZ = (int) mutableBlockPosition.getClass().getMethod("getZ").invoke(mutableBlockPosition);
-                        if (searchArea.contains(newX, newZ)) {
-                            positionCandidate = new Location(startLocation.getWorld(), newX, 64, newZ);
-                            d0 = distance;
-                        }
-                    }
-                }
-                
-                return positionCandidate;
-                
-            } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException | NoSuchFieldException | ClassNotFoundException | InstantiationException e) {
-                e.printStackTrace();
-            }
-    
-    
-            return null;
-        }
-        
+        List<Holder<StructureFeature<?,?>>> featureList = new ArrayList<>();
+        WorldServer worldServer;
         try {
-            Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
-            String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
-            
-            Field minecraftServerField = nmsWorld.getClass().getDeclaredField("server");
-            minecraftServerField.setAccessible(true);
-            Object minecraftServer = minecraftServerField.get(nmsWorld);
-            Object saveData = minecraftServer.getClass().getMethod("getSaveData").invoke(minecraftServer);
-            Object generatorSettings = saveData.getClass().getMethod("getGeneratorSettings").invoke(saveData);
-            if (!(boolean) generatorSettings.getClass().getMethod("shouldGenerateMapFeatures").invoke(generatorSettings)) {
-                sendErrorTheme(player, "This world does not generate features");
-                return null;
-            }
-            
-            Class<?> structureGeneratorClass = Class.forName("net.minecraft.server." + version + ".StructureGenerator");
-            Field a = structureGeneratorClass.getField("a");
-            //noinspection rawtypes
-            Object structureGenerator = ((BiMap) a.get(null)).get(feature.getMCName());
-            
-            Object chunkProvider = nmsWorld.getClass().getMethod("getChunkProvider").invoke(nmsWorld);
-            Object chunkGenerator = chunkProvider.getClass().getMethod("getChunkGenerator").invoke(chunkProvider);
-            
-            Field worldChunkManagerField = chunkGenerator.getClass().getSuperclass().getDeclaredField("b");
-            worldChunkManagerField.setAccessible(true);
-            Object worldChunkManager = worldChunkManagerField.get(chunkGenerator);
-            if (!(boolean) worldChunkManager.getClass().getMethod("a", structureGeneratorClass).invoke(worldChunkManager, structureGenerator)) {
-                sendErrorTheme(player, "Feature %s does not generate in your world", feature.name());
-                return null;
-            }
-            
-            Object structureSettings = chunkGenerator.getClass().getMethod("getSettings").invoke(chunkGenerator);
-    
-            Method m = chunkGenerator.getClass().getSuperclass().getDeclaredMethod("updateStructureSettings", nmsWorld.getClass().getSuperclass(), structureSettings.getClass());
-            m.setAccessible(true);
-            m.invoke(chunkGenerator, nmsWorld, structureSettings);
-    
-            long worldSeed = (long) nmsWorld.getClass().getMethod("getSeed").invoke(nmsWorld);
-            Object structureManager = nmsWorld.getClass().getMethod("getStructureManager").invoke(nmsWorld);
-            
-            Object structureSettingsFeature = structureSettings.getClass().getMethod("a", structureGeneratorClass).invoke(structureSettings, structureGenerator);
-            int spacing = (int) structureSettingsFeature.getClass().getMethod("a").invoke(structureSettingsFeature);
-    
-            Random seededRandom = (Random) Class.forName("net.minecraft.server." + version + ".SeededRandom").getConstructor().newInstance();
-    
-            Method chunkCoordIntPairMethod = structureGenerator.getClass().getMethod("a", structureSettingsFeature.getClass(), long.class, seededRandom.getClass(), int.class, int.class);
-    
-            Object chunkStatus = Class.forName("net.minecraft.server." + version + ".ChunkStatus").getField((feature.getBiome() == null ? "STRUCTURE_STARTS" : "BIOMES")).get(null);
-    
-            Method sectionPositionMethod = Class.forName("net.minecraft.server." + version + ".SectionPosition")
-                    .getMethod("a", Class.forName("net.minecraft.server." + version + ".ChunkCoordIntPair"), int.class);
-            
-            Class<?> chunkClass = Class.forName("net.minecraft.server." + version + ".IStructureAccess");
-            
-            Polygon searchArea = SearchAreaHandler.getSearchAreaHandler().getSearchArea(player);
-            
-            for (int size = 0; size <= 100; ++size) {
-                for (int xOffset = -size; xOffset <= size; ++xOffset) {
-                    boolean xEnd = xOffset == -size || xOffset == size;
-                    
-                    for (int zOffset = -size; zOffset <= size; ++zOffset) {
-                        
-                        int newX = x + spacing * xOffset;
-                        int newZ = z + spacing * zOffset;
-                        
-                        Object chunkCoordIntPair = chunkCoordIntPairMethod.invoke(structureGenerator, structureSettingsFeature, worldSeed, seededRandom, newX, newZ);
-                        Field fieldX = chunkCoordIntPair.getClass().getField("x");
-                        Field fieldZ = chunkCoordIntPair.getClass().getField("z");
-                        int chunkCoordIntPairX = (Integer) fieldX.get(chunkCoordIntPair);
-                        int chunkCoordIntPairZ = (Integer) fieldZ.get(chunkCoordIntPair);
-                        
-                        Object chunk = nmsWorld.getClass().getMethod("getChunkAt", int.class, int.class, chunkStatus.getClass())
-                                .invoke(nmsWorld, chunkCoordIntPairX, chunkCoordIntPairZ, chunkStatus);
-                        
-                        if (feature.getBiome() != null) {
-                            Object biomeIndex = chunk.getClass().getMethod("getBiomeIndex").invoke(chunk);
-                            Object biome = biomeIndex.getClass().getMethod("getBiome", int.class, int.class, int.class).invoke(biomeIndex, newX, 0, newZ);
-                            if (!biome.getClass().getSimpleName().equals(feature.getBiome())) {
-                                continue;
-                            }
-                        }
-                        
-                        Object chunkPosPair = chunk.getClass().getMethod("getPos").invoke(chunk);
-                        Object sectionPosition = sectionPositionMethod.invoke(null, chunkPosPair, 0);
-                        Object structureStart = structureManager.getClass()
-                                .getMethod("a", sectionPosition.getClass(), structureGeneratorClass, chunkClass)
-                                .invoke(structureManager, sectionPosition, structureGenerator, chunk);
-                        
-                        if (structureStart != null && (boolean) structureStart.getClass().getMethod("e").invoke(structureStart)) {
-                            Object pos = structureStart.getClass().getMethod("a").invoke(structureStart);
-                            Integer finalX = (Integer) pos.getClass().getMethod("getX").invoke(pos);
-                            Integer finalZ = (Integer) pos.getClass().getMethod("getZ").invoke(pos);
-                            
-                            if (searchArea.contains(finalX, finalZ)) {
-                                return new Location(null, finalX, 0, finalZ);
-                            }
-                        }
-                        
-                        if (!xEnd && zOffset == -size) {
-                            zOffset = size - 1;
-                        }
-                    }
-                    
-                    if (size == 0) {
-                        break;
-                    }
-                }
-            }
-            
-        } catch (NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException | ClassNotFoundException | InstantiationException e) {
-            sendErrorTheme(player, "Could not find feature %s, error %s", feature.name(), e.getMessage());
+            Object nmsWorld = Objects.requireNonNull(player.getWorld()).getClass().getMethod("getHandle").invoke(player.getWorld());
+            worldServer = (WorldServer) nmsWorld;
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException | NullPointerException e) {
             e.printStackTrace();
             return null;
         }
         
-        sendErrorTheme(player, "Could not find the feature %s nearby", feature.name());
+        IRegistryCustom registry = worldServer.s();
+        IRegistry<StructureFeature<?, ?>> structureRegistry = registry.d(IRegistry.aL);
+        
+        for (String feature : features) {
+            StructureFeature<?, ?> o = structureRegistry.a(new MinecraftKey(feature));
+            Optional<ResourceKey<StructureFeature<?, ?>>> optional = structureRegistry.c(o);
+            if (optional.isPresent()) {
+                Holder<StructureFeature<?, ?>> holder = structureRegistry.c(optional.get());
+                featureList.add(holder);
+//            System.out.println(structureRegistry.b(holder.a()).a());
+            }
+        }
+        
+        return searchFeature_1_18_2(player, startLocation, featureList, features);
+    }
+    
+    private static Pair<Location, String> searchFeature_1_18_2(@Nullable Player player, Location startLocation, List<Holder<StructureFeature<?, ?>>> featureList, List<String> features) {
+        try {
+            BlockPosition startPosition = new BlockPosition(startLocation.getBlockX(), startLocation.getBlockY(), startLocation.getBlockZ());
+            
+            Object nmsWorld = Objects.requireNonNull(startLocation.getWorld()).getClass().getMethod("getHandle").invoke(startLocation.getWorld());
+            WorldServer worldServer = (WorldServer) nmsWorld;
+            
+            IRegistryCustom registry = worldServer.s();
+            IRegistry<StructureFeature<?, ?>> structureRegistry = registry.d(IRegistry.aL);
+            
+            Set<Holder<BiomeBase>> generateInBiomesList = featureList.stream().flatMap((holder) -> holder.a().a().a()).collect(Collectors.toSet());
+            
+            if (generateInBiomesList.isEmpty()) {
+                sendErrorTranslation(player, "tport.command.featureTP.search.feature.featuresNotGenerating");
+                return null; //does not generate at all
+            } else {
+                ChunkGenerator chunkGenerator = worldServer.k().g();
+                Field f = ChunkGenerator.class.getDeclaredField("d"); //1.18.2
+                f.setAccessible(true);
+                WorldChunkManager worldChunkManager = (WorldChunkManager) f.get(chunkGenerator);
+                
+                Set<Holder<BiomeBase>> generatedBiomes = worldChunkManager.b();
+                if (Collections.disjoint(generatedBiomes, generateInBiomesList)) {
+                    sendErrorTranslation(player, "tport.command.featureTP.search.feature.featuresNotGeneratingInWorld");
+                    return null; //does not generate in world
+                } else {
+                    com.mojang.datafixers.util.Pair<BlockPosition, Holder<StructureFeature<?, ?>>> pair = null;
+                    double d0 = Double.MAX_VALUE;
+                    Map<StructurePlacement, Set<Holder<StructureFeature<?, ?>>>> map = new Object2ObjectArrayMap<>();
+                    
+                    for (Holder<StructureFeature<?, ?>> holder : featureList) {
+                        if (generatedBiomes.stream().anyMatch(holder.a().a()::a)) {
+                            
+                            Method m = ChunkGenerator.class.getDeclaredMethod("b", Holder.class);
+                            m.setAccessible(true);
+                            List<StructurePlacement> l = (List<StructurePlacement>) m.invoke(chunkGenerator, holder);
+                            for (StructurePlacement structureplacement : l ) {
+                                map.computeIfAbsent(structureplacement, (p_211663_) -> new ObjectArraySet()).add(holder);
+                            }
+                        }
+                    }
+                    
+                    List<Map.Entry<StructurePlacement, Set<Holder<StructureFeature<?, ?>>>>> list = new ArrayList<>(map.size());
+                    
+                    for (Map.Entry<StructurePlacement, Set<Holder<StructureFeature<?, ?>>>> entry : map.entrySet()) {
+                        StructurePlacement structureplacement1 = entry.getKey();
+                        if (structureplacement1 instanceof ConcentricRingsStructurePlacement concentricringsstructureplacement) {
+                            Method m = ChunkGenerator.class.getDeclaredMethod("a", BlockPosition.class, ConcentricRingsStructurePlacement.class);
+                            m.setAccessible(true);
+                            BlockPosition blockpos = (BlockPosition) m.invoke(chunkGenerator, startPosition, concentricringsstructureplacement);
+                            double d1 = startPosition.j(blockpos);
+                            if (d1 < d0) {
+                                d0 = d1;
+                                pair = com.mojang.datafixers.util.Pair.of(blockpos, entry.getValue().iterator().next());
+                            }
+                        } else if (structureplacement1 instanceof RandomSpreadStructurePlacement) {
+                            list.add(entry);
+                        }
+                    }
+                    
+                    if (!list.isEmpty()) {
+                        int sectionX = SectionPosition.a(startLocation.getX());
+                        int sectionZ = SectionPosition.a(startLocation.getZ());
+                        
+                        for (int k = 0; k <= 100; ++k) {
+                            boolean flag = false;
+                            
+                            for (Map.Entry<StructurePlacement, Set<Holder<StructureFeature<?, ?>>>> entry1 : list) {
+                                RandomSpreadStructurePlacement randomspreadstructureplacement = (RandomSpreadStructurePlacement) entry1.getKey();
+                                
+                                Method m = ChunkGenerator.class.getDeclaredMethod("a", Set.class, IWorldReader.class, StructureManager.class, int.class, int.class, int.class, boolean.class, long.class, RandomSpreadStructurePlacement.class);
+                                m.setAccessible(true);
+                                com.mojang.datafixers.util.Pair<BlockPosition, Holder<StructureFeature<?, ?>>> pair1 = (com.mojang.datafixers.util.Pair<BlockPosition, Holder<StructureFeature<?, ?>>>) m
+                                        .invoke(chunkGenerator, entry1.getValue(), worldServer, worldServer.a(), sectionX, sectionZ, k, false, worldServer.D(), randomspreadstructureplacement);
+                                if (pair1 != null) {
+                                    flag = true;
+                                    double d2 = startPosition.j(pair1.getFirst());
+                                    if (d2 < d0) {
+                                        d0 = d2;
+                                        pair = pair1;
+                                    }
+                                }
+                            }
+                            
+                            if (flag) {
+                                if (pair == null) {
+                                    if (features.size() == 1) sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.singular", featuresToMessageError(features));
+                                    else                      sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.multiple", featuresToMessageError(features));
+                                    return null;
+                                }
+                                return new Pair<>(new Location(startLocation.getWorld(), pair.getFirst().u(), 200, pair.getFirst().w()),
+                                        structureRegistry.b(pair.getSecond().a()).a());
+                            }
+                        }
+                    }
+                    
+                    if (pair == null) {
+                        if (features.size() == 1) sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.singular", featuresToMessageError(features));
+                        else                      sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.multiple", featuresToMessageError(features));
+                        return null;
+                    }
+                    return new Pair<>(new Location(startLocation.getWorld(), pair.getFirst().u(), 200, pair.getFirst().w()),
+                            structureRegistry.b(pair.getSecond().a()).a());
+                }
+            }
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException | NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+        
+        if (features.size() == 1) sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.singular", featuresToMessageError(features));
+        else                      sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.multiple", featuresToMessageError(features));
         return null;
     }
     
-
-//    private static Location featureFinder(Location startLocation, FeatureTP.FeatureType feature) {
-//        try {
-//            String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
-//            Object nmsWorld = Objects.requireNonNull(startLocation.getWorld()).getClass().getMethod("getHandle").invoke(startLocation.getWorld());
-//            Object blockPos = Class.forName("net.minecraft.server." + version + ".BlockPosition").getConstructor(int.class, int.class, int.class)
-//                    .newInstance(startLocation.getBlockX(), startLocation.getBlockY(), startLocation.getBlockZ());
-//            Object finalBlockPos = nmsWorld.getClass().getMethod("a", String.class, blockPos.getClass(), int.class, boolean.class)
-//                    .invoke(nmsWorld, feature.name(), blockPos, 100, false);
-//            Object x = finalBlockPos.getClass().getMethod("getX").invoke(finalBlockPos);
-//            Object z = finalBlockPos.getClass().getMethod("getZ").invoke(finalBlockPos);
-//            return new Location(startLocation.getWorld(), (int) x, 0, (int) z);
-//        } catch (Exception ignore) {
+//    private static Location featureFinder(Player player, Location startLocation, FeatureTP.FeatureType feature) {
+//        int x = SectionPosition.a(startLocation.getX());
+//        int z = SectionPosition.a(startLocation.getZ());
+//        World world = startLocation.getWorld();
+//        Rectangle searchArea = getSearchArea(player);
+//
+//        if (feature == FeatureTP.FeatureType.Stronghold) {
+//
+//            try {
+//                Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
+//                WorldServer worldServer = (WorldServer) nmsWorld;
+//
+//                //method -> BlockPosition WorldServer.a(StructureGenerator<?> structuregenerator, BlockPosition blockposition, int i, boolean flag)
+//
+//                if (!worldServer.N.A().b()) {
+//                    sendErrorTranslation(player, "tport.command.featureTP.search.feature.worldDoesNotGenerateAnyFeatures");
+//                    return null;
+//                }
+//
+//                ChunkGenerator chunkGenerator = worldServer.k().g();
+//
+//                //method -> ChunkGenerator.findNearestMapFeature(WorldServer worldserver, StructureGenerator<?> structuregenerator, BlockPosition blockposition, int i, boolean flag)
+//
+//                Class<?> chunkGeneratorClass = chunkGenerator.getClass().getSuperclass();
+//
+//                BlockPosition startPosition = new BlockPosition(startLocation.getBlockX(), startLocation.getBlockY(), startLocation.getBlockZ());
+//
+//                Method generateStrongholds = chunkGeneratorClass.getDeclaredMethod("i");
+//                generateStrongholds.setAccessible(true);
+//                generateStrongholds.invoke(chunkGenerator);
+//
+//                BlockPosition endPosition = null;
+//                double closestDistance = Double.MAX_VALUE;
+//                BlockPosition.MutableBlockPosition mutableBlockPosition = new BlockPosition.MutableBlockPosition();
+//
+//                Field strongholdPositions = chunkGeneratorClass.getDeclaredField("f");
+//                strongholdPositions.setAccessible(true);
+//
+//                //noinspection unchecked
+//                for (ChunkCoordIntPair chunkcoordintpair : (List<ChunkCoordIntPair>) strongholdPositions.get(chunkGenerator)) {
+//                    mutableBlockPosition.d(SectionPosition.a(chunkcoordintpair.c, 8), 32, SectionPosition.a(chunkcoordintpair.d, 8));
+//                    if (searchArea.contains(mutableBlockPosition.u(), mutableBlockPosition.w())) {
+//                        double distance = mutableBlockPosition.j(startPosition);
+//                        if (endPosition == null) {
+//                            endPosition = new BlockPosition(mutableBlockPosition);
+//                            closestDistance = distance;
+//                        } else if (distance < closestDistance) {
+//                            endPosition = new BlockPosition(mutableBlockPosition);
+//                            closestDistance = distance;
+//                        }
+//                    }
+//                }
+//
+//                if (endPosition == null) {
+//                    sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound", feature);
+//                    return null;
+//                }
+//
+//                return new Location(world, endPosition.u(), 0, endPosition.w());
+//
+//            } catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException | InvocationTargetException e) {
+//                e.printStackTrace();
+//            }
+//
+//            sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound", feature);
 //            return null;
 //        }
-//    }
-
-//    private static Location featureFinder(Location startLocation, FeatureTP.FeatureType feature) {
-//
-//        int x = startLocation.getBlockX() >> 4;
-//        int z = startLocation.getBlockZ() >> 4;
-//        World world = startLocation.getWorld();
 //
 //        try {
 //            Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
-//            Object chunkProvider = nmsWorld.getClass().getMethod("getChunkProvider").invoke(nmsWorld);
-//            Object chunkGenerator = chunkProvider.getClass().getMethod("getChunkGenerator").invoke(chunkProvider);
+//            WorldServer worldServer = (WorldServer) nmsWorld;
 //
-//            String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
-//            Field ao = Class.forName("net.minecraft.server." + version + ".WorldGenerator").getField("ao");
+//            //method -> BlockPosition WorldServer.a(StructureGenerator<?> structuregenerator, BlockPosition blockposition, int i, boolean flag)
 //
-//
-//            ao.setAccessible(true);
-//            //noinspection rawtypes
-//            Object structureGenerator = ((BiMap) ao.get(null)).get(feature.getMCName().toLowerCase());
-//
-//            Object worldChunkManager = chunkGenerator.getClass().getMethod("getWorldChunkManager").invoke(chunkGenerator);
-//            Class<?> structureGeneratorClass = Class.forName("net.minecraft.server.v1_15_R1.StructureGenerator");
-//
-//            if (!(boolean) worldChunkManager.getClass().getMethod("a", structureGeneratorClass).invoke(worldChunkManager, structureGenerator)) {
+//            if (!worldServer.N.A().b()) {
+//                sendErrorTranslation(player, "tport.command.featureTP.search.feature.worldDoesNotGenerateAnyFeatures");
 //                return null;
 //            }
 //
-//            Method m;
-//            try {
-//                Class<?> chunkGeneratorClass = Class.forName("net.minecraft.server." + version + ".ChunkGenerator");
-//                m = structureGenerator.getClass().getSuperclass().getDeclaredMethod("a", chunkGeneratorClass, Random.class, int.class, int.class, int.class, int.class);
-//                m.setAccessible(true);
-//            } catch (NoSuchMethodException e) {
-//                e.printStackTrace();
+//            ChunkGenerator chunkGenerator = worldServer.k().g();
+//
+//            //method -> ChunkGenerator.findNearestMapFeature(WorldServer worldserver, StructureGenerator<?> structuregenerator, BlockPosition blockposition, int i, boolean flag)
+//
+//            StructureGenerator<?> structureGenerator = StructureGenerator.b.get(feature.getMCName());
+//
+//            Field structureSettingsField = chunkGenerator.getClass().getSuperclass().getDeclaredField("d");
+//            structureSettingsField.setAccessible(true);
+//            StructureSettings structureSettings = (StructureSettings) structureSettingsField.get(chunkGenerator);
+//
+////            chunkGenerator.updateStructureSettings(worldServer, structureSettings);
+//            Method updateStructureSettings = ChunkGenerator.class.getDeclaredMethod("updateStructureSettings", net.minecraft.world.level.World.class, structureSettings.getClass());
+//            updateStructureSettings.setAccessible(true);
+//            updateStructureSettings.invoke(chunkGenerator, worldServer, structureSettings);
+//
+//            StructureSettingsFeature structureSettingsFeature = structureSettings.a(structureGenerator);
+//
+//            ImmutableMultimap<StructureFeature<?, ?>, ResourceKey<BiomeBase>> immutableMultimap = structureSettings.b(structureGenerator);
+//
+//            IRegistry<BiomeBase> biomeRegistry = worldServer.t().d(IRegistry.aR);
+//
+//            if (structureSettingsFeature == null || immutableMultimap.isEmpty()) {
+//                System.out.println("error");
+//                //error general
 //                return null;
 //            }
 //
-//            Random seededRandom = (Random) Class.forName("net.minecraft.server." + version + ".SeededRandom").getConstructor().newInstance();
+//            Set<ResourceKey<BiomeBase>> possibleBiomes = chunkGenerator.e().b().stream().flatMap(biomeBase -> biomeRegistry.c(biomeBase).stream()).collect(Collectors.toSet());
+//            if (immutableMultimap.values().stream().noneMatch(possibleBiomes::contains)) {
+//                sendErrorTranslation(player, "tport.command.featureTP.search.feature.worldDoesNotGenerateFeature", feature);
+//                return null;
+//            }
+//
+//            //method -> StructureGenerator.getNearestGeneratedFeature(IWorldReader var0, StructureManager var1, BlockPosition var2, int var3, boolean var4, long var5, StructureSettingsFeature var7)
+//
+//            BiomeBase featureBiome = null;
+//            if (feature.getBiome() != null) {
+//                featureBiome = biomeRegistry.a(new MinecraftKey(feature.getBiome()));
+////                MinecraftKey featureBiomeKey = biomeRegistry.b(featureBiome);
+//                if (featureBiome == null) {
+//                    sendErrorTranslation(player, "tport.command.featureTP.search.feature.biomeNotFound", feature);
+//                    return null;
+//                }
+//            }
+//
+//            int spacing = structureSettingsFeature.a();
 //
 //            for (int size = 0; size <= 100; ++size) {
-//
 //                for (int xOffset = -size; xOffset <= size; ++xOffset) {
-//                    boolean xEnd = xOffset == -size || xOffset == size;
+//                    boolean var14 = xOffset == -size || xOffset == size;
 //
 //                    for (int zOffset = -size; zOffset <= size; ++zOffset) {
-//                        Pair<Integer, Integer> chunkCoordIntPair = getChunkCoords(m, structureGenerator, chunkGenerator, seededRandom, x, z, xOffset, zOffset);
+//                        boolean var16 = zOffset == -size || zOffset == size;
+//                        if (var14 || var16) {
+//                            int newX = x + spacing * xOffset;
+//                            int newZ = z + spacing * zOffset;
 //
-//                        Location loc = hasFeature(nmsWorld, chunkCoordIntPair.getLeft(), chunkCoordIntPair.getRight(), feature);
-//                        if (loc != null) {
-//                            loc.setWorld(world);
-//                            return loc;
-//                        }
+//                            ChunkCoordIntPair chunkCoordIntPair = structureGenerator.a(structureSettingsFeature, worldServer.E(), newX, newZ);
 //
-//                        if (!xEnd && zOffset == -size) {
-//                            zOffset = size - 1;
+//                            BiomeBase primaryBiomeAtChunk = worldServer.s_().a(chunkCoordIntPair.d(), 100d, chunkCoordIntPair.e());
+//
+//                            StructureCheckResult structureCheckResult = worldServer.a().a(chunkCoordIntPair, structureGenerator, false);
+//                            if (structureCheckResult != StructureCheckResult.b) {
+//                                if (structureCheckResult == StructureCheckResult.a) {
+//                                    if (featureBiome != null) {
+//                                        if (!primaryBiomeAtChunk.equals(featureBiome)) {
+//                                            continue;
+//                                        }
+//                                    }
+//
+//                                    Location l = new Location(world, chunkCoordIntPair.d(), 0, chunkCoordIntPair.e());
+//                                    if (searchArea.contains(l.getBlockX(), l.getBlockZ())) {
+//                                        return l;
+//                                    }
+//                                }
+//
+//                                IChunkAccess chunk = worldServer.a(chunkCoordIntPair.c, chunkCoordIntPair.d, ChunkStatus.d);
+//
+//                                StructureStart<?> structureStart = worldServer.a().a(SectionPosition.a(chunk), structureGenerator, chunk);
+//                                if (structureStart != null && structureStart.b()) {
+//
+//                                    if (featureBiome != null) {
+//                                        if (!primaryBiomeAtChunk.equals(featureBiome)) {
+//                                            continue;
+//                                        }
+//                                    }
+//
+//                                    BlockPosition blockPosition = structureGenerator.a(structureStart.c());
+//                                    Location l = new Location(world, blockPosition.u(), 0, blockPosition.w());
+//                                    if (searchArea.contains(l.getBlockX(), l.getBlockZ())) {
+//                                        return l;
+//                                    }
+//                                }
+//                            }
+//
+//                            if (size == 0) {
+//                                break;
+//                            }
 //                        }
 //                    }
 //
@@ -403,62 +549,12 @@ public class Search extends SubCommand {
 //                    }
 //                }
 //            }
-//
-//        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException | InstantiationException | NoSuchFieldException e) {
+//        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException | NoSuchFieldException | IllegalStateException e) {
 //            e.printStackTrace();
 //        }
+//
+//        sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound", feature);
 //        return null;
 //    }
-//
-//    private static Pair<Integer, Integer> getChunkCoords(Method m, Object structureGenerator, Object chunkGenerator, Random r, int x, int z, int xOffset, int zOffset) {
-//        try {
-//            Object chunkCoordIntPair = m.invoke(structureGenerator, chunkGenerator, r, x, z, xOffset, zOffset);
-//            Field fieldX = chunkCoordIntPair.getClass().getField("x");
-//            Field fieldZ = chunkCoordIntPair.getClass().getField("z");
-//            fieldX.setAccessible(true);
-//            fieldZ.setAccessible(true);
-//            Integer newX = (Integer) fieldX.get(chunkCoordIntPair);
-//            Integer newZ = (Integer) fieldZ.get(chunkCoordIntPair);
-//            return new Pair<>(newX, newZ);
-//        } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException ignore) {
-//            return new Pair<>(x + xOffset, z + zOffset);
-//        }
-//    }
-//
-//    private static Location hasFeature(Object nmsWorld, int chunkX, int chunkZ, FeatureTP.FeatureType feature) {
-//        try {
-//            String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
-//            Field chunkStatus = Class.forName("net.minecraft.server." + version + ".ChunkStatus").getField((feature.getBiome() == null ? "STRUCTURE_STARTS" : "BIOMES"));
-//            chunkStatus.setAccessible(true);
-//
-//            Object chunk = nmsWorld.getClass().getMethod("getChunkAt", int.class, int.class, chunkStatus.getDeclaringClass())
-//                    .invoke(nmsWorld, chunkX, chunkZ, chunkStatus.get(null));
-//
-//            Object structureStart = chunk.getClass().getMethod("a", String.class).invoke(chunk, feature.getMCName());
-//
-//            if (structureStart != null && (boolean) structureStart.getClass().getMethod("e").invoke(structureStart)) {
-//                Object pos = structureStart.getClass().getMethod("a").invoke(structureStart);
-//                Integer newX = (Integer) pos.getClass().getMethod("getX").invoke(pos);
-//                Integer newZ = (Integer) pos.getClass().getMethod("getZ").invoke(pos);
-//
-//                if (feature.getBiome() != null) {
-//                    Object biomeIndex = chunk.getClass().getMethod("getBiomeIndex").invoke(chunk);
-//                    Object biome = biomeIndex.getClass().getMethod("getBiome", int.class, int.class, int.class).invoke(biomeIndex, newX, 0, newZ);
-//
-//                    if (!biome.getClass().getSimpleName().equals(feature.getBiome())) {
-//                        return null;
-//                    }
-//
-//                }
-//
-//                return new Location(null, newX, 0, newZ);
-//            } else {
-//                return null;
-//            }
-//
-//        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException | NoSuchFieldException e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
+    
 }

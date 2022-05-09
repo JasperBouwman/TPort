@@ -1,22 +1,23 @@
 package com.spaceman.tport.commands.tport.biomeTP;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.BiomeTP;
 import com.spaceman.tport.cooldown.CooldownManager;
-import org.bukkit.block.Biome;
+import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.spaceman.tport.commands.tport.BiomeTP.biomeTP;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Blacklist extends SubCommand {
@@ -24,20 +25,21 @@ public class Blacklist extends SubCommand {
     public Blacklist() {
         EmptyCommand emptyBlacklist = new EmptyCommand();
         emptyBlacklist.setCommandName("blacklist", ArgumentType.REQUIRED);
-        emptyBlacklist.setCommandDescription(textComponent("This command is used to teleport to a random biome in the given blacklist", infoColor));
+        emptyBlacklist.setCommandDescription(formatInfoTranslation("tport.command.biomeTP.blacklist.biome.commandDescription", infoColor));
         emptyBlacklist.setTabRunnable(((args, player) -> {
-            List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toUpperCase).collect(Collectors.toList());
-            return Arrays.stream(Biome.values()).filter(biome -> !biomeList.contains(biome.name())).map(Enum::name).collect(Collectors.toList());
+            List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toLowerCase).toList();
+            return BiomeTP.availableBiomes(player.getWorld()).stream().filter(name -> biomeList.stream().noneMatch(name::equals)).toList();
         }));
         emptyBlacklist.setLooped(true);
         emptyBlacklist.setPermissions("TPort.biomeTP.blacklist", "TPort.biomeTP.biome.<biome...>");
+        emptyBlacklist.permissionsOR(false);
         addAction(emptyBlacklist);
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toUpperCase).collect(Collectors.toList());
-        return Arrays.stream(Biome.values()).filter(biome -> !biomeList.contains(biome.name())).map(Enum::name).collect(Collectors.toList());
+        List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toLowerCase).toList();
+        return BiomeTP.availableBiomes(player.getWorld()).stream().filter(name -> biomeList.stream().noneMatch(name::equals)).toList();
     }
     
     @Override
@@ -45,7 +47,7 @@ public class Blacklist extends SubCommand {
         // tport biomeTP blacklist <biome...>
         
         if (args.length == 2) {
-            sendErrorTheme(player, "Usage: %s", "/tport biomeTP blacklist <biome...>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport biomeTP blacklist <biome...>");
         } else {
             if (!hasPermission(player, true, true, "TPort.biomeTP.blacklist")) {
                 return;
@@ -53,32 +55,41 @@ public class Blacklist extends SubCommand {
             if (!CooldownManager.BiomeTP.hasCooled(player)) {
                 return;
             }
-
-            List<Biome> blacklist = new ArrayList<>();
+            
+            List<String> possibleBiomes = BiomeTP.availableBiomes(player.getWorld());
+            List<String> blacklist = new ArrayList<>();
             for (int i = 2; i < args.length; i++) {
-                String biomeName = args[i].toUpperCase();
-                Biome biome;
-                try {
-                    biome = Biome.valueOf(biomeName);
-                } catch (IllegalArgumentException iae) {
-                    sendErrorTheme(player, "Biome %s does not exist", biomeName);
-                    return;
+                String biomeName = args[i].toLowerCase();
+                
+                if (!possibleBiomes.contains(biomeName)) {
+                    sendErrorTranslation(player, "tport.command.biomeTP.blacklist.biome.worldNotGenerateBiome", biomeName);
+                    continue;
                 }
-
-                blacklist.add(biome);
+                
+                if (blacklist.contains(biomeName)) {
+                    Message biomeMessage = formatTranslation(varInfoColor, varInfoColor, "%s", new BiomeEncapsulation(biomeName));
+                    sendErrorTranslation(player, "tport.command.biomeTP.blacklist.biome.biomeAlreadyInList", biomeMessage);
+                    continue;
+                }
+                
+                blacklist.add(biomeName);
             }
-
-            List<Biome> whitelist = new ArrayList<>();
-            for (Biome biome : Biome.values()) {
+            
+            List<String> whitelist = new ArrayList<>();
+            for (String biome : possibleBiomes) {
                 if (!blacklist.contains(biome)) {
-                    if (!hasPermission(player, true, true, "TPort.biomeTP.biome." + biome.name())) {
-                        return;
+                    if (hasPermission(player, true, true, "TPort.biomeTP.biome." + biome)) {
+                        whitelist.add(biome);
                     }
-                    whitelist.add(biome);
                 }
             }
-
-            biomeTP(player, whitelist);
+            
+            if (whitelist.isEmpty()) {
+                sendErrorTranslation(player, "tport.command.biomeTP.blacklist.biome.noBiomesLeft");
+                return;
+            }
+            
+            biomeTP(player, Mode.getDefMode(player.getUniqueId()), whitelist);
         }
     }
 }

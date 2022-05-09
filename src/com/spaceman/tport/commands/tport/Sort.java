@@ -2,9 +2,9 @@ package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.TPortInventories;
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fileHander.Files;
@@ -14,9 +14,8 @@ import org.bukkit.inventory.ItemStack;
 import java.util.*;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
@@ -25,7 +24,7 @@ public class Sort extends SubCommand {
     public Sort() {
         EmptyCommand emptySorter = new EmptyCommand();
         emptySorter.setCommandName("sorter", ArgumentType.OPTIONAL);
-        emptySorter.setCommandDescription(textComponent("This command is used to set your preferred sorter", infoColor));
+        emptySorter.setCommandDescription(formatInfoTranslation("tport.command.sort.sorter.commandDescription"));
         emptySorter.setPermissions("TPort.sort.<sorter>");
         addAction(emptySorter);
     }
@@ -53,7 +52,7 @@ public class Sort extends SubCommand {
     
     public static String getSorterName(Player player) {
         Files tportData = getFile("TPortData");
-        return tportData.getConfig().getString("tport." + player.getUniqueId().toString() + ".sorter", "oldest");
+        return tportData.getConfig().getString("tport." + player.getUniqueId() + ".sorter", "oldest");
     }
     
     public static Sorter getSorter(Player player) {
@@ -76,6 +75,21 @@ public class Sort extends SubCommand {
         return currentSorter;
     }
     
+    public static String getPreviousSorterName(String currentSorter) {
+    
+        ArrayList<String> list = new ArrayList<>(getSorters());
+        String sorter = list.get(list.size() - 1);
+        
+        for (String s : list) {
+            if (s.equalsIgnoreCase(currentSorter)) {
+                return sorter;
+            }
+            sorter = s;
+        }
+        
+        return sorter;
+    }
+    
     public static Sorter getSorterExact(String name) {
         return sorters.getOrDefault(name, new Pair<>(null, null)).getLeft();
     }
@@ -95,9 +109,7 @@ public class Sort extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        Message message = new Message();
-        message.addText(textComponent("This command is used to get all the available sorters and their description", infoColor));
-        return message;
+        return formatInfoTranslation("tport.command.sort.commandDescription");
     }
     
     @Override
@@ -114,36 +126,38 @@ public class Sort extends SubCommand {
         
         if (args.length == 1) {
             
-            Message message = new Message();
             Files tportData = getFile("TPortData");
-            
-            String sorterName = tportData.getConfig().getString("tport." + player.getUniqueId().toString() + ".sorter", "oldest");
-            Sort.Sorter ownSorter = getSorter(sorterName);
-            if (ownSorter != null) {
-                tportData.getConfig().set("tport." + player.getUniqueId().toString() + ".sorter", "oldest");
+    
+            String sorterName = tportData.getConfig().getString("tport." + player.getUniqueId() + ".sorter", "oldest");
+            if (getSorter(sorterName) != null) {
+                tportData.getConfig().set("tport." + player.getUniqueId() + ".sorter", "oldest");
                 tportData.saveConfig();
                 sorterName = "oldest";
             }
             
-            message.addText(textComponent("Your sorter: ", infoColor));
-            message.addText(textComponent(sorterName, varInfoColor, new HoverEvent(getDescription(sorterName))));
-            
-            message.addText(textComponent("\nAvailable sorters: ", infoColor));
-            message.addText("");
+            Message availableSorters = new Message();
+            ArrayList<String> sorters = new ArrayList<>(getSorters());
+            int sortersSize = sorters.size();
             boolean color = true;
-            for (String sorter : getSorters()) {
-                message.addText(textComponent(sorter, (color ? varInfoColor : varInfo2Color), new HoverEvent(getDescription(sorter))));
-                message.addText(textComponent(", ", infoColor));
+            for (int i = 0; i < sortersSize; i++) {
+                String sorter = sorters.get(i);
+                availableSorters.addText(textComponent(sorter, (color ? varInfoColor : varInfo2Color), new HoverEvent(getDescription(sorter))));
+                
+                if (i + 2 == sortersSize) availableSorters.addMessage(formatInfoTranslation("tport.command.sort.lastDelimiter"));
+                else                      availableSorters.addMessage(formatInfoTranslation("tport.command.sort.delimiter"));
+                
                 color = !color;
             }
-            message.removeLast();
+            availableSorters.removeLast();
             
-            message.sendMessage(player);
+            sendInfoTranslation(player, "tport.command.sort.succeeded",
+                    textComponent(sorterName, varInfoColor, new HoverEvent(getDescription(sorterName))),
+                    availableSorters);
         } else if (args.length == 2) {
             Sorter sorter = getSorterExact(args[1]);
             
             if (sorter == null) {
-                sendErrorTheme(player, "Sorter %s does not exist", args[1]);
+                sendErrorTranslation(player, "tport.command.sort.sorter.notExist", args[1]);
                 return;
             }
             
@@ -152,14 +166,14 @@ public class Sort extends SubCommand {
             }
             
             Files tportData = getFile("TPortData");
-            tportData.getConfig().set("tport." + player.getUniqueId().toString() + ".sorter", args[1]);
+            tportData.getConfig().set("tport." + player.getUniqueId() + ".sorter", args[1]);
             tportData.saveConfig();
             
-            TPortInventories.openMainTPortGUI(player, 0, sorter.sort(player), true);
+            TPortInventories.openMainTPortGUI(player);
             
-            sendSuccessTheme(player, "Successfully set your sort type to %s", args[1]);
+            sendSuccessTranslation(player, "tport.command.sort.sorter.succeeded", args[1]);
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport sort [sorter]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport sort [sorter]");
         }
     }
     

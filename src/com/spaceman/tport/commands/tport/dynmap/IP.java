@@ -1,8 +1,9 @@
 package com.spaceman.tport.commands.tport.dynmap;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.DynmapCommand;
 import com.spaceman.tport.dynmap.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fileHander.Files;
@@ -14,10 +15,8 @@ import java.io.InputStreamReader;
 import java.net.*;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTheme;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.events.ClickEvent.openUrl;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
@@ -34,13 +33,9 @@ public class IP extends SubCommand {
     public IP() {
         emptyIP = new EmptyCommand();
         emptyIP.setCommandName("IP", ArgumentType.OPTIONAL);
-        emptyIP.setCommandDescription(textComponent("This command is used to set your IP prefix for the '", infoColor),
-                textComponent("show", varInfoColor),
-                textComponent("' command, it should look like: ", infoColor),
-                textComponent("http://0.0.0.0:PORT/", varInfoColor),
-                textComponent("' or '", infoColor),
-                textComponent("http://YourWebsite.org/", varInfoColor),
-                textComponent("'", infoColor));
+        emptyIP.setCommandDescription(formatInfoTranslation("tport.command.dynmapCommand.ip.ip.commandDescription",
+                formatTranslation(varInfoColor, varInfo2Color, "tport.command.dynmapCommand.searchAsText"),
+                "http://0.0.0.0:PORT/", "http://example.com/"));
         emptyIP.setPermissions("TPort.dynmap.ip", "TPort.admin.dynmap");
         addAction(emptyIP);
     }
@@ -61,9 +56,8 @@ public class IP extends SubCommand {
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to see what your set IP prefix is for the '", infoColor),
-                textComponent("show", varInfoColor),
-                textComponent("' command", infoColor));
+        return formatInfoTranslation("tport.command.dynmapCommand.ip.commandDescription",
+                formatTranslation(varInfoColor, varInfo2Color, "tport.command.dynmapCommand.searchAsText"));
     }
     
     @Override
@@ -71,7 +65,7 @@ public class IP extends SubCommand {
         // tport dynmap IP [IP]
         
         if (!DynmapHandler.isEnabled()) {
-            DynmapHandler.sendDisableError(player);
+            DynmapCommand.sendDisableError(player);
             return;
         }
         
@@ -80,21 +74,16 @@ public class IP extends SubCommand {
             if (tportConfig.getConfig().contains("dynmap.ip")) {
                 String ip = tportConfig.getConfig().getString("dynmap.ip");
                 
-                Message message = new Message();
-                message.addText(textComponent("Dynmap IP is set to ", infoColor));
-                message.addText(textComponent(ip, varInfoColor, hoverEvent(textComponent(ip, infoColor)), openUrl(ip)));
-                message.sendMessage(player);
+                sendInfoTranslation(player, "tport.command.dynmapCommand.ip.succeeded",
+                        textComponent(ip, varInfoColor, hoverEvent(textComponent(ip, infoColor)), openUrl(ip)).setInsertion(ip));
             } else {
                 String autoIP = getIP();
                 if (autoIP != null) {
-                    Message message = new Message();
-                    message.addText(textComponent("Dynmap IP is set to ", infoColor));
-                    message.addText(textComponent(autoIP, varInfoColor, hoverEvent(textComponent(autoIP, infoColor)), openUrl(autoIP)));
-                    message.addText(textComponent(". This IP is set automatically and does not have to work, best is you set it manually using ", infoColor));
-                    message.addText(textComponent("/tport dynmap IP <IP>", varInfoColor));
-                    message.sendMessage(player);
+                    sendInfoTranslation(player, "tport.command.dynmapCommand.ip.automaticSucceeded",
+                            textComponent(autoIP, varInfoColor, hoverEvent(textComponent(autoIP, infoColor)), openUrl(autoIP)).setInsertion(autoIP),
+                            "/tport dynmap IP <IP>", varInfoColor);
                 } else {
-                    sendErrorTheme(player, "Dynmap IP is not set");
+                    sendErrorTranslation(player, "tport.command.dynmapCommand.ip.ipNotSet");
                 }
             }
         } else if (args.length == 3) {
@@ -104,9 +93,9 @@ public class IP extends SubCommand {
             Files tportConfig = getFile("TPortConfig");
             tportConfig.getConfig().set("dynmap.ip", args[2]);
             tportConfig.saveConfig();
-            sendSuccessTheme(player, "Successfully set Dynmap IP to %s", args[2]);
+            sendSuccessTranslation(player, "tport.command.dynmapCommand.ip.ip.succeeded", args[2]);
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport dynmap IP [IP]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport dynmap IP [IP]");
         }
     }
 }

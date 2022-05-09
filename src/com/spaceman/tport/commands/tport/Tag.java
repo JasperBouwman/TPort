@@ -1,6 +1,6 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.tag.Create;
 import com.spaceman.tport.commands.tport.tag.Delete;
 import com.spaceman.tport.commands.tport.tag.List;
@@ -14,14 +14,15 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import static com.spaceman.tport.commandHander.CommandTemplate.convertToArgs;
-import static com.spaceman.tport.commandHander.CommandTemplate.runCommands;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
+import static com.spaceman.tport.commandHandler.CommandTemplate.convertToArgs;
+import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class Tag extends SubCommand {
     
     private static java.util.List<String> tags = new ArrayList<>();
+    public static final String tagPermPrefix = "TPort.tags.type.";
     
     public Tag() {
         addAction(new Create());
@@ -106,7 +107,7 @@ public class Tag extends SubCommand {
                 return;
             }
         }
-        sendErrorTheme(player, "Usage: %s", "/tport tag " + convertToArgs(getActions(), false));
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport tag " + convertToArgs(getActions(), false));
         
     }
 }

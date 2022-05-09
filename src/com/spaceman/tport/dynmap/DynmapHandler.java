@@ -2,13 +2,12 @@ package com.spaceman.tport.dynmap;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
-import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.dynmap.DynmapAPI;
 import org.dynmap.markers.Marker;
@@ -21,11 +20,9 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTheme;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
-
 public class DynmapHandler {
     
+    //only is true when shouldEnable is true AND when Dynmap API could be found/used
     private static boolean enabled = false;
     
     public static boolean isEnabled() {
@@ -33,23 +30,7 @@ public class DynmapHandler {
     }
     
     public static boolean shouldEnable() {
-        Files tportConfig = getFile("TPortConfig");
-        return tportConfig.getConfig().getBoolean("dynmap.enabled", true);
-    }
-    
-    public static void setShouldEnabled(boolean enabled) {
-        Files tportConfig = getFile("TPortConfig");
-        tportConfig.getConfig().set("dynmap.enabled", enabled);
-        tportConfig.saveConfig();
-        if (enabled) {
-            if (!DynmapHandler.enabled) {
-                enable();
-            }
-        } else {
-            if (DynmapHandler.enabled) {
-                disable();
-            }
-        }
+        return Features.Feature.Dynmap.isEnabled();
     }
     
     public static void enable() {
@@ -174,9 +155,5 @@ public class DynmapHandler {
             return markerAPI.getMarkerIcons().stream().map(icon -> new Pair<>(icon.getMarkerIconID(), icon.getMarkerIconLabel())).collect(Collectors.toList());
         }
         return null;
-    }
-    
-    public static void sendDisableError(Player player) {
-        sendErrorTheme(player, "Dynmap is not enabled (make sure that Dynmap is successfully loaded into your server, and is enabled in TPort '/tport dynmap enable true')");
     }
 }

@@ -1,9 +1,10 @@
 package com.spaceman.tport.commands.tport.log;
 
-import com.spaceman.tport.commandHander.ArgumentType;
-import com.spaceman.tport.commandHander.EmptyCommand;
-import com.spaceman.tport.commandHander.SubCommand;
+import com.spaceman.tport.commandHandler.ArgumentType;
+import com.spaceman.tport.commandHandler.EmptyCommand;
+import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.TextType;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fileHander.Files;
@@ -15,6 +16,7 @@ import java.util.TimeZone;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class TimeFormat extends SubCommand {
@@ -22,13 +24,20 @@ public class TimeFormat extends SubCommand {
     public TimeFormat() {
         EmptyCommand emptyFormat = new EmptyCommand();
         emptyFormat.setCommandName("format...", ArgumentType.OPTIONAL);
-        emptyFormat.setCommandDescription(textComponent("This command is used to set the time format, the time format is used for the read command", ColorType.infoColor));
+        emptyFormat.setCommandDescription(formatInfoTranslation("tport.command.log.timeFormat.format.commandDescription"));
         addAction(emptyFormat);
     }
     
     @Override
     public Message getCommandDescription() {
-        return new Message(textComponent("This command is used to get the time format, the time format is used for the read command", ColorType.infoColor));
+        return formatInfoTranslation("tport.command.log.timeFormat.commandDescription");
+    }
+    
+    private String getFormatExample(Player player, String timeFormat) {
+        SimpleDateFormat sdf = new SimpleDateFormat(timeFormat);
+        sdf.setTimeZone(java.util.TimeZone.getTimeZone(
+                getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeZone", TimeZone.getDefault().getID())));
+        return sdf.format(Calendar.getInstance().getTime());
     }
     
     @Override
@@ -36,13 +45,13 @@ public class TimeFormat extends SubCommand {
         // tport log timeFormat [format...]
         
         if (args.length == 2) {
-            sendInfoTheme(player, "Your time format is %s", getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy"));
-            Message message = new Message();
-            message.addText(textComponent("To reset click ", ColorType.infoColor));
-            message.addText(textComponent("here", ColorType.varInfoColor,
-                    ClickEvent.runCommand("/tport log timeFormat EEE MMM dd HH:mm:ss zzz yyyy"),
-                    new HoverEvent(textComponent("/tport log timeFormat EEE MMM dd HH:mm:ss zzz yyyy", ColorType.infoColor))));
-            message.sendMessage(player);
+            String timeFormat = getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
+            
+            Message here = new Message();
+            here.addText(textComponent("tport.command.log.timeFormat.here", varInfoColor, ClickEvent.runCommand("/tport log timeFormat EEE MMM dd HH:mm:ss zzz yyyy"),
+                    new HoverEvent(textComponent("/tport log timeFormat EEE MMM dd HH:mm:ss zzz yyyy", ColorType.infoColor))).setType(TextType.TRANSLATE));
+            
+            sendInfoTranslation(player, "tport.command.log.timeFormat.succeeded", timeFormat, getFormatExample(player, timeFormat), here);
         } else if (args.length > 2) {
             StringBuilder str = new StringBuilder();
             for (int i = 2; i < args.length; i++) {
@@ -52,31 +61,22 @@ public class TimeFormat extends SubCommand {
             try {
                 new SimpleDateFormat(format);
             } catch (IllegalArgumentException iae) {
-                Message message = new Message();
-                message.addText(textComponent("Given format is invalid, for help click ", ColorType.infoColor));
-                message.addText(textComponent("here", ColorType.varInfoColor,
+                Message here = new Message();
+                here.addText(textComponent("tport.command.log.timeFormat.format.here", varInfoColor,
                         ClickEvent.openUrl("https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html"),
-                        new HoverEvent(textComponent("https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html", ColorType.infoColor))));
-                message.sendMessage(player);
+                        new HoverEvent(textComponent("https://docs.oracle.com/javase/7/docs/api/java/text/SimpleDateFormat.html", ColorType.infoColor))
+                ).setType(TextType.TRANSLATE));
+                
+                sendErrorTranslation(player, "tport.command.log.timeFormat.format.invalidFormat", here);
                 return;
             }
             Files tportData = getFile("TPortData");
             tportData.getConfig().set("tport." + player.getUniqueId() + ".timeFormat", format);
             tportData.saveConfig();
             
-            SimpleDateFormat sdf = new SimpleDateFormat(format);
-            Calendar calendar = Calendar.getInstance();
-            sdf.setTimeZone(
-                    TimeZone.getTimeZone(getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeZone", java.util.TimeZone.getDefault().getID())));
-            
-            Message message = new Message();
-            message.addText(textComponent("Successfully set time format to ", ColorType.successColor));
-            message.addText(textComponent(format, ColorType.varSuccessColor, new HoverEvent(
-                    textComponent("Example: ", ColorType.infoColor),
-                    textComponent(sdf.format(calendar.getTime()), ColorType.infoColor))));
-            message.sendMessage(player);
+            sendSuccessTranslation(player, "tport.command.log.timeFormat.format.succeeded", format, getFormatExample(player, format));
         } else {
-            sendErrorTheme(player, "Usage: %s", "/tport log timeFormat [format...]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log timeFormat [format...]");
         }
     }
 }
