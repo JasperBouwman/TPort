@@ -21,7 +21,8 @@ import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.biome.BiomeBase;
 import net.minecraft.world.level.biome.WorldChunkManager;
 import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.levelgen.feature.StructureFeature;
+import net.minecraft.world.level.levelgen.RandomState;
+import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.placement.ConcentricRingsStructurePlacement;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
 import net.minecraft.world.level.levelgen.structure.placement.StructurePlacement;
@@ -224,7 +225,7 @@ public class Search extends SubCommand {
     
     public static Pair<Location, String> searchFeature(Player player, Location startLocation, List<String> features) {
         
-        List<Holder<StructureFeature<?,?>>> featureList = new ArrayList<>();
+        List<Holder<Structure>> featureList = new ArrayList<>();
         WorldServer worldServer;
         try {
             Object nmsWorld = Objects.requireNonNull(player.getWorld()).getClass().getMethod("getHandle").invoke(player.getWorld());
@@ -233,15 +234,15 @@ public class Search extends SubCommand {
             e.printStackTrace();
             return null;
         }
-        
+
         IRegistryCustom registry = worldServer.s();
-        IRegistry<StructureFeature<?, ?>> structureRegistry = registry.d(IRegistry.aL);
-        
+        IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
+
         for (String feature : features) {
-            StructureFeature<?, ?> o = structureRegistry.a(new MinecraftKey(feature));
-            Optional<ResourceKey<StructureFeature<?, ?>>> optional = structureRegistry.c(o);
+            Structure o = structureRegistry.a(new MinecraftKey(feature));
+            Optional<ResourceKey<Structure>> optional = structureRegistry.c(o);
             if (optional.isPresent()) {
-                Holder<StructureFeature<?, ?>> holder = structureRegistry.c(optional.get());
+                Holder<Structure> holder = structureRegistry.c(optional.get());
                 featureList.add(holder);
 //            System.out.println(structureRegistry.b(holder.a()).a());
             }
@@ -250,7 +251,7 @@ public class Search extends SubCommand {
         return searchFeature_1_18_2(player, startLocation, featureList, features);
     }
     
-    private static Pair<Location, String> searchFeature_1_18_2(@Nullable Player player, Location startLocation, List<Holder<StructureFeature<?, ?>>> featureList, List<String> features) {
+    private static Pair<Location, String> searchFeature_1_18_2(@Nullable Player player, Location startLocation, List<Holder<Structure>> featureList, List<String> features) {
         try {
             BlockPosition startPosition = new BlockPosition(startLocation.getBlockX(), startLocation.getBlockY(), startLocation.getBlockZ());
             
@@ -258,7 +259,7 @@ public class Search extends SubCommand {
             WorldServer worldServer = (WorldServer) nmsWorld;
             
             IRegistryCustom registry = worldServer.s();
-            IRegistry<StructureFeature<?, ?>> structureRegistry = registry.d(IRegistry.aL);
+            IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
             
             Set<Holder<BiomeBase>> generateInBiomesList = featureList.stream().flatMap((holder) -> holder.a().a().a()).collect(Collectors.toSet());
             
@@ -267,7 +268,8 @@ public class Search extends SubCommand {
                 return null; //does not generate at all
             } else {
                 ChunkGenerator chunkGenerator = worldServer.k().g();
-                Field f = ChunkGenerator.class.getDeclaredField("d"); //1.18.2
+//              Field f = ChunkGenerator.class.getDeclaredField("d"); //1.18.2
+                Field f = ChunkGenerator.class.getDeclaredField("c"); //1.19
                 f.setAccessible(true);
                 WorldChunkManager worldChunkManager = (WorldChunkManager) f.get(chunkGenerator);
                 
@@ -276,30 +278,30 @@ public class Search extends SubCommand {
                     sendErrorTranslation(player, "tport.command.featureTP.search.feature.featuresNotGeneratingInWorld");
                     return null; //does not generate in world
                 } else {
-                    com.mojang.datafixers.util.Pair<BlockPosition, Holder<StructureFeature<?, ?>>> pair = null;
+                    com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>> pair = null;
                     double d0 = Double.MAX_VALUE;
-                    Map<StructurePlacement, Set<Holder<StructureFeature<?, ?>>>> map = new Object2ObjectArrayMap<>();
+                    Map<StructurePlacement, Set<Holder<Structure>>> map = new Object2ObjectArrayMap<>();
                     
-                    for (Holder<StructureFeature<?, ?>> holder : featureList) {
+                    for (Holder<Structure> holder : featureList) {
                         if (generatedBiomes.stream().anyMatch(holder.a().a()::a)) {
                             
-                            Method m = ChunkGenerator.class.getDeclaredMethod("b", Holder.class);
+                            Method m = ChunkGenerator.class.getDeclaredMethod("a", Holder.class, RandomState.class);
                             m.setAccessible(true);
-                            List<StructurePlacement> l = (List<StructurePlacement>) m.invoke(chunkGenerator, holder);
-                            for (StructurePlacement structureplacement : l ) {
+                            List<StructurePlacement> l = (List<StructurePlacement>) m.invoke(chunkGenerator, holder, worldServer.k().h());
+                            for (StructurePlacement structureplacement : l) {
                                 map.computeIfAbsent(structureplacement, (p_211663_) -> new ObjectArraySet()).add(holder);
                             }
                         }
                     }
                     
-                    List<Map.Entry<StructurePlacement, Set<Holder<StructureFeature<?, ?>>>>> list = new ArrayList<>(map.size());
+                    List<Map.Entry<StructurePlacement, Set<Holder<Structure>>>> list = new ArrayList<>(map.size());
                     
-                    for (Map.Entry<StructurePlacement, Set<Holder<StructureFeature<?, ?>>>> entry : map.entrySet()) {
+                    for (Map.Entry<StructurePlacement, Set<Holder<Structure>>> entry : map.entrySet()) {
                         StructurePlacement structureplacement1 = entry.getKey();
                         if (structureplacement1 instanceof ConcentricRingsStructurePlacement concentricringsstructureplacement) {
-                            Method m = ChunkGenerator.class.getDeclaredMethod("a", BlockPosition.class, ConcentricRingsStructurePlacement.class);
+                            Method m = ChunkGenerator.class.getDeclaredMethod("a", Set.class, WorldServer.class, StructureManager.class, BlockPosition.class, boolean.class, ConcentricRingsStructurePlacement.class);
                             m.setAccessible(true);
-                            BlockPosition blockpos = (BlockPosition) m.invoke(chunkGenerator, startPosition, concentricringsstructureplacement);
+                            BlockPosition blockpos = (BlockPosition) m.invoke(chunkGenerator, entry.getValue(), worldServer, worldServer.a(), startPosition, false, concentricringsstructureplacement);
                             double d1 = startPosition.j(blockpos);
                             if (d1 < d0) {
                                 d0 = d1;
@@ -317,13 +319,13 @@ public class Search extends SubCommand {
                         for (int k = 0; k <= 100; ++k) {
                             boolean flag = false;
                             
-                            for (Map.Entry<StructurePlacement, Set<Holder<StructureFeature<?, ?>>>> entry1 : list) {
+                            for (Map.Entry<StructurePlacement, Set<Holder<Structure>>> entry1 : list) {
                                 RandomSpreadStructurePlacement randomspreadstructureplacement = (RandomSpreadStructurePlacement) entry1.getKey();
                                 
                                 Method m = ChunkGenerator.class.getDeclaredMethod("a", Set.class, IWorldReader.class, StructureManager.class, int.class, int.class, int.class, boolean.class, long.class, RandomSpreadStructurePlacement.class);
                                 m.setAccessible(true);
-                                com.mojang.datafixers.util.Pair<BlockPosition, Holder<StructureFeature<?, ?>>> pair1 = (com.mojang.datafixers.util.Pair<BlockPosition, Holder<StructureFeature<?, ?>>>) m
-                                        .invoke(chunkGenerator, entry1.getValue(), worldServer, worldServer.a(), sectionX, sectionZ, k, false, worldServer.D(), randomspreadstructureplacement);
+                                com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>> pair1 = (com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>>) m
+                                        .invoke(chunkGenerator, entry1.getValue(), worldServer, worldServer.a(), sectionX, sectionZ, k, false, worldServer.B(), randomspreadstructureplacement);
                                 if (pair1 != null) {
                                     flag = true;
                                     double d2 = startPosition.j(pair1.getFirst());

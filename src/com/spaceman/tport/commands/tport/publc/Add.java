@@ -3,8 +3,6 @@ package com.spaceman.tport.commands.tport.publc;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -16,6 +14,7 @@ import java.util.UUID;
 import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class Add extends SubCommand {
@@ -34,7 +33,6 @@ public class Add extends SubCommand {
     public Collection<String> tabList(Player player, String[] args) {
         List<String> list = getOwnTPorts(player);
         if (emptyTPort.hasPermissionToRun(player, false)) {
-            Files tportData = GettingFiles.getFile("TPortData");
             for (String publicTPortSlot : tportData.getKeys("public.tports")) {
                 String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
                 TPort tport = getTPort(UUID.fromString(tportID));
@@ -61,7 +59,6 @@ public class Add extends SubCommand {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
             
             if (tport != null) {
-                Files tportData = GettingFiles.getFile("TPortData");
                 if (tport.isOffered()) {
                     sendErrorTranslation(player, "tport.command.public.add.tport.isOffered",
                             tport, asPlayer(tport.getOfferedTo()));

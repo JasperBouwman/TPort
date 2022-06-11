@@ -47,7 +47,7 @@ public class Repair extends SubCommand {
         // tport language repair <language> [repair with]
         
         if (args.length == 3) {
-            if (emptyRepairWith.hasPermissionToRun(player, true)) {
+            if (!emptyRepairWith.hasPermissionToRun(player, true)) {
                 return;
             }
             
@@ -80,7 +80,7 @@ public class Repair extends SubCommand {
             }
             
         } else if (args.length == 4) {
-            if (emptyRepairWith.hasPermissionToRun(player, true)) {
+            if (!emptyRepairWith.hasPermissionToRun(player, true)) {
                 return;
             }
             

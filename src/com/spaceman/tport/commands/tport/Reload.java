@@ -7,7 +7,6 @@ import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.tpEvents.TPEManager;
 import org.bukkit.entity.Player;
 
@@ -21,6 +20,7 @@ import java.util.logging.Level;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTranslation;
 import static com.spaceman.tport.fancyMessage.language.Language.loadLanguages;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
 
 public class Reload extends SubCommand {
     
@@ -35,16 +35,17 @@ public class Reload extends SubCommand {
                 try {
                     byte[] buffer = new byte[inputStream.available()];
                     inputStream.read(buffer);
-                    new FileOutputStream(new File(Main.getInstance().getDataFolder(), file)).write(buffer);
+                    try (FileOutputStream fos = new FileOutputStream(new File(Main.getInstance().getDataFolder(), file))) {
+                        fos.write(buffer);
+                    }
                     Main.getInstance().getLogger().log(Level.INFO, "" + file + " did not exist, resetting it...");
                 } catch (IOException ignore) {
                 }
             }
         }
         
-        GettingFiles.loadFiles();
+        Files.reloadFiles();
         
-        Files tportConfig = GettingFiles.getFile("TPortConfig");
         if (!tportConfig.getConfig().contains("biomeTP.searches")) {
             tportConfig.getConfig().set("biomeTP.searches", 100);
             tportConfig.saveConfig();

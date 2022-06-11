@@ -8,7 +8,7 @@ import com.spaceman.tport.commands.tport.Reload;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
-import java.io.File;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,7 +16,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Load extends SubCommand {
     
@@ -54,8 +54,7 @@ public class Load extends SubCommand {
             String fileName = args[2].split("\\.")[0];
             File file = new File(Main.getInstance().getDataFolder(), "/backup/" + fileName + ".yml");
             if (file.exists()) {
-                Files configFile = new Files(Main.getInstance(), fileName);
-                Files tportData = getFile("TPortData");
+                Files configFile = new Files(Main.getInstance(),"/backup/" + fileName);
                 if (configFile.getConfig().contains("tport")) {
                     tportData.getConfig().set("tport", configFile.getConfig().getConfigurationSection("tport"));
                     tportData.getConfig().set("public", configFile.getConfig().getConfigurationSection("public"));

@@ -4,7 +4,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -12,9 +11,10 @@ import org.bukkit.entity.Player;
 import java.util.Collection;
 import java.util.UUID;
 
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class List extends SubCommand {
@@ -69,7 +69,6 @@ public class List extends SubCommand {
     }
     
     private void sendPublicTPorts(Player player, boolean filterOwn) {
-        Files tportData = getFile("TPortData");
         Message publicTPortList = new Message();
         boolean hasPublicTPorts = false;
         boolean color = true;

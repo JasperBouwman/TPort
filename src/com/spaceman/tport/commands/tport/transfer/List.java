@@ -17,7 +17,7 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.va
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class List extends SubCommand {
     
@@ -75,10 +75,9 @@ public class List extends SubCommand {
             }
             offeredMessage.removeLast();
             
-            
             color = true;
             ArrayList<Message> offers = new ArrayList<>();
-            for (String uuidString : getFile("TPortData").getKeys("tport")) {
+            for (String uuidString : tportData.getKeys("tport")) {
                 UUID uuid = UUID.fromString(uuidString);
                 for (TPort tport : TPortManager.getTPortList(uuid)) {
                     if (player.getUniqueId().equals(tport.getOfferedTo())) {
@@ -132,8 +131,6 @@ public class List extends SubCommand {
                 else                     offersMessage.addMessage(formatInfoTranslation("tport.command.transfer.list.delimiter"));
             }
             offersMessage.removeLast();
-            
-            
             
             Message offeredPrefix = switch (offeredSize) {
                 case 0 -> formatInfoTranslation("tport.command.transfer.list.noOffered");

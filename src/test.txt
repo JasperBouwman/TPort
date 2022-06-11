@@ -1,0 +1,212 @@
+/TPort
+/TPort open <player>
+/TPort open <player> <TPort name>
+/TPort open <player> <TPort name> <safetyCheck>
+/TPort add <TPort name>
+/TPort add <TPort name> <description...>
+/TPort remove <TPort name>
+
+
+/TPort edit <TPort name> description set <description...>
+/TPort edit <TPort name> description remove
+/TPort edit <TPort name> description get
+/TPort edit <TPort name> name <new TPort name>
+/TPort edit <TPort name> item
+/TPort edit <TPort name> location
+/TPort edit <TPort name> private
+/TPort edit <TPort name> private <state>
+/TPort edit <TPort name> whitelist add <player...>
+/TPort edit <TPort name> whitelist remove <player...>
+/TPort edit <TPort name> whitelist list
+/TPort edit <TPort name> whitelist clone <TPort name>
+/TPort edit <TPort name> whitelist visibility
+/TPort edit <TPort name> whitelist visibility <state>
+/TPort edit <TPort name> move <slot>
+/TPort edit <TPort name> move <TPort name>
+/TPort edit <TPort name> range
+/TPort edit <TPort name> range <range>
+/TPort edit <TPort name> tag add <tag>
+/TPort edit <TPort name> tag remove <TPort name>
+/TPort edit <TPort name> preview
+/TPort edit <TPort name> preview <state>
+/TPort PLTP state
+/TPort PLTP state <state>
+/TPort PLTP consent
+/TPort PLTP consent <state>
+/TPort PLTP whitelist add <player...>
+/TPort PLTP whitelist remove <player...>
+/TPort PLTP whitelist list
+/TPort PLTP tp <player>
+/TPort PLTP offset
+/TPort PLTP offset <offset>
+/TPort teleporter create back
+/TPort teleporter create biomeTP
+/TPort teleporter create biomeTP whitelist <biome...>
+/TPort teleporter create biomeTP blacklist <biome...>
+/TPort teleporter create biomeTP preset
+/TPort teleporter create biomeTP preset <preset>
+/TPort teleporter create biomeTP random
+/TPort teleporter create featureTP
+/TPort teleporter create featureTP <mode> <feature...>
+/TPort teleporter create featureTP <feature...>
+/TPort teleporter create PLTP <player>
+/TPort teleporter create public
+/TPort teleporter create public <TPort name>
+/TPort teleporter create home
+/TPort teleporter create TPort
+/TPort teleporter create TPort <player>
+/TPort teleporter create TPort <player> <TPort name>
+/TPort teleporter remove
+/TPort own
+/TPort own <TPort name>
+/TPort own <TPort name> <safetyCheck>
+/TPort back
+/TPort back <safetyCheck>
+/TPort biomeTP
+/TPort biomeTP whitelist <biome...>
+/TPort biomeTP blacklist <blacklist...>
+/TPort biomeTP preset
+/TPort biomeTP preset <preset>
+/TPort biomeTP random
+/TPort biomeTP accuracy
+/TPort biomeTP accuracy <size>
+/TPort biomeTP mode
+/TPort biomeTP mode <mode>
+/TPort featureTP
+/TPort featureTP mode
+/TPort featureTP mode <mode>
+/TPort featureTP search <mode> <feature...>
+/TPort featureTP search <feature...>
+/TPort home
+/TPort home <safetyCheck>
+/TPort setHome
+/TPort setHome <player> <TPort name>
+/TPort colorTheme
+/TPort colorTheme set <theme>
+/TPort colorTheme set <type> <chat color>
+/TPort colorTheme set <type> <hex color>
+/TPort colorTheme get <type>
+/TPort reload
+/TPort cooldown <cooldown>
+/TPort cooldown <cooldown> <value>
+/TPort removePlayer <player>
+/TPort public
+/TPort public open <page>
+/TPort public open <TPort name>
+/TPort public open <TPort name> <safetyCheck>
+/TPort public add <TPort name>
+/TPort public remove <own TPort name>
+/TPort public remove <all TPort name>
+/TPort public list
+/TPort public list own
+/TPort public list all
+/TPort public move <slot>
+/TPort public move <TPort name>
+/TPort public listSize
+/TPort public listSize <size>
+/TPort transfer offer <player> <TPort name>
+/TPort transfer revoke <TPort name>
+/TPort transfer accept <player> <TPort name>
+/TPort transfer reject <player> <TPort name>
+/TPort transfer list
+/TPort version
+/TPort log read <TPort name>
+/TPort log read <TPort name> <player>
+/TPort log timeZone
+/TPort log timeZone <TimeZone>
+/TPort log timeFormat
+/TPort log timeFormat <format...>
+/TPort log clear <TPort name...>
+/TPort log logData
+/TPort log logData <TPort name>
+/TPort log logData <TPort name> <player>
+/TPort log add <TPort name> <player:[LogMode]...>
+/TPort log remove <TPort name> <player...>
+/TPort log default <TPort name>
+/TPort log default <TPort name> <default LogMode>
+/TPort log notify
+/TPort log notify <TPort name>
+/TPort log notify <TPort name> <state>
+/TPort log logSize
+/TPort log logSize <size>
+/TPort backup save <name>
+/TPort backup load <name>
+/TPort backup auto
+/TPort backup auto <state>
+/TPort backup auto <count>
+/TPort particleAnimation new set <particleAnimation>
+/TPort particleAnimation new set <particleAnimation> <data...>
+/TPort particleAnimation new edit <data...>
+/TPort particleAnimation new test
+/TPort particleAnimation new enable
+/TPort particleAnimation old set <particleAnimation>
+/TPort particleAnimation old set <particleAnimation> <data...>
+/TPort particleAnimation old edit <data...>
+/TPort particleAnimation old test
+/TPort particleAnimation old enable
+/TPort particleAnimation list
+/TPort delay handler
+/TPort delay handler <state>
+/TPort delay set <player> <delay>
+/TPort delay get
+/TPort delay get <player>
+/TPort restriction handler
+/TPort restriction handler <state>
+/TPort restriction set <player> <type>
+/TPort restriction get
+/TPort restriction get <player>
+/TPort cancel
+/TPort redirect
+/TPort redirect <redirect>
+/TPort redirect <redirect> <state>
+/TPort search TPort <mode> <query>
+/TPort search description <mode> <query...>
+/TPort search player <mode> <query...>
+/TPort search canTP
+/TPort search biome <biome...>
+/TPort search biomePreset <preset>
+/TPort search dimension <dimension>
+/TPort search tag <tag>
+/TPort sort
+/TPort sort <sorter>
+/TPort tag create <tag>
+/TPort tag delete <tag>
+/TPort tag list
+/TPort tag reset
+/TPort safetyCheck check
+/TPort safetyCheck
+/TPort safetyCheck <source>
+/TPort safetyCheck <source> <state>
+/TPort metrics viewStats
+/TPort mainLayout players
+/TPort mainLayout players <state>
+/TPort mainLayout TPorts
+/TPort mainLayout TPorts <state>
+/TPort world <world>
+/TPort requests
+/TPort requests accept
+/TPort requests accept <player...>
+/TPort requests reject
+/TPort requests reject <player...>
+/TPort requests revoke
+/TPort features
+/TPort features <feature>
+/TPort features <feature> state
+/TPort features <feature> state <state>
+/TPort language server
+/TPort language server <language>
+/TPort language get
+/TPort language set custom
+/TPort language set server
+/TPort language set <language>
+/TPort language test <ID>
+/TPort language repair <language>
+/TPort language repair <language> <repair with>
+/TPort preview <player> <TPort name>
+/TPort help
+/TPort help <page>
+/TPort help <TPort command...>
+/TPort help PLTP
+/TPort help Redirects
+/TPort help Language
+/TPort help Cooldown

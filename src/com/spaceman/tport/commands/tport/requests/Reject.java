@@ -18,6 +18,7 @@ import static com.spaceman.tport.commands.tport.requests.Accept.consentTabList;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Reject extends SubCommand {
     
@@ -58,18 +59,18 @@ public class Reject extends SubCommand {
             playerLabel:
             for (int i = 2; i < args.length; i++) {
                 UUID requesterUUID = PlayerUUID.getPlayerUUID(args[i]);
-                if (requesterUUID != null) {
-                    for (TPRequest request : list) {
-                        if (request.getRequesterUUID().equals(requesterUUID)) {
-                            request.rejectRequest();
-                            list.remove(request); //only here so the next iteration this request won't be in the loop
-                            continue playerLabel;
-                        }
-                    }
-                    sendErrorTranslation(player, "tport.command.requests.reject.players.notRequesting", asPlayer(Bukkit.getPlayer(requesterUUID), requesterUUID));
-                } else {
+                if (requesterUUID == null || !tportData.getConfig().contains("tport." + requesterUUID)) {
                     sendErrorTranslation(player, "tport.command.playerNotFound", args[i]);
+                    continue;
                 }
+                for (TPRequest request : list) {
+                    if (request.getRequesterUUID().equals(requesterUUID)) {
+                        request.rejectRequest();
+                        list.remove(request); //only here so the next iteration this request won't be in the loop
+                        continue playerLabel;
+                    }
+                }
+                sendErrorTranslation(player, "tport.command.requests.reject.players.notRequesting", asPlayer(Bukkit.getPlayer(requesterUUID), requesterUUID));
             }
         }
     }

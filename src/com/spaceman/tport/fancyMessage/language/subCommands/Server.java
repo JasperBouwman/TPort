@@ -21,8 +21,10 @@ import static com.spaceman.tport.fancyMessage.language.Language.getAvailableLang
 
 public class Server extends SubCommand {
     
+    private final EmptyCommand language;
+    
     public Server() {
-        EmptyCommand language = new EmptyCommand();
+        language = new EmptyCommand();
         language.setCommandName("language", ArgumentType.OPTIONAL);
         language.setCommandDescription(formatInfoTranslation("tport.command.language.server.language.commandDescription"));
         language.setPermissions("TPort.language.setServerLanguage", "TPort.admin.language");
@@ -46,6 +48,9 @@ public class Server extends SubCommand {
         if (args.length == 2) {
             sendInfoTranslation(player, "tport.command.language.server.succeeded", Language.getServerLangName());
         } else if (args.length == 3) {
+            if (!language.hasPermissionToRun(player, true)) {
+                return;
+            }
             String currentServerLanguage = Language.getServerLangName();
             
             if (currentServerLanguage.equals(args[2])) {

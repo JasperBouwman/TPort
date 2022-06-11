@@ -9,11 +9,11 @@ import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.commands.tport.biomeTP.Accuracy;
 import com.spaceman.tport.dynmap.DynmapHandler;
 import com.spaceman.tport.events.*;
-import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
+import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
+import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
 import com.spaceman.tport.metrics.CommandCounter;
 import com.spaceman.tport.metrics.FeatureSearchCounter;
@@ -25,9 +25,9 @@ import com.spaceman.tport.tpEvents.TPEManager;
 import com.spaceman.tport.tpEvents.TPRestriction;
 import com.spaceman.tport.tpEvents.animations.ExplosionAnimation;
 import com.spaceman.tport.tpEvents.animations.SimpleAnimation;
+import com.spaceman.tport.tpEvents.restrictions.DoSneakRestriction;
 import com.spaceman.tport.tpEvents.restrictions.InteractRestriction;
 import com.spaceman.tport.tpEvents.restrictions.NoneRestriction;
-import com.spaceman.tport.tpEvents.restrictions.DoSneakRestriction;
 import com.spaceman.tport.tpEvents.restrictions.WalkRestriction;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -50,8 +50,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.commands.TPortCommand.getHead;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Main extends JavaPlugin {
     
@@ -96,7 +97,7 @@ public class Main extends JavaPlugin {
     }
     
     public static Location getLocation(String path) {
-        return getLocation(path, GettingFiles.getFile("TPortData"));
+        return getLocation(path, tportData);
     }
     
     public static Location getLocation(String path, Files file) {
@@ -135,7 +136,6 @@ public class Main extends JavaPlugin {
     
     public static ArrayList<String> getPlayerNames() {
         ArrayList<String> list = new ArrayList<>();
-        Files tportData = GettingFiles.getFile("TPortData");
         for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
             if (tportData.getConfig().contains("tport." + op.getUniqueId())) {
                 list.add(op.getName());
@@ -146,7 +146,6 @@ public class Main extends JavaPlugin {
     
     public static ArrayList<UUID> getPlayerUUIDs() {
         ArrayList<UUID> list = new ArrayList<>();
-        Files tportData = GettingFiles.getFile("TPortData");
         for (OfflinePlayer op : Bukkit.getOnlinePlayers()) {
             if (tportData.getConfig().contains("tport." + op.getUniqueId())) {
                 list.add(op.getUniqueId());
@@ -223,97 +222,35 @@ public class Main extends JavaPlugin {
     public void onLoad() {
     }
     
+    public static final String discordLink = "https://discord.gg/tq5RTmSbHU";
     public void onEnable() {
         
         /*
-         * changelog 1.18.2 update:
+         * changelog 1.19 update:
          *
-         * TPort now supports translations. A server can set a default language, every player can follow the server of select their own one.
-         * When a server has not installed a language a player wants, they can set their language to 'custom'.
-         * This way TPort does not translate any messages (for them), but lets their Minecraft do it. The player must use a TPort Language Resource Pack,
-         * this works the same as selecting a texture/resource pack. Now TPort is translatable in any language anyone wants (not restricted by the server).
-         * commands:
-         *  /tport language server [language]
-         *  /tport language get
-         *  /tport language set custom
-         *  /tport language set server
-         *  /tport language set <server language>
-         *  /tport language repair <language> [repair with]
-         *  /tport language test <id>
+         * fixed permissions of the commands:
+         *  /tport language repair <language> [repair with]     inverted check for permissions
+         *  /tport language server [language]                   did not check for permissions
          *
-         * Changed FeatureTP (now works with Minecraft 1.18.2)
-         *  /tport featureTP search <feature> [mode] -> /tport featureTP search [mode] <feature...>
-         *  You can search for multiple features at the same time
-         *  The Taglists from Minecraft can be used
+         * added a TPort preview. With this you can preview a tport without less permission of the Tport owner.
+         *  /tport preview <player> <TPort name>
+         *  /tport features preview state [state]
+         *  /tport edit <TPort name> preview [state]
+         *  added the quick edit for the preview settings in your TPort GUI
+         *  in a TPort gui you can preview the TPort by pressing your drop key
          *
-         * Changed BiomeTP
-         *  When the TPort version supports the Minecraft version (no legacy support):
-         *      - tab completes only shows the biomes that are generated in the world the player is in
-         *      - BiomeTP GUI only shows the biomes that are generated in the world the player is in
-         *      - The Taglists from Minecraft are added to the Presets
-         *  When an error occurs BiomeTP Legacy support is turned on
+         * fixed /tport backup load <name>
+         * fixed some inconsistencies
          *
-         * Removed converting functions. If you are upgrading to 1.18.2 (or higher) from a version lower than 1.15.3 you need to install 1.16.2 first.
-         * you could suffer from data loss if you upgrade to 1.18.2 (or higher) from a version lower than 1.15.3
+         * created a Discord server for TPort
          *
-         * Improved some GUI's. Middle Click is now replaced by Shift Right Click. Only Creative players could use the Middle Click Button.
-         * In the future there will be more functions bind to other mouse clicks (like Shift Left Click)
+         * /tport delay permissions [state] is now /tport delay handler [state]
+         * /tport restriction permissions [state] is now /tport restriction handler [state]
          *
-         * removed bug when you create a TPort you will get the error if you don't have permission to add a description when you aren't adding a description
-         * improved stability
-         * when a TPort is transferred, the old owner will now be automatically added to the whitelist
-         * fixed /tport edit <TPort name> whitelist add <player names...>
+         * added /tport setHome. This allows you to see what your home is set to
          *
-         * changed /tport safetyCheck
-         *  new commands:
-         *   /tport safetyCheck
-         *   /tport safetyCheck <source> [state]
-         *   /tport safetyCheck check
-         *   /tport open <player> [TPort name] [safetyCheck]
-         *   /tport own [safetyCheck]
-         *   /tport home [safetyCheck]
-         *   /tport public open <TPort name> [safetyCheck]
-         * The source stands for the source of reason for teleportation. open, own, home and public is their own source.
-         * This way you can set the default state for each command
-         * '/tport safetyCheck check' is to check if the location you are at is considered safe by the safety checker
-         *
-         * added/changed TPort private settings:
-         *  OFF -> OPEN. better name for its function
-         *  ON -> PRIVATE. better name for its function
-         *  + CONSENT_PRIVATE. when the owner is online players must get consent of owner, when the owner is offline the TPort goes to PRIVATE
-         *  + CONSENT_CLOSE. when the owner is online players in the whitelist can ask for consent to teleport, when the owner is offline the TPort closes
-         * for CONSENT settings some commands where added, these work the same as the ones for PLTP:
-         *  /tport requests
-         *  /tport requests accept [player...]
-         *  /tport requests reject [player...]
-         *  /tport requests revoke
-         * '/tport requests' now handles all the teleportation requests, from PLTP and normal TPort teleportation.
-         *   As of now you only can have only one request (to a player with PLTP or to a TPort)
-         *
-         * You are now able to log yourself.
-         *  To start: /tport log add <TPort name> YourName:[ALL|ONLINE]
-         *  To stop:  /tport log add <TPort name> YourName:[NONE|OFFLINE]
-         *            /tport log remove <TPort name> YourName
-         *
-         * changed '/tport redirect <redirect> [state]' to '/tport redirect [redirect] [state]'
-         *
-         * added /tport features [feature] state [state]
-         * This command allows you to enable/disable features without the use of permissions
-         * /tport metrics enable [state]     -> /tport features Metrics state [state]
-         * /tport permissions enable [state] -> /tport features Permissions state [state]
-         * /tport dynmap enable [state]      -> /tport features Dynmap state [state]
-         *
-         * added /tport edit <tport name> whitelist visibility [state]
-         * This command is used to control the visibility of the whitelist of a TPort in chat and GUI
-         *
-         * When a TPort is selected to move in your TPort GUI, dummy items will appear in the GUI at the empty slots to move that TPort to an empty slot
-         *
-         * fixed usage of permissions in the cooldown configuration. The permission now support linking other cooldown.
-         *
-         * added the tp restriction 'interactRestriction'. Players with this restriction can't interact with the world while a TP is pending
-         * added the tp restriction 'doSneakRestriction'. Players with this restriction have to sneak at least once while a TP is pending (This restriction is more of a concept for creating your own)
-         *
-         * TPort now should start when it's not run from a Spigot server
+         * Fixed item duplication when the server was reloading but a player had still a TPort GUI open. After the reload the player could take all the items out of the inventory.
+         * Now all TPort inventories will be closed on reload
          */
         
         /*
@@ -322,9 +259,9 @@ public class Main extends JavaPlugin {
          * add command syntax detection (check length, ect), and set permission after syntax detection
          * unify EmptyCommand names
          *
-         * unify getPlayer in commands
+         * add POI to featureTP
          *
-         * /tport preview <player> <TPort name>
+         * unify getPlayer in commands
          *
          * /tport sort [popularity]
          *  create popularity system for /tport sort popularity
@@ -332,6 +269,8 @@ public class Main extends JavaPlugin {
          * update /tport version compatible Bukkit versions
          * create tutorial for creating your own Particle Animations and TP Restrictions
          * */
+        
+        this.getLogger().log(Level.INFO, "TPort has now a Discord server, for any questions/more go to: " + discordLink);
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");
@@ -410,12 +349,20 @@ public class Main extends JavaPlugin {
     
     @Override
     public void onDisable() {
-        TPEManager.saveTPE(GettingFiles.getFile("TPortConfig"));
-        ColorTheme.saveThemes(GettingFiles.getFile("TPortConfig"));
+        TPEManager.saveTPE(tportConfig);
+        ColorTheme.saveThemes(tportConfig);
         Redirect.Redirects.saveRedirects();
         Tag.saveTags();
         Auto.save();
         DynmapHandler.disable();
+        PreviewEvents.cancelAllPreviews();
+        
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (player.getOpenInventory().getTopInventory().getHolder() instanceof FancyInventory) {
+                player.closeInventory();
+                sendInfoTranslation(player, "tport.Main.inventoryCloseByReload");
+            }
+        }
     }
     
     @SuppressWarnings("CommentedOutCode")
@@ -488,7 +435,7 @@ public class Main extends JavaPlugin {
             
             Search.Searchers.addSearcher((searchMode, query, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : GettingFiles.getFile("TPortData").getKeys("tport")) {
+                for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         if (searchMode.fits(tport.getName(), query)) {
                             list.add(TPortInventories.toTPortItem(tport, player, true));
@@ -533,7 +480,7 @@ public class Main extends JavaPlugin {
             
             Search.Searchers.addSearcher((searchMode, query, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : GettingFiles.getFile("TPortData").getKeys("tport")) {
+                for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         if (searchMode.fits(tport.getDescription().replace("\n", ""), query)) {
                             list.add(TPortInventories.toTPortItem(tport, player, true));
@@ -578,7 +525,7 @@ public class Main extends JavaPlugin {
             
             Search.Searchers.addSearcher((searchMode, query, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : GettingFiles.getFile("TPortData").getKeys("tport")) {
+                for (String uuid : tportData.getKeys("tport")) {
                     if (searchMode.fits(PlayerUUID.getPlayerName(uuid), query)) {
                         list.add(getOrDefault(getHead(UUID.fromString(uuid), player), new ItemStack(Material.AIR)));
                     }
@@ -606,7 +553,7 @@ public class Main extends JavaPlugin {
             
             Search.Searchers.addSearcher((searchMode, query, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : GettingFiles.getFile("TPortData").getKeys("tport")) {
+                for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         if (tport.canTeleport(player, false, false, false)) {
                             list.add(TPortInventories.toTPortItem(tport, player, true));
@@ -656,7 +603,7 @@ public class Main extends JavaPlugin {
             
             Search.Searchers.addSearcher((searchMode, query, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : GettingFiles.getFile("TPortData").getKeys("tport")) {
+                for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         if (Arrays.stream(query.split(" ")).anyMatch(s -> s.equalsIgnoreCase(tport.getBiome().name()))) {
                             list.add(TPortInventories.toTPortItem(tport, player, true));
@@ -696,7 +643,7 @@ public class Main extends JavaPlugin {
             
             Search.Searchers.addSearcher((searchMode, query, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : GettingFiles.getFile("TPortData").getKeys("tport")) {
+                for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         //noinspection ConstantConditions, command checks if available
                         if (BiomeTP.BiomeTPPresets.getPreset(query, tport.getLocation().getWorld()).biomes().stream().anyMatch(b -> b.equalsIgnoreCase(tport.getBiome().name()))) {
@@ -737,7 +684,7 @@ public class Main extends JavaPlugin {
             
             Search.Searchers.addSearcher((searchMode, query, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : GettingFiles.getFile("TPortData").getKeys("tport")) {
+                for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         if (tport.getDimension().name().equalsIgnoreCase(query)) {
                             list.add(TPortInventories.toTPortItem(tport, player, true));
@@ -779,7 +726,7 @@ public class Main extends JavaPlugin {
             
             Search.Searchers.addSearcher((searchMode, query, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : GettingFiles.getFile("TPortData").getKeys("tport")) {
+                for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         if (tport.getTags().contains(query)) {
                             list.add(TPortInventories.toTPortItem(tport, player, true));
@@ -793,7 +740,6 @@ public class Main extends JavaPlugin {
     
     private void registerSorters() {
         Sort.addSorter("alphabet", (player) -> {
-            Files tportData = GettingFiles.getFile("TPortData");
             ArrayList<String> playerList = new ArrayList<>(tportData.getKeys("tport"));
             return playerList.stream().map(playerUUID -> getOrDefault(getHead(UUID.fromString(playerUUID), player), new ItemStack(Material.AIR))).sorted((item1, item2) -> {
                 //noinspection ConstantConditions
@@ -803,13 +749,11 @@ public class Main extends JavaPlugin {
         }, formatInfoTranslation("tport.main.sorter.alphabet.description"));
         
         Sort.addSorter("oldest", (player) -> {
-            Files tportData = GettingFiles.getFile("TPortData");
             ArrayList<String> playerList = new ArrayList<>(tportData.getKeys("tport"));
             return playerList.stream().map(playerUUID -> getOrDefault(getHead(UUID.fromString(playerUUID), player), new ItemStack(Material.AIR))).collect(Collectors.toList());
         }, formatInfoTranslation("tport.main.sorter.oldest.description"));
         
         Sort.addSorter("newest", (player) -> {
-            Files tportData = GettingFiles.getFile("TPortData");
             ArrayList<String> playerList = new ArrayList<>(tportData.getKeys("tport"));
             Collections.reverse(playerList);
             return playerList.stream().map(playerUUID -> getOrDefault(getHead(UUID.fromString(playerUUID), player), new ItemStack(Material.AIR))).collect(Collectors.toList());

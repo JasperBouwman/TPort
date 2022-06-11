@@ -3,8 +3,6 @@ package com.spaceman.tport.commands.tport.publc;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Bukkit;
@@ -16,6 +14,7 @@ import java.util.UUID;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class Remove extends SubCommand {
@@ -37,7 +36,6 @@ public class Remove extends SubCommand {
     @Override
     public Collection<String> tabList(Player player, String[] args) {
         ArrayList<String> list = new ArrayList<>();
-        Files tportData = GettingFiles.getFile("TPortData");
         
         for (String publicTPortSlot : tportData.getKeys("public.tports")) {
             String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
@@ -56,8 +54,6 @@ public class Remove extends SubCommand {
     }
     
     public static void removePublicTPort(String name, Player player, boolean fromDelete) {
-        
-        Files tportData = GettingFiles.getFile("TPortData");
         
         for (String publicTPortSlot : tportData.getKeys("public.tports")) {
             String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());

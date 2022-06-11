@@ -8,8 +8,6 @@ import com.spaceman.tport.commands.tport.DynmapCommand;
 import com.spaceman.tport.dynmap.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -27,6 +25,7 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.in
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Search extends SubCommand {
     
@@ -73,23 +72,19 @@ public class Search extends SubCommand {
             return;
         }
         
-        if (!emptyPlayerTPort.hasPermissionToRun(player, true)) {
-            return;
-        }
-        
         if (args.length == 3) {
-            String ip = IP.getIP();
+            if (!emptyPlayerTPort.hasPermissionToRun(player, true)) {
+                return;
+            }
             
+            String ip = IP.getIP();
             if (ip == null) {
                 sendErrorTranslation(player, "tport.command.dynmapCommand.search.player.ipNotSet", "/tport dynmap IP <IP>");
                 return;
             }
             
-            Files tportData = GettingFiles.getFile("TPortData");
-            
             String newPlayerName = args[2];
             UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
-            
             if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
                 sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
                 return;
@@ -111,38 +106,39 @@ public class Search extends SubCommand {
             );
             message.sendAndTranslateMessage(player);
         } else if (args.length == 4) {
-            String ip = IP.getIP();
+            if (!emptyPlayerTPort.hasPermissionToRun(player, true)) {
+                return;
+            }
             
+            String ip = IP.getIP();
             if (ip == null) {
                 sendErrorTranslation(player, "tport.command.dynmapCommand.search.player.ipNotSet", "/tport dynmap IP <IP>");
                 return;
             }
             
-            Files tportData = GettingFiles.getFile("TPortData");
-            
             String newPlayerName = args[2];
             UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
-            
             if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
                 sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
                 return;
             }
             
             TPort tport = TPortManager.getTPort(newPlayerUUID, args[3]);
-            if (tport != null) {
-                Location l = tport.getLocation();
-                String url = ip + String.format("?worldname=%s&mapname=flat&zoom=6&x=%s&y=%s&z=%s#", l.getWorld().getName(), l.getX(), l.getY(), l.getZ());
-                
-                Message message = formatInfoTranslation("tport.command.dynmapCommand.search.player.tport.succeeded", tport);
-                message.getText().forEach(textComponent -> textComponent
-                        .setInsertion(url)
-                        .addTextEvent(hoverEvent(textComponent(url, infoColor)))
-                        .addTextEvent(ClickEvent.openUrl(url))
-                );
-                message.sendAndTranslateMessage(player);
-            } else {
+            if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[3]);
+                return;
             }
+            
+            Location l = tport.getLocation();
+            String url = ip + String.format("?worldname=%s&mapname=flat&zoom=6&x=%s&y=%s&z=%s#", l.getWorld().getName(), l.getX(), l.getY(), l.getZ());
+            
+            Message message = formatInfoTranslation("tport.command.dynmapCommand.search.player.tport.succeeded", tport);
+            message.getText().forEach(textComponent -> textComponent
+                    .setInsertion(url)
+                    .addTextEvent(hoverEvent(textComponent(url, infoColor)))
+                    .addTextEvent(ClickEvent.openUrl(url))
+            );
+            message.sendAndTranslateMessage(player);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport dynmap search <player> [TPort name]");
         }

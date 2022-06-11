@@ -9,8 +9,6 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.TextType;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -23,6 +21,7 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.events.ClickEvent.runCommand;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
 
 public class Features extends SubCommand {
     
@@ -72,7 +71,6 @@ public class Features extends SubCommand {
     }
     
     public static void convert() {
-        Files tportConfig = GettingFiles.getFile("TPortConfig");
         Boolean b = null;
         
         if (tportConfig.getConfig().contains("public.enabled")) {
@@ -207,6 +205,7 @@ public class Features extends SubCommand {
         Permissions(false),
         ParticleAnimation(true),
         Redirects(true),
+        Preview(true),
         FeatureSettings(false);
         
         private final boolean reloadCommands;
@@ -229,18 +228,16 @@ public class Features extends SubCommand {
         }
         
         public boolean isEnabled() {
-            Files tportConfig = GettingFiles.getFile("TPortConfig");
             return tportConfig.getConfig().getBoolean("features." + this.name() + ".enabled", true);
         }
         
         public Message setState(boolean enable) {
-            Files tportConfig = GettingFiles.getFile("TPortConfig");
             tportConfig.getConfig().set("features." + this.name() + ".enabled", enable);
             tportConfig.saveConfig();
             
             if (reloadCommands) TPortCommand.reRegisterActions();
             
-            Message stateMessage = formatTranslation(varInfoColor, varInfo2Color, "tport.command.features." + (enable ? "enable" : "disable"));
+            Message stateMessage = formatTranslation(varSuccessColor, varSuccess2Color, "tport.command.features." + (enable ? "enable" : "disable"));
             return formatSuccessTranslation("tport.command.features.feature." + this.name() + ".setState", this, stateMessage, "/tport reload");
         }
         

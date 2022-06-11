@@ -1,21 +1,29 @@
 package com.spaceman.tport.fileHander;
 
+import com.spaceman.tport.Main;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.logging.Level;
 
 public class Files {
-
+    
+    public static Files tportData;
+    public static Files tportConfig;
+    
+    public static void reloadFiles() {
+        tportData   = new Files(Main.getInstance(), "TPortData.yml");
+        tportConfig = new Files(Main.getInstance(), "TPortConfig.yml");
+    }
+    
     private final JavaPlugin plugin;
 
-    private File configFile;
-    private FileConfiguration fileConfiguration;
+    private final File configFile;
+    private FileConfiguration fileConfiguration = null;
 
     public Files(JavaPlugin plugin, String fileName) {
         this.plugin = plugin;
@@ -47,7 +55,6 @@ public class Files {
     }
 
     public void saveConfig() {
-
         if (fileConfiguration != null && configFile != null) {
             try {
                 getConfig().save(configFile);

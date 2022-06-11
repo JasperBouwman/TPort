@@ -14,7 +14,7 @@ import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.chat.IChatMutableComponent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
-import net.minecraft.network.protocol.game.PacketPlayOutChat;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.EntityPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -328,7 +328,7 @@ public class Message implements Cloneable {
         if (playerLang == null) { //custom language
             sendMessage(player);
         } else {
-            MessageUtils.translateMessage(this, playerLang).sendMessage(player);
+            MessageUtils.translateMessage(this, playerLang).sendMessage(player, MessageTypes.SYSTEM);
         }
     }
     
@@ -342,10 +342,8 @@ public class Message implements Cloneable {
         }
         try {
             IChatMutableComponent text = IChatBaseComponent.ChatSerializer.a(this.translateJSON(player));
-            PacketPlayOutChat packetPlayOutChat = new PacketPlayOutChat(text, type.chatMessageType, player.getUniqueId());
-            
             EntityPlayer entityPlayer = (EntityPlayer) player.getClass().getMethod("getHandle").invoke(player);
-            entityPlayer.b.a(packetPlayOutChat);
+            entityPlayer.a(text, type.chatMessageType);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -376,13 +374,13 @@ public class Message implements Cloneable {
     }
     
     public enum MessageTypes {
-        CHAT(ChatMessageType.a),
-        SYSTEM(ChatMessageType.b),
-        GAME_INFO(ChatMessageType.c);
-        
-        private ChatMessageType chatMessageType;
-        
-        MessageTypes(ChatMessageType type) {
+        CHAT(ChatMessageType.b),
+        SYSTEM(ChatMessageType.c),
+        GAME_INFO(ChatMessageType.d);
+
+        private final ResourceKey<ChatMessageType> chatMessageType;
+
+        MessageTypes(ResourceKey<ChatMessageType> type) {
             this.chatMessageType = type;
         }
     }
@@ -392,7 +390,7 @@ public class Message implements Cloneable {
         ACTIONBAR("ClientboundSetActionBarTextPacket"),
         SUBTITLE("ClientboundSetSubtitleTextPacket");
         
-        private String mcClass;
+        private final String mcClass;
         
         TitleTypes(String mcClass) {
             this.mcClass = mcClass;

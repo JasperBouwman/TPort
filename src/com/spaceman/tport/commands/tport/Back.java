@@ -9,8 +9,6 @@ import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
 import com.spaceman.tport.fancyMessage.encapsulation.FeatureEncapsulation;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -25,6 +23,7 @@ import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TP
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
+import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.tpEvents.TPEManager.requestTeleportPlayer;
 
 public class Back extends SubCommand {
@@ -33,7 +32,7 @@ public class Back extends SubCommand {
     
     public static String getPrevLocNameAsString(Player player) {
         if (prevTPorts.containsKey(player.getUniqueId())) {
-            return "Previous location: " + prevTPorts.get(player.getUniqueId()).toString(player);
+            return "Previous location: " + prevTPorts.get(player.getUniqueId()).toString();
         } else {
             return "Previous location: " + "Unknown";
         }
@@ -41,7 +40,7 @@ public class Back extends SubCommand {
     
     public static Message getPrevLocName(Player player) {
         if (prevTPorts.containsKey(player.getUniqueId())) {
-            return formatInfoTranslation("tport.command.back.previousLocation", prevTPorts.get(player.getUniqueId()).toMessage(player));
+            return formatInfoTranslation("tport.command.back.previousLocation", prevTPorts.get(player.getUniqueId()).toMessage());
         } else {
             return formatInfoTranslation("tport.command.back.previousLocation", formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.back.previousLocationUnknown"));
         }
@@ -148,7 +147,7 @@ public class Back extends SubCommand {
                 }
                 return true;
             }
-        }, (player, prevTPort) -> {
+        }, (prevTPort) -> {
             Location prevLoc = (Location) prevTPort.getData().get("prevLoc");
             UUID tportUUID = (UUID) prevTPort.getData().get("tportUUID");
             UUID tportOwner = (UUID) prevTPort.getData().get("tportOwner");
@@ -164,7 +163,7 @@ public class Back extends SubCommand {
                 String tportName = (String) prevTPort.getData().get("tportName");
                 return "From TPort " + tportName;
             }
-        }, ((player, prevTPort) -> {
+        }, ((prevTPort) -> {
             Location prevLoc = (Location) prevTPort.getData().get("prevLoc");
             UUID tportOwner = (UUID) prevTPort.getData().get("tportOwner");
             UUID tportUUID = (UUID) prevTPort.getData().get("tportUUID");
@@ -207,11 +206,11 @@ public class Back extends SubCommand {
                 }
             }
             return true;
-        }, (player, prevTPort) -> {
+        }, (prevTPort) -> {
             String biomeName = (String) prevTPort.getData().get("biomeName");
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
             return (prevLoc == null ? "To" : "From") + " biome " + biomeName;
-        }, (player, prevTPort) -> {
+        }, (prevTPort) -> {
             String biomeName = (String) prevTPort.getData().get("biomeName");
             BiomeEncapsulation biome = new BiomeEncapsulation(biomeName);
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
@@ -243,18 +242,17 @@ public class Back extends SubCommand {
                 }
             }
             return true;
-        }, (player, prevTPort) -> {
+        }, (prevTPort) -> {
             String featureName = (String) prevTPort.getData().get("featureName");
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
             return (prevLoc == null ? "To " : "From ") + featureName;
-        }, (player, prevTPort) -> {
+        }, (prevTPort) -> {
             String featureName = (String) prevTPort.getData().get("featureName");
             FeatureEncapsulation feature = new FeatureEncapsulation(featureName);
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
             return formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.back.FEATURE." + (prevLoc == null ? "to" : "from") + ".previousLocation", feature);
         }),
         PLAYER((player, prevTPort, safetyCheck) -> {
-            Files tportData = GettingFiles.getFile("TPortData");
             String toPlayerUUID = (String) prevTPort.getData().get("playerUUID");
             
             Player toPlayer = Bukkit.getPlayer(UUID.fromString(toPlayerUUID));
@@ -301,11 +299,11 @@ public class Back extends SubCommand {
                 }
                 return true;
             }
-        }, (player, prevTPort) -> {
+        }, (prevTPort) -> {
             String playerName = PlayerUUID.getPlayerName((String) prevTPort.getData().get("playerUUID"));
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
             return (prevLoc == null ? "To " : "From ") + playerName;
-        }, (player, prevTPort) -> {
+        }, (prevTPort) -> {
             String playerName = PlayerUUID.getPlayerName((String) prevTPort.getData().get("playerUUID"));
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
             return formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.back.PLAYER." + (prevLoc == null ? "to" : "from") + ".previousLocation", playerName);
@@ -335,10 +333,10 @@ public class Back extends SubCommand {
                 }
             }
             return true;
-        }, (player, prevTPort) -> {
+        }, (prevTPort) -> {
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
             return (prevLoc == null ? "To" : "From") + " death location";
-        }, (player, prevTPort) -> {
+        }, (prevTPort) -> {
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
             return formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.back.DEATH." + (prevLoc == null ? "to" : "from") + ".previousLocation");
         });
@@ -357,12 +355,12 @@ public class Back extends SubCommand {
             return tpBack.tpBack(player, prevTPort, safetyCheck);
         }
         
-        public String toString(Player player, PrevTPort prevTPort) {
-            return backString.backString(player, prevTPort);
+        public String toString(PrevTPort prevTPort) {
+            return backString.backString(prevTPort);
         }
         
-        public Message toMessage(Player player, PrevTPort prevTPort) {
-            return backMessage.backMessage(player, prevTPort);
+        public Message toMessage(PrevTPort prevTPort) {
+            return backMessage.backMessage(prevTPort);
         }
         
         @FunctionalInterface
@@ -372,12 +370,12 @@ public class Back extends SubCommand {
         
         @FunctionalInterface
         private interface BackString {
-            String backString(Player player, PrevTPort prevTPort);
+            String backString(PrevTPort prevTPort);
         }
         
         @FunctionalInterface
         private interface BackMessage {
-            Message backMessage(Player player, PrevTPort prevTPort);
+            Message backMessage(PrevTPort prevTPort);
         }
     }
     
@@ -423,12 +421,13 @@ public class Back extends SubCommand {
             return prevType.tpBack(player, this, safetyCheck);
         }
         
-        public String toString(Player player) {
-            return prevType.toString(player, this);
+        @Override
+        public String toString() {
+            return prevType.toString(this);
         }
         
-        public Message toMessage(Player player) {
-            return prevType.toMessage(player, this);
+        public Message toMessage() {
+            return prevType.toMessage(this);
         }
         
         public HashMap<String, Object> getData() {

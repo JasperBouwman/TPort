@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Remove extends SubCommand {
     
@@ -64,10 +64,9 @@ public class Remove extends SubCommand {
         }
         
         for (int i = 4; i < args.length; i++) {
-            
             String newPlayerName = args[i];
             UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
-            if (newPlayerUUID == null || !getFile("TPortData").getConfig().contains("tport." + newPlayerUUID)) {
+            if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
                 sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
                 return;
             }

@@ -6,8 +6,6 @@ import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -20,6 +18,7 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class LogData extends SubCommand {
     
@@ -125,38 +124,37 @@ public class LogData extends SubCommand {
         }
         else if (args.length == 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
-            if (tport != null) {
-                if (tport.isLogged()) {
-                    getLogData(tport, -1).sendAndTranslateMessage(player);
-                } else {
-                    sendInfoTranslation(player, "tport.command.log.logData.tportName.tportNotLogged", tport);
-                }
-            } else {
+            if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
+                return;
+            }
+            if (tport.isLogged()) {
+                getLogData(tport, -1).sendAndTranslateMessage(player);
+            } else {
+                sendInfoTranslation(player, "tport.command.log.logData.tportName.tportNotLogged", tport);
             }
         }
         else if (args.length == 4) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
-            Files tportData = GettingFiles.getFile("TPortData");
-            if (tport != null) {
-                if (tport.isLogged()) {
-                    UUID uuid = PlayerUUID.getPlayerUUID(args[3]);
-                    if (uuid == null || !tportData.getConfig().contains("tport." + uuid)) {
-                        sendErrorTranslation(player, "tport.command.playerNotFound", args[3]);
-                        return;
-                    }
-                    if (tport.getLogged().contains(uuid)) {
-                        sendInfoTranslation(player, "tport.command.log.logData.tportName.player.succeeded",
-                                asPlayer(uuid), tport, tport.getLogMode(uuid));
-                    } else {
-                        sendErrorTranslation(player, "tport.command.log.logData.tportName.player.notLogged",
-                                asPlayer(uuid), tport);
-                    }
-                } else {
-                    sendErrorTranslation(player, "tport.command.log.logData.tportName.player.tportNotLogged", tport);
-                }
-            } else {
+            if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
+                return;
+            }
+            if (!tport.isLogged()) {
+                sendErrorTranslation(player, "tport.command.log.logData.tportName.player.tportNotLogged", tport);
+                return;
+            }
+            UUID uuid = PlayerUUID.getPlayerUUID(args[3]);
+            if (uuid == null || !tportData.getConfig().contains("tport." + uuid)) {
+                sendErrorTranslation(player, "tport.command.playerNotFound", args[3]);
+                return;
+            }
+            if (tport.getLogged().contains(uuid)) {
+                sendInfoTranslation(player, "tport.command.log.logData.tportName.player.succeeded",
+                        asPlayer(uuid), tport, tport.getLogMode(uuid));
+            } else {
+                sendErrorTranslation(player, "tport.command.log.logData.tportName.player.notLogged",
+                        asPlayer(uuid), tport);
             }
         }
         else {

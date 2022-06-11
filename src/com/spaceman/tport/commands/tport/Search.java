@@ -16,16 +16,10 @@ import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Search extends SubCommand {
     
-    static Search curr = null;
-    
-    private Search() {
-    }
-    
+    private Search() { }
+    private static final Search instance = new Search();
     public static Search getInstance() {
-        if (curr == null) {
-            curr = new Search();
-        }
-        return curr;
+        return instance;
     }
     
     @Override
@@ -108,7 +102,7 @@ public class Search extends SubCommand {
             if (searcher != null && !searchers.containsKey(subCommand.getCommandName())) {
                 searchers.put(subCommand.getCommandName(), new Pair<>(searcher, subCommand));
                 setPermission(subCommand.getCommandName(), subCommand);
-                curr.addAction(subCommand);
+                instance.addAction(subCommand);
                 return true;
             }
             return false;

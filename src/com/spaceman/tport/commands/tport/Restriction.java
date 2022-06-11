@@ -2,24 +2,33 @@ package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.restriction.Get;
-import com.spaceman.tport.commands.tport.restriction.Permission;
+import com.spaceman.tport.commands.tport.restriction.Handler;
 import com.spaceman.tport.commands.tport.restriction.Set;
 import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
 
 public class Restriction extends SubCommand {
     
     public Restriction() {
-        addAction(new Permission());
+        addAction(new Handler());
         addAction(new Set());
         addAction(new Get());
     }
     
+    public static void setPermissionBased(boolean state) {
+        tportConfig.getConfig().set("restriction.permission", state);
+        tportConfig.saveConfig();
+    }
+    public static boolean isPermissionBased() {
+        return tportConfig.getConfig().getBoolean("restriction.permission", false);
+    }
+    
     @Override
     public void run(String[] args, Player player) {
-        // tport restriction permission [state]
+        // tport restriction handler [state]
         // tport restriction set <player> <type>
         // tport restriction get [player]
         
@@ -32,6 +41,6 @@ public class Restriction extends SubCommand {
                 return;
             }
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport restriction <permission|set|get>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport restriction <handler|set|get>");
     }
 }

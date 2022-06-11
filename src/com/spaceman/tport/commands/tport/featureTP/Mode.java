@@ -5,7 +5,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -16,7 +15,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Mode extends SubCommand {
@@ -42,12 +41,10 @@ public class Mode extends SubCommand {
     }
     
     public static WorldSearchMode getDefMode(UUID uuid) {
-        Files tportConfig = getFile("TPortConfig");
         return WorldSearchMode.valueOf(tportConfig.getConfig().getString("featureTP.defaultMode." + uuid.toString(), "CLOSEST"));
     }
     
     public static void setDefMode(UUID uuid, WorldSearchMode mode) {
-        Files tportConfig = getFile("TPortConfig");
         tportConfig.getConfig().set("featureTP.defaultMode." + uuid.toString(), mode.name());
         tportConfig.saveConfig();
     }

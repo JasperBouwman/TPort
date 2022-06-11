@@ -7,16 +7,16 @@ import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Sort extends SubCommand {
@@ -51,7 +51,6 @@ public class Sort extends SubCommand {
     }
     
     public static String getSorterName(Player player) {
-        Files tportData = getFile("TPortData");
         return tportData.getConfig().getString("tport." + player.getUniqueId() + ".sorter", "oldest");
     }
     
@@ -125,9 +124,6 @@ public class Sort extends SubCommand {
          * */
         
         if (args.length == 1) {
-            
-            Files tportData = getFile("TPortData");
-    
             String sorterName = tportData.getConfig().getString("tport." + player.getUniqueId() + ".sorter", "oldest");
             if (getSorter(sorterName) != null) {
                 tportData.getConfig().set("tport." + player.getUniqueId() + ".sorter", "oldest");
@@ -165,7 +161,6 @@ public class Sort extends SubCommand {
                 return;
             }
             
-            Files tportData = getFile("TPortData");
             tportData.getConfig().set("tport." + player.getUniqueId() + ".sorter", args[1]);
             tportData.saveConfig();
             

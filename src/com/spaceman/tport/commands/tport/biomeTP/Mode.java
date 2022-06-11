@@ -4,7 +4,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -14,11 +13,10 @@ import java.util.stream.Collectors;
 
 import static com.spaceman.tport.commands.tport.featureTP.Mode.worldSearchString;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Mode extends SubCommand {
-    
     
     public Mode() {
         EmptyCommand emptyModeMode = new EmptyCommand();
@@ -39,12 +37,10 @@ public class Mode extends SubCommand {
     }
     
     public static com.spaceman.tport.commands.tport.featureTP.Mode.WorldSearchMode getDefMode(UUID uuid) {
-        Files tportConfig = getFile("TPortConfig");
         return com.spaceman.tport.commands.tport.featureTP.Mode.WorldSearchMode.valueOf(tportConfig.getConfig().getString("biomeTP.defaultMode." + uuid.toString(), "CLOSEST"));
     }
     
     public static void setDefMode(UUID uuid, com.spaceman.tport.commands.tport.featureTP.Mode.WorldSearchMode mode) {
-        Files tportConfig = getFile("TPortConfig");
         tportConfig.getConfig().set("biomeTP.defaultMode." + uuid.toString(), mode.name());
         tportConfig.saveConfig();
     }

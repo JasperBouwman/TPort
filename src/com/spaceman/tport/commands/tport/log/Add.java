@@ -7,8 +7,6 @@ import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Attribute;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -23,6 +21,7 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Add extends SubCommand {
     
@@ -88,47 +87,50 @@ public class Add extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport log add <TPort name> <player[:LogMode]...>
-        
-        if (args.length > 3) {
-            if (!emptyTPortPlayer.hasPermissionToRun(player, true)) {
-                return;
-            }
-            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
-            if (tport != null) {
-                Files tportData = GettingFiles.getFile("TPortData");
-                for (int i = 3; i < args.length; i++) {
-                    String playerName = args[i];
-                    TPort.LogMode logMode = TPort.LogMode.ALL;
-                    if (Pattern.matches(".*:.*", playerName)) {
-                        logMode = TPort.LogMode.get(playerName.split(":")[1], logMode);
-                        playerName = playerName.split(":")[0];
-                    }
-                    if (playerName.equalsIgnoreCase(player.getName())) {
-                        if (logMode.equals(TPort.LogMode.ALL) || logMode.equals(TPort.LogMode.ONLINE)) {
-                            tport.addLogged(player.getUniqueId(), TPort.LogMode.ALL);
-                            sendInfoTranslation(player, "tport.command.log.add.tportName.player.addYourself");
-                        } else if (logMode.equals(TPort.LogMode.NONE) || logMode.equals(TPort.LogMode.OFFLINE)) {
-                            tport.removeLogged(player.getUniqueId());
-                            sendInfoTranslation(player, "tport.command.log.add.tportName.player.removeYourself");
-                        }
-                        continue;
-                    }
-                    UUID playerUUID = PlayerUUID.getPlayerUUID(playerName);
-                    if (playerUUID == null || !tportData.getConfig().contains("tport." + playerUUID)) {
-                        sendErrorTranslation(player, "tport.command.playerNotFound", playerName);
-                        return;
-                    }
-                    tport.addLogged(playerUUID, logMode);
-                    sendSuccessTranslation(player, "tport.command.log.add.tportName.player.succeeded", asPlayer(playerUUID), logMode, tport);
     
-                    sendInfoTranslation(Bukkit.getPlayer(playerUUID), "tport.command.log.add.tportName.player.succeededOtherPlayer", player, tport, logMode);
-                }
-                tport.save();
-            } else {
-                sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
-            }
-        } else {
+        if (args.length <= 3) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log add <TPort name> <player[:LogMode]...>");
+            return;
         }
+        if (!emptyTPortPlayer.hasPermissionToRun(player, true)) {
+            return;
+        }
+        
+        TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
+        if (tport == null) {
+            sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
+            return;
+        }
+        
+        for (int i = 3; i < args.length; i++) {
+            String playerName = args[i];
+            UUID playerUUID = PlayerUUID.getPlayerUUID(playerName);
+            if (playerUUID == null || !tportData.getConfig().contains("tport." + playerUUID)) {
+                sendErrorTranslation(player, "tport.command.playerNotFound", playerName);
+                continue;
+            }
+            
+            TPort.LogMode logMode = TPort.LogMode.ALL;
+            if (Pattern.matches(".*:.*", playerName)) {
+                logMode = TPort.LogMode.get(playerName.split(":")[1], logMode);
+                playerName = playerName.split(":")[0];
+            }
+            if (playerName.equalsIgnoreCase(player.getName())) {
+                if (logMode.equals(TPort.LogMode.ALL) || logMode.equals(TPort.LogMode.ONLINE)) {
+                    tport.addLogged(player.getUniqueId(), TPort.LogMode.ALL);
+                    sendInfoTranslation(player, "tport.command.log.add.tportName.player.addYourself");
+                } else if (logMode.equals(TPort.LogMode.NONE) || logMode.equals(TPort.LogMode.OFFLINE)) {
+                    tport.removeLogged(player.getUniqueId());
+                    sendInfoTranslation(player, "tport.command.log.add.tportName.player.removeYourself");
+                }
+                continue;
+            }
+            tport.addLogged(playerUUID, logMode);
+            sendSuccessTranslation(player, "tport.command.log.add.tportName.player.succeeded", asPlayer(playerUUID), logMode, tport);
+            
+            sendInfoTranslation(Bukkit.getPlayer(playerUUID), "tport.command.log.add.tportName.player.succeededOtherPlayer", player, tport, logMode);
+        }
+        
+        tport.save();
     }
 }

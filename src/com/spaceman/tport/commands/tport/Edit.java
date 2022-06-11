@@ -3,6 +3,7 @@ package com.spaceman.tport.commands.tport;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.edit.Preview;
 import com.spaceman.tport.commands.tport.edit.Tag;
 import com.spaceman.tport.commands.tport.edit.*;
 import org.bukkit.entity.Player;
@@ -29,6 +30,7 @@ public class Edit extends SubCommand {
         emptyOwnTPort.addAction(new Move());
         emptyOwnTPort.addAction(new Range());
         emptyOwnTPort.addAction(new Tag());
+        if (Features.Feature.Preview.isEnabled()) emptyOwnTPort.addAction(new Preview());
         if (Features.Feature.Dynmap.isEnabled()) emptyOwnTPort.addAction(new Dynmap());
         addAction(emptyOwnTPort);
     }

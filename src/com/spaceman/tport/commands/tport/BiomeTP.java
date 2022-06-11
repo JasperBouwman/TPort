@@ -87,7 +87,8 @@ public class BiomeTP extends SubCommand {
                 WorldServer worldServer = (WorldServer) nmsWorld;
 
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.t().d(IRegistry.aR); //1.18.1
-                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
+//              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
+                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
                 return biomeRegistry.d().stream().map(MinecraftKey::a).map(String::toLowerCase).collect(Collectors.toList());
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 Main.getInstance().getLogger().log(Level.WARNING, "Can't use NMS (try updating TPort), using legacy mode for BiomeTP");
@@ -105,9 +106,11 @@ public class BiomeTP extends SubCommand {
                 
                 ChunkGenerator chunkGenerator = worldServer.k().g();
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.t().d(IRegistry.aR); //1.18.1
-                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
+//              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
+                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
 
 //              Field f = ChunkGenerator.class.getDeclaredField("b"); //1.18.1
+//              Field f = ChunkGenerator.class.getDeclaredField("c"); //1.18.2
                 Field f = ChunkGenerator.class.getDeclaredField("c"); //1.18.2
                 f.setAccessible(true);
                 WorldChunkManager worldChunkManager = (WorldChunkManager) f.get(chunkGenerator);
@@ -118,7 +121,7 @@ public class BiomeTP extends SubCommand {
                         .map(MinecraftKey::a)
                         .map(String::toLowerCase)
                         .collect(Collectors.toList());
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException | NoSuchMethodError e) {
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException | NoSuchMethodError | ClassCastException e) {
                 Main.getInstance().getLogger().log(Level.WARNING, "Can't use NMS (try updating TPort), using legacy mode for BiomeTP");
                 legacyBiomeTP = true;
             }
@@ -151,17 +154,20 @@ public class BiomeTP extends SubCommand {
                 
                 ChunkGenerator chunkGenerator = worldServer.k().g();
                 
-                WorldChunkManager worldChunkManager = chunkGenerator.e();
+//              WorldChunkManager worldChunkManager = chunkGenerator.e(); //1.18.2
+                WorldChunkManager worldChunkManager = chunkGenerator.d();
                 
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.t().d(IRegistry.aR); //1.18.1
-                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
+//              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
+                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
                 List<BiomeBase> baseList = biomes.stream().map(biome -> biomeRegistry.a(new MinecraftKey(biome.toLowerCase()))).filter(Objects::nonNull).toList();
                 
-                Predicate<Holder<BiomeBase>> predicate = (holder) -> baseList.stream().anyMatch((biomeBase) -> biomeBase.equals(holder.a()));
+                Predicate<Holder<BiomeBase>> predicate = (holder) -> baseList.stream().anyMatch((biomeBase) -> biomeBase.equals(holder.a())); //1.18.2
                 
                 Location blockPos;
 //              Climate.Sampler climateSampler = worldServer.k().g().c(); //1.18.1
-                Climate.Sampler climateSampler = worldServer.k().g().d(); //1.18.2
+//              Climate.Sampler climateSampler = worldServer.k().g().d(); //1.18.2
+                Climate.Sampler climateSampler = worldServer.k().h().c(); //1.19
                 
                 for (int squareSize = 0; squareSize <= quartSize; squareSize += increment) {
                     for (int zOffset = -squareSize; zOffset <= squareSize; zOffset += increment) {
@@ -549,18 +555,18 @@ public class BiomeTP extends SubCommand {
                 WorldServer worldServer = (WorldServer) nmsWorld;
                 
                 IRegistryCustom registry = worldServer.s();
-                IRegistry<BiomeBase> biomeRegistry = registry.d(IRegistry.aP);
+                IRegistry<BiomeBase> biomeRegistry = registry.d(IRegistry.aR);
                 
                 ArrayList<BiomePreset> presets = new ArrayList<>();
                 
-                for (String tagKeyName : biomeRegistry.h().map((tagKey) -> tagKey.b().a()).toList()) {
-                    TagKey<BiomeBase> tagKey = TagKey.a(IRegistry.aP, new MinecraftKey(tagKeyName));
+                for (String tagKeyName : biomeRegistry.i().map((tagKey) -> tagKey.b().a()).toList()) {
+                    TagKey<BiomeBase> tagKey = TagKey.a(IRegistry.aR, new MinecraftKey(tagKeyName));
                     
                     Optional<HolderSet.Named<BiomeBase>> optional = biomeRegistry.c(tagKey);
                     if (optional.isPresent()) {
                         HolderSet.Named<BiomeBase> named = optional.get();
                         Stream<Holder<BiomeBase>> values = named.a();
-                        
+
                         List<String> biomes = values.map((holder) -> {
                             return holder.a(); //Holder -> BiomeBase
                         }).map((biomeBase) -> {
@@ -570,30 +576,48 @@ public class BiomeTP extends SubCommand {
                             }
                             return null;
                         }).filter(Objects::nonNull).toList();
-                        
+
                         Material material;
                         if (tagKeyName.startsWith("has_structure/")) {
                             material = FeatureTP.getMaterial(tagKeyName.substring(14));
                         } else {
                             material = switch (tagKeyName) {
-                                case "is_deep_ocean", "is_river", "is_ocean" -> Material.WATER_BUCKET;
+                                case "is_deep_ocean", "is_river", "is_ocean", "reduce_water_ambient_spawns", "water_on_map_outlines", "has_closer_water_fog" -> Material.WATER_BUCKET;
                                 case "is_mountain" -> Material.STONE;
-                                case "is_hill" -> Material.GRASS_BLOCK;
+                                case "is_hill", "is_overworld" -> Material.GRASS_BLOCK;
                                 case "is_taiga" -> Material.SPRUCE_LOG;
                                 case "is_beach" -> Material.SAND;
                                 case "is_badlands" -> Material.TERRACOTTA;
                                 case "is_nether" -> Material.NETHERRACK;
                                 case "is_jungle" -> Material.JUNGLE_LOG;
                                 case "is_forest" -> Material.OAK_SAPLING;
-        
+                                case "without_zombie_sieges" -> Material.ZOMBIE_HEAD;
+                                case "required_ocean_monument_surrounding" -> Material.DARK_PRISMARINE;
+                                case "spawns_cold_variant_frogs" -> Material.VERDANT_FROGLIGHT;
+                                case "spawns_temperate_variant_frogs" -> Material.OCHRE_FROGLIGHT;
+                                case "spawns_warm_variant_frogs" -> Material.PEARLESCENT_FROGLIGHT;
+                                case "without_patrol_spawns" -> Material.RAVAGER_SPAWN_EGG;
+                                case "allows_surface_slime_spawns" -> Material.SLIME_BALL;
+                                case "without_wandering_trader_spawns" -> Material.WANDERING_TRADER_SPAWN_EGG;
+                                case "polar_bears_spawn_on_alternate_blocks" -> Material.POLAR_BEAR_SPAWN_EGG;
+                                case "is_end" -> Material.END_STONE;
+                                case "plays_underwater_music" -> Material.MUSIC_DISC_MALL;
+                                case "only_allows_snow_and_gold_rabbits" -> Material.RABBIT_SPAWN_EGG;
+                                case "more_frequent_drowned_spawns" -> Material.DROWNED_SPAWN_EGG;
+                                case "allows_tropical_fish_spawns_at_any_height" -> Material.TROPICAL_FISH_SPAWN_EGG;
+                                case "produces_corals_from_bonemeal" -> Material.BRAIN_CORAL;
+                                case "is_savanna" -> Material.ACACIA_LOG;
+                                case "stronghold_biased_to" -> Material.END_PORTAL_FRAME;
+                                case "mineshaft_blocking" -> Material.CHEST_MINECART;
+
                                 default -> Material.DIAMOND_BLOCK;
                             };
                         }
-                        
+
                         presets.add(new BiomePreset("#" + tagKeyName, biomes, true, material, true));
                     }
                 }
-                
+
                 tagPresets.put(world.getName(), presets);
                 return presets;
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchMethodError e) {

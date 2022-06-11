@@ -5,8 +5,6 @@ import com.spaceman.tport.commands.tport.tag.Create;
 import com.spaceman.tport.commands.tport.tag.Delete;
 import com.spaceman.tport.commands.tport.tag.List;
 import com.spaceman.tport.commands.tport.tag.Reset;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -17,7 +15,8 @@ import java.util.UUID;
 import static com.spaceman.tport.commandHandler.CommandTemplate.convertToArgs;
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Tag extends SubCommand {
     
@@ -32,12 +31,10 @@ public class Tag extends SubCommand {
     }
     
     public static void loadTags() {
-        Files tportConfig = getFile("TPortConfig");
         tags = tportConfig.getConfig().getStringList("tags.list");
     }
     
     public static void saveTags() {
-        Files tportConfig = getFile("TPortConfig");
         tportConfig.getConfig().set("tags.list", tags);
         tportConfig.saveConfig();
     }
@@ -54,7 +51,7 @@ public class Tag extends SubCommand {
         for (String t : tags) {
             if (t.equalsIgnoreCase(tag)) {
                 tags.remove(t);
-                for (String uuid : GettingFiles.getFile("TPortData").getKeys("tport")) {
+                for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         tport.removeTag(t);
                     }
@@ -74,7 +71,7 @@ public class Tag extends SubCommand {
         createTag("Mine");
         createTag("Temp");
         
-        for (String uuid : GettingFiles.getFile("TPortData").getKeys("tport")) {
+        for (String uuid : tportData.getKeys("tport")) {
             for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                 for (String tag : tport.getTags()) {
                     tport.removeTag(tag);

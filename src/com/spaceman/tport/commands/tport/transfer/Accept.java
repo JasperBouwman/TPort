@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Accept extends SubCommand {
     
@@ -42,7 +42,7 @@ public class Accept extends SubCommand {
         if (!emptyPlayerTPort.hasPermissionToRun(player, false)) {
             return list;
         }
-        for (String uuidString : getFile("TPortData").getKeys("tport")) {
+        for (String uuidString : tportData.getKeys("tport")) {
             UUID uuid = UUID.fromString(uuidString);
             for (TPort tport : TPortManager.getTPortList(uuid)) {
                 if (player.getUniqueId().equals(tport.getOfferedTo())) {
@@ -57,50 +57,50 @@ public class Accept extends SubCommand {
     public void run(String[] args, Player player) {
         // tport transfer accept <player> <TPort name>
         
+        if (args.length != 4) {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport transfer accept <player> <TPort name>");
+            return;
+        }
+        
         if (!emptyPlayerTPort.hasPermissionToRun(player, true)) {
             return;
         }
         
-        if (args.length == 4) {
-            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2]);
-            if (newPlayerUUID == null || !getFile("TPortData").getConfig().contains("tport." + newPlayerUUID)) {
-                sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
-                return;
-            }
+        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2]);
+        if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
+            sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
+            return;
+        }
+        
+        TPort tport = TPortManager.getTPort(newPlayerUUID, args[3]);
+        if (tport == null) {
+            sendErrorTranslation(player, "tport.command.noTPortFound", args[3]);
+            return;
+        }
+        
+        if (!player.getUniqueId().equals(tport.getOfferedTo())) {
+            sendErrorTranslation(player, "tport.command.transfer.accept.player.tportName.notOffered", asTPort(tport));
+            return;
+        }
+        
+        if (TPortManager.getTPort(player.getUniqueId(), tport.getName()) != null) {
+            sendErrorTranslation(player, "tport.command.transfer.accept.player.tportName.alreadyHasName", asTPort(tport));
+            return;
+        }
+        
+        UUID oldOwner = tport.getOwner();
+        if (TPortManager.addTPort(player, tport, true) != null) {
+            tport.getWhitelist().remove(player.getUniqueId());
+            if (!tport.getWhitelist().contains(oldOwner)) tport.getWhitelist().add(oldOwner);
+            tport.save();
             
-            TPort tport = TPortManager.getTPort(newPlayerUUID, args[3]);
-            if (tport != null) {
-                if (player.getUniqueId().equals(tport.getOfferedTo())) {
-                    if (TPortManager.getTPort(player.getUniqueId(), tport.getName()) == null) {
-                        UUID oldOwner = tport.getOwner();
-                        if (TPortManager.addTPort(player, tport, true) != null) {
-                            tport.getWhitelist().remove(player.getUniqueId());
-                            if (!tport.getWhitelist().contains(oldOwner)) tport.getWhitelist().add(oldOwner);
-                            tport.save();
-                            Player oldPlayer = Bukkit.getPlayer(oldOwner);
-                            sendSuccessTranslation(player, "tport.command.transfer.accept.player.tportName.succeeded", asTPort(tport),
-                                    asPlayer(oldPlayer, oldOwner));
-                            
-                            if (oldPlayer != null) {
-                                sendInfoTranslation(oldPlayer, "tport.command.transfer.accept.player.tportName.succeededOtherPlayer", asPlayer(player), asTPort(tport));
-                            }
-                        } else {
-                            Player oldPlayer = Bukkit.getPlayer(oldOwner);
-                            if (oldPlayer != null) {
-                                sendInfoTranslation(oldPlayer, "tport.command.transfer.accept.player.tportName.couldNotAccept", asPlayer(player), asTPort(tport));
-                            }
-                        }
-                    } else {
-                        sendErrorTranslation(player, "tport.command.transfer.accept.player.tportName.alreadyHasName", asTPort(tport));
-                    }
-                } else {
-                    sendErrorTranslation(player, "tport.command.transfer.accept.player.tportName.notOffered", asTPort(tport));
-                }
-            } else {
-                sendErrorTranslation(player, "tport.command.noTPortFound", args[3]);
-            }
+            Player oldPlayer = Bukkit.getPlayer(oldOwner);
+            sendSuccessTranslation(player, "tport.command.transfer.accept.player.tportName.succeeded", asTPort(tport), asPlayer(oldPlayer, oldOwner));
+    
+            sendInfoTranslation(oldPlayer, "tport.command.transfer.accept.player.tportName.succeededOtherPlayer", asPlayer(player), asTPort(tport));
         } else {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport transfer accept <player> <TPort name>");
+            Player oldPlayer = Bukkit.getPlayer(oldOwner);
+            sendInfoTranslation(oldPlayer, "tport.command.transfer.accept.player.tportName.couldNotAccept", asPlayer(player), asTPort(tport));
         }
     }
 }

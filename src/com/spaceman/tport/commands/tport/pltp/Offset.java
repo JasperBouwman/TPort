@@ -6,7 +6,6 @@ import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.SafetyCheck;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -15,7 +14,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Offset extends SubCommand {
     
@@ -27,7 +26,6 @@ public class Offset extends SubCommand {
     }
     
     public static PLTPOffset getPLTPOffset(Player player) {
-        Files tportData = getFile("TPortData");
         return PLTPOffset.valueOf((tportData.getConfig().getString("tport." + player.getUniqueId() + ".tp.offset", "IN")));
     }
     
@@ -51,7 +49,6 @@ public class Offset extends SubCommand {
         } else if (args.length == 3) {
             PLTPOffset newOffset = PLTPOffset.get(args[2]);
             if (newOffset != null) {
-                Files tportData = getFile("TPortData");
                 tportData.getConfig().set("tport." + player.getUniqueId() + ".tp.offset", newOffset.name());
                 tportData.saveConfig();
                 sendSuccessTranslation(player, "tport.command.PLTP.offset.offset.succeeded", newOffset);

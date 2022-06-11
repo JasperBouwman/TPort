@@ -7,7 +7,6 @@ import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
-import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.permissions.PermissionHandler;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -22,11 +21,19 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.events.ClickEvent.runCommand;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class SafetyCheck extends SubCommand {
     
     public SafetyCheck() {
+        EmptyCommand empty = new EmptyCommand() {
+            @Override
+            public String getName(String argument) {
+                return "";
+            }
+        };
+        empty.setCommandName("", ArgumentType.FIXED);
+        
         EmptyCommand emptyCheck = new EmptyCommand();
         emptyCheck.setCommandName("check", ArgumentType.FIXED);
         emptyCheck.setCommandDescription(formatInfoTranslation("tport.command.safetyCheck.check.commandDescription"));
@@ -41,6 +48,7 @@ public class SafetyCheck extends SubCommand {
         emptySource.setCommandDescription(formatInfoTranslation("tport.command.safetyCheck.source.commandDescription"));
         emptySource.addAction(emptySourceState);
         
+        addAction(empty);
         addAction(emptyCheck);
         addAction(emptySource);
     }
@@ -74,7 +82,6 @@ public class SafetyCheck extends SubCommand {
         // tport safetyCheck check
         
         if (args.length == 1) {
-            
             Message list = new Message();
             Message delimiter = formatInfoTranslation("tport.command.safetyCheck.delimiter");
             SafetyCheckSource[] values = SafetyCheckSource.values();
@@ -161,14 +168,13 @@ public class SafetyCheck extends SubCommand {
         
         public boolean getState(Player player) {
             if (hasPermission(player, false)) {
-                return getFile("TPortData").getConfig().getBoolean("tport." + player.getUniqueId() + ".safetyCheck." + this.name() + ".state", true);
+                return tportData.getConfig().getBoolean("tport." + player.getUniqueId() + ".safetyCheck." + this.name() + ".state", true);
             } else {
                 return false;
             }
         }
         public void setState(Player player, boolean state) {
             if (hasPermission(player, false)) {
-                Files tportData = getFile("TPortData");
                 tportData.getConfig().set("tport." + player.getUniqueId() + ".safetyCheck." + this.name() + ".state", state);
                 tportData.saveConfig();
             }

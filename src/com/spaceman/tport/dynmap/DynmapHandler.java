@@ -3,7 +3,6 @@ package com.spaceman.tport.dynmap;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.commands.tport.Features;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -19,6 +18,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class DynmapHandler {
     
@@ -78,7 +79,7 @@ public class DynmapHandler {
     }
     
     private static void loadTPorts(MarkerAPI markerAPI, MarkerSet markerSet) {
-        for (String uuid : GettingFiles.getFile("TPortData").getKeys("tport")) {
+        for (String uuid : tportData.getKeys("tport")) {
             for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                 if (tport.showOnDynmap()) {
                     updateTPort(tport, markerAPI, markerSet);

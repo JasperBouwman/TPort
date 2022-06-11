@@ -6,8 +6,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -21,6 +19,7 @@ import java.util.stream.IntStream;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_PUBLIC;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class Open extends SubCommand {
@@ -61,8 +60,6 @@ public class Open extends SubCommand {
     }
     
     public static TPort getPublicTPort(String name) {
-        Files tportData = GettingFiles.getFile("TPortData");
-        
         for (String publicTPortSlot : tportData.getKeys("public.tports")) {
             String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
             
@@ -81,7 +78,6 @@ public class Open extends SubCommand {
     public Collection<String> tabList(Player player, String[] args) {
         ArrayList<String> list = new ArrayList<>();
         if (emptyTPort.hasPermissionToRun(player, false)) {
-            Files tportData = GettingFiles.getFile("TPortData");
             for (String publicTPortSlot : tportData.getKeys("public.tports")) {
                 String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
                 TPort tport = getTPort(UUID.fromString(tportID));

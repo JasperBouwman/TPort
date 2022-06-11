@@ -34,7 +34,7 @@ public class Move extends SubCommand {
     @Override
     public List<String> tabList(Player player, String[] args) {
         List<String> list = IntStream.rangeClosed(1, TPortSize).mapToObj(String::valueOf).collect(Collectors.toList());
-        list.addAll(TPortManager.getTPortList(player.getUniqueId()).stream().map(TPort::getName).collect(Collectors.toList()));
+        list.addAll(TPortManager.getTPortList(player.getUniqueId()).stream().map(TPort::getName).toList());
         return list;
     }
     

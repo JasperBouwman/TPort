@@ -4,11 +4,10 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
 
 public class LogSize extends SubCommand {
     
@@ -23,11 +22,10 @@ public class LogSize extends SubCommand {
     }
     
     public static int getLogSize() {
-        return getFile("TPortConfig").getConfig().getInt("logbook.size", 50);
+        return tportConfig.getConfig().getInt("logbook.size", 50);
     }
     
     private static void setLogSize(int size) {
-        Files tportConfig = getFile("TPortConfig");
         tportConfig.getConfig().set("logbook.size", size);
         tportConfig.saveConfig();
     }

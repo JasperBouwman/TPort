@@ -6,20 +6,19 @@ import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.DynmapCommand;
 import com.spaceman.tport.dynmap.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.*;
+import java.net.URL;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.events.ClickEvent.openUrl;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
 
 public class IP extends SubCommand {
     
@@ -41,7 +40,7 @@ public class IP extends SubCommand {
     }
     
     public static String getIP() {
-        String setIP = getFile("TPortConfig").getConfig().getString("dynmap.ip", null);
+        String setIP = tportConfig.getConfig().getString("dynmap.ip", null);
         if (setIP == null) {
             try {
                 URL url = new URL("http://checkip.amazonaws.com");
@@ -70,7 +69,6 @@ public class IP extends SubCommand {
         }
         
         if (args.length == 2) {
-            Files tportConfig = getFile("TPortConfig");
             if (tportConfig.getConfig().contains("dynmap.ip")) {
                 String ip = tportConfig.getConfig().getString("dynmap.ip");
                 
@@ -90,7 +88,6 @@ public class IP extends SubCommand {
             if (!emptyIP.hasPermissionToRun(player, true)) {
                 return;
             }
-            Files tportConfig = getFile("TPortConfig");
             tportConfig.getConfig().set("dynmap.ip", args[2]);
             tportConfig.saveConfig();
             sendSuccessTranslation(player, "tport.command.dynmapCommand.ip.ip.succeeded", args[2]);

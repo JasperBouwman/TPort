@@ -13,7 +13,7 @@ public class KeyValueTabArgument {
     *
     * */
 
-    private String key;
+    private final String key;
     private List<String> values;
     private GetValuesRun getValues = (o, tabArguments) -> values;
     private Object o = null;

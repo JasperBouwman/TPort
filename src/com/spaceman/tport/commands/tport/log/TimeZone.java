@@ -4,14 +4,13 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.Collection;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class TimeZone extends SubCommand {
     
@@ -38,14 +37,13 @@ public class TimeZone extends SubCommand {
         
         if (args.length == 2) {
             sendInfoTranslation(player, "tport.command.log.timeZone.succeeded",
-                    java.util.TimeZone.getTimeZone(getFile("TPortData").getConfig().getString(
+                    java.util.TimeZone.getTimeZone(tportData.getConfig().getString(
                             "tport." + player.getUniqueId() + ".timeZone",
                             java.util.TimeZone.getDefault().getID())
                     ).getDisplayName());
         } else if (args.length == 3) {
             if (Arrays.asList(java.util.TimeZone.getAvailableIDs()).contains(args[2])) {
                 java.util.TimeZone zone = java.util.TimeZone.getTimeZone(args[2]);
-                Files tportData = getFile("TPortData");
                 tportData.getConfig().set("tport." + player.getUniqueId() + ".timeZone", zone.getID());
                 tportData.saveConfig();
                 sendSuccessTranslation(player, "tport.command.log.timeZone.timeZone.succeeded", zone.getDisplayName());

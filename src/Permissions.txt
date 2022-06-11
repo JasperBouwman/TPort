@@ -39,6 +39,8 @@ Permissions can work with trees.
     also quick edit in own TPort gui ^
 /tport edit <TPort name> tag add <tag>                                                                        TPort.edit.tag.add.<tag>
 /tport edit <TPort name> tag remove <tag>
+/tport edit <TPort name> preview [state]                                                                      TPort.edit.preview                          OR TPort.basic
+    also quick edit in own TPort gui ^
 /tport edit <TPort name> dynmap show
 /tport edit <TPort name> dynmap show [state]                                                                  TPort.edit.dynmap.setShow                   OR TPort.basic
     also quick edit in own TPort gui ^
@@ -146,13 +148,13 @@ Permissions can work with trees.
 /tport particleAnimation old enable                                                                           TPort.particleAnimation.old.enable.get
 /tport particleAnimation old enable [state]                                                                   TPort.particleAnimation.old.enable.set
 /tport particleAnimation list                                                                                 TPort.particleAnimation.list
-/tport delay permission                                                                                       TPort.delay.permission.get                  OR TPort.admin.delay
-/tport delay permission [state]                                                                               TPort.delay.permission.set                  OR TPort.admin.delay
+/tport delay handler                                                                                          TPort.delay.handler.get                     OR TPort.admin.delay
+/tport delay handler [state]                                                                                  TPort.delay.handler.set                     OR TPort.admin.delay
 /tport delay set <player> <delay>                                                                             TPort.delay.set                             OR TPort.admin.delay
 /tport delay get                                                                                              TPort.delay.get.own
 /tport delay get <player>                                                                                     TPort.delay.get.all                         OR TPort.admin.delay
-/tport restriction permission                                                                                 TPort.restriction.permission.get            OR TPort.admin.restriction
-/tport restriction permission [state]                                                                         TPort.restriction.permission.set            OR TPort.admin.restriction
+/tport restriction handler                                                                                    TPort.restriction.handler.get            OR TPort.admin.restriction
+/tport restriction handler [state]                                                                            TPort.restriction.handler.set            OR TPort.admin.restriction
 /tport restriction set <player> <type>                                                                        TPort.restriction.set                       OR TPort.admin.restriction
 /tport restriction get                                                                                        TPort.restriction.get.own
 /tport restriction get <player>                                                                               TPort.restriction.get.all                   OR TPort.admin.restriction
@@ -189,7 +191,6 @@ Permissions can work with trees.
 /tport mainLayout TPorts [state]                                                                              TPort.mainLayout.TPorts
   also for Main TPort GUI
 /tport world <world>                                                                                          TPort.world.tp
-
 /tport requests
 /tport requests accept [player...]
 /tport requests reject [player...]
@@ -207,3 +208,4 @@ Permissions can work with trees.
 /tport features <feature>
 /tport features <feature> state
 /tport features <feature> state <state>                                                                       TPort.features.setState                      OR TPort.admin.features
+/tport preview <player> <TPort name>                                                                          TPort.preview                                OR TPort.basic

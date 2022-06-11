@@ -3,8 +3,6 @@ package com.spaceman.tport.commands.tport;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -15,6 +13,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class RemovePlayer extends SubCommand {
     
@@ -32,7 +31,6 @@ public class RemovePlayer extends SubCommand {
     public List<String> tabList(Player player, String[] args) {
         List<String> list = new ArrayList<>();
         if (emptyPlayer.hasPermissionToRun(player, false)) {
-            Files tportData = GettingFiles.getFile("TPortData");
             list = tportData.getKeys("tport").stream().map(PlayerUUID::getPlayerName).collect(Collectors.toList());
         }
         return list;
@@ -42,15 +40,14 @@ public class RemovePlayer extends SubCommand {
     public void run(String[] args, Player player) {
         //tport removePlayer <player>
         
-        if (!emptyPlayer.hasPermissionToRun(player, true)) {
-            return;
-        }
-        
         if (args.length != 2) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport removePlayer <player>");
             return;
         }
-        Files tportData = GettingFiles.getFile("TPortData");
+        
+        if (!emptyPlayer.hasPermissionToRun(player, true)) {
+            return;
+        }
         
         String newPlayerName = args[1];
         UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);

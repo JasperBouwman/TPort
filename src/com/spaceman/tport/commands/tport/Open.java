@@ -5,8 +5,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -18,6 +16,7 @@ import static com.spaceman.tport.TPortInventories.openTPortGUI;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_OPEN;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Open extends SubCommand {
     
@@ -70,11 +69,8 @@ public class Open extends SubCommand {
     public void run(String[] args, Player player) {
         // tport open <player> [TPort name] [safetyCheck]
         
-        Files tportData = GettingFiles.getFile("TPortData");
-        
         String newPlayerName = args[1];
         UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
-        
         if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
             sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
             return;

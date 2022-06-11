@@ -4,8 +4,6 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -15,6 +13,7 @@ import java.util.*;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Add extends SubCommand {
     
@@ -26,7 +25,6 @@ public class Add extends SubCommand {
         emptyPlayer.setCommandDescription(formatInfoTranslation("tport.command.PLTP.whitelist.add.players.commandDescription"));
         emptyPlayer.setTabRunnable((args, player) -> {
             List<String> list;
-            Files tportData = GettingFiles.getFile("TPortData");
             
             list = Main.getPlayerNames();
             list.remove(player.getName());
@@ -50,23 +48,20 @@ public class Add extends SubCommand {
     public void run(String[] args, Player player) {
         // tport PLTP whitelist add <player...>
         
-        if (!emptyPlayer.hasPermissionToRun(player, true)) {
-            return;
-        }
-        
         if (args.length < 4) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP whitelist add <player...>");
             return;
         }
+        if (!emptyPlayer.hasPermissionToRun(player, true)) {
+            return;
+        }
         
-        Files tportData = GettingFiles.getFile("TPortData");
         UUID playerUUID = player.getUniqueId();
         ArrayList<String> list = (ArrayList<String>) tportData.getConfig().getStringList("tport." + playerUUID + ".tp.players");
         
         for (int i = 3; i < args.length; i++) {
             String addPlayerName = args[i];
             UUID addPlayerUUID = PlayerUUID.getPlayerUUID(addPlayerName);
-            
             if (addPlayerUUID == null || !tportData.getConfig().contains("tport." + addPlayerUUID)) {
                 sendErrorTranslation(player, "tport.command.playerNotFound", addPlayerName);
                 return;

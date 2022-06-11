@@ -24,7 +24,7 @@ public class Blacklist extends SubCommand {
     
     public Blacklist() {
         EmptyCommand emptyBlacklist = new EmptyCommand();
-        emptyBlacklist.setCommandName("blacklist", ArgumentType.REQUIRED);
+        emptyBlacklist.setCommandName("biome", ArgumentType.REQUIRED);
         emptyBlacklist.setCommandDescription(formatInfoTranslation("tport.command.biomeTP.blacklist.biome.commandDescription", infoColor));
         emptyBlacklist.setTabRunnable(((args, player) -> {
             List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toLowerCase).toList();

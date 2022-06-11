@@ -10,7 +10,6 @@ import com.spaceman.tport.fancyMessage.encapsulation.Encapsulation;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
-import com.spaceman.tport.tpEvents.TPRequest;
 import com.spaceman.tport.tpEvents.TPRestriction;
 import com.spaceman.tport.tport.TPort;
 import net.minecraft.nbt.NBTTagCompound;
@@ -50,8 +49,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatTranslation;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
@@ -632,7 +629,8 @@ public class MessageUtils {
             Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
             net.minecraft.world.item.ItemStack item = (net.minecraft.world.item.ItemStack) craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, itemStack);
             
-            NBTTagCompound nbt = item.u();
+//            NBTTagCompound nbt = item.u();
+            NBTTagCompound nbt = item.v();
             NBTTagCompound blockTag = nbt.p("BlockEntityTag");
             blockTag.a("id", "minecraft:sign");
             for (int i = 0; i < 4 && i < lines.size(); i++) {
@@ -734,7 +732,7 @@ public class MessageUtils {
                             }
                             withIndex++;
                         }
-                    } else if (textPiece.matches("%\\p{Digit}++\\$s")) {
+                    } else if (textPiece.matches("%\\d++\\$s")) {
                         int index = Integer.parseInt(CharMatcher.inRange('0', '9').retainFrom(textPiece)) - 1;
                         if (index < translateWith.size()) {
                             Message withMessage = translateWith.get(index);
@@ -863,7 +861,8 @@ public class MessageUtils {
             net.minecraft.world.item.ItemStack nmsStack = (net.minecraft.world.item.ItemStack) craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, is);
             Class<?> itemStackClass = nmsStack.getClass();
             
-            NBTTagCompound tag = nmsStack.u(); //1.18.2
+//            NBTTagCompound tag = nmsStack.u(); //1.18.2
+            NBTTagCompound tag = nmsStack.v(); //1.18.2
             
             NBTTagCompound display = tag.p("display");
             if (displayName != null) display.a("Name", displayName.translateJSON(theme));

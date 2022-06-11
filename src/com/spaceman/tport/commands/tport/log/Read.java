@@ -5,8 +5,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -20,7 +18,7 @@ import java.util.stream.Collectors;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Read extends SubCommand {
     
@@ -63,10 +61,10 @@ public class Read extends SubCommand {
                 if (log.isEmpty()) {
                     sendInfoTranslation(player, "tport.command.log.read.tportName.isEmpty", tport);
                 } else {
-                    String format = getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
+                    String format = tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
                     SimpleDateFormat sdf = new SimpleDateFormat(format);
                     sdf.setTimeZone(java.util.TimeZone.getTimeZone(
-                            getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeZone", TimeZone.getDefault().getID())));
+                            tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeZone", TimeZone.getDefault().getID())));
                     
                     Message logMessage = new Message();
                     boolean color = true;
@@ -95,7 +93,6 @@ public class Read extends SubCommand {
             }
         } else if (args.length == 4) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
-            Files tportData = GettingFiles.getFile("TPortData");
             if (tport != null) {
                 if (!tport.isLogged()) {
                     sendErrorTranslation(player, "tport.command.log.read.tportName.player.notLogged", tport);
@@ -111,10 +108,10 @@ public class Read extends SubCommand {
                         return;
                     }
                     
-                    String format = getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
+                    String format = tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
                     SimpleDateFormat sdf = new SimpleDateFormat(format);
                     sdf.setTimeZone(java.util.TimeZone.getTimeZone(
-                            getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeZone", TimeZone.getDefault().getID())));
+                            tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeZone", TimeZone.getDefault().getID())));
                     
                     int size = 0;
                     Message logMessage = new Message();

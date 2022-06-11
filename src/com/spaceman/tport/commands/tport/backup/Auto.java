@@ -15,7 +15,8 @@ import java.util.*;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Auto extends SubCommand {
     
@@ -37,7 +38,6 @@ public class Auto extends SubCommand {
     }
     
     public static void save() {
-        Files tportConfig = getFile("TPortConfig");
         if (tportConfig.getConfig().getBoolean("backup.auto.state", false)) {
             File dir = new File(Main.getInstance().getDataFolder(), "/backup");
             if (!dir.mkdir()) {
@@ -72,7 +72,6 @@ public class Auto extends SubCommand {
                 try {
                     if (file.createNewFile()) {
                         Files configFile = new Files(Main.getInstance(), "/backup/auto-" + name + suffix + ".yml");
-                        Files tportData = getFile("TPortData");
                         
                         configFile.getConfig().set("tport", tportData.getConfig().getConfigurationSection("tport"));
                         configFile.getConfig().set("public", tportData.getConfig().getConfigurationSection("public"));
@@ -109,7 +108,6 @@ public class Auto extends SubCommand {
         }
         
         if (args.length == 2) {
-            Files tportConfig = getFile("TPortConfig");
             int count = tportConfig.getConfig().getInt("backup.auto.count", 10);
             
             Message stateAsMessage;
@@ -120,7 +118,6 @@ public class Auto extends SubCommand {
             }
             sendInfoTranslation(player, "tport.command.backup.auto.getStateAndCount", stateAsMessage, count);
         } else if (args.length == 3) {
-            Files tportConfig = getFile("TPortConfig");
             try {
                 int newCount = Integer.parseInt(args[2]);
                 tportConfig.getConfig().set("backup.auto.count", newCount);

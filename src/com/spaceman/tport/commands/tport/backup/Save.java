@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Save extends SubCommand {
     
@@ -44,7 +44,6 @@ public class Save extends SubCommand {
             try {
                 if (file.createNewFile()) {
                     Files configFile = new Files(Main.getInstance(), "/backup/" + file.getName());
-                    Files tportData = getFile("TPortData");
                     
                     configFile.getConfig().set("tport", tportData.getConfig().getConfigurationSection("tport"));
                     configFile.getConfig().set("public", tportData.getConfig().getConfigurationSection("public"));

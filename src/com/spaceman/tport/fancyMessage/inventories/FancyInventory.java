@@ -106,7 +106,7 @@ public class FancyInventory implements InventoryHolder {
 //            Containers<?> windowType = CraftContainer.getNotchInventoryType(inventory);
             Containers<?> windowType = (Containers<?>) craftContainer.getMethod("getNotchInventoryType", Inventory.class).invoke(null, inventory);
             entityPlayer.b.a(new PacketPlayOutOpenWindow(container.j, windowType, chatSerializer));
-            entityPlayer.bV = container;
+            entityPlayer.bU = container;
             entityPlayer.a(container);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException | InstantiationException e) {
             e.printStackTrace();

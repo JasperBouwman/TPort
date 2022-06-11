@@ -53,10 +53,10 @@ public class Private extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         //tport edit <TPort name> private [state]
-        
+    
         if (args.length == 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
-            
+        
             if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
                 return;
@@ -73,7 +73,7 @@ public class Private extends SubCommand {
                 return;
             }
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
-            
+        
             if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
                 return;
@@ -83,11 +83,10 @@ public class Private extends SubCommand {
                         tport, asPlayer(tport.getOfferedTo()));
                 return;
             }
-            
+        
             TPort.PrivateState ps;
-            try {
-                ps = TPort.PrivateState.valueOf(args[3].toUpperCase());
-            } catch (IllegalArgumentException iae) {
+            ps = TPort.PrivateState.get(args[3], null);
+            if (ps == null) {
                 sendErrorTranslation(player, "tport.command.edit.private.state.stateNotFound", args[3]);
                 return;
             }

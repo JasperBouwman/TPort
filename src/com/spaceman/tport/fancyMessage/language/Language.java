@@ -7,8 +7,6 @@ import com.spaceman.tport.Pair;
 import com.spaceman.tport.commandHandler.CommandTemplate;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.language.subCommands.*;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import org.apache.commons.io.FilenameUtils;
 import org.bukkit.entity.Player;
 
@@ -24,24 +22,23 @@ import java.util.logging.Level;
 import static com.google.gson.JsonParser.parseReader;
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
 
 public class Language extends SubCommand {
     
-    private static final String configFileName = "TPortConfig";
     private static HashMap<String, JsonObject> languages = new HashMap<>();
     
     public static boolean setServerLang(String lang) {
         if (languages.containsKey(lang)) {
-            Files config = GettingFiles.getFile(configFileName);
-            config.getConfig().set("language.server", lang);
-            config.saveConfig();
+            tportConfig.getConfig().set("language.server", lang);
+            tportConfig.saveConfig();
             return true;
         }
         return false;
     }
     
     public static String getServerLangName() {
-        String name = GettingFiles.getFile(configFileName).getConfig().getString("language.server", "en_us.json");
+        String name = tportConfig.getConfig().getString("language.server", "en_us.json");
         if (!languages.containsKey(name)) {
             name = "en_us.json";
         }
@@ -57,15 +54,13 @@ public class Language extends SubCommand {
         if (!lang.equalsIgnoreCase("custom") && !lang.equalsIgnoreCase("server") && !languages.containsKey(lang)) {
             return false;
         }
-        Files config = GettingFiles.getFile(configFileName);
-        config.getConfig().set("language.players." + uuid.toString(), lang);
-        config.saveConfig();
+        tportConfig.getConfig().set("language.players." + uuid.toString(), lang);
+        tportConfig.saveConfig();
         return true;
     }
     
     public static String getPlayerLangName(UUID uuid) {
-        Files config = GettingFiles.getFile(configFileName);
-        String lang = config.getConfig().getString("language.players." + uuid.toString(), "server");
+        String lang = tportConfig.getConfig().getString("language.players." + uuid.toString(), "server");
         if (!languages.containsKey(lang)) {
             if (lang.equals("custom") || lang.equals("server")) return lang;
             setPlayerLang(uuid, "en_us.json");

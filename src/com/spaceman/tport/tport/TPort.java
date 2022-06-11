@@ -2,7 +2,6 @@ package com.spaceman.tport.tport;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
-import com.spaceman.tport.commands.tport.Requests;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.SafetyCheck;
 import com.spaceman.tport.commands.tport.log.LogSize;
@@ -58,6 +57,7 @@ public class TPort implements ConfigurationSerializable {
     private HashMap<UUID, LogMode> logged = new HashMap<>();
     private LogMode defaultLogMode = LogMode.NONE;
     private NotifyMode notifyMode = NotifyMode.NONE;
+    private PreviewState previewState = PreviewState.ON;
     private ArrayList<String> tags = new ArrayList<>();
     private boolean showOnDynmap = true;
     private String dynmapIconID = "";
@@ -110,7 +110,7 @@ public class TPort implements ConfigurationSerializable {
         tport.inactiveWorldName = inactiveWorldName;
         tport.setSlot((Integer) args.getOrDefault("slot", -1));
         tport.setPublicTPort((Boolean) args.getOrDefault("publicTPort", false));
-        tport.setPrivateState(PrivateState.get((String) args.getOrDefault("ps", PrivateState.OPEN.name())));
+        tport.setPrivateState(PrivateState.get((String) args.getOrDefault("ps", PrivateState.OPEN.name()), PrivateState.OPEN));
         tport.setWhitelistVisibility(WhitelistVisibility.get((String) args.getOrDefault("whitelistVisibility", PrivateState.OPEN.name())));
         tport.setDescription((String) args.getOrDefault("description", ""));
         //noinspection unchecked
@@ -138,6 +138,7 @@ public class TPort implements ConfigurationSerializable {
         }
         tport.setDefaultLogMode(LogMode.get((String) args.get("defaultLogMode")));
         tport.setNotifyMode(NotifyMode.get((String) args.get("notifyMode")));
+        tport.setPreviewState(PreviewState.get((String) args.get("previewState"), PreviewState.ON));
         if (args.containsKey("tags")) {
             //noinspection unchecked
             for (String tag : (List<String>) args.get("tags")) {
@@ -189,6 +190,7 @@ public class TPort implements ConfigurationSerializable {
         }
         if (defaultLogMode != LogMode.NONE) map.put("defaultLogMode", defaultLogMode.name());
         if (notifyMode != NotifyMode.NONE) map.put("notifyMode", notifyMode.name());
+        if (previewState != PreviewState.ON) map.put("previewState", previewState.name());
         map.put("tags", tags);
         
         map.put("showOnDynmap", showOnDynmap);
@@ -461,9 +463,11 @@ public class TPort implements ConfigurationSerializable {
         if (publicTPort) {
             if (!privateState.canGoPublic()) {
                 privateState = PrivateState.OPEN;
-                if (player != null) {
-                    sendInfoTranslation(player, "tport.tport.tport.setPublicTPort.incompatiblePrivateState", this, privateState);
-                }
+                sendInfoTranslation(player, "tport.tport.tport.setPublicTPort.incompatiblePrivateState", this, privateState);
+            }
+            if (!previewState.canGoPublic()) {
+                previewState = PreviewState.ON;
+                sendInfoTranslation(player, "tport.tport.tport.setPublicTPort.incompatiblePreviewState", this, previewState);
             }
         }
         return b;
@@ -499,6 +503,13 @@ public class TPort implements ConfigurationSerializable {
                 sendInfoTranslation(player, "tport.tport.tport.notifyOwner", teleporter, this);
             }
         }
+    }
+    
+    public PreviewState getPreviewState() {
+        return previewState;
+    }
+    public void setPreviewState(PreviewState previewState) {
+        this.previewState = previewState;
     }
     
     public boolean addTag(String tag) {
@@ -682,6 +693,7 @@ public class TPort implements ConfigurationSerializable {
         }
         
         hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.privateState", this.getPrivateState().getDisplayName()));
+        hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.previewState", this.getPreviewState().getDisplayName()));
         
         if (this.getPrivateState().usesWhitelist() && this.getWhitelistVisibility() == WhitelistVisibility.ON) {
             Message whitelistMessage = new Message();
@@ -739,7 +751,7 @@ public class TPort implements ConfigurationSerializable {
                 (player, tport) -> tport.getWhitelist().contains(player)),
         ONLINE(ChatColor.YELLOW + "online", true, true,
                 (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null || PRIVATE.hasAccess(player, tport)),
-        PRION(ChatColor.GOLD + "prion", false, true,
+        PRION(ChatColor.GOLD + "private online", false, true,
                 (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null && PRIVATE.hasAccess(player, tport)),
         CONSENT_PRIVATE(ChatColor.DARK_AQUA + "consent private", false, true,
                 (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null ? null : PRIVATE.hasAccess(player, tport)),
@@ -767,18 +779,20 @@ public class TPort implements ConfigurationSerializable {
             this.usesWhitelist = usesWhitelist;
         }
         
-        public static PrivateState get(@Nullable String name) {
+        @Nonnull
+        public static PrivateState get(@Nullable String name, PrivateState def) {
+            if (name == null) {
+                return def;
+            }
             try {
-                return PrivateState.valueOf(name != null ? name.toUpperCase() : OPEN.name());
+                return PrivateState.valueOf(name.toUpperCase());
             } catch (IllegalArgumentException | NullPointerException iae) {
-                if (name != null) {
-                    if (name.equalsIgnoreCase("on")) {
-                        return PRIVATE;
-                    } else if (name.equalsIgnoreCase("off")) {
-                        return OPEN;
-                    }
+                if (name.equalsIgnoreCase("on")) {
+                    return PRIVATE;
+                } else if (name.equalsIgnoreCase("off")) {
+                    return OPEN;
                 }
-                return OPEN;
+                return def;
             }
         }
         
@@ -1003,6 +1017,60 @@ public class TPort implements ConfigurationSerializable {
         @FunctionalInterface
         private interface NotifyTester {
             boolean shouldNotify(UUID uuid, TPort tport);
+        }
+    }
+
+    public enum PreviewState implements MessageUtils.MessageDescription {
+        ON(ChatColor.RED + "on", true),
+        OFF(ChatColor.GREEN + "off", false),
+        NOTIFIED(ChatColor.YELLOW + "notified",true);
+        
+        private final boolean canGoPublic;
+        private final String displayName;
+        
+        PreviewState(String displayName, boolean canGoPublic) {
+            this.displayName = displayName;
+            this.canGoPublic = canGoPublic;
+        }
+        
+        public boolean canGoPublic() {
+            return canGoPublic;
+        }
+        
+        @Nullable
+        public static PreviewState get(@Nullable String name, PreviewState def) {
+            try {
+                return PreviewState.valueOf(name != null ? name.toUpperCase() : ON.name());
+            } catch (IllegalArgumentException | NullPointerException iae) {
+                return def;
+            }
+        }
+        
+        public PreviewState getNext() {
+            return switch (this) {
+                case ON -> OFF;
+                case OFF -> NOTIFIED;
+                case NOTIFIED -> ON;
+            };
+        }
+        
+        public String getDisplayName() {
+            return displayName;
+        }
+        
+        @Override
+        public Message getDescription() {
+            return formatInfoTranslation("tport.tport.tport.previewState." + this.name() + ".description", this.getDisplayName());
+        }
+        
+        @Override
+        public String getName() {
+            return name();
+        }
+        
+        @Override
+        public String getInsertion() {
+            return getName();
         }
     }
 }

@@ -5,15 +5,14 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.Collection;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class State extends SubCommand {
     
@@ -44,7 +43,6 @@ public class State extends SubCommand {
         // tport PLTP state [state]
         
         if (args.length == 2) {
-            Files tportData = getFile("TPortData");
             boolean pltpState = tportData.getConfig().getBoolean("tport." + player.getUniqueId() + ".tp.statement", true);
             sendInfoTranslation(player, "tport.command.PLTP.state.succeeded", (pltpState ?
                     formatTranslation(goodColor, varInfo2Color, "tport.command.PLTP.state.enabled") :
@@ -53,7 +51,6 @@ public class State extends SubCommand {
             if (!emptyState.hasPermissionToRun(player, true)) {
                 return;
             }
-            Files tportData = getFile("TPortData");
             Boolean pltpState = Main.toBoolean(args[2]);
             if (pltpState == null) {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP state [true|false]");

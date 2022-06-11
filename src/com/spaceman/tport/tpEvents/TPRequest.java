@@ -24,7 +24,7 @@ import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.a
 public class TPRequest {
     
     //player UUID
-    private static HashMap<UUID, TPRequest> requests = new HashMap<>();
+    private static final HashMap<UUID, TPRequest> requests = new HashMap<>();
     
     private final UUID requesterUUID;
     

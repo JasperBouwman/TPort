@@ -20,7 +20,7 @@ import net.minecraft.core.IRegistryCustom;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.level.levelgen.feature.StructureFeature;
+import net.minecraft.world.level.levelgen.structure.Structure;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -87,10 +87,10 @@ public class FeatureTP extends SubCommand {
         try {
             Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
             WorldServer worldServer = (WorldServer) nmsWorld;
-            
+
             IRegistryCustom registry = worldServer.s();
-            IRegistry<StructureFeature<?, ?>> structureRegistry = registry.d(IRegistry.aL);
-            
+            IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
+
             return structureRegistry.d().stream().map(MinecraftKey::a).map(String::toLowerCase).toList();
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             e.printStackTrace();
@@ -105,17 +105,17 @@ public class FeatureTP extends SubCommand {
             WorldServer worldServer = (WorldServer) nmsWorld;
             
             IRegistryCustom registry = worldServer.s();
-            IRegistry<StructureFeature<?, ?>> structureRegistry = registry.d(IRegistry.aL);
+            IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
             
-            List<String> tags = structureRegistry.h().map((tagKey) -> tagKey.b().a()).toList();
+            List<String> tags = structureRegistry.i().map((tagKey) -> tagKey.b().a()).toList();
             
             for (String tagKeyName : tags) {
-                TagKey<StructureFeature<?, ?>> tagKey = TagKey.a(IRegistry.aL, new MinecraftKey(tagKeyName));
+                TagKey<Structure> tagKey = TagKey.a(IRegistry.aN, new MinecraftKey(tagKeyName));
                 
-                Optional<HolderSet.Named<StructureFeature<?, ?>>> optional = structureRegistry.c(tagKey);
+                Optional<HolderSet.Named<Structure>> optional = structureRegistry.c(tagKey);
                 if (optional.isPresent()) {
-                    HolderSet.Named<StructureFeature<?, ?>> named = optional.get();
-                    Stream<Holder<StructureFeature<?, ?>>> values = named.a();
+                    HolderSet.Named<Structure> named = optional.get();
+                    Stream<Holder<Structure>> values = named.a();
                     
                     List<String> features = values.map((holder) -> {
                         return holder.a(); //Holder -> StructureFeature
@@ -156,6 +156,7 @@ public class FeatureTP extends SubCommand {
             case "mineshaft", "mineshaft_mesa" -> Material.CHEST_MINECART;
             case "ocean_ruin_warm", "ocean_ruin_cold" -> Material.TRIDENT;
             case "shipwreck", "shipwreck_beached" -> Material.OAK_BOAT;
+            case "ancient_city" -> Material.SCULK;
             
             case "village_taiga", "village_snowy" -> Material.SPRUCE_DOOR;
             case "village_desert" -> Material.BIRCH_DOOR;
@@ -235,6 +236,7 @@ public class FeatureTP extends SubCommand {
                 case "eye_of_ender_located" -> Material.ENDER_EYE;
                 case "mineshaft" -> Material.CHEST_MINECART;
                 case "shipwreck" -> Material.OAK_BOAT;
+                case "cats_spawn_as_black", "cats_spawn_in" -> Material.CAT_SPAWN_EGG;
                 default -> Material.DIAMOND_BLOCK;
             };
             ItemStack is = new ItemStack(m);

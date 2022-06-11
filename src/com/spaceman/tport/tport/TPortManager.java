@@ -9,10 +9,14 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTranslation;
+import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 import static com.spaceman.tport.permissions.PermissionHandler.sendNoPermMessage;
 
@@ -22,7 +26,7 @@ public class TPortManager {
     public final static UUID defUUID = UUID.fromString("11111111-1111-1111-1111-111111111111");
     
     public static ArrayList<TPort> getTPortList(UUID owner) {
-        return getTPortList(getFile("TPortData"), owner);
+        return getTPortList(tportData, owner);
     }
     
     public static ArrayList<TPort> getTPortList(Files tportData, UUID owner) {
@@ -131,7 +135,6 @@ public class TPortManager {
         if (testSlot >= maxTPorts) {
             return -2;
         }
-        Files tportData = getFile("TPortData");
         for (String tportID : tportData.getKeys("tport." + owner + ".tports")) {
             TPort tmpTPort = (TPort) tportData.getConfig().get("tport." + owner + ".tports." + tportID);
             if (tmpTPort != null && tmpTPort.getSlot() == testSlot) {
@@ -142,7 +145,6 @@ public class TPortManager {
     }
     
     public static void removeTPort(TPort tport) {
-        Files tportData = getFile("TPortData");
         tportData.getConfig().set("tport." + tport.getOwner().toString() + ".tports." + tport.getTportID(), null);
         tportData.saveConfig();
         
@@ -150,7 +152,6 @@ public class TPortManager {
     }
     
     public static TPort getTPort(UUID tportID) {
-        Files tportData = getFile("TPortData");
         for (String playerUUID : tportData.getKeys("tport")) {
             TPort tport = getTPort(UUID.fromString(playerUUID), tportID);
             if (tport != null) {
@@ -161,8 +162,6 @@ public class TPortManager {
     }
     
     public static TPort getTPort(UUID owner, int slot) {
-        Files tportData = getFile("TPortData");
-        
         for (String tportID : tportData.getKeys("tport." + owner + ".tports")) {
             TPort tport = (TPort) tportData.getConfig().get("tport." + owner + ".tports." + tportID);
             if (tport != null) {
@@ -180,7 +179,6 @@ public class TPortManager {
         if (tportID.equals(defUUID)) {
             return new TPort(owner, null, new Location(Bukkit.getWorlds().get(0), 0, 0, 0), new ItemStack(Material.AIR));
         }
-        Files tportData = getFile("TPortData");
         TPort tport = (TPort) tportData.getConfig().get("tport." + owner + ".tports." + tportID);
         if (tport != null) {
             tport.setOwner(owner);
@@ -193,7 +191,6 @@ public class TPortManager {
         if (name == null) {
             return new TPort(owner, null, new Location(Bukkit.getWorlds().get(0), 0, 0, 0), new ItemStack(Material.AIR));
         }
-        Files tportData = getFile("TPortData");
         for (String tportID : tportData.getKeys("tport." + owner.toString() + ".tports")) {
             TPort tport = (TPort) tportData.getConfig().get("tport." + owner + ".tports." + tportID);
             if (tport != null) {
@@ -208,7 +205,6 @@ public class TPortManager {
     }
     
     public static void saveTPort(TPort tport) {
-        Files tportData = getFile("TPortData");
         tportData.getConfig().set("tport." + tport.getOwner() + ".tports." + tport.getTportID(), tport);
         tportData.saveConfig();
     }
@@ -218,7 +214,6 @@ public class TPortManager {
         if (nextUUID.equals(defUUID)) {
             return getNextUUID();
         }
-        Files tportData = getFile("TPortData");
         for (String uuid : tportData.getKeys("tport")) {
             for (String tportID : tportData.getKeys("tport." + uuid + ".tports")) {
                 if (tportID.equals(nextUUID.toString())) {

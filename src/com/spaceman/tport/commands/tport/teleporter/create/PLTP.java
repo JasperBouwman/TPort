@@ -5,7 +5,6 @@ import com.spaceman.tport.Pair;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.entity.Player;
 
@@ -16,7 +15,7 @@ import java.util.UUID;
 import static com.spaceman.tport.commands.tport.teleporter.Create.createTeleporter;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class PLTP extends SubCommand {
     
@@ -47,7 +46,6 @@ public class PLTP extends SubCommand {
         
         if (args.length == 4) {
             if (emptyPLTPPlayer.hasPermissionToRun(player, true)) {
-                Files tportData = getFile("TPortData");
                 Pair<String, UUID> profile = PlayerUUID.getProfile(args[3]);
                 String newPlayerName = profile.getLeft();
                 UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[3]);

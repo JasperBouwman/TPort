@@ -1,23 +1,16 @@
 package com.spaceman.tport.metrics;
 
-import org.bukkit.block.Biome;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class BiomeSearchCounter {
     
-    private static BiomeSearchCounter instance = null;
-    
+    private BiomeSearchCounter() { }
+    private static final BiomeSearchCounter instance = new BiomeSearchCounter();
     public static BiomeSearchCounter getInstance() {
-        if (instance == null) {
-            instance = new BiomeSearchCounter();
-        }
         return instance;
     }
-    
-    private BiomeSearchCounter() { }
     
     private final HashMap<String, Integer> count = new HashMap<>();
     

@@ -4,7 +4,6 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.CommandTemplate;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -15,7 +14,7 @@ import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class MainLayout extends SubCommand {
     
@@ -93,21 +92,19 @@ public class MainLayout extends SubCommand {
     }
     
     public static boolean showPlayers(Player player) {
-        return getFile("TPortData").getConfig().getBoolean("tport." + player.getUniqueId() + ".mainLayout.players", true);
+        return tportData.getConfig().getBoolean("tport." + player.getUniqueId() + ".mainLayout.players", true);
     }
     
     public static boolean showTPorts(Player player) {
-        return getFile("TPortData").getConfig().getBoolean("tport." + player.getUniqueId() + ".mainLayout.tports", false);
+        return tportData.getConfig().getBoolean("tport." + player.getUniqueId() + ".mainLayout.tports", false);
     }
     
     public static void showPlayers(Player player, boolean state) {
-        Files tportData = getFile("TPortData");
         tportData.getConfig().set("tport." + player.getUniqueId() + ".mainLayout.players", state);
         tportData.saveConfig();
     }
     
     public static void showTPorts(Player player, boolean state) {
-        Files tportData = getFile("TPortData");
         tportData.getConfig().set("tport." + player.getUniqueId() + ".mainLayout.tports", state);
         tportData.saveConfig();
     }

@@ -8,10 +8,13 @@ import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.HelpCommand;
 import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.cooldown.CooldownCommand;
+import com.spaceman.tport.events.PreviewEvents;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorThemeCommand;
+import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.language.Language;
 import com.spaceman.tport.metrics.CommandCounter;
@@ -33,15 +36,15 @@ import java.util.UUID;
 
 import static com.spaceman.tport.TPortInventories.openMainTPortGUI;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
+import static com.spaceman.tport.fancyMessage.events.ClickEvent.openUrl;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 
 public class TPortCommand extends CommandTemplate {
     
-    private static TPortCommand instance = null;
+    private static final TPortCommand instance = new TPortCommand();
     public static TPortCommand getInstance() {
-        if (instance == null) {
-            instance = new TPortCommand();
-        }
         return instance;
     }
     
@@ -123,6 +126,7 @@ public class TPortCommand extends CommandTemplate {
     @Override
     public void registerActions() {
         this.actions.clear();
+        PreviewEvents.unregister();
         
         empty = new EmptyCommand() {
             @Override
@@ -171,8 +175,13 @@ public class TPortCommand extends CommandTemplate {
         addAction(new Requests());
         if (Features.Feature.FeatureSettings.isEnabled()) addAction(new Features());
         addAction(new Language());
+        if (Features.Feature.Preview.isEnabled()) addAction(new Preview());
         
-        HelpCommand helpCommand = new HelpCommand(this, null, true);
+        TextComponent discordServer = new TextComponent("Discord Server", varInfoColor)
+                .addTextEvent(new HoverEvent(new TextComponent(Main.discordLink, infoColor)))
+                .addTextEvent(openUrl(Main.discordLink));
+        Message helpMessage = formatInfoTranslation("tport.command.help.succeeded", discordServer);
+        HelpCommand helpCommand = new HelpCommand(this, helpMessage, true);
         
         if (Features.Feature.Dynmap.isEnabled()) {
             EmptyCommand emptyHelpDynmap = new EmptyCommand() {
@@ -210,19 +219,24 @@ public class TPortCommand extends CommandTemplate {
         // tport edit <TPort name> location
         // tport edit <TPort name> private
         // tport edit <TPort name> private <state>
-        // tport edit <TPort name> whitelist <add|remove> <player...>
+        // tport edit <TPort name> whitelist add <player...>
+        // tport edit <TPort name> whitelist remove <player...>
         // tport edit <TPort name> whitelist list
         // tport edit <TPort name> whitelist clone <TPort name>
+        // tport edit <TPort name> whitelist visibility
+        // tport edit <TPort name> whitelist visibility <state>
         // tport edit <TPort name> move <slot|TPort name>
         // tport edit <TPort name> range [range]
         // tport edit <TPort name> tag add <tag>
         // tport edit <TPort name> tag remove <tag>
+        // tport edit <TPort name> preview [state]
         // tport edit <TPort name> dynmap show [state]
         // tport edit <TPort name> dynmap icon [icon]
         // tport PLTP state [state]
         // tport PLTP consent [state]
         // tport PLTP whitelist list
-        // tport PLTP whitelist <add|remove> <player...>
+        // tport PLTP whitelist add <player...>
+        // tport PLTP whitelist remove <player...>
         // tport PLTP tp <player>
         // tport PLTP offset
         // tport PLTP offset <offset>
@@ -236,13 +250,14 @@ public class TPortCommand extends CommandTemplate {
         // tport biomeTP blacklist <biome...>
         // tport biomeTP preset [preset]
         // tport biomeTP random
-        // tport biomeTP searchTries [tries]
         // tport biomeTP mode [mode]
         // tport featureTP
-        // tport featureTP search <feature> [mode]
+        // tport featureTP search <mode> <feature...>
+        // tport featureTP search <feature...>
         // tport featureTP mode [mode]
         // tport home [safetyCheck]
-        // tport setHome <player> <TPort name> [safetyCheck]
+        // tport setHome
+        // tport setHome <player> <TPort name>
         // tport colorTheme
         // tport colorTheme set <theme>
         // tport colorTheme set <type> <chat color>
@@ -253,7 +268,8 @@ public class TPortCommand extends CommandTemplate {
         // tport removePlayer <player>
         // tport help
         // tport public
-        // tport public open <TPort name>
+        // tport public open <page>
+        // tport public open <TPort name> [safetyCheck]
         // tport public add <TPort name>
         // tport public remove <own TPort name|all TPort name>
         // tport public list [own|all]
@@ -265,7 +281,7 @@ public class TPortCommand extends CommandTemplate {
         // tport transfer reject <player> <TPort name>
         // tport transfer list
         // tport version
-        // tport log read <TPort name>
+        // tport log read <TPort name> [player]
         // tport log TimeZone [TimeZone]
         // tport log timeFormat [format...]
         // tport log clear <TPort name...>
@@ -286,16 +302,15 @@ public class TPortCommand extends CommandTemplate {
         // tport particleAnimation old edit <data...>
         // tport particleAnimation old test
         // tport particleAnimation old enable [state]
-        // tport delay permission [state]
+        // tport delay handler [state]
         // tport delay set <player> <delay>
         // tport delay get [player]
-        // tport restriction permission [state]
+        // tport restriction handler [state]
         // tport restriction set <player> <type>
         // tport restriction get [player]
         // tport cancel
-        // tport quickGuide [guide]
         // tport redirect [redirect] [state]
-        // tport tag create <tag> <permission>
+        // tport tag create <tag>
         // tport tag delete <tag>
         // tport tag list
         // tport tag reset
@@ -312,23 +327,23 @@ public class TPortCommand extends CommandTemplate {
         // tport dynmap IP [IP]
         // tport mainLayout players [state]
         // tport mainLayout TPorts [state]
-        
-        
-        // tport language server [language]
-        // tport language get
-        // tport language set custom
-        // tport language set server
-        // tport language set <server language>
-        // tport language test <id>
-        // tport language repair <language> [repair with]
+        // tport world <world>
         // tport requests
         // tport requests accept [player...]
         // tport requests reject [player...]
         // tport requests revoke [player...]
+        // tport language server [language]
+        // tport language get
+        // tport language set custom
+        // tport language set server
+        // tport language set <language>
+        // tport language test <id>
+        // tport language repair <language> [repair with]
         // tport features
         // tport features <feature>
         // tport features <feature> state
         // tport features <feature> state <state>
+        // tport preview <player> <TPort name>
         
         if (!(sender instanceof Player player)) {
             sender.sendMessage("You have to be a player to use this command");

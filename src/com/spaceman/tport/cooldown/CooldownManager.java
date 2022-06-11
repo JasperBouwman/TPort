@@ -1,8 +1,6 @@
 package com.spaceman.tport.cooldown;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
@@ -14,9 +12,10 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varError2Color;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varErrorColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
 
 public enum CooldownManager {
     
@@ -40,7 +39,6 @@ public enum CooldownManager {
     public static void setDefaultValues() {
         CooldownManager.loopCooldown = false;
         PluginManager pm = Bukkit.getPluginManager();
-        Files tportConfig = GettingFiles.getFile("TPortConfig");
         for (CooldownManager cooldown : CooldownManager.values()) {
             if (!tportConfig.getConfig().contains("cooldown." + cooldown.name())) {
                 cooldown.edit(cooldown.defaultValue);
@@ -58,17 +56,14 @@ public enum CooldownManager {
     }
     
     public String value() {
-        Files tportConfig = GettingFiles.getFile("TPortConfig");
         return tportConfig.getConfig().getString("cooldown." + this.name());
     }
     
     public void edit(String value) {
-        Files tportConfig = GettingFiles.getFile("TPortConfig");
         tportConfig.getConfig().set("cooldown." + this.name(), value);
         tportConfig.saveConfig();
     }
     public void edit(long value) {
-        Files tportConfig = GettingFiles.getFile("TPortConfig");
         tportConfig.getConfig().set("cooldown." + this.name(), String.valueOf(value));
         tportConfig.saveConfig();
     }
@@ -170,7 +165,6 @@ public enum CooldownManager {
             loopCooldown = true;
             return 0;
         }
-        Files tportConfig = GettingFiles.getFile("TPortConfig");
         if (!tportConfig.getConfig().contains("cooldown." + this.name())) {
             return 0;
         } else {

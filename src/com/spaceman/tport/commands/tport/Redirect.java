@@ -8,7 +8,6 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.TextType;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -20,7 +19,7 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.events.ClickEvent.runCommand;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
 
 public class Redirect extends SubCommand {
     
@@ -138,7 +137,6 @@ public class Redirect extends SubCommand {
         }
         
         public static void saveRedirects() {
-            Files tportConfig = getFile("TPortConfig");
             for (Redirects redirect : Redirects.values()) {
                 tportConfig.getConfig().set("redirects." + redirect.name(), redirect.enabled);
             }
@@ -146,7 +144,6 @@ public class Redirect extends SubCommand {
         }
         
         public static void loadRedirects() {
-            Files tportConfig = getFile("TPortConfig");
             for (Redirects redirect : Redirects.values()) {
                 redirect.enabled = tportConfig.getConfig().getBoolean("redirects." + redirect.name(), redirect.enabled);
             }

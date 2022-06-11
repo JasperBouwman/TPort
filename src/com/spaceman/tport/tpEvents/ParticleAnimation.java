@@ -15,7 +15,7 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatErrorT
 
 public abstract class ParticleAnimation {
     
-    private static HashMap<String, AnimationCreator> animations = new HashMap<>();
+    private static final HashMap<String, AnimationCreator> animations = new HashMap<>();
     private boolean enabled = true;
     
     public static Set<String> getAnimations() {

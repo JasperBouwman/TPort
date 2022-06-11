@@ -5,16 +5,11 @@ import java.util.Map;
 
 public class CommandCounter {
     
-    private static CommandCounter instance = null;
-    
+    private CommandCounter() { }
+    private static final CommandCounter instance = new CommandCounter();
     public static CommandCounter getInstance() {
-        if (instance == null) {
-            instance = new CommandCounter();
-        }
         return instance;
     }
-    
-    private CommandCounter() { }
     
     private final HashMap<String, Integer> count = new HashMap<>();
     

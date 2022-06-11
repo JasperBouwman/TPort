@@ -8,14 +8,14 @@ import com.spaceman.tport.commands.tport.pltp.Offset;
 import com.spaceman.tport.commands.tport.publc.Move;
 import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.dynmap.DynmapHandler;
+import com.spaceman.tport.fancyMessage.Keybinds;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.TextType;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -44,7 +44,7 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.getDynamicScrollableInventory;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class TPortInventories {
@@ -67,6 +67,7 @@ public class TPortInventories {
         ColorTheme theme = ColorTheme.getTheme(player);
         
         FancyClickEvent.addCommand(im, ClickType.LEFT, "tport open " + PlayerUUID.getPlayerName(tport.getOwner()) + " " + tport.getName());
+        FancyClickEvent.addCommand(im, ClickType.DROP, "tport preview " + PlayerUUID.getPlayerName(tport.getOwner()) + " " + tport.getName());
         FancyClickEvent.addFunction(im, ClickType.RIGHT, "tportGUI_quickEdit", (whoClicked, clickType, pdc, fancyInventory) -> {
             UUID ownerUUID = fancyInventory.getData("ownerUUID", UUID.class);
             //quick edit
@@ -116,12 +117,16 @@ public class TPortInventories {
         Message title = formatTranslation(infoColor, varInfoColor, "tport.tportInventories.tportName", tport.getName());
         
         Collection<Message> lore = tport.getHoverData(extended);
+        lore.add(new Message());
         if (tport.getOwner().equals(player.getUniqueId()) && !extended) {
             TPortInventories.QuickEditType type = TPortInventories.QuickEditType.getForPlayer(player.getUniqueId());
-            lore.add(new Message());
             lore.add(formatInfoTranslation("tport.tport.tport.hoverData.editing", type.getDisplayName()));
             lore.add(formatInfoTranslation("tport.tport.tport.hoverData.buttons",
                     ClickType.SHIFT_RIGHT, type.getNext().getDisplayName()));
+        }
+        if (!extended) {
+            lore.add(formatInfoTranslation("tport.tport.tport.hoverData.preview",
+                    textComponent(Keybinds.DROP, varInfoColor).setType(TextType.KEYBIND)));
         }
         
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
@@ -289,7 +294,6 @@ public class TPortInventories {
             }
             
             ArrayList<ItemStack> newList = new ArrayList<>();
-            Files tportData = GettingFiles.getFile("TPortData");
             for (ItemStack is : list) {
                 if (MainLayout.showPlayers(player)) {
                     newList.add(is);
@@ -418,7 +422,6 @@ public class TPortInventories {
         Validate.notNull(ownerUUID, "The ownerUUID can not be null");
         Validate.notNull(player, "The player can not be null");
         
-        Files tportData = getFile("TPortData");
         FancyInventory inv = new FancyInventory(27, formatInfoTranslation("tport.tportInventories.TPORT.title", newPlayerName));
         inv.setData("ownerUUID", ownerUUID);
         
@@ -618,6 +621,8 @@ public class TPortInventories {
                 case "LUSH_CAVES" -> Material.GLOW_BERRIES;
                 case "GROVE", "JAGGED_PEAKS" -> Material.SNOW_BLOCK;
                 case "SNOWY_SLOPES" -> Material.POWDER_SNOW_BUCKET;
+                case "MANGROVE_SWAMP" -> Material.MANGROVE_LOG;
+                case "DEEP_DARK" -> Material.SCULK;
                 default -> Material.DIAMOND_BLOCK;
             };
             
@@ -793,7 +798,6 @@ public class TPortInventories {
         openPublicTPortGUI(player, 0, null);
     }
     public static void openPublicTPortGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
-        Files tportData = getFile("TPortData");
         //public.tports.<publicTPortSlot>.<TPortID>
         
         List<ItemStack> list = new ArrayList<>();
@@ -943,6 +947,11 @@ public class TPortInventories {
         NOTIFY("Notify", (tport, player) -> {
             TPortCommand.executeInternal(player, new String[]{"log", "notify", tport.getName(), tport.getNotifyMode().getNext().name()});
         }),
+        PREVIEW("Preview State", (tport, player) -> {
+            if (Features.Feature.Preview.isEnabled()) {
+                TPortCommand.executeInternal(player, new String[]{"edit", tport.getName(), "preview", tport.getPreviewState().getNext().name()});
+            }
+        }),
         DYNMAP_SHOW("Dynmap Show", (tport, player) -> {
             if (DynmapHandler.isEnabled()) {
                 TPortCommand.executeInternal(player, new String[]{"edit", tport.getName(), "dynmap", "show", String.valueOf(!tport.showOnDynmap())});
@@ -986,11 +995,9 @@ public class TPortInventories {
         }
         
         public static QuickEditType getForPlayer(UUID uuid) {
-            Files tportData = getFile("TPortData");
             return get(tportData.getConfig().getString("tport." + uuid + ".editState", null));
         }
         public static void setForPlayer(UUID uuid, QuickEditType type) {
-            Files tportData = getFile("TPortData");
             tportData.getConfig().set("tport." + uuid + ".editState", type.name());
             tportData.saveConfig();
         }
@@ -998,7 +1005,14 @@ public class TPortInventories {
         public static QuickEditType get(@Nullable String name) {
             if (name == null) return PRIVATE;
             try {
-                return QuickEditType.valueOf(name.toUpperCase());
+                QuickEditType type = QuickEditType.valueOf(name.toUpperCase());
+                if (type == PREVIEW && !Features.Feature.Preview.isEnabled()) {
+                    type = type.getNext();
+                }
+                if ((type == DYNMAP_ICON || type == DYNMAP_SHOW) && !DynmapHandler.isEnabled()) {
+                    type = type.getNext();
+                }
+                return type;
             } catch (IllegalArgumentException iae) {
                 return PRIVATE;
             }
@@ -1019,6 +1033,9 @@ public class TPortInventories {
                 if (type.equals(this)) {
                     next = true;
                 } else if (next) {
+                    if (!Features.Feature.Preview.isEnabled()) {
+                        if (type == PREVIEW) continue;
+                    }
                     if (ignoreDynmap) {
                         if (type == DYNMAP_ICON || type == DYNMAP_SHOW) continue;
                     }

@@ -7,7 +7,7 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 
 public class KeyValueError extends Exception {
     
-    private Message message;
+    private final Message message;
     
     public KeyValueError(String message) {
         this.message = new Message(textComponent(message));

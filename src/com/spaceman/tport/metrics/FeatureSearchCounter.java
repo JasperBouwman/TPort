@@ -6,16 +6,10 @@ import java.util.Map;
 
 public class FeatureSearchCounter {
     
-    private static FeatureSearchCounter instance = null;
-    
+    private FeatureSearchCounter() { }
+    private static final FeatureSearchCounter instance = new FeatureSearchCounter();
     public static FeatureSearchCounter getInstance() {
-        if (instance == null) {
-            instance = new FeatureSearchCounter();
-        }
         return instance;
-    }
-    
-    private FeatureSearchCounter() {
     }
     
     private final HashMap<String, Integer> count = new HashMap<>();

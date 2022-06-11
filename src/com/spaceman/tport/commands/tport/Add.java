@@ -22,7 +22,7 @@ public class Add extends SubCommand {
         emptyAddTPortDescription = new EmptyCommand() {
             @Override
             public Message permissionsHover() {
-                return formatInfoTranslation("tport.command.add.description.permissionHover", "tport.add.[X]", "tport.edit.description", "tport.basic", "tport.add.<X>");
+                return formatInfoTranslation("tport.command.add.description.permissionHover", "TPort.add.[X]", "TPort.edit.description", "TPort.basic", "TPort.add.<X>");
             }
         };
         emptyAddTPortDescription.setCommandName("description...", ArgumentType.OPTIONAL);

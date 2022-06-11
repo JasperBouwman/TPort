@@ -3,8 +3,6 @@ package com.spaceman.tport.commands.tport.log;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -16,6 +14,7 @@ import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Remove extends SubCommand {
     
@@ -51,31 +50,32 @@ public class Remove extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport log remove <TPort name> <player...>
-        
-        if (args.length > 3) {
-            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
-            Files tportData = GettingFiles.getFile("TPortData");
-            if (tport != null) {
-                for (int i = 3; i < args.length; i++) {
-                    String playerName = args[i];
-                    UUID playerUUID = PlayerUUID.getPlayerUUID(playerName);
-                    if (playerUUID == null || !tportData.getConfig().contains("tport." + playerUUID)) {
-                        sendErrorTranslation(player, "tport.command.playerNotFound", playerName);
-                        return;
-                    }
-                    if (tport.removeLogged(playerUUID)) {
-                        sendSuccessTranslation(player, "tport.command.log.remove.tportName.player.succeeded", asPlayer(playerUUID));
-                        sendInfoTranslation(Bukkit.getPlayer(playerUUID), "tport.command.log.remove.tportName.player.succeededOtherPlayer", player, tport);
-                    } else {
-                        sendErrorTranslation(player, "tport.command.log.remove.tportName.player.playerNotLogged", asPlayer(playerUUID));
-                    }
-                }
-                tport.save();
-            } else {
-                sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
-            }
-        } else {
+    
+        if (args.length <= 3) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log remove <TPort name> <player...>");
+            return;
         }
+        
+        TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
+        if (tport == null) {
+            sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
+            return;
+        }
+        
+        for (int i = 3; i < args.length; i++) {
+            String playerName = args[i];
+            UUID playerUUID = PlayerUUID.getPlayerUUID(playerName);
+            if (playerUUID == null || !tportData.getConfig().contains("tport." + playerUUID)) {
+                sendErrorTranslation(player, "tport.command.playerNotFound", playerName);
+                return;
+            }
+            if (tport.removeLogged(playerUUID)) {
+                sendSuccessTranslation(player, "tport.command.log.remove.tportName.player.succeeded", asPlayer(playerUUID));
+                sendInfoTranslation(Bukkit.getPlayer(playerUUID), "tport.command.log.remove.tportName.player.succeededOtherPlayer", player, tport);
+            } else {
+                sendErrorTranslation(player, "tport.command.log.remove.tportName.player.playerNotLogged", asPlayer(playerUUID));
+            }
+        }
+        tport.save();
     }
 }

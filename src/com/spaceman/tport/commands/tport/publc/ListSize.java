@@ -4,7 +4,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Bukkit;
@@ -13,7 +12,8 @@ import org.bukkit.entity.Player;
 import java.util.UUID;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
+import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class ListSize extends SubCommand {
@@ -29,13 +29,10 @@ public class ListSize extends SubCommand {
     }
     
     public static int getPublicTPortSize() {
-        return getFile("TPortConfig").getConfig().getInt("public.size", 70);
+        return tportConfig.getConfig().getInt("public.size", 70);
     }
     
     private static void setPublicTPortSize(int size) {
-        Files tportConfig = getFile("TPortConfig");
-        Files tportData = getFile("TPortData");
-        
         for (int publicSlot = size + 1; publicSlot < ListSize.getPublicTPortSize(); publicSlot++) {
             if (tportData.getConfig().contains("public.tports." + publicSlot)) {
                 String tportID = tportData.getConfig().getString("public.tports." + publicSlot, TPortManager.defUUID.toString());

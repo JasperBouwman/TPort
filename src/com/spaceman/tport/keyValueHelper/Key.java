@@ -6,9 +6,9 @@ public class Key {
 
     private String errorMessageID = " is not valid";
     private boolean acceptNullValue = false;
-    private String key;
-    private ValueChecker checker;
-    private boolean optional;
+    private final String key;
+    private final ValueChecker checker;
+    private final boolean optional;
 
     public Key(String key, ValueChecker checker, boolean optional) {
         this.key = key;

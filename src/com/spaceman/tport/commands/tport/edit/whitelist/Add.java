@@ -15,7 +15,7 @@ import java.util.*;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Add extends SubCommand {
     private final EmptyCommand emptyPlayer;
@@ -50,12 +50,11 @@ public class Add extends SubCommand {
     public void run(String[] args, Player player) {
         //tport edit <TPort name> whitelist add <player...>
         
-        if (!emptyPlayer.hasPermissionToRun(player, true)) {
-            return;
-        }
-        
         if (args.length == 4) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> whitelist add <player...>");
+            return;
+        }
+        if (!emptyPlayer.hasPermissionToRun(player, true)) {
             return;
         }
         
@@ -71,10 +70,9 @@ public class Add extends SubCommand {
             return;
         }
         for (int i = 4; i < args.length; i++) {
-            
             String newPlayerName = args[i];
             UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
-            if (newPlayerUUID == null || !getFile("TPortData").getConfig().contains("tport." + newPlayerUUID)) {
+            if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
                 sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
                 return;
             }

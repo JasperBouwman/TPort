@@ -5,14 +5,14 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Consent extends SubCommand {
     
@@ -43,7 +43,6 @@ public class Consent extends SubCommand {
         // tport PLTP consent [state]
         
         if (args.length == 2) {
-            Files tportData = getFile("TPortData");
             boolean pltpState = tportData.getConfig().getBoolean("tport." + player.getUniqueId() + ".tp.consent", false);
             sendInfoTranslation(player, "tport.command.PLTP.consent.succeeded", (pltpState ?
                     formatTranslation(goodColor, varInfo2Color, "tport.command.PLTP.consent.enabled") :
@@ -52,7 +51,6 @@ public class Consent extends SubCommand {
             if (!emptyState.hasPermissionToRun(player, true)) {
                 return;
             }
-            Files tportData = getFile("TPortData");
             Boolean consentState = Main.toBoolean(args[2]);
             if (consentState == null) {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP consent [true|false]");

@@ -29,12 +29,12 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import static com.spaceman.tport.commands.tport.Back.prevTPorts;
+import static com.spaceman.tport.commands.tport.Restriction.isPermissionBased;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varErrorColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatSuccessTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
 
 public class TPEManager {
     
@@ -152,7 +152,7 @@ public class TPEManager {
     }
     
     public static TPRestriction getTPRestriction(UUID uuid) {
-        if (getFile("TPortConfig").getConfig().getBoolean("restriction.permission", false)) {
+        if (isPermissionBased()) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null) {
                 for (PermissionAttachmentInfo p : player.getEffectivePermissions()) {

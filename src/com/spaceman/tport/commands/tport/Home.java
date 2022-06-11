@@ -5,8 +5,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -18,6 +16,7 @@ import java.util.UUID;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_HOME;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Home extends SubCommand {
     
@@ -54,7 +53,6 @@ public class Home extends SubCommand {
             if (!hasPermissionToRun(player, true)) {
                 return;
             }
-            Files tportData = GettingFiles.getFile("TPortData");
             if (tportData.getConfig().contains("tport." + player.getUniqueId() + ".home")) {
                 String homeID = tportData.getConfig().getString("tport." + player.getUniqueId() + ".home", TPortManager.defUUID.toString());
                 TPort tport = TPortManager.getTPort(UUID.fromString(homeID));

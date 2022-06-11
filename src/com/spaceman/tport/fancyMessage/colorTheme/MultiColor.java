@@ -57,25 +57,25 @@ public class MultiColor implements ConfigurationSerializable {
     }
     
     public void setColor(ChatColor color) {
-        switch (color) {
-            case DARK_BLUE -> this.hexColor = "#0000aa";
-            case DARK_GREEN -> this.hexColor = "#00aa00";
-            case DARK_AQUA -> this.hexColor = "#00aaaa";
-            case DARK_RED -> this.hexColor = "#aa0000";
-            case DARK_PURPLE -> this.hexColor = "#aa00aa";
-            case GOLD -> this.hexColor = "#ffaa00";
-            case GRAY -> this.hexColor = "#aaaaaa";
-            case DARK_GRAY -> this.hexColor = "#555555";
-            case BLUE -> this.hexColor = "#5555ff";
-            case GREEN -> this.hexColor = "#55ff55";
-            case AQUA -> this.hexColor = "#55ffff";
-            case RED -> this.hexColor = "#ff5555";
-            case LIGHT_PURPLE -> this.hexColor = "#ff55ff";
-            case YELLOW -> this.hexColor = "#ffff55";
-            case WHITE -> this.hexColor = "#ffffff";
-            case BLACK -> this.hexColor = "#000000";
-            default -> this.hexColor = "#000000";
-        }
+        this.hexColor = switch (color) {
+            case DARK_BLUE -> "#0000aa";
+            case DARK_GREEN -> "#00aa00";
+            case DARK_AQUA -> "#00aaaa";
+            case DARK_RED -> "#aa0000";
+            case DARK_PURPLE -> "#aa00aa";
+            case GOLD -> "#ffaa00";
+            case GRAY -> "#aaaaaa";
+            case DARK_GRAY -> "#555555";
+            case BLUE -> "#5555ff";
+            case GREEN -> "#55ff55";
+            case AQUA -> "#55ffff";
+            case RED -> "#ff5555";
+            case LIGHT_PURPLE -> "#ff55ff";
+            case YELLOW -> "#ffff55";
+            case WHITE -> "#ffffff";
+            case BLACK -> "#000000";
+            default -> "#000000";
+        };
     }
     
     public void setColor(Color color) {

@@ -66,6 +66,7 @@ public class PermissionHandler {
     }
     
     public static boolean hasPermission(Player player, boolean sendMessage, boolean OR, List<String> permissions) {
+        if (permissions.isEmpty()) return true;
         for (String permission : permissions) {
             if (OR && hasPermission(player, permission, false)) {
                 return true;

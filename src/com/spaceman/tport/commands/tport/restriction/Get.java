@@ -1,11 +1,10 @@
 package com.spaceman.tport.commands.tport.restriction;
 
+import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.fileHander.GettingFiles;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.TPEManager;
 import com.spaceman.tport.tpEvents.TPRestriction;
@@ -13,12 +12,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.spaceman.tport.commands.tport.Delay.isPermissionBased;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Get extends SubCommand {
     
@@ -41,7 +42,10 @@ public class Get extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+        if (!emptyGetPlayer.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
+        return isPermissionBased() ? Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()) : Main.getPlayerNames();
     }
     
     @Override
@@ -51,17 +55,25 @@ public class Get extends SubCommand {
             if (hasPermissionToRun(player, true))
                 sendInfoTranslation(player, "tport.command.restriction.get.succeeded", TPEManager.getTPRestriction(player.getUniqueId()));
         } else if (args.length == 3) {
-            if (emptyGetPlayer.hasPermissionToRun(player, true)) {
-                Files tportData = GettingFiles.getFile("TPortData");
-                UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2]);
-                
-                if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-                    sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
+            if (!emptyGetPlayer.hasPermissionToRun(player, true)) {
+                return;
+            }
+            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2]);
+            if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
+                sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
+                return;
+            }
+            
+            TPRestriction restriction;
+            if (isPermissionBased()) {
+                if (Bukkit.getPlayer(newPlayerUUID) == null) {
+                    sendErrorTranslation(player, "tport.command.playerNotOnline", args[2]);
                     return;
                 }
-                TPRestriction restriction = TPEManager.getTPRestriction(newPlayerUUID);
-                sendInfoTranslation(player, "tport.command.restriction.get.player.succeeded", asPlayer(newPlayerUUID), restriction);
             }
+            restriction = TPEManager.getTPRestriction(newPlayerUUID);
+            
+            sendInfoTranslation(player, "tport.command.restriction.get.player.succeeded", asPlayer(newPlayerUUID), restriction);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport restriction get [player]");
         }

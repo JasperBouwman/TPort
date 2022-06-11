@@ -5,7 +5,6 @@ import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
-import com.spaceman.tport.fileHander.Files;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.Player;
 
@@ -15,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportConfig;
 
 public class Accuracy extends SubCommand {
     
@@ -71,7 +70,7 @@ public class Accuracy extends SubCommand {
     }
     
     public static String getDefaultAccuracy() {
-        return getFile("TPortConfig").getConfig().getString("biomeTP.accuracy", "default");
+        return tportConfig.getConfig().getString("biomeTP.accuracy", "default");
     }
     
     public static AccuracySettings getDefaultAccuracySettings() {
@@ -89,7 +88,6 @@ public class Accuracy extends SubCommand {
     
     public static boolean setBiomeTPAccuracy(String accuracy) {
         if (accuracies.containsKey(accuracy)) {
-            Files tportConfig = getFile("TPortConfig");
             tportConfig.getConfig().set("biomeTP.accuracy", accuracy);
             tportConfig.saveConfig();
             return true;

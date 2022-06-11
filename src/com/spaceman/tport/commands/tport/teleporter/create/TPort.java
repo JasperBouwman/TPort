@@ -6,7 +6,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -15,8 +14,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.commands.tport.teleporter.Create.createTeleporter;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class TPort extends SubCommand {
     
@@ -68,8 +68,6 @@ public class TPort extends SubCommand {
             if (!this.hasPermissionToRun(player, true)) {
                 return;
             }
-            
-            Files tportData = getFile("TPortData");
             
             ArrayList<Message> addedLore = new ArrayList<>();
             

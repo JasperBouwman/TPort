@@ -7,17 +7,16 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextType;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.fileHander.GettingFiles.getFile;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class TimeFormat extends SubCommand {
     
@@ -36,7 +35,7 @@ public class TimeFormat extends SubCommand {
     private String getFormatExample(Player player, String timeFormat) {
         SimpleDateFormat sdf = new SimpleDateFormat(timeFormat);
         sdf.setTimeZone(java.util.TimeZone.getTimeZone(
-                getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeZone", TimeZone.getDefault().getID())));
+                tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeZone", TimeZone.getDefault().getID())));
         return sdf.format(Calendar.getInstance().getTime());
     }
     
@@ -45,7 +44,7 @@ public class TimeFormat extends SubCommand {
         // tport log timeFormat [format...]
         
         if (args.length == 2) {
-            String timeFormat = getFile("TPortData").getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
+            String timeFormat = tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
             
             Message here = new Message();
             here.addText(textComponent("tport.command.log.timeFormat.here", varInfoColor, ClickEvent.runCommand("/tport log timeFormat EEE MMM dd HH:mm:ss zzz yyyy"),
@@ -70,7 +69,6 @@ public class TimeFormat extends SubCommand {
                 sendErrorTranslation(player, "tport.command.log.timeFormat.format.invalidFormat", here);
                 return;
             }
-            Files tportData = getFile("TPortData");
             tportData.getConfig().set("tport." + player.getUniqueId() + ".timeFormat", format);
             tportData.saveConfig();
             
