@@ -1,0 +1,22 @@
+{
+	"parent": "minecraft:block/oak_button_inventory",
+	"overrides": [
+		{"predicate": {"custom_model_data": 5145465},"model": "tport:item/extra_tp"},
+		{"predicate": {"custom_model_data": 5145466},"model": "tport:item/main_layout"},
+		{"predicate": {"custom_model_data": 5145467},"model": "tport:item/biome_tp"},
+		{"predicate": {"custom_model_data": 5145468},"model": "tport:item/feature_tp"},
+		{"predicate": {"custom_model_data": 5145469},"model": "tport:item/back_tp"},
+		{"predicate": {"custom_model_data": 5145470},"model": "tport:item/public_tp"},
+		{"predicate": {"custom_model_data": 5145471},"model": "tport:item/sorting"},
+		{"predicate": {"custom_model_data": 5145472},"model": "tport:item/biome_tp_clear"},
+		{"predicate": {"custom_model_data": 5145473},"model": "tport:item/biome_tp_run"},
+		{"predicate": {"custom_model_data": 5145474},"model": "tport:item/biome_tp_presets"},
+		{"predicate": {"custom_model_data": 5145476},"model": "tport:item/feature_tp_clear"},
+		{"predicate": {"custom_model_data": 5145477},"model": "tport:item/feature_tp_run"},
+		{"predicate": {"custom_model_data": 5145478},"model": "tport:item/search_data"},
+		{"predicate": {"custom_model_data": 5145479},"model": "tport:item/biome_tp_clear_grayed"},
+		{"predicate": {"custom_model_data": 5145480},"model": "tport:item/biome_tp_run_grayed"},
+		{"predicate": {"custom_model_data": 5145481},"model": "tport:item/feature_tp_clear_grayed"},
+		{"predicate": {"custom_model_data": 5145482},"model": "tport:item/feature_tp_run_grayed"}
+	]
+}
