@@ -7,8 +7,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: |
-        cd 'resource pack/src'
-        zip -r resource_pack.zip .
+          cd 'resource pack/src'
+          zip -r resource_pack.zip .
       - uses: softprops/action-gh-release@v1
         with:
           files: resource pack/src/resource_pack.zip
