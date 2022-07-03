@@ -1,6 +1,7 @@
 on:
   push:
     tags:
+      - '*'
 
 jobs:
   zip_resource_pack:
