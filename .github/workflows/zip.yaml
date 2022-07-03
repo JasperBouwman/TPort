@@ -11,13 +11,6 @@ jobs:
       - run: |
           cd 'resource pack/src'
           zip -r resource_pack.zip .
-      - uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-      - run: java -cp java tport-1.19.1.jar
       - uses: softprops/action-gh-release@v1
         with:
-          files: |
-            resource pack/src/resource_pack.zip
-            tport-1.19.1.jar
+          files: 'resource pack/src/resource_pack.zip'
