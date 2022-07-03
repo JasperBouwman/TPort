@@ -4,13 +4,19 @@ on:
       - '*'
 
 jobs:
-  zip_resource_pack:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - run: |
           cd 'resource pack/src'
           zip -r resource_pack.zip .
+      - uses: actions/setup-java@v3
+        with:
+          java-version: 17
+      - run: java -cp java tport-1.19.1.jar
       - uses: softprops/action-gh-release@v1
         with:
-          files: resource pack/src/resource_pack.zip
+          files: |
+            resource pack/src/resource_pack.zip
+            tport-1.19.1.jar
