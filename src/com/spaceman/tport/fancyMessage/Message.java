@@ -14,6 +14,7 @@ import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.chat.IChatMutableComponent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.EntityPlayer;
 import org.bukkit.Bukkit;
@@ -328,24 +329,20 @@ public class Message implements Cloneable {
         if (playerLang == null) { //custom language
             sendMessage(player);
         } else {
-            MessageUtils.translateMessage(this, playerLang).sendMessage(player, MessageTypes.SYSTEM);
+            MessageUtils.translateMessage(this, playerLang).sendMessage(player);
         }
     }
     
     public void sendMessage(Player player) {
-        sendMessage(player, MessageTypes.CHAT);
-    }
-    
-    public void sendMessage(Player player, MessageTypes type) {
         if (player == null) {
             return;
         }
         try {
-            IChatMutableComponent text = IChatBaseComponent.ChatSerializer.a(this.translateJSON(player));
             EntityPlayer entityPlayer = (EntityPlayer) player.getClass().getMethod("getHandle").invoke(player);
-            entityPlayer.a(text, type.chatMessageType);
+            entityPlayer.b.a(new ClientboundSystemChatPacket(this.translateJSON(player), false));
         } catch (Exception ex) {
             ex.printStackTrace();
+            player.sendMessage(this.translateString());
         }
     }
     
@@ -371,18 +368,6 @@ public class Message implements Cloneable {
         Message message = new Message();
         this.components.stream().map(component -> (TextComponent) component.clone()).forEach(message::addText);
         return message;
-    }
-    
-    public enum MessageTypes {
-        CHAT(ChatMessageType.b),
-        SYSTEM(ChatMessageType.c),
-        GAME_INFO(ChatMessageType.d);
-
-        private final ResourceKey<ChatMessageType> chatMessageType;
-
-        MessageTypes(ResourceKey<ChatMessageType> type) {
-            this.chatMessageType = type;
-        }
     }
     
     public enum TitleTypes {
