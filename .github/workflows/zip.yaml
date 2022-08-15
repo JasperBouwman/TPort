@@ -9,8 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: |
-          cd 'resource pack/src'
-          zip -r resource_pack.zip .
+          cd 'resource pack/src (16x)'
+          zip -r resource_pack_16x.zip .
+          cd '../src (32x)'
+          zip -r resource_pack_16x.zip .
       - uses: softprops/action-gh-release@v1
         with:
-          files: 'resource pack/src/resource_pack.zip'
+          files: | 
+          'resource pack/src/resource_pack_16x.zip'
+          'resource pack/src/resource_pack_32x.zip'

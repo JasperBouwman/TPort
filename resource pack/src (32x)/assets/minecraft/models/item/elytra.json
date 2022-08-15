@@ -1,0 +1,9 @@
+{
+	"parent": "item/generated",
+	"textures": {"layer0": "item/elytra"},
+	"overrides": [
+		{"predicate": {"broken": 1},"model": "item/broken_elytra"},
+		{"predicate": {"custom_model_data": 5145477},"model": "tport:item/biome_tp_random_tp"},
+		{"predicate": {"custom_model_data": 5145478},"model": "tport:item/biome_tp_random_grayed_tp"}
+	]
+}

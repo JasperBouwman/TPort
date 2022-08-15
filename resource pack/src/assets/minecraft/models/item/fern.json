@@ -1,7 +1,0 @@
-{
-	"parent": "minecraft:item/generated",
-	"textures": {"layer0": "minecraft:block/fern"},
-	"overrides": [
-		{"predicate": {"custom_model_data": 5145463},"model": "tport:item/arrow_up"}
-	]
-}
