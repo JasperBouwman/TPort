@@ -13,6 +13,7 @@ jobs:
           zip -r resource_pack_16x.zip .
           cd '../src (32x)'
           zip -r resource_pack_16x.zip .
+          cd '../../'
       - uses: softprops/action-gh-release@v1
         with:
           files: | 
