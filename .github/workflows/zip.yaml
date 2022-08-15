@@ -17,5 +17,5 @@ jobs:
       - uses: softprops/action-gh-release@v1
         with:
           files: | 
-            resource pack/src/resource_pack_16x.zip
-            resource pack/src/resource_pack_32x.zip
+            resource pack/src (16x)/resource_pack_16x.zip
+            resource pack/src (32x)/resource_pack_32x.zip
