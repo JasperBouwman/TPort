@@ -1,5 +1,6 @@
 package com.spaceman.tport.events;
 
+import com.spaceman.tport.commands.tport.ResourcePack;
 import com.spaceman.tport.tpEvents.TPRequest;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,6 +27,7 @@ public class JoinEvent implements Listener {
     @SuppressWarnings("unused")
     public void join(PlayerJoinEvent e) {
         setData(e.getPlayer());
+        ResourcePack.updateResourcePack(e.getPlayer());
     }
     
     @EventHandler

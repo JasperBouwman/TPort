@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -35,6 +36,9 @@ public class Consent extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!emptyState.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return Arrays.asList("true", "false");
     }
     

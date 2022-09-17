@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class Location extends SubCommand {
     
@@ -24,26 +25,27 @@ public class Location extends SubCommand {
     public void run(String[] args, Player player) {
         // tport edit <TPort name> location
         
+        if (args.length != 3) {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> name <new TPort name>");
+            return;
+        }
         if (!hasPermissionToRun(player, true)) {
             return;
         }
-        if (args.length == 3) {
-            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
-            
-            if (tport == null) {
-                sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
-                return;
-            }
-            if (tport.isOffered()) {
-                sendErrorTranslation(player, "tport.command.edit.location.isOffered",
-                        tport, asPlayer(tport.getOfferedTo()));
-                return;
-            }
-            tport.setLocation(player.getLocation());
-            tport.save();
-            sendSuccessTranslation(player, "tport.command.edit.location.succeeded", tport);
-        } else {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> name <new TPort name>");
+        
+        TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
+        if (tport == null) {
+            sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
+            return;
         }
+        if (tport.isOffered()) {
+            sendErrorTranslation(player, "tport.command.edit.location.isOffered",
+                    asTPort(tport), asPlayer(tport.getOfferedTo()));
+            return;
+        }
+        
+        tport.setLocation(player.getLocation());
+        tport.save();
+        sendSuccessTranslation(player, "tport.command.edit.location.succeeded", asTPort(tport));
     }
 }

@@ -90,7 +90,7 @@ public enum CooldownManager {
             loopCooldown = true;
             sendErrorTranslation(player, "tport.cooldown.cooldownManager.cooldownLoopError.user");
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-                if (CooldownCommand.emptyCooldownValue.hasPermissionToRun(player, false)) {
+                if (CooldownCommand.getInstance().emptyCooldownCooldownValue.hasPermissionToRun(player, false)) {
                     sendErrorTranslation(onlinePlayer, "tport.cooldown.cooldownManager.cooldownLoopError.admin", errorOccurredWith);
                 }
             }

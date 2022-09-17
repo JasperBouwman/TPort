@@ -30,7 +30,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,7 +48,7 @@ public class TPortCommand extends CommandTemplate {
     }
     
     private TPortCommand() {
-        super(Main.getInstance(), false, new CommandDescription("TPort", Main.getInstance().getDescription().getName(), "The command to teleport to saved locations and more", "/TPort <args...>"));
+        super(Main.getInstance(), false, new CommandDescription("tport", Main.getInstance().getDescription().getName(), "The command to teleport to saved locations and more", "/TPort <args...>"));
     }
     
     public static List<Message> getPlayerData(UUID uuid) {
@@ -75,7 +74,7 @@ public class TPortCommand extends CommandTemplate {
         ColorTheme theme = ColorTheme.getTheme(player.getUniqueId());
         
         Message title = formatTranslation(ColorType.titleColor, ColorType.titleColor, "tport.command.headDisplay.title", head.getName());
-        Collection<Message> lore = getPlayerData(head.getUniqueId());
+        List<Message> lore = getPlayerData(head.getUniqueId());
         
         if (head.isOnline()) {
             lore.add(new Message());
@@ -138,7 +137,7 @@ public class TPortCommand extends CommandTemplate {
         empty.setCommandDescription(formatInfoTranslation("tport.command.commandDescription"));
         empty.setPermissions("TPort.open", "TPort.basic");
         addAction(empty);
-        addAction(new Open());
+        addAction(Open.getInstance());
         addAction(new Add());
         addAction(new Remove());
         addAction(new Edit());
@@ -152,7 +151,7 @@ public class TPortCommand extends CommandTemplate {
         addAction(new SetHome());
         addAction(new ColorThemeCommand());
         addAction(new Reload());
-        addAction(new CooldownCommand());
+        addAction(CooldownCommand.getInstance());
         addAction(new RemovePlayer());
         if (Features.Feature.PublicTP.isEnabled()) addAction(new Public());
         addAction(new Transfer());
@@ -171,11 +170,12 @@ public class TPortCommand extends CommandTemplate {
         addAction(new MetricsCommand());
         if (Features.Feature.Dynmap.isEnabled()) addAction(new DynmapCommand());
         addAction(new MainLayout());
-        addAction(new WorldCommand());
+        if (Features.Feature.WorldTP.isEnabled()) addAction(new WorldCommand());
         addAction(new Requests());
         if (Features.Feature.FeatureSettings.isEnabled()) addAction(new Features());
         addAction(new Language());
         if (Features.Feature.Preview.isEnabled()) addAction(new Preview());
+        addAction(new ResourcePack());
         
         TextComponent discordServer = new TextComponent("Discord Server", varInfoColor)
                 .addTextEvent(new HoverEvent(new TextComponent(Main.discordLink, infoColor)))
@@ -327,7 +327,7 @@ public class TPortCommand extends CommandTemplate {
         // tport dynmap IP [IP]
         // tport mainLayout players [state]
         // tport mainLayout TPorts [state]
-        // tport world <world>
+        // tport world [world]
         // tport requests
         // tport requests accept [player...]
         // tport requests reject [player...]
@@ -344,6 +344,9 @@ public class TPortCommand extends CommandTemplate {
         // tport features <feature> state
         // tport features <feature> state <state>
         // tport preview <player> <TPort name>
+        // tport resourcePack
+        // tport resourcePack state [state]
+        // tport resourcePack resolution [resolution]
         
         if (!(sender instanceof Player player)) {
             sender.sendMessage("You have to be a player to use this command");

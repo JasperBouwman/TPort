@@ -50,7 +50,7 @@ public class RemovePlayer extends SubCommand {
         }
         
         String newPlayerName = args[1];
-        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
+        UUID newPlayerUUID = PlayerUUID.getPlayerUUID_OLD2(newPlayerName);
         if (newPlayerUUID == null) {
             sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
             return;

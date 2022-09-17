@@ -103,10 +103,6 @@ public class Auto extends SubCommand {
     public void run(String[] args, Player player) {
         // tport backup auto [state|count]
         
-        if (!emptyCount.hasPermissionToRun(player, true)) {
-            return;
-        }
-        
         if (args.length == 2) {
             int count = tportConfig.getConfig().getInt("backup.auto.count", 10);
             
@@ -118,6 +114,9 @@ public class Auto extends SubCommand {
             }
             sendInfoTranslation(player, "tport.command.backup.auto.getStateAndCount", stateAsMessage, count);
         } else if (args.length == 3) {
+            if (!emptyCount.hasPermissionToRun(player, true)) {
+                return;
+            }
             try {
                 int newCount = Integer.parseInt(args[2]);
                 tportConfig.getConfig().set("backup.auto.count", newCount);

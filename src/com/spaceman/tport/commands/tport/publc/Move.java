@@ -12,30 +12,39 @@ import java.util.Collection;
 import java.util.UUID;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
 public class Move extends SubCommand {
     
-    public static final EmptyCommand emptySlot = new EmptyCommand();
+    private static final Move instance = new Move();
+    public static Move getInstance() {
+        return instance;
+    }
+    
+    public final EmptyCommand emptySlot = new EmptyCommand();
     
     public Move() {
         emptySlot.setTabRunnable((args, player) -> {
             ArrayList<String> list = new ArrayList<>();
-            if (emptySlot.hasPermissionToRun(player, false)) {
-                for (String publicTPortSlot : tportData.getKeys("public.tports")) {
-                    String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
-                    TPort tport = getTPort(UUID.fromString(tportID));
-                    if (tport != null) {
-                        if (!tport.getName().equalsIgnoreCase(args[2])) {
-                            list.add(tport.getName());
-                            try {
-                                int slot = Integer.parseInt(publicTPortSlot) + 1;
-                                list.add(String.valueOf(slot));
-                            } catch (NumberFormatException ignore) {
-                            }
-                        }
-                    }
+            if (!emptySlot.hasPermissionToRun(player, false)) {
+                return list;
+            }
+            for (String publicTPortSlot : tportData.getKeys("public.tports")) {
+                String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
+                TPort tport = getTPort(UUID.fromString(tportID));
+                if (tport == null) {
+                    continue;
+                }
+                if (tport.getName().equalsIgnoreCase(args[2])) {
+                    continue;
+                }
+                list.add(tport.getName());
+                try {
+                    int slot = Integer.parseInt(publicTPortSlot) + 1;
+                    list.add(String.valueOf(slot));
+                } catch (NumberFormatException ignore) {
                 }
             }
             return list;
@@ -65,13 +74,14 @@ public class Move extends SubCommand {
     @Override
     public Collection<String> tabList(Player player, String[] args) {
         ArrayList<String> list = new ArrayList<>();
-        if (emptySlot.hasPermissionToRun(player, false)) {
-            for (String publicTPortSlot : tportData.getKeys("public.tports")) {
-                String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
-                TPort tport = getTPort(UUID.fromString(tportID));
-                if (tport != null) {
-                    list.add(tport.getName());
-                }
+        if (!emptySlot.hasPermissionToRun(player, false)) {
+            return list;
+        }
+        for (String publicTPortSlot : tportData.getKeys("public.tports")) {
+            String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
+            TPort tport = getTPort(UUID.fromString(tportID));
+            if (tport != null) {
+                list.add(tport.getName());
             }
         }
         return list;
@@ -93,48 +103,52 @@ public class Move extends SubCommand {
             String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
             
             TPort tport = getTPort(UUID.fromString(tportID));
-            if (tport != null) {
-                if (tport.getName().equalsIgnoreCase(args[2])) {
-                    try {
-                        int slot = Integer.parseInt(args[3]) - 1;
-                        if (tportData.getConfig().contains("public.tports." + slot)) {
-                            
-                            String tportID2 = tportData.getConfig().getString("public.tports." + slot, TPortManager.defUUID.toString());
-                            TPort tport2 = getTPort(UUID.fromString(tportID2));
-                            if (tport2 == null) {
-                                tportData.getConfig().set("public.tports." + slot, tportID);
-                                sendSuccessTranslation(player, "tport.command.public.move.succeededMoved", tport, String.valueOf(slot + 1));
-                            } else {
-                                tportData.getConfig().set("public.tports." + publicTPortSlot, tportData.getConfig().getString("public.tports." + slot));
-                                tportData.getConfig().set("public.tports." + slot, tportID);
-                                sendSuccessTranslation(player, "tport.command.public.move.succeeded", tport.parseAsPublic(true), tport2.parseAsPublic(true));
-                            }
-                            tportData.saveConfig();
-                            return;
-                        } else {
-                            sendErrorTranslation(player, "tport.command.public.move.TPortSlotNotFound", String.valueOf(slot + 1));
-                        }
-                    } catch (NumberFormatException nfe) {
-                        
-                        for (String publicTPortSlot2 : tportData.getKeys("public.tports")) {
-                            String tportID2 = tportData.getConfig().getString("public.tports." + publicTPortSlot2, TPortManager.defUUID.toString());
-                            
-                            TPort tport2 = getTPort(UUID.fromString(tportID2));
-                            if (tport2 != null) {
-                                if (tport2.getName().equalsIgnoreCase(args[3])) {
-                                    tportData.getConfig().set("public.tports." + publicTPortSlot, tportData.getConfig().getString("public.tports." + publicTPortSlot2));
-                                    tportData.getConfig().set("public.tports." + publicTPortSlot2, tportID);
-                                    sendSuccessTranslation(player, "tport.command.public.move.succeeded", tport.parseAsPublic(true), tport2.parseAsPublic(true));
-                                    tportData.saveConfig();
-                                    return;
-                                }
-                            }
-                        }
-                        sendErrorTranslation(player, "tport.command.public.TPortNotFound", args[3]);
-                    }
-                    return;
-                }
+            if (tport == null) {
+                continue;
             }
+            if (!tport.getName().equalsIgnoreCase(args[2])) {
+                continue;
+            }
+            
+            try {
+                int slot = Integer.parseInt(args[3]) - 1;
+                if (!tportData.getConfig().contains("public.tports." + slot)) {
+                    sendErrorTranslation(player, "tport.command.public.move.TPortSlotNotFound", String.valueOf(slot + 1));
+                    continue;
+                }
+                
+                String tportID2 = tportData.getConfig().getString("public.tports." + slot, TPortManager.defUUID.toString());
+                TPort tport2 = getTPort(UUID.fromString(tportID2));
+                if (tport2 == null) {
+                    tportData.getConfig().set("public.tports." + slot, tportID);
+                    sendSuccessTranslation(player, "tport.command.public.move.succeededMoved", asTPort(tport), String.valueOf(slot + 1));
+                } else {
+                    tportData.getConfig().set("public.tports." + publicTPortSlot, tportData.getConfig().getString("public.tports." + slot));
+                    tportData.getConfig().set("public.tports." + slot, tportID);
+                    sendSuccessTranslation(player, "tport.command.public.move.succeeded", asTPort(tport.parseAsPublic(true)), asTPort(tport2.parseAsPublic(true)));
+                }
+                tportData.saveConfig();
+                return;
+            } catch (NumberFormatException nfe) {
+                
+                for (String publicTPortSlot2 : tportData.getKeys("public.tports")) {
+                    String tportID2 = tportData.getConfig().getString("public.tports." + publicTPortSlot2, TPortManager.defUUID.toString());
+                    
+                    TPort tport2 = getTPort(UUID.fromString(tportID2));
+                    if (tport2 == null) {
+                        continue;
+                    }
+                    if (tport2.getName().equalsIgnoreCase(args[3])) {
+                        tportData.getConfig().set("public.tports." + publicTPortSlot, tportData.getConfig().getString("public.tports." + publicTPortSlot2));
+                        tportData.getConfig().set("public.tports." + publicTPortSlot2, tportID);
+                        sendSuccessTranslation(player, "tport.command.public.move.succeeded", asTPort(tport.parseAsPublic(true)), asTPort(tport2.parseAsPublic(true)));
+                        tportData.saveConfig();
+                        return;
+                    }
+                }
+                sendErrorTranslation(player, "tport.command.public.TPortNotFound", args[3]);
+            }
+            return;
         }
         sendErrorTranslation(player, "tport.command.public.TPortNotFound", args[2]);
     }

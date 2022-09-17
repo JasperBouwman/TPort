@@ -23,6 +23,7 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
@@ -47,10 +48,6 @@ public class Create extends SubCommand {
     public void run(String[] args, Player player) {
         // tport teleporter create <type> [data...]
         
-        if (!hasPermission(player, true, true, "TPort.teleporter.create")) {
-            return;
-        }
-        
         /*
          * /tport teleporter create <type> [data]
          *
@@ -68,6 +65,9 @@ public class Create extends SubCommand {
          * */
         
         if (args.length > 2) {
+            if (!hasPermission(player, true, true, "TPort.teleporter.create")) {
+                return;
+            }
             ItemStack is = player.getInventory().getItemInMainHand();
             if (is.getType().isAir()) {
                 sendErrorTranslation(player, "tport.command.teleporter.create.noItem");
@@ -90,11 +90,11 @@ public class Create extends SubCommand {
         createTeleporter(player, type, command, null, Collections.emptyList());
     }
     
-    public static void createTeleporter(Player player, String type, String command, Collection<Message> addedLore) {
+    public static void createTeleporter(Player player, String type, String command, List<Message> addedLore) {
         createTeleporter(player, type, command, null, addedLore);
     }
     
-    public static void createTeleporter(Player player, String type, String command, Collection<Pair<String, String>> addedData, Collection<Message> addedLore) {
+    public static void createTeleporter(Player player, String type, String command, Collection<Pair<String, String>> addedData, List<Message> addedLore) {
         ItemStack is = player.getInventory().getItemInMainHand();
         Teleporter.removeTeleporter(is);
         

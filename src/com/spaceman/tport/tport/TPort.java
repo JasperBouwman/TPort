@@ -199,6 +199,11 @@ public class TPort implements ConfigurationSerializable {
         return map;
     }
     
+    @Override
+    public String toString() {
+        return this.getName();
+    }
+    
     public ItemStack getItem() {
         return new ItemStack(item);
     }
@@ -678,7 +683,7 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public List<Message> getHoverData(boolean extended) {
-        List<Message> hoverData = new ArrayList<>();
+        List<Message> hoverData = new ArrayList<>(15);
         
         if (extended) {
             hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.tportOwner", PlayerUUID.getPlayerName(this.getOwner())));
@@ -852,6 +857,9 @@ public class TPort implements ConfigurationSerializable {
         // false: has not access
         // null: ask consent
         public Boolean hasAccess(UUID uuid, TPort tport) {
+            if (uuid.equals(tport.getOwner())) {
+                return true;
+            }
             return this.tester.hasAccess(uuid, tport);
         }
         

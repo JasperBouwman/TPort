@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
@@ -31,63 +32,63 @@ public class Name extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport edit <TPort name> name <new TPort name>
-        
+    
+        if (args.length != 4) {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> name <new TPort name>");
+            return;
+        }
         if (!emptyName.hasPermissionToRun(player, true)) {
             return;
         }
-        if (args.length == 4) {
-            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
-            
-            if (tport == null) {
-                sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
+        
+        TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
+        if (tport == null) {
+            sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
+            return;
+        }
+        if (tport.isOffered()) {
+            sendErrorTranslation(player, "tport.command.edit.name.isOffered",
+                    asTPort(tport), asPlayer(tport.getOfferedTo()));
+            return;
+        }
+        
+        TPort nameDuplicationTPort = TPortManager.getTPort(player.getUniqueId(), args[3]);
+        if (nameDuplicationTPort != null) {
+            if (args[3].equals(tport.getName())) {
+                sendErrorTranslation(player, "tport.command.edit.name.sameName", asTPort(tport), args[3]);
+                return;
+            } else if (!args[3].equalsIgnoreCase(tport.getName())) {
+                sendErrorTranslation(player, "tport.command.edit.name.nameUsed", asTPort(nameDuplicationTPort));
                 return;
             }
-            if (tport.isOffered()) {
-                sendErrorTranslation(player, "tport.command.edit.name.isOffered", tport,
-                        tport, asPlayer(tport.getOfferedTo()));
-                return;
-            }
-            TPort nameDuplicationTPort = TPortManager.getTPort(player.getUniqueId(), args[3]);
-            if (nameDuplicationTPort != null) {
-                if (args[3].equals(tport.getName())) {
-                    sendErrorTranslation(player, "tport.command.edit.name.sameName", tport, args[3]);
-                    return;
-                } else if (!args[3].equalsIgnoreCase(tport.getName())) {
-                    sendErrorTranslation(player, "tport.command.edit.name.nameUsed", nameDuplicationTPort);
-                    return;
-                }
-            }
-            try {
-                Long.parseLong(args[3]);
-                sendErrorTranslation(player, "tport.command.edit.name.numberName");
-                return;
-            } catch (NumberFormatException ignore) {
-            }
-            if (Main.containsSpecialCharacter(args[3])) {
-                sendErrorTranslation(player, "tport.command.edit.name.specialChars", "A-Z", "0-9", "-", "_");
-                return;
-            }
-            
-            if (tport.isPublicTPort()) {
-                for (int publicSlot = 0; publicSlot < ListSize.getPublicTPortSize(); publicSlot++) {
-                    if (tportData.getConfig().contains("public.tports." + publicSlot)) {
-                        String tportID = tportData.getConfig().getString("public.tports." + publicSlot, TPortManager.defUUID.toString());
-                        TPort publicTPort = getTPort(UUID.fromString(tportID));
-                        
-                        if (publicTPort != null && publicTPort.getName().equalsIgnoreCase(args[3])) {
-                            sendErrorTranslation(player, "tport.command.edit.name.nameUsedPublic", publicTPort);
-                            return;
-                        }
+        }
+        try {
+            Long.parseLong(args[3]);
+            sendErrorTranslation(player, "tport.command.edit.name.numberName");
+            return;
+        } catch (NumberFormatException ignore) {
+        }
+        if (Main.containsSpecialCharacter(args[3])) {
+            sendErrorTranslation(player, "tport.command.edit.name.specialChars", "A-Z", "0-9", "-", "_");
+            return;
+        }
+        
+        if (tport.isPublicTPort()) {
+            for (int publicSlot = 0; publicSlot < ListSize.getPublicTPortSize(); publicSlot++) {
+                if (tportData.getConfig().contains("public.tports." + publicSlot)) {
+                    String tportID = tportData.getConfig().getString("public.tports." + publicSlot, TPortManager.defUUID.toString());
+                    TPort publicTPort = getTPort(UUID.fromString(tportID));
+                    
+                    if (publicTPort != null && publicTPort.getName().equalsIgnoreCase(args[3])) {
+                        sendErrorTranslation(player, "tport.command.edit.name.nameUsedPublic", asTPort(publicTPort));
+                        return;
                     }
                 }
             }
-            
-            tport.setName(args[3]);
-            tport.save();
-            sendSuccessTranslation(player, "Successfully set new name to %s", tport);
-        } else {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> name <new TPort name>");
         }
         
+        tport.setName(args[3]);
+        tport.save();
+        sendSuccessTranslation(player, "Successfully set new name to %s", asTPort(tport));
     }
 }

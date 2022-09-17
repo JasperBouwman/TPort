@@ -17,6 +17,7 @@ import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class Notify extends SubCommand {
     
@@ -60,8 +61,8 @@ public class Notify extends SubCommand {
             for (TPort tport : tportList) {
                 if (tport.getNotifyMode() != TPort.NotifyMode.NONE) {
                     
-                    if (color) tportsMessage.addMessage(formatTranslation(varInfoColor, varInfoColor, "%s", tport));
-                    else       tportsMessage.addMessage(formatTranslation(varInfo2Color, varInfo2Color, "%s", tport));
+                    if (color) tportsMessage.addMessage(formatTranslation(varInfoColor, varInfoColor, "%s", asTPort(tport)));
+                    else       tportsMessage.addMessage(formatTranslation(varInfo2Color, varInfo2Color, "%s", asTPort(tport)));
                     
                     if (notifySize + 2 == notifyMax) tportsMessage.addMessage(formatInfoTranslation("tport.command.log.notify.lastDelimiter"));
                     else                             tportsMessage.addMessage(formatInfoTranslation("tport.command.log.notify.delimiter"));
@@ -95,7 +96,7 @@ public class Notify extends SubCommand {
         } else if (args.length == 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
             if (tport != null) {
-                sendInfoTranslation(player, "tport.command.log.notify.tportName.succeeded", tport, tport.getNotifyMode());
+                sendInfoTranslation(player, "tport.command.log.notify.tportName.succeeded", asTPort(tport), tport.getNotifyMode());
             } else {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
             }
@@ -104,15 +105,15 @@ public class Notify extends SubCommand {
                 return;
             }
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
-            if (tport != null) {
-                TPort.NotifyMode notify = TPort.NotifyMode.get(args[3]);
-                tport.setNotifyMode(notify);
-                tport.save();
-                
-                sendSuccessTranslation(player, "tport.command.log.notify.tportName.state.succeeded", tport, tport.getNotifyMode());
-            } else {
+            if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
+                return;
             }
+            TPort.NotifyMode notify = TPort.NotifyMode.get(args[3]);
+            tport.setNotifyMode(notify);
+            tport.save();
+            
+            sendSuccessTranslation(player, "tport.command.log.notify.tportName.state.succeeded", asTPort(tport), tport.getNotifyMode());
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log notify [TPort name] [state]");
         }

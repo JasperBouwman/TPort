@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class Range extends SubCommand {
     
@@ -34,31 +35,30 @@ public class Range extends SubCommand {
         
         if (args.length == 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
-            
             if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
                 return;
             }
             
             if (tport.hasRange()) {
-                sendInfoTranslation(player, "tport.command.edit.range.succeededRange", tport, String.valueOf(tport.getRange()));
+                sendInfoTranslation(player, "tport.command.edit.range.succeededRange", asTPort(tport), String.valueOf(tport.getRange()));
             } else {
                 sendInfoTranslation(player, "tport.command.edit.range.succeededNoRange",
-                        tport, formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.edit.range.off"));
+                        asTPort(tport), formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.edit.range.off"));
             }
         } else if (args.length == 4) {
             if (!emptyRange.hasPermissionToRun(player, true)) {
                 return;
             }
-            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
             
+            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
             if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
                 return;
             }
             if (tport.isOffered()) {
                 sendErrorTranslation(player, "tport.command.edit.range.range.isOffered",
-                        tport, asPlayer(tport.getOfferedTo()));
+                        asTPort(tport), asPlayer(tport.getOfferedTo()));
                 return;
             }
             
@@ -73,9 +73,9 @@ public class Range extends SubCommand {
             tport.save();
             if (range == 0) {
                 sendSuccessTranslation(player, "tport.command.edit.range.range.succeededNoRange",
-                        tport, formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.edit.range.off"));
+                        asTPort(tport), formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.edit.range.off"));
             } else {
-                sendSuccessTranslation(player, "tport.command.edit.range.range.succeededRange", tport, String.valueOf(range));
+                sendSuccessTranslation(player, "tport.command.edit.range.range.succeededRange", asTPort(tport), String.valueOf(range));
             }
             
         } else {

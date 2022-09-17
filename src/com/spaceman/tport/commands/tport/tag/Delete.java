@@ -7,6 +7,7 @@ import com.spaceman.tport.commands.tport.Tag;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
@@ -24,6 +25,9 @@ public class Delete extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!emptyTag.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return Tag.getTags();
     }
     
@@ -31,11 +35,10 @@ public class Delete extends SubCommand {
     public void run(String[] args, Player player) {
         // tport tag delete <tag>
         
-        if (!emptyTag.hasPermissionToRun(player, true)) {
-            return;
-        }
-        
         if (args.length == 3) {
+            if (!emptyTag.hasPermissionToRun(player, true)) {
+                return;
+            }
             String tag = Tag.getTag(args[2]);
             if (tag == null) {
                 sendErrorTranslation(player, "tport.command.tag.delete.tag.notExist", args[2]);

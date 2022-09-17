@@ -50,9 +50,8 @@ public class Remove extends SubCommand {
         
         for (int i = 3; i < args.length; i++) {
             String removePlayerName = args[i];
-            UUID removePlayerUUID = PlayerUUID.getPlayerUUID(removePlayerName);
-            if (removePlayerUUID == null || !tportData.getConfig().contains("tport." + removePlayerUUID)) {
-                sendErrorTranslation(player, "tport.command.playerNotFound", removePlayerName);
+            UUID removePlayerUUID = PlayerUUID.getPlayerUUID(removePlayerName, player);
+            if (removePlayerUUID == null) {
                 return;
             }
             
@@ -66,7 +65,7 @@ public class Remove extends SubCommand {
             tportData.saveConfig();
             sendSuccessTranslation(player, "tport.command.PLTP.whitelist.remove.players.succeeded", asPlayer(removePlayerUUID));
     
-            sendInfoTranslation(Bukkit.getPlayer(removePlayerUUID), "tport.command.PLTP.whitelist.remove.players.succeededOtherPlayer", player);
+            sendInfoTranslation(Bukkit.getPlayer(removePlayerUUID), "tport.command.PLTP.whitelist.remove.players.succeededOtherPlayer", asPlayer(player));
         }
     }
 }

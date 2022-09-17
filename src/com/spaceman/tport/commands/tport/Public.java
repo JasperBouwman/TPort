@@ -32,9 +32,9 @@ public class Public extends SubCommand {
         addAction(empty);
         addAction(new Open());
         addAction(new Add());
-        addAction(new Remove());
+        addAction(Remove.getInstance());
         addAction(new List());
-        addAction(new Move());
+        addAction(Move.getInstance());
         addAction(new ListSize());
     }
     

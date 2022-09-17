@@ -83,6 +83,8 @@ public class Search extends SubCommand {
     public Collection<String> tabList(Player player, String[] args) {
         ArrayList<String> list = new ArrayList<>(FeatureTP.getFeatures(player.getWorld()));
         FeatureTP.getTags(player.getWorld()).stream().map(Pair::getLeft).forEach(list::add);
+//        list.addAll(FeatureTP.getPOIs(player.getWorld()));
+//        FeatureTP.getPOITags(player.getWorld()).stream().map(Pair::getLeft).forEach(list::add);
         Arrays.stream(Mode.WorldSearchMode.values()).map(Enum::name).forEach(list::add);
         return list;
     }
@@ -94,59 +96,62 @@ public class Search extends SubCommand {
         // tport featureTP search <mode> <feature...>
         // tport featureTP search <feature...>
         
-        if (args.length > 2) {
-            int startArgumentAt = 3;
-            Mode.WorldSearchMode mode = Mode.WorldSearchMode.getForPlayer(args[2].toUpperCase(), player, true);
-            if (mode == null) {
-                mode = getDefMode(player.getUniqueId());
-                startArgumentAt--;
-            }
-            
-            List<String> features = FeatureTP.getFeatures(player.getWorld());
-            List<Pair<String, List<String>>> tags = FeatureTP.getTags(player.getWorld());
-            
-            ArrayList<String> selectedFeatures = new ArrayList<>(args.length - 2);
-            label:
-            for (int i = startArgumentAt; i < args.length; i++) {
-                String argument = args[i].toLowerCase();
-                
-                if (argument.charAt(0) == '#') { //tag list
-                    for (Pair<String, List<String>> tag : tags) {
-                        if (tag.getLeft().equals(argument)) {
-                            for (String feature : tag.getRight()) {
-                                if (selectedFeatures.contains(feature)) {
-                                    sendInfoTranslation(player, "tport.command.featureTP.search.tag.featureAlreadySelected", tag.getLeft(), feature);
-                                } else {
-                                    if (hasPermission(player, true, "TPort.featureTP.type." + feature)) {
-                                        selectedFeatures.add(feature);
-                                    }
-                                }
-                            }
-                            continue label;
-                        }
-                    }
-                    sendErrorTranslation(player, "tport.command.featureTP.search.tag.tagNotExist", argument);
-                } else { //feature
-                    for (String feature : features) {
-                        if (feature.equals(argument)) {
-                            if (selectedFeatures.contains(feature)) {
-                                sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureAlreadySelected", feature);
-                            } else {
-                                if (hasPermission(player, true, "TPort.featureTP.type." + feature)) {
-                                    selectedFeatures.add(feature);
-                                }
-                            }
-                            continue label;
-                        }
-                    }
-                    sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotExist", argument);
-                }
-            }
-            
-            featureTP(player, mode, selectedFeatures);
-        } else {
+        if (args.length <= 2) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport featureTP search [mode] <feature...>");
+            return;
         }
+        
+        int startArgumentAt = 3;
+        Mode.WorldSearchMode mode = Mode.WorldSearchMode.getForPlayer(args[2].toUpperCase(), player, true);
+        if (mode == null) {
+            mode = getDefMode(player.getUniqueId());
+            startArgumentAt--;
+        }
+        
+        List<String> features = FeatureTP.getFeatures(player.getWorld());
+        List<Pair<String, List<String>>> tags = FeatureTP.getTags(player.getWorld());
+        
+        ArrayList<String> selectedFeatures = new ArrayList<>(args.length - 2);
+        label:
+        for (int i = startArgumentAt; i < args.length; i++) {
+            String argument = args[i].toLowerCase();
+            
+            if (argument.charAt(0) == '#') { //tag list
+                for (Pair<String, List<String>> tag : tags) {
+                    if (!tag.getLeft().equals(argument)) {
+                        continue;
+                    }
+                    for (String feature : tag.getRight()) {
+                        if (selectedFeatures.contains(feature)) {
+                            sendInfoTranslation(player, "tport.command.featureTP.search.tag.featureAlreadySelected", tag.getLeft(), feature);
+                        } else {
+                            if (hasPermission(player, true, "TPort.featureTP.type." + feature)) {
+                                selectedFeatures.add(feature);
+                            }
+                        }
+                    }
+                    continue label;
+                }
+                sendErrorTranslation(player, "tport.command.featureTP.search.tag.tagNotExist", argument);
+            } else { //feature
+                for (String feature : features) {
+                    if (!feature.equals(argument)) {
+                        continue;
+                    }
+                    if (selectedFeatures.contains(feature)) {
+                        sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureAlreadySelected", feature);
+                    } else {
+                        if (hasPermission(player, true, "TPort.featureTP.type." + feature)) {
+                            selectedFeatures.add(feature);
+                        }
+                    }
+                    continue label;
+                }
+                sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotExist", argument);
+            }
+        }
+        
+        featureTP(player, mode, selectedFeatures);
     }
     
     private static Message featuresToMessageInfo(List<String> features) {

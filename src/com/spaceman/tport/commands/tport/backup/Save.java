@@ -28,36 +28,36 @@ public class Save extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport backup save <name>
-        
+    
+        if (args.length != 3) {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport backup save <name>");
+            return;
+        }
         if (!emptyName.hasPermissionToRun(player, true)) {
             return;
         }
         
-        if (args.length == 3) {
-            if (args[2].startsWith("auto-")) {
-                sendErrorTranslation(player, "tport.command.backup.save.prefixError", "auto-");
-                return;
+        if (args[2].startsWith("auto-")) {
+            sendErrorTranslation(player, "tport.command.backup.save.prefixError", "auto-");
+            return;
+        }
+        
+        new File(Main.getInstance().getDataFolder(), "/backup").mkdir();
+        File file = new File(Main.getInstance().getDataFolder(), "/backup/" + args[2] + ".yml");
+        try {
+            if (file.createNewFile()) {
+                Files configFile = new Files(Main.getInstance(), "/backup/" + file.getName());
+                
+                configFile.getConfig().set("tport", tportData.getConfig().getConfigurationSection("tport"));
+                configFile.getConfig().set("public", tportData.getConfig().getConfigurationSection("public"));
+                configFile.saveConfig();
+                sendSuccessTranslation(player, "tport.command.backup.save.succeeded", file.getName());
+            } else {
+                sendErrorTranslation(player, "tport.command.backup.save.nameUsed", file.getName());
             }
-            
-            new File(Main.getInstance().getDataFolder(), "/backup").mkdir();
-            File file = new File(Main.getInstance().getDataFolder(), "/backup/" + args[2] + ".yml");
-            try {
-                if (file.createNewFile()) {
-                    Files configFile = new Files(Main.getInstance(), "/backup/" + file.getName());
-                    
-                    configFile.getConfig().set("tport", tportData.getConfig().getConfigurationSection("tport"));
-                    configFile.getConfig().set("public", tportData.getConfig().getConfigurationSection("public"));
-                    configFile.saveConfig();
-                    sendSuccessTranslation(player, "tport.command.backup.save.succeeded", file.getName());
-                } else {
-                    sendErrorTranslation(player, "tport.command.backup.save.nameUsed", file.getName());
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-                sendErrorTranslation(player, "tport.command.backup.save.error", e.getMessage());
-            }
-        } else {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport backup save <name>");
+        } catch (IOException e) {
+            e.printStackTrace();
+            sendErrorTranslation(player, "tport.command.backup.save.error", e.getMessage());
         }
     }
 }

@@ -120,7 +120,7 @@ public class FeatureTP extends SubCommand {
                     List<String> features = values.map((holder) -> {
                         return holder.a(); //Holder -> StructureFeature
                     }).map((structureFeature) -> {
-                        structureFeature.a(); //biomes
+//                        structureFeature.a(); //biomes
                         MinecraftKey key = structureRegistry.b(structureFeature);
                         if (key != null) {
                             return key.a().toLowerCase();
@@ -243,7 +243,7 @@ public class FeatureTP extends SubCommand {
             
             List<String> featureList = pair.getRight();
             
-            Collection<Message> lore = new LinkedList<>();
+            List<Message> lore = new LinkedList<>();
             
             lore.add(formatInfoTranslation("tport.commands.tport.featureTP.getItems.list." + ((featureList.size() == 1) ? "singular" : "multiple")));
             

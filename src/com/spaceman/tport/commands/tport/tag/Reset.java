@@ -21,12 +21,11 @@ public class Reset extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport tag reset
-    
-        if (!hasPermissionToRun(player, true)) {
-            return;
-        }
         
         if (args.length == 2) {
+            if (!hasPermissionToRun(player, true)) {
+                return;
+            }
             Tag.resetTags();
             sendSuccessTranslation(player, "tport.command.tag.reset.succeeded");
         } else {

@@ -8,10 +8,7 @@ import com.spaceman.tport.commands.tport.BiomeTP;
 import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static com.spaceman.tport.commands.TPortCommand.executeInternal;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
@@ -19,7 +16,13 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTra
 
 public class Preset extends SubCommand {
     
-    public Preset() {
+    private static final Preset instance = new Preset();
+    
+    public static Preset getInstance() {
+        return instance;
+    }
+    
+    private Preset() {
         setPermissions("TPort.biomeTP.preset");
         
         EmptyCommand emptyPreset = new EmptyCommand();
@@ -37,6 +40,9 @@ public class Preset extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return BiomeTP.BiomeTPPresets.getNames();
     }
     
@@ -53,13 +59,13 @@ public class Preset extends SubCommand {
                 return;
             }
             BiomeTP.BiomeTPPresets.BiomePreset preset = BiomeTP.BiomeTPPresets.getPreset(args[2], player.getWorld());
-            if (preset != null) {
-                List<String> command = new ArrayList<>(Arrays.asList("biomeTP", preset.whitelist() ? "whitelist" : "blacklist"));
-                command.addAll(preset.biomes());
-                executeInternal(player, command.toArray(new String[0]));
-            } else {
+            if (preset == null) {
                 sendErrorTranslation(player, "tport.command.biomeTP.preset.presetNotExist", args[2]);
+                return;
             }
+            List<String> command = new ArrayList<>(Arrays.asList("biomeTP", preset.whitelist() ? "whitelist" : "blacklist"));
+            command.addAll(preset.biomes());
+            executeInternal(player, command.toArray(new String[0]));
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport biomeTP preset [preset]");
         }

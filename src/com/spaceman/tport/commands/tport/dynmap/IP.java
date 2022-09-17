@@ -76,13 +76,14 @@ public class IP extends SubCommand {
                         textComponent(ip, varInfoColor, hoverEvent(textComponent(ip, infoColor)), openUrl(ip)).setInsertion(ip));
             } else {
                 String autoIP = getIP();
-                if (autoIP != null) {
-                    sendInfoTranslation(player, "tport.command.dynmapCommand.ip.automaticSucceeded",
-                            textComponent(autoIP, varInfoColor, hoverEvent(textComponent(autoIP, infoColor)), openUrl(autoIP)).setInsertion(autoIP),
-                            "/tport dynmap IP <IP>", varInfoColor);
-                } else {
+                if (autoIP == null) {
                     sendErrorTranslation(player, "tport.command.dynmapCommand.ip.ipNotSet");
+                    return;
                 }
+                
+                sendInfoTranslation(player, "tport.command.dynmapCommand.ip.automaticSucceeded",
+                        textComponent(autoIP, varInfoColor, hoverEvent(textComponent(autoIP, infoColor)), openUrl(autoIP)).setInsertion(autoIP),
+                        "/tport dynmap IP <IP>", varInfoColor);
             }
         } else if (args.length == 3) {
             if (!emptyIP.hasPermissionToRun(player, true)) {

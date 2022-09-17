@@ -48,13 +48,13 @@ public class Offset extends SubCommand {
             sendInfoTranslation(player, "tport.command.PLTP.offset.succeeded", getPLTPOffset(player));
         } else if (args.length == 3) {
             PLTPOffset newOffset = PLTPOffset.get(args[2]);
-            if (newOffset != null) {
-                tportData.getConfig().set("tport." + player.getUniqueId() + ".tp.offset", newOffset.name());
-                tportData.saveConfig();
-                sendSuccessTranslation(player, "tport.command.PLTP.offset.offset.succeeded", newOffset);
-            } else {
+            if (newOffset == null) {
                 sendErrorTranslation(player, "tport.command.PLTP.offset.offset.offsetNotExist", args[2]);
+                return;
             }
+            tportData.getConfig().set("tport." + player.getUniqueId() + ".tp.offset", newOffset.name());
+            tportData.saveConfig();
+            sendSuccessTranslation(player, "tport.command.PLTP.offset.offset.succeeded", newOffset);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP offset [offset]");
         }

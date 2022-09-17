@@ -22,24 +22,25 @@ public class Version extends SubCommand {
     public void run(String[] args, Player player) {
         //tport version
         
-        if (args.length == 1) {
-            sendInfoTranslation(player, "tport.command.version.succeeded",
-                    Main.getInstance().getDescription().getVersion(),
-                    "1.19", //todo update compatible version
-                    textComponent(
-                            Main.getInstance().getDescription().getWebsite(),
-                            varInfoColor,
-                            hoverEvent(textComponent(Main.getInstance().getDescription().getWebsite(), varInfoColor)),
-                            ClickEvent.openUrl(Main.getInstance().getDescription().getWebsite())
-                    ),
-                    textComponent(
-                            Main.discordLink,
-                            varInfoColor,
-                            hoverEvent(textComponent(Main.discordLink, varInfoColor)),
-                            ClickEvent.openUrl(Main.discordLink)
-                    ));
-        } else {
+        if (args.length != 1) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport version");
+            return;
         }
+        
+        sendInfoTranslation(player, "tport.command.version.succeeded",
+                Main.getInstance().getDescription().getVersion(),
+                "1.19.2", //todo update compatible version
+                textComponent(
+                        Main.getInstance().getDescription().getWebsite(),
+                        varInfoColor,
+                        hoverEvent(textComponent(Main.getInstance().getDescription().getWebsite(), varInfoColor)),
+                        ClickEvent.openUrl(Main.getInstance().getDescription().getWebsite())
+                ),
+                textComponent(
+                        Main.discordLink,
+                        varInfoColor,
+                        hoverEvent(textComponent(Main.discordLink, varInfoColor)),
+                        ClickEvent.openUrl(Main.discordLink)
+                ));
     }
 }

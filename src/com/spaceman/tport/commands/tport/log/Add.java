@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.log;
 
-import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
@@ -21,7 +20,7 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.Files.tportData;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class Add extends SubCommand {
     
@@ -40,7 +39,7 @@ public class Add extends SubCommand {
             if (!emptyTPortPlayer.hasPermissionToRun(player, false)) {
                 return Collections.emptyList();
             }
-            Pair<String, UUID> playerProfile = PlayerUUID.getProfile(args[args.length - 1].split(":")[0]);
+            Pair<String, UUID> playerProfile = PlayerUUID.getProfile(args[args.length - 1].split(":")[0], null);
             if (playerProfile.getLeft() != null) {
                 String playerName = args[args.length - 1].split(":")[0];
                 
@@ -56,17 +55,20 @@ public class Add extends SubCommand {
                 }
                 return list;
             } else {
-                List<String> list = Main.getPlayerNames();
-//                list.remove(player.getName());
-                for (int i = 0; i < list.size(); i++) {
-                    String s = list.get(i);
-                    for (String ss : Arrays.asList(args).subList(3, args.length)) {
-                        if (ss.split(":")[0].equalsIgnoreCase(s.split(":")[0])) {
-                            list.remove(s);
+                List<String> newTabList = PlayerUUID.getPlayerNames();
+                
+                for (int i = 0; i < newTabList.size(); i++) {
+                    String newTabElement = newTabList.get(i);
+                    
+                    for (int j = 3; j < args.length - 1; j++) {
+                        String oldTabElement = args[j];
+                        if (oldTabElement.split(":")[0].equalsIgnoreCase(newTabElement.split(":")[0])) {
+                            newTabList.remove(newTabElement);
+                            i--;
                         }
                     }
                 }
-                return list;
+                return newTabList;
             }
         });
         emptyTPortPlayer.setLooped(true);
@@ -81,6 +83,9 @@ public class Add extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!emptyTPortPlayer.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return getOwnTPorts(player);
     }
     
@@ -104,17 +109,23 @@ public class Add extends SubCommand {
         
         for (int i = 3; i < args.length; i++) {
             String playerName = args[i];
-            UUID playerUUID = PlayerUUID.getPlayerUUID(playerName);
-            if (playerUUID == null || !tportData.getConfig().contains("tport." + playerUUID)) {
-                sendErrorTranslation(player, "tport.command.playerNotFound", playerName);
-                continue;
-            }
             
             TPort.LogMode logMode = TPort.LogMode.ALL;
             if (Pattern.matches(".*:.*", playerName)) {
-                logMode = TPort.LogMode.get(playerName.split(":")[1], logMode);
-                playerName = playerName.split(":")[0];
+                String[] split = playerName.split(":");
+                logMode = TPort.LogMode.get(split[1], null);
+                if (logMode == null) {
+                    sendErrorTranslation(player, "tport.command.log.add.tportName.player.logModeNotFound", split[1]);
+                    continue;
+                }
+                playerName = split[0];
             }
+            
+            UUID playerUUID = PlayerUUID.getPlayerUUID(playerName, player);
+            if (playerUUID == null) {
+                continue;
+            }
+            
             if (playerName.equalsIgnoreCase(player.getName())) {
                 if (logMode.equals(TPort.LogMode.ALL) || logMode.equals(TPort.LogMode.ONLINE)) {
                     tport.addLogged(player.getUniqueId(), TPort.LogMode.ALL);
@@ -126,9 +137,9 @@ public class Add extends SubCommand {
                 continue;
             }
             tport.addLogged(playerUUID, logMode);
-            sendSuccessTranslation(player, "tport.command.log.add.tportName.player.succeeded", asPlayer(playerUUID), logMode, tport);
+            sendSuccessTranslation(player, "tport.command.log.add.tportName.player.succeeded", asPlayer(playerUUID), logMode, asTPort(tport));
             
-            sendInfoTranslation(Bukkit.getPlayer(playerUUID), "tport.command.log.add.tportName.player.succeededOtherPlayer", player, tport, logMode);
+            sendInfoTranslation(Bukkit.getPlayer(playerUUID), "tport.command.log.add.tportName.player.succeededOtherPlayer", asPlayer(player), asTPort(tport), logMode);
         }
         
         tport.save();

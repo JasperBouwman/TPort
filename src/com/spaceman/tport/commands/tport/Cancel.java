@@ -26,13 +26,14 @@ public class Cancel extends SubCommand {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport cancel");
             return;
         }
+        if (!hasPermissionToRun(player, true)) {
+            return;
+        }
         
-        if (hasPermissionToRun(player, true)) {
-            if (TPEManager.cancelTP(player.getUniqueId())) {
-                sendSuccessTranslation(player, "tport.command.cancel.succeeded");
-            } else {
-                sendErrorTranslation(player, "tport.command.cancel.noTPRequest");
-            }
+        if (TPEManager.cancelTP(player.getUniqueId())) {
+            sendSuccessTranslation(player, "tport.command.cancel.succeeded");
+        } else {
+            sendErrorTranslation(player, "tport.command.cancel.noTPRequest");
         }
     }
 }

@@ -1,11 +1,17 @@
 package com.spaceman.tport.playerUUID;
 
-import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.UUID;
+
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class PlayerUUID {
     
@@ -15,26 +21,73 @@ public class PlayerUUID {
     
     public static String getPlayerName(UUID uuid) {
         if (uuid == null) return null;
+        
         try {
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
-            return !offlinePlayer.hasPlayedBefore() && !offlinePlayer.isOnline() ? null : offlinePlayer.getName();
-        } catch (IllegalArgumentException iae) {
-            return null;
-        }
+            OfflinePlayer op = Bukkit.getOfflinePlayer(uuid);
+            
+            if ((op.hasPlayedBefore() || op.isOnline()) && op.getName() != null) {
+                if (tportData.getConfig().contains("tport." + op.getUniqueId())) {
+                    return op.getName();
+                }
+            }
+        } catch (IllegalArgumentException ignore) { }
+        return null;
     }
-    
-    // returns null if not found
-    public static UUID getPlayerUUID(String playerName) {
-        return Main.getOrDefault(getProfile(playerName), new Pair<String, UUID>(null, null)).getRight();
-    }
-    
     // returns null values if not found
-    public static Pair<String, UUID> getProfile(String playerName) {
+    @Nonnull
+    public static Pair<String, UUID> getProfile(String playerName, @Nullable Player sender) {
         for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
             if ((op.hasPlayedBefore() || op.isOnline()) && op.getName() != null && op.getName().equalsIgnoreCase(playerName)) {
-                return new Pair<>(op.getName(), op.getUniqueId());
+                if (tportData.getConfig().contains("tport." + op.getUniqueId())) {
+                    return new Pair<>(op.getName(), op.getUniqueId());
+                } else {
+                    // player not registered anymore
+                    sendErrorTranslation(sender, "tport.command.playerNotFound", playerName);
+                    return new Pair<>(null, null);
+                }
             }
         }
+        // player never joined
+        sendErrorTranslation(sender, "tport.command.playerNotFound", playerName);
         return new Pair<>(null, null);
+    }
+    
+    @Nullable
+    public static UUID getPlayerUUID(String playerName) {
+        return getPlayerUUID(playerName, null);
+    }
+    @Nullable
+    public static UUID getPlayerUUID(String playerName, @Nullable Player sender) {
+        Pair<String, UUID> pair = getProfile(playerName, sender);
+        return pair.getRight();
+    }
+    
+    @Nullable
+    public static UUID getPlayerUUID_OLD2(String playerName) {
+        for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
+            if ((op.hasPlayedBefore() || op.isOnline()) && op.getName() != null && op.getName().equalsIgnoreCase(playerName)) {
+                return op.getUniqueId();
+            }
+        }
+        return null;
+    }
+    public static ArrayList<String> getPlayerNames() {
+        ArrayList<String> list = new ArrayList<>();
+        for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
+            if (tportData.getConfig().contains("tport." + op.getUniqueId())) {
+                list.add(op.getName());
+            }
+        }
+        return list;
+    }
+    
+    public static ArrayList<UUID> getPlayerUUIDs() {
+        ArrayList<UUID> list = new ArrayList<>();
+        for (OfflinePlayer op : Bukkit.getOnlinePlayers()) {
+            if (tportData.getConfig().contains("tport." + op.getUniqueId())) {
+                list.add(op.getUniqueId());
+            }
+        }
+        return list;
     }
 }

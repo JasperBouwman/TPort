@@ -45,32 +45,33 @@ public class Load extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport backup load <name>
-        
+    
+        if (args.length != 3) {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport backup load <name>");
+            return;
+        }
         if (!emptyName.hasPermissionToRun(player, true)) {
             return;
         }
         
-        if (args.length == 3) {
-            String fileName = args[2].split("\\.")[0];
-            File file = new File(Main.getInstance().getDataFolder(), "/backup/" + fileName + ".yml");
-            if (file.exists()) {
-                Files configFile = new Files(Main.getInstance(),"/backup/" + fileName);
-                if (configFile.getConfig().contains("tport")) {
-                    tportData.getConfig().set("tport", configFile.getConfig().getConfigurationSection("tport"));
-                    tportData.getConfig().set("public", configFile.getConfig().getConfigurationSection("public"));
-                    tportData.saveConfig();
-                    
-                    sendInfoTranslation(player, "tport.command.backup.load.reloading");
-                    Reload.reloadTPort();
-                    sendSuccessTranslation(player, "tport.command.backup.load.succeeded", fileName);
-                } else {
-                    sendErrorTranslation(player, "tport.command.backup.load.error", file.getName());
-                }
-            } else {
-                sendErrorTranslation(player, "tport.command.backup.load.fileNotFound", fileName + ".yml");
-            }
-        } else {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport backup load <name>");
+        String fileName = args[2].split("\\.")[0];
+        File file = new File(Main.getInstance().getDataFolder(), "/backup/" + fileName + ".yml");
+        if (!file.exists()) {
+            sendErrorTranslation(player, "tport.command.backup.load.fileNotFound", fileName + ".yml");
+            return;
         }
+        Files configFile = new Files(Main.getInstance(),"/backup/" + fileName);
+        if (!configFile.getConfig().contains("tport")) {
+            sendErrorTranslation(player, "tport.command.backup.load.error", file.getName());
+            return;
+        }
+        
+        tportData.getConfig().set("tport", configFile.getConfig().getConfigurationSection("tport"));
+        tportData.getConfig().set("public", configFile.getConfig().getConfigurationSection("public"));
+        tportData.saveConfig();
+        
+        sendInfoTranslation(player, "tport.command.backup.load.reloading");
+        Reload.reloadTPort();
+        sendSuccessTranslation(player, "tport.command.backup.load.succeeded", fileName);
     }
 }

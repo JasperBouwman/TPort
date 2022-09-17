@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
@@ -41,6 +42,9 @@ public class Visibility extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!emptyState.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return Arrays.stream(TPort.WhitelistVisibility.values()).map(Enum::name).collect(Collectors.toList());
     }
     
@@ -72,22 +76,21 @@ public class Visibility extends SubCommand {
                 return;
             }
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
-            if (tport != null) {
-    
-                TPort.WhitelistVisibility visibility;
-                try {
-                    visibility = TPort.WhitelistVisibility.valueOf(args[4].toUpperCase());
-                } catch (IllegalArgumentException iae) {
-                    sendErrorTranslation(player, "tport.command.edit.whitelist.visibility.state.stateNotFound", args[4]);
-                    return;
-                }
-                tport.setWhitelistVisibility(visibility);
-                tport.save();
-                sendSuccessTranslation(player, "tport.command.edit.whitelist.visibility.state.succeeded", tport, visibility);
-                
-            } else {
+            if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
+                return;
             }
+            
+            TPort.WhitelistVisibility visibility;
+            try {
+                visibility = TPort.WhitelistVisibility.valueOf(args[4].toUpperCase());
+            } catch (IllegalArgumentException iae) {
+                sendErrorTranslation(player, "tport.command.edit.whitelist.visibility.state.stateNotFound", args[4]);
+                return;
+            }
+            tport.setWhitelistVisibility(visibility);
+            tport.save();
+            sendSuccessTranslation(player, "tport.command.edit.whitelist.visibility.state.succeeded", tport, visibility);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> whitelist visibility [state]");
         }

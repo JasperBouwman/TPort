@@ -19,11 +19,11 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 public class Test extends SubCommand {
     
     public Test() {
-        EmptyCommand emptyID = new EmptyCommand();
-        emptyID.setCommandName("ID", ArgumentType.REQUIRED);
-        emptyID.setCommandDescription(formatInfoTranslation("tport.command.language.test.id.commandDescription"));
+        EmptyCommand emptyTestID = new EmptyCommand();
+        emptyTestID.setCommandName("ID", ArgumentType.REQUIRED);
+        emptyTestID.setCommandDescription(formatInfoTranslation("tport.command.language.test.id.commandDescription"));
         
-        addAction(emptyID);
+        addAction(emptyTestID);
     }
     
     @Override

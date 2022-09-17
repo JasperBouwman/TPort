@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -9,6 +8,7 @@ import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,7 +19,7 @@ import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.a
 import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class SetHome extends SubCommand {
-    EmptyCommand emptyPlayerTPort;
+    EmptyCommand emptySetHomePlayerTPort;
     
     public SetHome() {
         EmptyCommand emptySetHome = new EmptyCommand(){
@@ -31,20 +31,19 @@ public class SetHome extends SubCommand {
         emptySetHome.setCommandName("", ArgumentType.FIXED);
         emptySetHome.setCommandDescription(formatInfoTranslation("tport.command.setHome.commandDescription"));
         
-        emptyPlayerTPort = new EmptyCommand();
-        emptyPlayerTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyPlayerTPort.setCommandDescription(formatInfoTranslation("tport.command.setHome.player.tportName.commandDescription"));
-        emptyPlayerTPort.setPermissions("TPort.setHome", "TPort.basic");
+        emptySetHomePlayerTPort = new EmptyCommand();
+        emptySetHomePlayerTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptySetHomePlayerTPort.setCommandDescription(formatInfoTranslation("tport.command.setHome.player.tportName.commandDescription"));
+        emptySetHomePlayerTPort.setPermissions("TPort.setHome", "TPort.basic");
         
-        EmptyCommand emptyPlayer = new EmptyCommand();
-        emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
-        emptyPlayer.setTabRunnable((args, player) -> {
-            ArrayList<String> list = new ArrayList<>();
-            
+        EmptyCommand emptySetHomePlayer = new EmptyCommand();
+        emptySetHomePlayer.setCommandName("player", ArgumentType.REQUIRED);
+        emptySetHomePlayer.setTabRunnable((args, player) -> {
             UUID argOneUUID = PlayerUUID.getPlayerUUID(args[1]);
             if (argOneUUID == null) {
                 return Collections.emptyList();
             }
+            ArrayList<String> list = new ArrayList<>();
             for (TPort tport : TPortManager.getTPortList(argOneUUID)) {
                 Boolean access = tport.hasAccess(player.getUniqueId());
                 if (access == null || access) {
@@ -54,14 +53,32 @@ public class SetHome extends SubCommand {
             
             return list;
         });
-        emptyPlayer.addAction(emptyPlayerTPort);
+        emptySetHomePlayer.addAction(emptySetHomePlayerTPort);
         addAction(emptySetHome);
-        addAction(emptyPlayer);
+        addAction(emptySetHomePlayer);
     }
     
     @Override
     public List<String> tabList(Player player, String[] args) {
-        return Main.getPlayerNames();
+        return PlayerUUID.getPlayerNames();
+    }
+    
+    public static boolean hasHome(Player player, boolean checkTPortValidity) {
+        if (checkTPortValidity) {
+            if (!hasHome(player, false)) {
+                return false;
+            }
+            
+            return getHome(player) != null;
+        } else {
+            return tportData.getConfig().contains("tport." + player.getUniqueId() + ".home");
+        }
+    }
+    
+    @Nullable
+    public static TPort getHome(Player player) {
+        String homeID = tportData.getConfig().getString("tport." + player.getUniqueId() + ".home", TPortManager.defUUID.toString());
+        return TPortManager.getTPort(UUID.fromString(homeID));
     }
     
     @Override
@@ -70,40 +87,38 @@ public class SetHome extends SubCommand {
         //tport setHome <player> <TPort name>
         
         if (args.length == 1) {
-            if (tportData.getConfig().contains("tport." + player.getUniqueId() + ".home")) {
-                String homeID = tportData.getConfig().getString("tport." + player.getUniqueId() + ".home", TPortManager.defUUID.toString());
-                TPort tport = TPortManager.getTPort(UUID.fromString(homeID));
-                if (tport != null) {
-                    sendInfoTranslation(player, "tport.command.setHome.succeeded", tport);
-                } else {
-                    sendErrorTranslation(player, "tport.command.setHome.homeNotFound");
-                }
-            } else {
+            if (!hasHome(player, false)) {
                 sendErrorTranslation(player, "tport.command.setHome.noHome");
+                return;
             }
+            TPort tport = getHome(player);
+            if (tport == null) {
+                sendErrorTranslation(player, "tport.command.setHome.homeNotFound");
+                return;
+            }
+            
+            sendInfoTranslation(player, "tport.command.setHome.succeeded", tport);
         }
         else if (args.length == 3) {
-            
-            if (!emptyPlayerTPort.hasPermissionToRun(player, true)) {
+            if (!emptySetHomePlayerTPort.hasPermissionToRun(player, true)) {
                 return;
             }
             
             String newPlayerName = args[1];
-            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
-            if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-                sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
+            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName, player);
+            if (newPlayerUUID == null) {
                 return;
             }
             
             TPort tport = TPortManager.getTPort(newPlayerUUID, args[2]);
-            if (tport != null) {
-                tportData.getConfig().set("tport." + player.getUniqueId() + ".home", tport.getTportID().toString());
-                tportData.saveConfig();
-                sendSuccessTranslation(player, "tport.command.setHome.player.tportName.succeeded", asTPort(tport));
-            } else {
+            if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
+                return;
             }
             
+            tportData.getConfig().set("tport." + player.getUniqueId() + ".home", tport.getTportID().toString());
+            tportData.saveConfig();
+            sendSuccessTranslation(player, "tport.command.setHome.player.tportName.succeeded", asTPort(tport));
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport setHome [<player> <TPort>]");
         }

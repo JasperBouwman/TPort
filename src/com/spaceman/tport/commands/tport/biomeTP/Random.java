@@ -11,7 +11,13 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTra
 
 public class Random extends SubCommand {
     
-    public Random() {
+    private static final Random instance = new Random();
+    
+    public static Random getInstance() {
+        return instance;
+    }
+    
+    private Random() {
         setPermissions("TPort.biomeTP.random");
     }
     

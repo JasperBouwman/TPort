@@ -68,13 +68,14 @@ public class ListSize extends SubCommand {
         if (args.length == 2) {
             sendInfoTranslation(player, "tport.command.public.listSize.succeeded", getPublicTPortSize());
         } else if (args.length == 3) {
-            if (emptySize.hasPermissionToRun(player, true)) {
-                try {
-                    setPublicTPortSize(Integer.parseInt(args[2]));
-                    sendSuccessTranslation(player, "tport.command.public.listSize.size.succeeded", args[2]);
-                } catch (NumberFormatException nfe) {
-                    sendErrorTranslation(player, "tport.command.public.listSize.size.invalidNumber", args[2]);
-                }
+            if (!emptySize.hasPermissionToRun(player, true)) {
+                return;
+            }
+            try {
+                setPublicTPortSize(Integer.parseInt(args[2]));
+                sendSuccessTranslation(player, "tport.command.public.listSize.size.succeeded", args[2]);
+            } catch (NumberFormatException nfe) {
+                sendErrorTranslation(player, "tport.command.public.listSize.size.invalidNumber", args[2]);
             }
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public listSize [size]");

@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.delay;
 
-import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -18,9 +17,7 @@ import java.util.stream.Collectors;
 import static com.spaceman.tport.commands.tport.Delay.delayTime;
 import static com.spaceman.tport.commands.tport.Delay.isPermissionBased;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Get extends SubCommand {
     
@@ -31,9 +28,7 @@ public class Get extends SubCommand {
         emptyPlayer.setCommandName("player", ArgumentType.OPTIONAL);
         emptyPlayer.setCommandDescription(formatInfoTranslation("tport.command.delay.get.player.commandDescription", ColorTheme.ColorType.infoColor));
         emptyPlayer.setPermissions("TPort.delay.get.all", "TPort.admin.delay");
-        
         addAction(emptyPlayer);
-        setPermissions("TPort.delay.get.own");
     }
     
     @Override
@@ -41,7 +36,7 @@ public class Get extends SubCommand {
         if (!emptyPlayer.hasPermissionToRun(player, false)) {
             return Collections.emptyList();
         }
-        return isPermissionBased() ? Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()) : Main.getPlayerNames();
+        return isPermissionBased() ? Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()) : PlayerUUID.getPlayerNames();
     }
     
     @Override
@@ -54,9 +49,6 @@ public class Get extends SubCommand {
         // tport delay get [player]
         
         if (args.length == 2) {
-            if (!this.hasPermissionToRun(player, true)) {
-                return;
-            }
             int delay = delayTime(player);
             double seconds = delay / 20D;
             Message secondMessage;
@@ -66,24 +58,23 @@ public class Get extends SubCommand {
             if (delay == 1) tickMessage = formatSuccessTranslation("tport.command.minecraftTick");
             else tickMessage = formatSuccessTranslation("tport.command.minecraftTicks");
         
-            sendInfoTranslation(player, "tport.command.delay.get.player.succeeded", player, delay, tickMessage, seconds, secondMessage);
+            sendInfoTranslation(player, "tport.command.delay.get.player.succeeded", asPlayer(player), delay, tickMessage, seconds, secondMessage);
         } else if (args.length == 3) {
             if (!emptyPlayer.hasPermissionToRun(player, true)) {
                 return;
             }
     
-            UUID newUUID = PlayerUUID.getPlayerUUID(args[2]);
-            if (newUUID == null || !tportData.getConfig().contains("tport." + newUUID)) {
-                sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
+            UUID newUUID = PlayerUUID.getPlayerUUID(args[2], player);
+            if (newUUID == null) {
                 return;
             }
             
             int delay;
             Player newPlayer = null;
             if (isPermissionBased()) {
-                newPlayer = Bukkit.getPlayer(args[2]);
+                newPlayer = Bukkit.getPlayer(newUUID);
                 if (newPlayer == null) {
-                    sendErrorTranslation(player, "tport.command.playerNotOnline", args[2]);
+                    sendErrorTranslation(player, "tport.command.playerNotOnline", asPlayer(newUUID));
                     return;
                 }
                 delay = delayTime(player);

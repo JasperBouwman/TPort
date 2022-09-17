@@ -89,31 +89,31 @@ public class Redirect extends SubCommand {
             sendInfoTranslation(player, "tport.command.redirect.succeeded", list);
         } else if (args.length == 2) {
             Redirects redirect = Redirects.get(args[1]);
-            if (redirect != null) {
-                Message redirectStateMessage = formatTranslation(varInfoColor, ColorType.varInfo2Color,
-                        "tport.command.redirect.redirect." + (redirect.isEnabled() ? "enabled" : "disabled"));
-                sendInfoTranslation(player, "tport.command.redirect.redirect.succeeded", redirect, redirectStateMessage);
-            } else {
+            if (redirect == null) {
                 sendErrorTranslation(player, "tport.command.redirect.redirect.notExist", args[1]);
+                return;
             }
+            Message redirectStateMessage = formatTranslation(varInfoColor, ColorType.varInfo2Color,
+                    "tport.command.redirect.redirect." + (redirect.isEnabled() ? "enabled" : "disabled"));
+            sendInfoTranslation(player, "tport.command.redirect.redirect.succeeded", redirect, redirectStateMessage);
         } else if (args.length == 3) {
             if (!emptyRedirectState.hasPermissionToRun(player, true)) {
                 return;
             }
             
             Redirects redirect = Redirects.get(args[1]);
-            if (redirect != null) {
-                if (Main.isTrue(args[2])) {
-                    redirect.setEnabled(true);
-                    sendSuccessTranslation(player, "tport.command.redirect.redirect.state.succeeded", redirect,
-                            formatTranslation(varInfoColor, ColorType.varInfo2Color, "tport.command.redirect.redirect.enabled"));
-                } else {
-                    redirect.setEnabled(false);
-                    sendSuccessTranslation(player, "tport.command.redirect.redirect.state.succeeded", redirect,
-                            formatTranslation(varInfoColor, ColorType.varInfo2Color, "tport.command.redirect.redirect.disabled"));
-                }
-            } else {
+            if (redirect == null) {
                 sendErrorTranslation(player, "tport.command.redirect.redirect.notExist", args[1]);
+                return;
+            }
+            if (Main.isTrue(args[2])) {
+                redirect.setEnabled(true);
+                sendSuccessTranslation(player, "tport.command.redirect.redirect.state.succeeded", redirect,
+                        formatTranslation(varInfoColor, ColorType.varInfo2Color, "tport.command.redirect.redirect.enabled"));
+            } else {
+                redirect.setEnabled(false);
+                sendSuccessTranslation(player, "tport.command.redirect.redirect.state.succeeded", redirect,
+                        formatTranslation(varInfoColor, ColorType.varInfo2Color, "tport.command.redirect.redirect.disabled"));
             }
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport redirect [redirect] [state]");

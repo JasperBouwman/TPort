@@ -6,7 +6,6 @@ import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.TPRequest;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -15,7 +14,6 @@ import java.util.stream.Collectors;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Accept extends SubCommand {
     
@@ -63,9 +61,8 @@ public class Accept extends SubCommand {
         } else {
             playerLabel:
             for (int i = 2; i < args.length; i++) {
-                UUID requesterUUID = PlayerUUID.getPlayerUUID(args[i]);
-                if (requesterUUID == null || !tportData.getConfig().contains("tport." + requesterUUID)) {
-                    sendErrorTranslation(player, "tport.command.playerNotFound", args[i]);
+                UUID requesterUUID = PlayerUUID.getPlayerUUID(args[i], player);
+                if (requesterUUID == null) {
                     continue;
                 }
                 for (TPRequest request : list) {
@@ -75,7 +72,7 @@ public class Accept extends SubCommand {
                         continue playerLabel;
                     }
                 }
-                sendErrorTranslation(player, "tport.command.requests.accept.players.notRequesting", asPlayer(Bukkit.getPlayer(requesterUUID), requesterUUID));
+                sendErrorTranslation(player, "tport.command.requests.accept.players.notRequesting", asPlayer(requesterUUID));
             }
         }
     }

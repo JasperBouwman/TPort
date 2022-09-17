@@ -10,6 +10,7 @@ import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,14 +33,19 @@ public class Own extends SubCommand {
         emptyOwnTPortSafetyCheck.setCommandName("safetyCheck", ArgumentType.OPTIONAL);
         emptyOwnTPortSafetyCheck.setCommandDescription(formatInfoTranslation("tport.command.own.tport.safetyCheck.commandDescription"));
         emptyOwnTPortSafetyCheck.setPermissions("TPort.own", TPORT_OWN.getPermission(), "TPort.basic");
-    
+        
         emptyOwnTPort = new EmptyCommand();
         emptyOwnTPort.setCommandName("TPort name", ArgumentType.OPTIONAL);
         emptyOwnTPort.setCommandDescription(formatInfoTranslation("tport.command.own.tport.commandDescription"));
         emptyOwnTPort.setTabRunnable(((args, player) -> Arrays.asList("true", "false")));
         emptyOwnTPort.addAction(emptyOwnTPortSafetyCheck);
         emptyOwnTPort.setPermissions("TPort.own", "TPort.basic");
-        emptyOwnTPort.setTabRunnable(((args, player) -> Arrays.asList("true", "false")));
+        emptyOwnTPort.setTabRunnable(((args, player) -> {
+            if (!emptyOwnTPortSafetyCheck.hasPermissionToRun(player, false)) {
+                return Collections.emptyList();
+            }
+            return Arrays.asList("true", "false");
+        }));
         
         addAction(emptyOwnTPort);
         
@@ -57,6 +63,9 @@ public class Own extends SubCommand {
     
     @Override
     public List<String> tabList(Player player, String[] args) {
+        if (!emptyOwnTPort.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return getOwnTPorts(player);
     }
     

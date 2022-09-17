@@ -12,7 +12,7 @@ public class Transfer extends SubCommand {
     public Transfer() {
         addAction(new Offer());
         addAction(new Revoke());
-        addAction(new Accept());
+        addAction(Accept.getInstance());
         addAction(new Reject());
         addAction(new List());
     }

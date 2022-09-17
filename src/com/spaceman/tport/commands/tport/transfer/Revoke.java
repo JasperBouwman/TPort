@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class Revoke extends SubCommand {
     
@@ -35,25 +36,24 @@ public class Revoke extends SubCommand {
         
         if (args.length == 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
-            if (tport != null) {
-                if (tport.isOffered()) {
-                    UUID toPlayerUUID = tport.getOfferedTo();
-                    tport.setOfferedTo(null);
-                    tport.save();
-                    
-                    sendSuccessTranslation(player, "tport.command.transfer.revoke.tportName.succeeded", tport,
-                            asPlayer(toPlayerUUID));
-                    
-                    Player toPlayer = Bukkit.getPlayer(toPlayerUUID);
-                    if (toPlayer != null) {
-                        sendInfoTranslation(toPlayer, "tport.command.transfer.revoke.tportName.succeededOtherPlayer", player, tport);
-                    }
-                } else {
-                    sendErrorTranslation(player, "tport.command.transfer.revoke.tportName.notOffered", tport);
-                }
-            } else {
+            if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
+                return;
             }
+            if (!tport.isOffered()) {
+                sendErrorTranslation(player, "tport.command.transfer.revoke.tportName.notOffered", asTPort(tport));
+                return;
+            }
+            
+            UUID toPlayerUUID = tport.getOfferedTo();
+            tport.setOfferedTo(null);
+            tport.save();
+    
+            sendSuccessTranslation(player, "tport.command.transfer.revoke.tportName.succeeded",
+                    asTPort(tport), asPlayer(toPlayerUUID));
+    
+            Player toPlayer = Bukkit.getPlayer(toPlayerUUID);
+            sendInfoTranslation(toPlayer, "tport.command.transfer.revoke.tportName.succeededOtherPlayer", asPlayer(player), asTPort(tport));
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport transfer revoke <TPort name>");
         }

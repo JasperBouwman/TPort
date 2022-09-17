@@ -8,10 +8,7 @@ import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static com.spaceman.tport.commands.tport.BiomeTP.biomeTP;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
@@ -25,6 +22,9 @@ public class Whitelist extends SubCommand {
         emptyWhitelist.setCommandName("biome", ArgumentType.REQUIRED);
         emptyWhitelist.setCommandDescription(formatInfoTranslation("tport.command.biomeTP.whitelist.biome.commandDescription"));
         emptyWhitelist.setTabRunnable(((args, player) -> {
+            if (!hasPermission(player, false, true, "TPort.biomeTP.whitelist")) {
+                return Collections.emptyList();
+            }
             List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toLowerCase).toList();
             return BiomeTP.availableBiomes(player.getWorld()).stream().filter(name -> biomeList.stream().noneMatch(name::equals)).toList();
         }));
@@ -36,6 +36,9 @@ public class Whitelist extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!hasPermission(player, false, true, "TPort.biomeTP.whitelist")) {
+            return Collections.emptyList();
+        }
         List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toLowerCase).toList();
         return BiomeTP.availableBiomes(player.getWorld()).stream().filter(name -> biomeList.stream().noneMatch(name::equals)).toList();
     }

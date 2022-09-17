@@ -13,7 +13,6 @@ import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
-import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
 import com.spaceman.tport.metrics.CommandCounter;
 import com.spaceman.tport.metrics.FeatureSearchCounter;
@@ -96,64 +95,6 @@ public class Main extends JavaPlugin {
         return map;
     }
     
-    public static Location getLocation(String path) {
-        return getLocation(path, tportData);
-    }
-    
-    public static Location getLocation(String path, Files file) {
-        if (!file.getConfig().contains(path)) {
-            return null;
-        }
-        World world;
-        try {
-            world = Bukkit.getWorld(file.getConfig().getString(path + ".world", ""));
-        } catch (Exception e) {
-            return null;
-        }
-        if (world == null) {
-            return null;
-        }
-        
-        double x = file.getConfig().getDouble(path + ".x");
-        double y = file.getConfig().getDouble(path + ".y");
-        double z = file.getConfig().getDouble(path + ".z");
-        
-        float yaw = file.getConfig().getInt(path + ".yaw");
-        float pitch = file.getConfig().getInt(path + ".pitch");
-        
-        return new Location(world, x, y, z, yaw, pitch);
-    }
-    
-    public static void saveLocation(String path, Location location, Files tportData) {
-        tportData.getConfig().set(path + ".world", Objects.requireNonNull(location.getWorld()).getName());
-        tportData.getConfig().set(path + ".x", location.getX());
-        tportData.getConfig().set(path + ".y", location.getY());
-        tportData.getConfig().set(path + ".z", location.getZ());
-        tportData.getConfig().set(path + ".pitch", location.getPitch());
-        tportData.getConfig().set(path + ".yaw", location.getYaw());
-        tportData.saveConfig();
-    }
-    
-    public static ArrayList<String> getPlayerNames() {
-        ArrayList<String> list = new ArrayList<>();
-        for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
-            if (tportData.getConfig().contains("tport." + op.getUniqueId())) {
-                list.add(op.getName());
-            }
-        }
-        return list;
-    }
-    
-    public static ArrayList<UUID> getPlayerUUIDs() {
-        ArrayList<UUID> list = new ArrayList<>();
-        for (OfflinePlayer op : Bukkit.getOnlinePlayers()) {
-            if (tportData.getConfig().contains("tport." + op.getUniqueId())) {
-                list.add(op.getUniqueId());
-            }
-        }
-        return list;
-    }
-    
     public static boolean containsSpecialCharacter(String s) {
         if (s == null || s.trim().isEmpty()) {
             return true;
@@ -201,9 +142,9 @@ public class Main extends JavaPlugin {
     public static Boolean toBoolean(String arg) {
         return toBoolean(arg, null);
     }
-    public static Boolean toBoolean(String arg, Boolean def) {
+    public static Boolean toBoolean(String arg, @Nullable Boolean def) {
         boolean t = isTrue(arg), f = isFalse(arg);
-        return (!t && !f) ? def : t;
+        return (!t && !f) ? def : Boolean.valueOf(t);
     }
     
     public static boolean isTrue(String arg) {
@@ -226,42 +167,68 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         
         /*
-         * changelog 1.19 update:
+         * changelog 1.19.2 update:
          *
-         * fixed permissions of the commands:
-         *  /tport language repair <language> [repair with]     inverted check for permissions
-         *  /tport language server [language]                   did not check for permissions
+         * changed permission from '/tport edit <tport name> add <tag>' from TPort.edit.tag.add.<tag> to TPort.tags.type.<tag>
+         * removed permissions: TPort.delay.get.own and TPort.restriction.get.own. A player should always be able to get their delay/restriction
+         * removed permissions: TPort.particleAnimation.old.enable.get and TPort.particleAnimation.new.enable.get
          *
-         * added a TPort preview. With this you can preview a tport without less permission of the Tport owner.
-         *  /tport preview <player> <TPort name>
-         *  /tport features preview state [state]
-         *  /tport edit <TPort name> preview [state]
-         *  added the quick edit for the preview settings in your TPort GUI
-         *  in a TPort gui you can preview the TPort by pressing your drop key
+         * added the implementation for the permission of the command /tport safetyCheck check
          *
-         * fixed /tport backup load <name>
-         * fixed some inconsistencies
+         * added custom model data IDs to buttons in TPort GUI's. These work with the TPort Resource Pack.
+         * use /tport resourcePack state [state] to enable/disable the resource pack. When set to enabled, TPort prompts the sender to download the resource pack
+         * Commands:
+         *  /tport resourcePack
+         *  /tport resourcePack state [state]
+         *  /tport resourcePack resolution [resolution]
+         * These resource packs are freely downloadable on the github repository
          *
-         * created a Discord server for TPort
+         * set all permission detection after the syntax detection
          *
-         * /tport delay permissions [state] is now /tport delay handler [state]
-         * /tport restriction permissions [state] is now /tport restriction handler [state]
+         * added /tport world
+         * added a GUI for the command /tport world [world]
+         * This GUI can be opened from the command /tport world, or from the Main GUI
          *
-         * added /tport setHome. This allows you to see what your home is set to
+         * if a player opened a chest while previewing a TPort, the inventory opens. When the player started the preview near that chest the inventory stayed opened.
+         * Now the inventory won't even open
          *
-         * Fixed item duplication when the server was reloading but a player had still a TPort GUI open. After the reload the player could take all the items out of the inventory.
-         * Now all TPort inventories will be closed on reload
+         * with shift+left click you can invert the safety check for this teleport
+         * when using /tport open with one of your own TPort, it now used the TPORT_OWN safety check source
+         *
+         * added a home button on the Main GUI
+         * added '/tport setHome', this allows you to check what your home TPort is set to
+         *
+         * fixed /tport log add <tport name> <player[:LogMode]...>
+         * added error check for a non-existing log mode, previous it defaulted to ALL
+         *
+         *
+         * changed language key: 'tport.events.inventoryClick.onInventoryClick.clearSelectedBiomes' to 'tport.tportInventories.openBiomeTP.clearSelected.succeeded'
          */
         
         /*
          * //todo
          *
-         * add command syntax detection (check length, ect), and set permission after syntax detection
          * unify EmptyCommand names
          *
-         * add POI to featureTP
+         * add POI
+         *
+         * /tport history
+         * /tport history back
+         * /tport back -> tport history back ?
+         *
+         * redo the teleporter command
+         * - use on items
+         * - use om items in itemFrame
+         * - use on sign
+         *
+         * /tport home                              teleport home
+         * /tport home <true|false>                 teleport home with given safety check state
+         * /tport home get                          gives the current home set
+         * /tport home set <player> <Tport name>    sets the home of the selected TPort
          *
          * unify getPlayer in commands
+         *
+         * for the usage of the tab complete the player now need the permission to run the command
          *
          * /tport sort [popularity]
          *  create popularity system for /tport sort popularity
@@ -325,6 +292,7 @@ public class Main extends JavaPlugin {
         pm.registerEvents(new RespawnEvent(), this);
         pm.registerEvents(new CommandEvent(), this);
         pm.registerEvents(new FancyClickEvent(), this);
+//        pm.registerEvents(new TeleportEvents(), this);
         
         for (Player player : Bukkit.getOnlinePlayers()) {
             JoinEvent.setData(player);

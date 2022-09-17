@@ -11,6 +11,16 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTra
 
 public class ParticleAnimationCommand extends SubCommand {
     
+    public enum AnimationType {
+        OLD,
+        NEW;
+        
+        @Override
+        public String toString() {
+            return this.name().toLowerCase();
+        }
+    }
+    
     public ParticleAnimationCommand() {
         addAction(new New());
         addAction(new Old());
@@ -33,6 +43,7 @@ public class ParticleAnimationCommand extends SubCommand {
         // tport particleAnimation old test
         // tport particleAnimation old enable [state]
         // tport particleAnimation list
+        
         if (args.length > 1) {
             if (runCommands(getActions(), args[1], args, player)) {
                 return;

@@ -10,6 +10,7 @@ import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,7 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 
 public class Private extends SubCommand {
@@ -42,6 +44,9 @@ public class Private extends SubCommand {
     
     @Override
     public List<String> tabList(Player player, String[] args) {
+        if (!emptyState.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return Arrays.stream(TPort.PrivateState.values()).map(s -> s.name().toLowerCase()).collect(Collectors.toList());
     }
     
@@ -56,7 +61,6 @@ public class Private extends SubCommand {
     
         if (args.length == 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
-        
             if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
                 return;
@@ -67,23 +71,23 @@ public class Private extends SubCommand {
                     .addTextEvent(hoverEvent(textComponent("/tport help tport edit <tport name> private <state>", infoColor)))
                     .addTextEvent(ClickEvent.runCommand("/tport help tport edit <tport name> private <state>"))
             );
-            sendInfoTranslation(player, "tport.command.edit.private.succeeded", tport, tport.getPrivateState(), hereMessage);
+            sendInfoTranslation(player, "tport.command.edit.private.succeeded", asTPort(tport), tport.getPrivateState(), hereMessage);
         } else if (args.length == 4) {
             if (!emptyState.hasPermissionToRun(player, true)) {
                 return;
             }
+            
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
-        
             if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
                 return;
             }
             if (tport.isOffered()) {
                 sendErrorTranslation(player, "tport.command.edit.private.state.isOffered",
-                        tport, asPlayer(tport.getOfferedTo()));
+                        asTPort(tport), asPlayer(tport.getOfferedTo()));
                 return;
             }
-        
+            
             TPort.PrivateState ps;
             ps = TPort.PrivateState.get(args[3], null);
             if (ps == null) {
@@ -92,13 +96,13 @@ public class Private extends SubCommand {
             }
             if (tport.isPublicTPort()) {
                 if (!ps.canGoPublic()) {
-                    sendErrorTranslation(player, "tport.command.edit.private.state.isPublic", tport, ps);
+                    sendErrorTranslation(player, "tport.command.edit.private.state.isPublic", asTPort(tport), ps);
                     return;
                 }
             }
             tport.setPrivateState(ps);
             tport.save();
-            sendSuccessTranslation(player, "tport.command.edit.private.state.succeeded", tport, ps);
+            sendSuccessTranslation(player, "tport.command.edit.private.state.succeeded", asTPort(tport), ps);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> private [state]");
         }

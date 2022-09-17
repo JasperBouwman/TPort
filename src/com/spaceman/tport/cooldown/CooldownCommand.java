@@ -13,18 +13,23 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class CooldownCommand extends SubCommand {
     
-    protected static final EmptyCommand emptyCooldownValue = new EmptyCommand();
+    private static final CooldownCommand instance = new CooldownCommand();
+    public static CooldownCommand getInstance() {
+        return instance;
+    }
+    
+    protected final EmptyCommand emptyCooldownCooldownValue = new EmptyCommand();
     
     public CooldownCommand() {
-        emptyCooldownValue.setCommandName("value", ArgumentType.OPTIONAL);
-        emptyCooldownValue.setCommandDescription(formatInfoTranslation("tport.cooldown.cooldownCommand.value.commandDescription"));
-        emptyCooldownValue.setPermissions("TPort.cooldown.set", "TPort.admin.cooldown");
+        emptyCooldownCooldownValue.setCommandName("value", ArgumentType.OPTIONAL);
+        emptyCooldownCooldownValue.setCommandDescription(formatInfoTranslation("tport.cooldown.cooldownCommand.value.commandDescription"));
+        emptyCooldownCooldownValue.setPermissions("TPort.cooldown.set", "TPort.admin.cooldown");
         
-        EmptyCommand emptyCooldown = new EmptyCommand();
-        emptyCooldown.setCommandName("cooldown", ArgumentType.REQUIRED);
-        emptyCooldown.setCommandDescription(formatInfoTranslation("tport.cooldown.cooldownCommand.commandDescription"));
-        emptyCooldown.setTabRunnable((args, player) -> {
-            if (!emptyCooldownValue.hasPermissionToRun(player, false)) return new ArrayList<>();
+        EmptyCommand emptyCooldownCooldown = new EmptyCommand();
+        emptyCooldownCooldown.setCommandName("cooldown", ArgumentType.REQUIRED);
+        emptyCooldownCooldown.setCommandDescription(formatInfoTranslation("tport.cooldown.cooldownCommand.commandDescription"));
+        emptyCooldownCooldown.setTabRunnable((args, player) -> {
+            if (!emptyCooldownCooldownValue.hasPermissionToRun(player, false)) return new ArrayList<>();
             
             ArrayList<String> originalList = new ArrayList<>();
             Arrays.stream(CooldownManager.values()).map(CooldownManager::name).forEach(originalList::add);
@@ -37,8 +42,8 @@ public class CooldownCommand extends SubCommand {
             
             return new ArrayList<>();
         });
-        emptyCooldown.addAction(emptyCooldownValue);
-        addAction(emptyCooldown);
+        emptyCooldownCooldown.addAction(emptyCooldownCooldownValue);
+        addAction(emptyCooldownCooldown);
     }
     
     @Override
@@ -66,7 +71,7 @@ public class CooldownCommand extends SubCommand {
             }
             
         } else if (args.length == 3) {
-            if (!emptyCooldownValue.hasPermissionToRun(player, true)) {
+            if (!emptyCooldownCooldownValue.hasPermissionToRun(player, true)) {
                 return;
             }
             if (CooldownManager.contains(args[1])) {

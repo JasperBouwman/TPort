@@ -4,6 +4,7 @@ import com.google.common.base.CharMatcher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
+import com.spaceman.tport.commands.tport.resourcePack.Resolution;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.encapsulation.Encapsulation;
@@ -49,6 +50,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
@@ -530,7 +533,8 @@ public class MessageUtils {
         argumentTranslator.put("messageDescription", (text, object, color, varColor) -> {
             if (object instanceof MessageDescription messageDescription) {
                 TextComponent component = new TextComponent(messageDescription.getName(), varColor);
-                component.addTextEvent(new HoverEvent(messageDescription.getDescription()));
+                Message description = messageDescription.getDescription();
+                if (description != null && !description.isEmpty()) component.addTextEvent(new HoverEvent(description));
                 component.setInsertion(messageDescription.getInsertion());
                 text.addTranslateWith(component);
                 return true;
@@ -583,6 +587,19 @@ public class MessageUtils {
                 TextComponent component = new TextComponent(item.getType().name(), varColor);
                 component.addTextEvent(new HoverEvent(textComponent(item.toString())));
                 component.setInsertion(component.getText());
+                text.addTranslateWith(component);
+                return true;
+            }
+            return false;
+        });
+        argumentTranslator.put("resourcePackResolution", (text, object, color, varColor) -> {
+            if (object instanceof Resolution.Resolutions resolution) {
+                TextComponent component = new TextComponent(resolution.name(), varColor);
+                component.setInsertion(resolution.name());
+                
+                component.addTextEvent(new HoverEvent(resolution.getDescription()));
+                if (resolution.getURL() != null) component.addTextEvent(new ClickEvent(ClickEvent.OPEN_URL, resolution.getURL()));
+                
                 text.addTranslateWith(component);
                 return true;
             }
@@ -677,15 +694,16 @@ public class MessageUtils {
     public static Message translateTextComponent(TextComponent textComponent, JsonObject translateFile) {
         return translateMessage(new Message(textComponent), translateFile);
     }
-    public static Collection<Message> translateMessage(Collection<Message> toTranslate, JsonObject translateFile) {
-        Collection<Message> returnCollection = new ArrayList<>();
+    public static List<Message> translateMessage(List<Message> toTranslate, JsonObject translateFile) {
+        List<Message> returnCollection = new ArrayList<>();
         for (Message message : toTranslate) {
             returnCollection.add(translateMessage(message, translateFile));
         }
         return returnCollection;
     }
-    public static Message translateMessage(Message toTranslate, @Nullable JsonObject translateFile) {
+    public static Message translateMessage(@Nullable Message toTranslate, @Nullable JsonObject translateFile) {
         if (translateFile == null) return toTranslate;
+        if (toTranslate == null) return null;
         
         Message message = new Message();
         

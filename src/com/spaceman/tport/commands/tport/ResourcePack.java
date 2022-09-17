@@ -4,12 +4,17 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.resourcePack.Resolution;
+import com.spaceman.tport.commands.tport.resourcePack.State;
 import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.UUID;
 
+import static com.spaceman.tport.commandHandler.CommandTemplate.convertToArgs;
+import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.events.ClickEvent.openUrl;
@@ -19,25 +24,23 @@ import static com.spaceman.tport.fileHander.Files.tportConfig;
 public class ResourcePack extends SubCommand {
     
     public ResourcePack() {
-        EmptyCommand emptyState = new EmptyCommand();
-        emptyState.setCommandName("state", ArgumentType.OPTIONAL);
-        emptyState.setCommandDescription(formatInfoTranslation("tport.command.resourcePack.state.commandDescription"));
+        EmptyCommand empty = new EmptyCommand() {
+            @Override
+            public String getName(String argument) {
+                return "";
+            }
+        };
+        empty.setCommandName("", ArgumentType.FIXED);
+        empty.setCommandDescription(formatInfoTranslation("tport.command.resourcePack.commandDescription"));
         
-        addAction(emptyState);
-    }
-    
-    @Override
-    public Collection<String> tabList(Player player, String[] args) {
-        return Arrays.asList("true", "false");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.resourcePack.commandDescription");
+        addAction(empty);
+        addAction(new State());
+        addAction(new Resolution());
     }
     
     @Override
     public void run(String[] args, Player player) {
+        // tport resourcePack
         // tport resourcePack state [state]
         // tport resourcePack resolution [resolution]
         
@@ -45,50 +48,57 @@ public class ResourcePack extends SubCommand {
             boolean state = tportConfig.getConfig().getBoolean("resourcePack." + player.getUniqueId() + ".state", false);
             
             Message stateMessage = formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.resourcePack." + (state ? "enabled" : "disabled") );
-            final String resourcePath = "https://github.com/JasperBouwman/TPort/blob/master/resource%20pack/pack/TPort.zip";
+            final String releasePath = "https://github.com/JasperBouwman/TPort/releases/tag/TPort%20" + Main.getInstance().getDescription().getVersion();
             Message hereMessage = formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.resourcePack.here");
             hereMessage.getText().forEach(t -> t
-                    .setInsertion(resourcePath)
-                    .addTextEvent(hoverEvent(textComponent(resourcePath, ColorType.infoColor)))
-                    .addTextEvent(openUrl(resourcePath)));
+                    .setInsertion(releasePath)
+                    .addTextEvent(hoverEvent(textComponent(releasePath, ColorType.infoColor)))
+                    .addTextEvent(openUrl(releasePath)));
             
-            sendInfoTranslation(player, "tport.command.resourcePack.succeeded", stateMessage, hereMessage);
-        } else if (args.length == 2) {
-            Boolean newState = Main.toBoolean(args[1]);
-            if (newState == null) {
-                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport resourcePack <true|false>");
-                return;
-            }
-            
-            boolean state = tportConfig.getConfig().getBoolean("resourcePack." + player.getUniqueId() + ".state", false);
-            if (newState == state) {
-                Message stateMessage = formatTranslation(ColorType.varErrorColor, ColorType.varError2Color, "tport.command.resourcePack." + (newState ? "enabled" : "disabled") );
-                sendErrorTranslation(player, "tport.command.resourcePack.state.alreadyInState", stateMessage);
-                return;
-            }
-            
-            tportConfig.getConfig().set("resourcePack." + player.getUniqueId() + ".state", newState);
-            tportConfig.saveConfig();
-            
-            updateResourcePack(player);
-            
-            if (newState) {
-                Message stateMessage = formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.resourcePack.enabled");
-                sendInfoTranslation(player, "tport.command.resourcePack.state.succeeded.enabled", stateMessage);
-            } else {
-                Message stateMessage = formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.resourcePack.disabled");
-                sendInfoTranslation(player, "tport.command.resourcePack.state.succeeded.disabled", stateMessage);
+            sendInfoTranslation(player, "tport.command.resourcePack.succeeded", stateMessage, getResourcePackResolution(player.getUniqueId()), hereMessage);
+        } else if (args.length > 1) {
+            if (!runCommands(this.getActions(), args[1], args, player)) {
+                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport resourcePack " + convertToArgs(this.getActions(), false));
             }
         } else {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport resourcePack [state]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport resourcePack " + convertToArgs(this.getActions(), false));
         }
     }
     
+    public static boolean getResourcePackState(UUID uuid) {
+        return tportConfig.getConfig().getBoolean("resourcePack." + uuid + ".state", false);
+    }
+    public static void setResourcePackState(UUID uuid, boolean state) {
+        tportConfig.getConfig().set("resourcePack." + uuid + ".state", state);
+        tportConfig.saveConfig();
+    }
+    public static Resolution.Resolutions getResourcePackResolution(UUID uuid) {
+        return Resolution.Resolutions.get(tportConfig.getConfig().getString("resourcePack." + uuid + ".resolution"), Resolution.Resolutions.x16);
+    }
+    public static void setResourcePackResolution(UUID uuid, Resolution.Resolutions resolution) {
+        tportConfig.getConfig().set("resourcePack." + uuid + ".resolution", resolution.name());
+        tportConfig.saveConfig();
+    }
+    
     public static void updateResourcePack(Player player) {
-        boolean state = tportConfig.getConfig().getBoolean("resourcePack." + player.getUniqueId() + ".state", false);
-        if (state) {
-            String resourcePath = "https://github.com/JasperBouwman/TPort/raw/master/resource%20pack/pack/TPort.zip";
-            player.setResourcePack(resourcePath, null, "test", false); //todo test
+        if (getResourcePackState(player.getUniqueId())) {
+            Resolution.Resolutions res = getResourcePackResolution(player.getUniqueId());
+            String resourcePath = res.getURL();
+            if (resourcePath != null) {
+                player.setResourcePack(resourcePath, null, "For a best experience with TPort you should enable the TPort Resource Pack", false);
+            }
         }
+    }
+    
+    public static ItemStack applyModelData(ItemStack is, int modelData, UUID uuid) {
+        if (!getResourcePackState(uuid)) return is;
+        
+        ItemMeta im = is.getItemMeta();
+        if (im == null) return is;
+        
+        im.setCustomModelData(modelData);
+        is.setItemMeta(im);
+        
+        return is;
     }
 }

@@ -11,11 +11,13 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Reject extends SubCommand {
@@ -27,8 +29,14 @@ public class Reject extends SubCommand {
         
         EmptyCommand emptyPlayer = new EmptyCommand();
         emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
-        emptyPlayer.setTabRunnable((args, player) -> TPortManager.getTPortList(PlayerUUID.getPlayerUUID(args[2])).
-                stream().filter(tport -> player.getUniqueId().equals(tport.getOfferedTo())).map(TPort::getName).collect(Collectors.toList()));
+        emptyPlayer.setTabRunnable((args, player) -> {
+            UUID newUUID = PlayerUUID.getPlayerUUID(args[2]);
+            if (newUUID == null) {
+                return Collections.emptyList();
+            }
+            return TPortManager.getTPortList(newUUID).
+                    stream().filter(tport -> player.getUniqueId().equals(tport.getOfferedTo())).map(TPort::getName).collect(Collectors.toList());
+        });
         emptyPlayer.addAction(emptyTPort);
         addAction(emptyPlayer);
     }
@@ -56,9 +64,8 @@ public class Reject extends SubCommand {
             return;
         }
         
-        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2]);
-        if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-            sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
+        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2], player);
+        if (newPlayerUUID == null) {
             return;
         }
         
@@ -69,7 +76,7 @@ public class Reject extends SubCommand {
         }
         
         if (!player.getUniqueId().equals(tport.getOfferedTo())) {
-            sendErrorTranslation(player, "tport.command.transfer.reject.player.tportName.notOffered", tport);
+            sendErrorTranslation(player, "tport.command.transfer.reject.player.tportName.notOffered", asTPort(tport));
             return;
         }
         
@@ -77,9 +84,9 @@ public class Reject extends SubCommand {
         tport.save();
         
         Player oldPlayer = Bukkit.getPlayer(tport.getOwner());
-        sendSuccessTranslation(player, "tport.command.transfer.reject.player.tportName.succeeded", tport,
+        sendSuccessTranslation(player, "tport.command.transfer.reject.player.tportName.succeeded", asTPort(tport),
                 asPlayer(oldPlayer, tport.getOwner()));
         
-        sendInfoTranslation(oldPlayer, "tport.command.transfer.reject.player.tportName.succeededOtherPlayer", player, tport);
+        sendInfoTranslation(oldPlayer, "tport.command.transfer.reject.player.tportName.succeededOtherPlayer", asPlayer(player), asTPort(tport));
     }
 }

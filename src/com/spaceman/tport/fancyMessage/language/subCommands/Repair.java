@@ -13,32 +13,41 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Collection;
+import java.util.Collections;
 
 import static com.google.gson.JsonParser.parseReader;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Repair extends SubCommand {
     
-    private final EmptyCommand emptyRepairWith;
+    private final EmptyCommand emptyRepairLanguageRepairWith;
     
     public Repair() {
-        emptyRepairWith = new EmptyCommand();
-        emptyRepairWith.setCommandName("repair with", ArgumentType.OPTIONAL);
-        emptyRepairWith.setPermissions("TPort.language.repair", "TPort.admin.language");
-        emptyRepairWith.setCommandDescription(formatInfoTranslation("tport.command.language.repair.language.repairWith.commandDescription"));
+        emptyRepairLanguageRepairWith = new EmptyCommand();
+        emptyRepairLanguageRepairWith.setCommandName("repair with", ArgumentType.OPTIONAL);
+        emptyRepairLanguageRepairWith.setPermissions("TPort.language.repair", "TPort.admin.language");
+        emptyRepairLanguageRepairWith.setCommandDescription(formatInfoTranslation("tport.command.language.repair.language.repairWith.commandDescription"));
         
-        EmptyCommand emptyLanguage = new EmptyCommand();
-        emptyLanguage.setCommandName("language", ArgumentType.REQUIRED);
-        emptyLanguage.setCommandDescription(formatInfoTranslation("tport.command.language.repair.language.commandDescription"));
-        emptyLanguage.setTabRunnable(((args, player) -> Language.getAvailableLang()));
-        emptyLanguage.setPermissions(emptyRepairWith.getPermissions());
-        emptyLanguage.addAction(emptyRepairWith);
+        EmptyCommand emptyRepairLanguage = new EmptyCommand();
+        emptyRepairLanguage.setCommandName("language", ArgumentType.REQUIRED);
+        emptyRepairLanguage.setCommandDescription(formatInfoTranslation("tport.command.language.repair.language.commandDescription"));
+        emptyRepairLanguage.setTabRunnable(((args, player) -> {
+            if (!emptyRepairLanguageRepairWith.hasPermissionToRun(player, false)) {
+                return Collections.emptyList();
+            }
+            return Language.getAvailableLang();
+        }));
+        emptyRepairLanguage.setPermissions(emptyRepairLanguageRepairWith.getPermissions());
+        emptyRepairLanguage.addAction(emptyRepairLanguageRepairWith);
         
-        addAction(emptyLanguage);
+        addAction(emptyRepairLanguage);
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!emptyRepairLanguageRepairWith.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return Language.getAvailableLang();
     }
     
@@ -47,7 +56,7 @@ public class Repair extends SubCommand {
         // tport language repair <language> [repair with]
         
         if (args.length == 3) {
-            if (!emptyRepairWith.hasPermissionToRun(player, true)) {
+            if (!emptyRepairLanguageRepairWith.hasPermissionToRun(player, true)) {
                 return;
             }
             
@@ -80,7 +89,7 @@ public class Repair extends SubCommand {
             }
             
         } else if (args.length == 4) {
-            if (!emptyRepairWith.hasPermissionToRun(player, true)) {
+            if (!emptyRepairLanguageRepairWith.hasPermissionToRun(player, true)) {
                 return;
             }
             

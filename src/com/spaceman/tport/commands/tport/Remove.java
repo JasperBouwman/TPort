@@ -32,23 +32,23 @@ public class Remove extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport remove <TPort name>
-        
-        if (args.length == 2) {
-            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
-            if (tport != null) {
-                if (tport.isOffered()) {
-                    sendErrorTranslation(player, "tport.command.remove.isOffered", tport.getName(), PlayerUUID.getPlayerName(tport.getOfferedTo()));
-                    return;
-                }
-                removePublicTPort(tport.getName(), player, true);
-                TPortManager.removeTPort(tport);
-                sendSuccessTranslation(player, "tport.command.remove.succeeded", tport.getName());
-                Main.giveItems(player, tport.getItem());
-            } else {
-                sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
-            }
-        } else {
+    
+        if (args.length != 2) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport remove <TPort name>");
+            return;
         }
+        TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
+        if (tport == null) {
+            sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
+            return;
+        }
+        if (tport.isOffered()) {
+            sendErrorTranslation(player, "tport.command.remove.isOffered", tport.getName(), PlayerUUID.getPlayerName(tport.getOfferedTo()));
+            return;
+        }
+        removePublicTPort(tport.getName(), player, true);
+        TPortManager.removeTPort(tport);
+        sendSuccessTranslation(player, "tport.command.remove.succeeded", tport.getName());
+        Main.giveItems(player, tport.getItem());
     }
 }

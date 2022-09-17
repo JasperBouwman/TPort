@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.teleporter.create;
 
-import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 import static com.spaceman.tport.commands.tport.teleporter.Create.createTeleporter;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
-import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class TPort extends SubCommand {
     
@@ -52,7 +50,7 @@ public class TPort extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        return Main.getPlayerNames();
+        return PlayerUUID.getPlayerNames();
     }
     
     @Override
@@ -75,11 +73,10 @@ public class TPort extends SubCommand {
             UUID newPlayerUUID = null;
             String tportUUID = null;
             if (args.length > 3) {
-                Pair<String, UUID> profile = PlayerUUID.getProfile(args[3]);
+                Pair<String, UUID> profile = PlayerUUID.getProfile(args[3], player);
                 newPlayerName = profile.getLeft();
                 newPlayerUUID = profile.getRight();
-                if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-                    sendErrorTranslation(player, "tport.command.playerNotFound", args[3]);
+                if (newPlayerUUID == null) {
                     return;
                 }
                 addedLore.add(formatInfoTranslation("tport.command.teleporter.create.format.data.tport.player", newPlayerName));

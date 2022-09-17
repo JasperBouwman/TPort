@@ -12,16 +12,14 @@ import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.Files.tportData;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class Offer extends SubCommand {
     
@@ -36,12 +34,15 @@ public class Offer extends SubCommand {
         EmptyCommand emptyPlayer = new EmptyCommand();
         emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
         emptyPlayer.setTabRunnable((args, player) -> {
+            if (!emptyPlayerTPort.hasPermissionToRun(player, false)) {
+                return Collections.emptyList();
+            }
             Player p = Bukkit.getPlayer(args[2]);
-            if (p == null || !Accept.emptyPlayerTPort.hasPermissionToRun(p, false)) {
+            if (p == null || !Accept.getInstance().emptyPlayerTPort.hasPermissionToRun(p, false)) {
                 return new ArrayList<>();
             }
             List<String> list = TPortManager.getTPortList(player.getUniqueId()).stream().filter(tport -> !tport.isOffered()).map(TPort::getName).collect(Collectors.toList());
-            TPortManager.getTPortList(p.getUniqueId()).stream().map(TPort::getName).forEach(s -> list.removeIf(ss -> ss.equalsIgnoreCase(s))); //remove name duplicates (case insensitive)
+            TPortManager.getTPortList(p.getUniqueId()).stream().map(TPort::getName).forEach(s -> list.removeIf(ss -> ss.equalsIgnoreCase(s))); //remove name duplicates (case-insensitive)
             return list;
         });
         emptyPlayer.addAction(emptyPlayerTPort);
@@ -50,9 +51,12 @@ public class Offer extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!emptyPlayerTPort.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return Bukkit.getOnlinePlayers().stream()
                 .filter(p -> !p.getName().equalsIgnoreCase(player.getName()))
-                .filter(p -> Accept.emptyPlayerTPort.hasPermissionToRun(p, false))
+                .filter(p -> Accept.getInstance().emptyPlayerTPort.hasPermissionToRun(p, false))
                 .map(Player::getName)
                 .collect(Collectors.toList());
     }
@@ -70,12 +74,10 @@ public class Offer extends SubCommand {
             return;
         }
         
-        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2]);
-        if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-            sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
+        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2], player);
+        if (newPlayerUUID == null) {
             return;
         }
-        
         Player toPlayer = Bukkit.getPlayer(newPlayerUUID);
         if (toPlayer == null) {
             sendErrorTranslation(player, "tport.command.playerNotOnline", asPlayer(newPlayerUUID));
@@ -89,18 +91,18 @@ public class Offer extends SubCommand {
         }
         
         if (tport.isPublicTPort()) {
-            sendErrorTranslation(player, "tport.command.transfer.offer.player.tportName.isPublic", tport);
+            sendErrorTranslation(player, "tport.command.transfer.offer.player.tportName.isPublic", asTPort(tport));
             return;
         }
         
         if (tport.isOffered()) {
             sendErrorTranslation(player, "tport.command.transfer.offer.player.tportName.isOffered",
-                    tport, asPlayer(tport.getOfferedTo()));
+                    asTPort(tport), asPlayer(tport.getOfferedTo()));
             return;
         }
         
         if (TPortManager.getTPort(toPlayer.getUniqueId(), tport.getName()) != null) {
-            sendErrorTranslation(player, "tport.command.transfer.offer.player.tportName.alreadyHasName", toPlayer, tport);
+            sendErrorTranslation(player, "tport.command.transfer.offer.player.tportName.alreadyHasName", asPlayer(toPlayer), asTPort(tport));
             return;
         }
         
@@ -109,8 +111,8 @@ public class Offer extends SubCommand {
         
         ColorTheme theme = ColorTheme.getTheme(toPlayer);
         sendInfoTranslation(toPlayer, "tport.command.transfer.offer.player.tportName.succeededOtherPlayer",
-                tport,
-                player,
+                asTPort(tport),
+                asPlayer(player),
                 textComponent("/tport transfer accept " + player.getName() + " " + tport.getName(), theme.getVarInfoColor(),
                         new HoverEvent(textComponent("/tport transfer accept " + player.getName() + " " + tport.getName(), theme.getInfoColor())),
                         ClickEvent.runCommand("/tport transfer accept " + player.getName() + " " + tport.getName())),
@@ -120,7 +122,8 @@ public class Offer extends SubCommand {
         
         ColorTheme ownTheme = ColorTheme.getTheme(player);
         sendSuccessTranslation(player, "tport.command.transfer.offer.player.tportName.succeeded",
-                tport, toPlayer,
+                asTPort(tport),
+                asPlayer(toPlayer),
                 textComponent("/tport transfer revoke " + tport.getName(), ownTheme.getVarSuccessColor(),
                         new HoverEvent(textComponent("/tport transfer revoke " + tport.getName(), ownTheme.getSuccessColor())),
                         ClickEvent.runCommand("/tport transfer revoke " + tport.getName())));

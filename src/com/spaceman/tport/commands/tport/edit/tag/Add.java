@@ -23,7 +23,7 @@ public class Add extends SubCommand {
         EmptyCommand emptyTag = new EmptyCommand();
         emptyTag.setCommandName("tag", ArgumentType.REQUIRED);
         emptyTag.setCommandDescription(formatInfoTranslation("tport.command.edit.tag.add.commandDescription"));
-        emptyTag.setPermissions("TPort.edit.tag.add.<tag>");
+        emptyTag.setPermissions(tagPermPrefix + "<tag>");
         addAction(emptyTag);
     }
     
@@ -43,8 +43,17 @@ public class Add extends SubCommand {
         // tport edit <TPort name> tag add <tag>
         
         if (args.length == 5) {
-            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
+            String tag = Tag.getTag(args[4]);
+            if (tag == null) {
+                sendErrorTranslation(player, "tport.command.edit.tag.add.tagNotFound", args[4]);
+                return;
+            }
+            if (!hasPermission(player, false, tagPermPrefix + tag)) {
+                sendErrorTranslation(player, "tport.command.edit.tag.add.noPermissionToUseTag", tagPermPrefix + tag, tag);
+                return;
+            }
             
+            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
             if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
                 return;
@@ -52,22 +61,6 @@ public class Add extends SubCommand {
             if (tport.isOffered()) {
                 sendErrorTranslation(player, "tport.command.edit.tag.add.isOffered",
                         tport, asPlayer(tport.getOfferedTo()));
-                return;
-            }
-            
-            String tag = Tag.getTag(args[4]);
-            
-            if (tag == null) {
-                sendErrorTranslation(player, "tport.command.edit.tag.add.tagNotFound", args[4]);
-                return;
-            }
-            
-            if (!hasPermission(player, true, "TPort.edit.tag.add." + tag)) {
-                return;
-            }
-            
-            if (!hasPermission(player, false, tagPermPrefix + tag)) {
-                sendErrorTranslation(player, "tport.command.edit.tag.add.noPermissionToUseTag", tagPermPrefix + tag, tag);
                 return;
             }
             

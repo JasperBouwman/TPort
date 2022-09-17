@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "minecraft:block/end_stone"
+  },
+	"overrides": [
+		{"predicate": {"custom_model_data": 5145498},"model": "tport:item/the_end"}
+	]
+}

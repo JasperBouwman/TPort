@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class Clear extends SubCommand {
     
@@ -44,7 +45,7 @@ public class Clear extends SubCommand {
                 if (tport != null) {
                     tport.clearLogBook();
                     tport.save();
-                    sendSuccessTranslation(player, "tport.command.log.clear.tportName.succeeded", tport);
+                    sendSuccessTranslation(player, "tport.command.log.clear.tportName.succeeded", asTPort(tport));
                 } else {
                     sendErrorTranslation(player, "tport.command.noTPortFound", args[i]);
                 }

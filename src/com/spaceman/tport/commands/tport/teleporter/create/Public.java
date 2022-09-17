@@ -30,7 +30,7 @@ public class Public extends SubCommand {
         emptyPublicTPort.setPermissions("TPort.teleporter.create");
         
         addAction(emptyPublicTPort);
-    
+        
         setPermissions("TPort.teleporter.create");
     }
     

@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.delay;
 
-import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -14,12 +13,11 @@ import java.util.Collections;
 import java.util.UUID;
 
 import static com.spaceman.tport.commands.tport.Delay.isPermissionBased;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varError2Color;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varErrorColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fileHander.Files.tportConfig;
-import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Set extends SubCommand {
     
@@ -42,7 +40,7 @@ public class Set extends SubCommand {
     public Collection<String> tabList(Player player, String[] args) {
         if (emptyPlayerDelay.hasPermissionToRun(player, false)) {
             if (!isPermissionBased()) {
-                return Main.getPlayerNames();
+                return PlayerUUID.getPlayerNames();
             }
         }
         return Collections.emptyList();
@@ -66,9 +64,8 @@ public class Set extends SubCommand {
             return;
         }
         
-        UUID newUUID = PlayerUUID.getPlayerUUID(args[2]);
-        if (newUUID == null || !tportData.getConfig().contains("tport." + newUUID)) {
-            sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
+        UUID newUUID = PlayerUUID.getPlayerUUID(args[2], player);
+        if (newUUID == null) {
             return;
         }
         
@@ -97,7 +94,7 @@ public class Set extends SubCommand {
         } else {
             Player otherPlayer = Bukkit.getPlayer(newUUID);
             sendSuccessTranslation(player, "tport.command.delay.set.player.delay.succeeded", asPlayer(otherPlayer, newUUID), delay, tickMessage, seconds, secondMessage);
-            sendInfoTranslation(otherPlayer, "tport.command.delay.set.player.delay.succeededOtherPlayer", player, delay, tickMessage, seconds, secondMessage);
+            sendInfoTranslation(otherPlayer, "tport.command.delay.set.player.delay.succeededOtherPlayer", asPlayer(player), delay, tickMessage, seconds, secondMessage);
         }
     }
 }

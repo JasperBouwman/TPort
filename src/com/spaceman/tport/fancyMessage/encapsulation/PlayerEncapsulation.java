@@ -1,6 +1,5 @@
 package com.spaceman.tport.fancyMessage.encapsulation;
 
-import com.spaceman.tport.Pair;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
@@ -21,10 +20,6 @@ public class PlayerEncapsulation extends Encapsulation {
     private final UUID uuid;
     private final String name;
     
-    public static PlayerEncapsulation asPlayer(String name) {
-        return new PlayerEncapsulation(name);
-    }
-    
     public static PlayerEncapsulation asPlayer(@Nonnull UUID uuid) {
         return new PlayerEncapsulation(uuid);
     }
@@ -40,12 +35,6 @@ public class PlayerEncapsulation extends Encapsulation {
     public static PlayerEncapsulation asPlayer(@Nullable Player player, UUID uuid) {
         if (player != null) return new PlayerEncapsulation(player.getUniqueId(), player.getName());
         else                return new PlayerEncapsulation(uuid);
-    }
-    
-    public PlayerEncapsulation(String name) {
-        Pair<String, UUID> p = PlayerUUID.getProfile(name);
-        this.name = p.getLeft();
-        this.uuid = p.getRight();
     }
     
     public PlayerEncapsulation(@Nonnull UUID uuid) {

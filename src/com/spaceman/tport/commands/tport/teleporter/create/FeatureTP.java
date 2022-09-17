@@ -118,7 +118,7 @@ public class FeatureTP extends SubCommand {
                 }
             }
             
-            Collection<Message> addedLore = new ArrayList<>();
+            List<Message> addedLore = new ArrayList<>();
             String command = "featureTP";
             
             if (mode != null) {

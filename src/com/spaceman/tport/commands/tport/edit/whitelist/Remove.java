@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Remove extends SubCommand {
     
@@ -46,7 +45,7 @@ public class Remove extends SubCommand {
     public void run(String[] args, Player player) {
         //tport edit <TPort name> whitelist remove <player...>
         
-        if (args.length == 4) {
+        if (args.length <= 4) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> whitelist remove <player...>");
             return;
         }
@@ -65,20 +64,18 @@ public class Remove extends SubCommand {
         
         for (int i = 4; i < args.length; i++) {
             String newPlayerName = args[i];
-            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
-            if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-                sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
-                return;
-            }
-            Player newPlayer = Bukkit.getPlayer(newPlayerUUID);
-            if (tport.removeWhitelist(newPlayerUUID)) {
-                sendSuccessTranslation(player, "tport.command.edit.whitelist.remove.succeeded", asPlayer(newPlayerUUID), tport);
-            } else {
-                sendErrorTranslation(player, "tport.command.edit.whitelist.remove.notInList", asPlayer(newPlayerUUID), tport);
+            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName, player);
+            if (newPlayerUUID == null) {
                 continue;
             }
             
-            sendInfoTranslation(newPlayer, "tport.command.edit.whitelist.remove.succeededOtherPlayer", player, tport);
+            Player newPlayer = Bukkit.getPlayer(newPlayerUUID);
+            if (tport.removeWhitelist(newPlayerUUID)) {
+                sendSuccessTranslation(player, "tport.command.edit.whitelist.remove.succeeded", asPlayer(newPlayer, newPlayerUUID), tport);
+                sendInfoTranslation(newPlayer, "tport.command.edit.whitelist.remove.succeededOtherPlayer", player, tport);
+            } else {
+                sendErrorTranslation(player, "tport.command.edit.whitelist.remove.notInList", asPlayer(newPlayer, newPlayerUUID), tport);
+            }
         }
         tport.save();
     }

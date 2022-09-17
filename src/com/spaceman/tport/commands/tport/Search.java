@@ -47,14 +47,13 @@ public class Search extends SubCommand {
          * starts
          */
         
-        if (!CooldownManager.Search.hasCooled(player, true)) {
-            return;
-        }
-        
         if (args.length > 1) {
             for (SubCommand action : getActions()) {
                 if (action.getName(args[1]).equalsIgnoreCase(args[1]) || action.getAliases().stream().anyMatch(alias -> alias.equalsIgnoreCase(args[1]))) {
                     if (hasPermission(player, true, "TPort.search." + action.getName(args[1]))) {
+                        if (!CooldownManager.Search.hasCooled(player, true)) {
+                            return;
+                        }
                         action.run(args, player);
                     }
                     return;

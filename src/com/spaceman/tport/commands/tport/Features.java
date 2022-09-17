@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,12 @@ public class Features extends SubCommand {
             }
         };
         emptyFeatureState.setCommandName("state", ArgumentType.FIXED);
-        emptyFeatureState.setTabRunnable(((args, player) -> Arrays.asList("true", "false")));
+        emptyFeatureState.setTabRunnable(((args, player) -> {
+            if (!emptyFeatureSetState.hasPermissionToRun(player, false)) {
+                return Collections.emptyList();
+            }
+            return Arrays.asList("true", "false");
+        }));
         emptyFeatureState.setCommandDescription(formatInfoTranslation("tport.command.features.feature.state.commandDescription"));
         emptyFeatureState.addAction(emptyFeatureSetState);
         
@@ -206,6 +212,7 @@ public class Features extends SubCommand {
         ParticleAnimation(true),
         Redirects(true),
         Preview(true),
+        WorldTP(true),
         FeatureSettings(false);
         
         private final boolean reloadCommands;

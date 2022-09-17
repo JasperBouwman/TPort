@@ -14,6 +14,7 @@ import java.util.UUID;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 
@@ -84,8 +85,8 @@ public class List extends SubCommand {
             if (tport != null) {
                 if (!filterOwn || tport.getOwner().equals(player.getUniqueId())) {
                     hasPublicTPorts = true;
-                    if (color) publicTPortList.addMessage(formatTranslation(varInfoColor, varInfoColor, "%s", tport.parseAsPublic(true)));
-                    else       publicTPortList.addMessage(formatTranslation(varInfo2Color, varInfo2Color, "%s", tport.parseAsPublic(true)));
+                    if (color) publicTPortList.addMessage(formatTranslation(varInfoColor, varInfoColor, "%s", asTPort(tport.parseAsPublic(true))));
+                    else       publicTPortList.addMessage(formatTranslation(varInfo2Color, varInfo2Color, "%s", asTPort(tport.parseAsPublic(true))));
                     color = !color;
                     
                     if (index + 1 == lastDelimiterIndex) publicTPortList.addMessage(formatInfoTranslation("tport.command.public.list.lastDelimiter"));

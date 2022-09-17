@@ -73,8 +73,8 @@ public class BiomeTP extends SubCommand {
         addAction(empty);
         addAction(new Whitelist());
         addAction(new Blacklist());
-        addAction(new Preset());
-        addAction(new com.spaceman.tport.commands.tport.biomeTP.Random());
+        addAction(Preset.getInstance());
+        addAction(com.spaceman.tport.commands.tport.biomeTP.Random.getInstance());
         addAction(new Accuracy());
         addAction(new Mode());
     }
@@ -110,7 +110,6 @@ public class BiomeTP extends SubCommand {
                 IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
 
 //              Field f = ChunkGenerator.class.getDeclaredField("b"); //1.18.1
-//              Field f = ChunkGenerator.class.getDeclaredField("c"); //1.18.2
                 Field f = ChunkGenerator.class.getDeclaredField("c"); //1.18.2
                 f.setAccessible(true);
                 WorldChunkManager worldChunkManager = (WorldChunkManager) f.get(chunkGenerator);
@@ -155,7 +154,7 @@ public class BiomeTP extends SubCommand {
                 ChunkGenerator chunkGenerator = worldServer.k().g();
                 
 //              WorldChunkManager worldChunkManager = chunkGenerator.e(); //1.18.2
-                WorldChunkManager worldChunkManager = chunkGenerator.d();
+                WorldChunkManager worldChunkManager = chunkGenerator.d(); //1.19
                 
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.t().d(IRegistry.aR); //1.18.1
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
@@ -179,18 +178,19 @@ public class BiomeTP extends SubCommand {
                             
                             int newX = quartX + xOffset;
                             int newZ = quartZ + zOffset;
+    
+                            if (!searchArea.contains(QuartPos.c(newX), QuartPos.c(newZ))) {
+                                continue;
+                            }
                             
-                            if (searchArea.contains(QuartPos.c(newX), QuartPos.c(newZ))) {
+                            for (int y : yLevels) {
+                                int newY = QuartPos.a(y);
+                                blockPos = new Location(player.getWorld(), QuartPos.c(newX), startY, QuartPos.c(newZ));
                                 
-                                for (int y : yLevels) {
-                                    int newY = QuartPos.a(y);
-                                    blockPos = new Location(player.getWorld(), QuartPos.c(newX), startY, QuartPos.c(newZ));
-                                    
-                                    Holder<BiomeBase> currentBiome = worldChunkManager.getNoiseBiome(newX, newY, newZ, climateSampler);
-                                    
-                                    if (predicate.test(currentBiome)) {
-                                        return new Pair<>(blockPos, biomeRegistry.b(currentBiome.a()).a());
-                                    }
+                                Holder<BiomeBase> currentBiome = worldChunkManager.getNoiseBiome(newX, newY, newZ, climateSampler);
+                                
+                                if (predicate.test(currentBiome)) {
+                                    return new Pair<>(blockPos, biomeRegistry.b(currentBiome.a()).a());
                                 }
                             }
                         }
@@ -215,15 +215,17 @@ public class BiomeTP extends SubCommand {
                     
                     int newX = (quartX + xOffset) << 2;
                     int newZ = (quartZ + zOffset) << 2;
+    
+                    if (!searchArea.contains(newX, newZ)) {
+                        continue;
+                    }
                     
-                    if (searchArea.contains(newX, newZ)) {
-                        for (int y : yLevels) {
-                            Location testLocation = new Location(world, newX, y, newZ);
-                            Biome biome = world.getBiome(testLocation);
-                            
-                            if (biomes.stream().anyMatch(b -> biome.name().equalsIgnoreCase(b))) {
-                                return new Pair<>(testLocation, biome.name());
-                            }
+                    for (int y : yLevels) {
+                        Location testLocation = new Location(world, newX, y, newZ);
+                        Biome biome = world.getBiome(testLocation);
+                        
+                        if (biomes.stream().anyMatch(b -> biome.name().equalsIgnoreCase(b))) {
+                            return new Pair<>(testLocation, biome.name());
                         }
                     }
                 }
@@ -434,7 +436,7 @@ public class BiomeTP extends SubCommand {
                 
                 JsonObject playerLang = getPlayerLang(player.getUniqueId());
                 
-                Collection<Message> lore = new LinkedList<>();
+                List<Message> lore = new LinkedList<>();
                 lore.add(new Message());
                 
                 String baseType = "tport.commands.tport.biomeTP.biomeTPPresets.getItems.type";

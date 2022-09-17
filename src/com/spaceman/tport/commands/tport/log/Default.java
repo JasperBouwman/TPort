@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class Default extends SubCommand {
     
@@ -36,6 +37,9 @@ public class Default extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!emptyTPortMode.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return getOwnTPorts(player);
     }
     
@@ -46,7 +50,7 @@ public class Default extends SubCommand {
         if (args.length == 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
             if (tport != null) {
-                sendInfoTranslation(player, "tport.command.log.default.tportName.succeeded", tport, tport.getDefaultLogMode());
+                sendInfoTranslation(player, "tport.command.log.default.tportName.succeeded", asTPort(tport), tport.getDefaultLogMode());
             } else {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
             }
@@ -55,13 +59,14 @@ public class Default extends SubCommand {
                 return;
             }
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[2]);
-            if (tport != null) {
-                tport.setDefaultLogMode(TPort.LogMode.get(args[3]));
-                tport.save();
-                sendSuccessTranslation(player, "tport.command.log.default.tportName.defaultMode.succeeded", tport, tport.getDefaultLogMode());
-            } else {
+            if (tport == null) {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
+                return;
             }
+            
+            tport.setDefaultLogMode(TPort.LogMode.get(args[3]));
+            tport.save();
+            sendSuccessTranslation(player, "tport.command.log.default.tportName.defaultMode.succeeded", asTPort(tport), tport.getDefaultLogMode());
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log default <TPort name> [default LogMode]");
         }

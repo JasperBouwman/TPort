@@ -42,14 +42,14 @@ public class TimeZone extends SubCommand {
                             java.util.TimeZone.getDefault().getID())
                     ).getDisplayName());
         } else if (args.length == 3) {
-            if (Arrays.asList(java.util.TimeZone.getAvailableIDs()).contains(args[2])) {
-                java.util.TimeZone zone = java.util.TimeZone.getTimeZone(args[2]);
-                tportData.getConfig().set("tport." + player.getUniqueId() + ".timeZone", zone.getID());
-                tportData.saveConfig();
-                sendSuccessTranslation(player, "tport.command.log.timeZone.timeZone.succeeded", zone.getDisplayName());
-            } else {
+            if (!Arrays.asList(java.util.TimeZone.getAvailableIDs()).contains(args[2])) {
                 sendErrorTranslation(player, "tport.command.log.timeZone.timeZone.timeZoneNotExist", args[2]);
+                return;
             }
+            java.util.TimeZone zone = java.util.TimeZone.getTimeZone(args[2]);
+            tportData.getConfig().set("tport." + player.getUniqueId() + ".timeZone", zone.getID());
+            tportData.saveConfig();
+            sendSuccessTranslation(player, "tport.command.log.timeZone.timeZone.succeeded", zone.getDisplayName());
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log TimeZone [TimeZone]");
         }

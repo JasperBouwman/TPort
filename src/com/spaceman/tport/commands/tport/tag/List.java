@@ -25,7 +25,6 @@ public class List extends SubCommand {
         // tport tag list
         
         if (args.length == 2) {
-            
             ArrayList<String> tags = Tag.getTags();
             int size = tags.size();
             Message tagsMessage = new Message();
@@ -46,11 +45,9 @@ public class List extends SubCommand {
                 if (i + 2 == size) tagsMessage.addMessage(formatInfoTranslation("tport.command.tag.list.lastDelimiter"));
                 else               tagsMessage.addMessage(delimiter);
             }
-            
             tagsMessage.removeLast();
             
             sendInfoTranslation(player, "tport.command.tag.list.succeeded", tagsMessage);
-            
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport tag list");
         }

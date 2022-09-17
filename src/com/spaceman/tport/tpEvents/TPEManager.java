@@ -212,7 +212,8 @@ public class TPEManager {
         if (TPEManager.hasTPRequest(player.getUniqueId())) {
             Message hereMessage = new Message();
             hereMessage.addText(textComponent("tport.events.inventoryClick.alreadyRequested.here", varErrorColor,
-                    new HoverEvent(textComponent("/tport cancel", varInfoColor)), ClickEvent.runCommand("/tport cancel")).setType(TextType.TRANSLATE));
+                    new HoverEvent(textComponent("/tport cancel", varInfoColor)), ClickEvent.runCommand("/tport cancel"))
+                    .setType(TextType.TRANSLATE).setInsertion("/tport cancel"));
             sendErrorTranslation(player, "tport.events.inventoryClick.alreadyRequested", hereMessage);
             return;
         }

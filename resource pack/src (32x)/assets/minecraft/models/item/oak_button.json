@@ -27,6 +27,8 @@
 		{"predicate": {"custom_model_data": 5145490}, "model": "tport:item/sorting_grayed"},
 		{"predicate": {"custom_model_data": 5145491}, "model": "tport:item/search_data"},
 		{"predicate": {"custom_model_data": 5145492}, "model": "tport:item/home"},
-		{"predicate": {"custom_model_data": 5145493}, "model": "tport:item/home_grayed"}
+		{"predicate": {"custom_model_data": 5145493}, "model": "tport:item/home_grayed"},
+		{"predicate": {"custom_model_data": 5145494}, "model": "tport:item/world_tp"},
+		{"predicate": {"custom_model_data": 5145495}, "model": "tport:item/world_tp_grayed"}
 	]
 }

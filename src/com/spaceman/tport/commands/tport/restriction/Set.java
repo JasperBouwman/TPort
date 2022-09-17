@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.restriction;
 
-import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -15,11 +14,10 @@ import java.util.Collections;
 import java.util.UUID;
 
 import static com.spaceman.tport.commands.tport.Restriction.isPermissionBased;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varError2Color;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varErrorColor;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Set extends SubCommand {
     
@@ -40,10 +38,11 @@ public class Set extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        if (emptySetPlayerType.hasPermissionToRun(player, false)) {
-            if (!isPermissionBased()) {
-                return Main.getPlayerNames();
-            }
+        if (!emptySetPlayerType.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
+        if (!isPermissionBased()) {
+            return PlayerUUID.getPlayerNames();
         }
         return Collections.emptyList();
     }
@@ -67,9 +66,8 @@ public class Set extends SubCommand {
             return;
         }
         
-        UUID newUUID = PlayerUUID.getPlayerUUID(args[2]);
-        if (newUUID == null || !tportData.getConfig().contains("tport." + newUUID)) {
-            sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
+        UUID newUUID = PlayerUUID.getPlayerUUID(args[2], player);
+        if (newUUID == null) {
             return;
         }
         
@@ -90,7 +88,7 @@ public class Set extends SubCommand {
         } else {
             Player otherPlayer = Bukkit.getPlayer(newUUID);
             sendInfoTranslation(player, "tport.command.restriction.set.player.type.succeeded", asPlayer(otherPlayer, newUUID), type);
-            sendInfoTranslation(otherPlayer, "tport.command.restriction.set.player.type.succeededOtherPlayer", player, type);
+            sendInfoTranslation(otherPlayer, "tport.command.restriction.set.player.type.succeededOtherPlayer", asPlayer(player), type);
         }
     }
 }

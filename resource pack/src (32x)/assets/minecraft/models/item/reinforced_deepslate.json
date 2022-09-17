@@ -1,0 +1,11 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "minecraft:block/reinforced_deepslate_bottom",
+    "side": "minecraft:block/reinforced_deepslate_side",
+    "top": "minecraft:block/reinforced_deepslate_top"
+  },
+	"overrides": [
+		{"predicate": {"custom_model_data": 5145499},"model": "tport:item/other_environments"}
+	]
+}

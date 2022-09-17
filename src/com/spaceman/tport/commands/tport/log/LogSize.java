@@ -42,14 +42,15 @@ public class LogSize extends SubCommand {
         if (args.length == 2) {
             sendInfoTranslation(player, "tport.command.log.logSize.succeeded", getLogSize());
         } else if (args.length == 3) {
-            if (emptySize.hasPermissionToRun(player, true)) {
-                try {
-                    int logSize = Integer.parseInt(args[2]);
-                    setLogSize(logSize);
-                    sendSuccessTranslation(player, "tport.command.log.logSize.size.succeeded", logSize);
-                } catch (NumberFormatException nfe) {
-                    sendErrorTranslation(player, "tport.command.log.logSize.size.notValidNumber", args[2]);
-                }
+            if (!emptySize.hasPermissionToRun(player, true)) {
+                return;
+            }
+            try {
+                int logSize = Integer.parseInt(args[2]);
+                setLogSize(logSize);
+                sendSuccessTranslation(player, "tport.command.log.logSize.size.succeeded", logSize);
+            } catch (NumberFormatException nfe) {
+                sendErrorTranslation(player, "tport.command.log.logSize.size.notValidNumber", args[2]);
             }
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log logSize [size]");

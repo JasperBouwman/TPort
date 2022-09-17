@@ -10,6 +10,7 @@ import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
@@ -21,11 +22,13 @@ import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Sort extends SubCommand {
     
+    private static final String permissionPrefix = "TPort.sort.";
+    
     public Sort() {
         EmptyCommand emptySorter = new EmptyCommand();
         emptySorter.setCommandName("sorter", ArgumentType.OPTIONAL);
         emptySorter.setCommandDescription(formatInfoTranslation("tport.command.sort.sorter.commandDescription"));
-        emptySorter.setPermissions("TPort.sort.<sorter>");
+        emptySorter.setPermissions(permissionPrefix + "<sorter>");
         addAction(emptySorter);
     }
     
@@ -50,43 +53,71 @@ public class Sort extends SubCommand {
         return sorter;
     }
     
-    public static String getSorterName(Player player) {
+    public static String getSorterForPlayer(Player player) {
         return tportData.getConfig().getString("tport." + player.getUniqueId() + ".sorter", "oldest");
     }
     
     public static Sorter getSorter(Player player) {
-        return getSorter(getSorterName(player));
+        return getSorter(getSorterForPlayer(player));
     }
     
-    public static String getNextSorterName(String currentSorter) {
-    
-        for (Iterator<String> iterator = getSorters().iterator(); iterator.hasNext(); ) {
-            String sorter = iterator.next();
-            if (sorter.equalsIgnoreCase(currentSorter)) {
-                if (iterator.hasNext()) {
-                    return iterator.next();
-                } else {
-                    return getSorters().iterator().next();
+    public static String getNextSorterName(Player player) { //todo test
+        String currentSorter = Sort.getSorterForPlayer(player);
+        ArrayList<String> list = new ArrayList<>(getSorters());
+        
+        boolean next = false;
+        int indexOfCurrent = 0;
+        for (int i = 0; i < list.size(); i++) {
+            String sorter = list.get(i);
+            
+            if (next) {
+                if (hasPermission(player, false, permissionPrefix + sorter)) {
+                    return sorter;
                 }
+            } else if (sorter.equalsIgnoreCase(currentSorter)) {
+                next = true;
+                indexOfCurrent = i;
             }
         }
         
-        return currentSorter;
-    }
-    
-    public static String getPreviousSorterName(String currentSorter) {
-    
-        ArrayList<String> list = new ArrayList<>(getSorters());
-        String sorter = list.get(list.size() - 1);
-        
-        for (String s : list) {
-            if (s.equalsIgnoreCase(currentSorter)) {
+        for (int i = 0; i < indexOfCurrent; i++) {
+            String sorter = list.get(i);
+            if (hasPermission(player, false, permissionPrefix + sorter)) {
                 return sorter;
             }
-            sorter = s;
+        }
+    
+        return null;
+    }
+    
+    @Nullable
+    public static String getPreviousSorterName(Player player) { //todo test
+        String currentSorter = Sort.getSorterForPlayer(player);
+        ArrayList<String> list = new ArrayList<>(getSorters());
+        
+        boolean next = false;
+        int indexOfCurrent = 0;
+        for (int i = list.size() - 1; i >= 0; i--) {
+            String sorter = list.get(i);
+            
+            if (next) {
+                if (hasPermission(player, false, permissionPrefix + sorter)) {
+                    return sorter;
+                }
+            } else if (sorter.equalsIgnoreCase(currentSorter)) {
+                next = true;
+                indexOfCurrent = i;
+            }
         }
         
-        return sorter;
+        for (int i = list.size() - 1; i > indexOfCurrent; i--) {
+            String sorter = list.get(i);
+            if (hasPermission(player, false, permissionPrefix + sorter)) {
+                return sorter;
+            }
+        }
+        
+        return null;
     }
     
     public static Sorter getSorterExact(String name) {
@@ -157,7 +188,7 @@ public class Sort extends SubCommand {
                 return;
             }
             
-            if (!hasPermission(player, true, "TPort.sort." + args[1])) {
+            if (!hasPermission(player, true, permissionPrefix + args[1])) {
                 return;
             }
             

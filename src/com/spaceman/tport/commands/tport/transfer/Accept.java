@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,7 +22,12 @@ import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Accept extends SubCommand {
     
-    public static final EmptyCommand emptyPlayerTPort = new EmptyCommand();
+    private static final Accept instance = new Accept();
+    public static Accept getInstance() {
+        return instance;
+    }
+    
+    public final EmptyCommand emptyPlayerTPort = new EmptyCommand();
     
     public Accept() {
         emptyPlayerTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
@@ -30,8 +36,17 @@ public class Accept extends SubCommand {
         
         EmptyCommand emptyPlayer = new EmptyCommand();
         emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
-        emptyPlayer.setTabRunnable((args, player) -> TPortManager.getTPortList(PlayerUUID.getPlayerUUID(args[2])).
-                stream().filter(tport -> player.getUniqueId().equals(tport.getOfferedTo())).map(TPort::getName).collect(Collectors.toList()));
+        emptyPlayer.setTabRunnable((args, player) -> {
+            if (!emptyPlayerTPort.hasPermissionToRun(player, false)) {
+                return Collections.emptyList();
+            }
+            UUID newUUID = PlayerUUID.getPlayerUUID(args[2]);
+            if (newUUID == null) {
+                return Collections.emptyList();
+            }
+            return TPortManager.getTPortList(newUUID).
+                    stream().filter(tport -> player.getUniqueId().equals(tport.getOfferedTo())).map(TPort::getName).collect(Collectors.toList());
+        });
         emptyPlayer.addAction(emptyPlayerTPort);
         addAction(emptyPlayer);
     }
@@ -66,9 +81,8 @@ public class Accept extends SubCommand {
             return;
         }
         
-        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2]);
-        if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-            sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
+        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2], player);
+        if (newPlayerUUID == null) {
             return;
         }
         
@@ -96,7 +110,6 @@ public class Accept extends SubCommand {
             
             Player oldPlayer = Bukkit.getPlayer(oldOwner);
             sendSuccessTranslation(player, "tport.command.transfer.accept.player.tportName.succeeded", asTPort(tport), asPlayer(oldPlayer, oldOwner));
-    
             sendInfoTranslation(oldPlayer, "tport.command.transfer.accept.player.tportName.succeededOtherPlayer", asPlayer(player), asTPort(tport));
         } else {
             Player oldPlayer = Bukkit.getPlayer(oldOwner);

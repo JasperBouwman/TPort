@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -32,6 +33,9 @@ public class Icon extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!emptyIcon.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return Main.getOrDefault(DynmapHandler.getIcons(), new ArrayList<Pair<String, String>>()).stream().map(Pair::getRight).collect(Collectors.toList());
     }
     

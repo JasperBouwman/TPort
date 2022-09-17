@@ -13,6 +13,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -43,6 +44,9 @@ public class TP extends SubCommand {
     
     @Override
     public List<String> tabList(Player player, String[] args) {
+        if (!emptyPlayer.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
     }
     
@@ -58,12 +62,10 @@ public class TP extends SubCommand {
             return;
         }
         
-        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2]);
-        if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-            sendErrorTranslation(player, "tport.command.playerNotFound", args[2]);
+        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(args[2], player);
+        if (newPlayerUUID == null) {
             return;
         }
-        
         Player warp = Bukkit.getPlayer(newPlayerUUID);
         if (warp == null) {
             sendErrorTranslation(player, "tport.command.playerNotOnline", asPlayer(newPlayerUUID));

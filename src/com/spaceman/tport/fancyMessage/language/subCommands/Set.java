@@ -15,21 +15,21 @@ import static com.spaceman.tport.fancyMessage.language.Language.getAvailableLang
 public class Set extends SubCommand {
     
     public Set() {
-        EmptyCommand emptyCustom = new EmptyCommand();
-        emptyCustom.setCommandName("custom", ArgumentType.FIXED);
-        emptyCustom.setCommandDescription(formatInfoTranslation("tport.command.language.set.custom.commandDescription"));
+        EmptyCommand emptySetCustom = new EmptyCommand();
+        emptySetCustom.setCommandName("custom", ArgumentType.FIXED);
+        emptySetCustom.setCommandDescription(formatInfoTranslation("tport.command.language.set.custom.commandDescription"));
     
-        EmptyCommand emptyServer = new EmptyCommand();
-        emptyServer.setCommandName("server", ArgumentType.FIXED);
-        emptyServer.setCommandDescription(formatInfoTranslation("tport.command.language.set.server.commandDescription"));
+        EmptyCommand emptySetServer = new EmptyCommand();
+        emptySetServer.setCommandName("server", ArgumentType.FIXED);
+        emptySetServer.setCommandDescription(formatInfoTranslation("tport.command.language.set.server.commandDescription"));
     
-        EmptyCommand emptyServerLanguage = new EmptyCommand();
-        emptyServerLanguage.setCommandName("language", ArgumentType.REQUIRED);
-        emptyServerLanguage.setCommandDescription(formatInfoTranslation("tport.command.language.set.serverLanguage.commandDescription"));
+        EmptyCommand emptySetServerLanguage = new EmptyCommand();
+        emptySetServerLanguage.setCommandName("language", ArgumentType.REQUIRED);
+        emptySetServerLanguage.setCommandDescription(formatInfoTranslation("tport.command.language.set.serverLanguage.commandDescription"));
         
-        addAction(emptyCustom);
-        addAction(emptyServer);
-        addAction(emptyServerLanguage);
+        addAction(emptySetCustom);
+        addAction(emptySetServer);
+        addAction(emptySetServerLanguage);
     }
     
     @Override

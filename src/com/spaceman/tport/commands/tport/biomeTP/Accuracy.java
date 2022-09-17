@@ -8,10 +8,7 @@ import com.spaceman.tport.fancyMessage.MessageUtils;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.Files.tportConfig;
@@ -30,6 +27,9 @@ public class Accuracy extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!emptySize.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return accuracies.keySet();
     }
     
@@ -46,13 +46,14 @@ public class Accuracy extends SubCommand {
             AccuracySettings accuracy = getDefaultAccuracySettings();
             sendInfoTranslation(player, "tport.command.biomeTP.accuracy.succeeded", accuracy);
         } else if (args.length == 3) {
-            if (emptySize.hasPermissionToRun(player, true)) {
-                if (setBiomeTPAccuracy(args[2])) {
-                    AccuracySettings accuracy = getDefaultAccuracySettings();
-                    sendSuccessTranslation(player, "tport.command.biomeTP.accuracy.accuracy.succeeded", accuracy);
-                } else {
-                    sendErrorTranslation(player, "tport.command.biomeTP.accuracy.accuracy.notAnAccuracy", args[2]);
-                }
+            if (!emptySize.hasPermissionToRun(player, true)) {
+                return;
+            }
+            if (setBiomeTPAccuracy(args[2])) {
+                AccuracySettings accuracy = getDefaultAccuracySettings();
+                sendSuccessTranslation(player, "tport.command.biomeTP.accuracy.accuracy.succeeded", accuracy);
+            } else {
+                sendErrorTranslation(player, "tport.command.biomeTP.accuracy.accuracy.notAnAccuracy", args[2]);
             }
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport biomeTP accuracy [accuracy]");

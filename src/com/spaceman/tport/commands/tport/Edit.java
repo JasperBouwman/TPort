@@ -27,7 +27,7 @@ public class Edit extends SubCommand {
         emptyOwnTPort.addAction(new com.spaceman.tport.commands.tport.edit.Location());
         emptyOwnTPort.addAction(new Private());
         emptyOwnTPort.addAction(new Whitelist());
-        emptyOwnTPort.addAction(new Move());
+        emptyOwnTPort.addAction(Move.getInstance());
         emptyOwnTPort.addAction(new Range());
         emptyOwnTPort.addAction(new Tag());
         if (Features.Feature.Preview.isEnabled()) emptyOwnTPort.addAction(new Preview());

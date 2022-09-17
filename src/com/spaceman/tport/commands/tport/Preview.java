@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
-import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Preview extends SubCommand {
     
@@ -49,7 +47,7 @@ public class Preview extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        return Main.getPlayerNames();
+        return PlayerUUID.getPlayerNames();
     }
     
     @Override
@@ -65,9 +63,8 @@ public class Preview extends SubCommand {
         }
         
         String newPlayerName = args[1];
-        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
-        if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-            sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
+        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName, player);
+        if (newPlayerUUID == null) {
             return;
         }
         

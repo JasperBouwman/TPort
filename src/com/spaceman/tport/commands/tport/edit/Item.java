@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class Item extends SubCommand {
     
@@ -26,34 +27,35 @@ public class Item extends SubCommand {
     public void run(String[] args, Player player) {
         // tport edit <TPort name> item
         
+        if (args.length != 3) {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> item");
+            return;
+        }
         if (!hasPermissionToRun(player, true)) {
             return;
         }
-        if (args.length == 3) {
-            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
-            
-            if (tport == null) {
-                sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
-                return;
-            }
-            if (tport.isOffered()) {
-                sendErrorTranslation(player, "tport.command.edit.item.isOffered",
-                        tport, asPlayer(tport.getOfferedTo()));
-                return;
-            }
-            ItemStack newItem = player.getInventory().getItemInMainHand();
-            if (newItem.getType().equals(Material.AIR)) {
-                sendErrorTranslation(player, "tport.command.edit.item.noItem");
-                return;
-            }
-            ItemStack oldItem = tport.getItem();
-            tport.setItem(newItem);
-            tport.save();
-            player.getInventory().setItemInMainHand(oldItem);
-            
-            sendSuccessTranslation(player, "tport.command.edit.item.succeeded", tport, newItem.getType().name());
-        } else {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> item");
+        
+        TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
+        if (tport == null) {
+            sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
+            return;
         }
+        if (tport.isOffered()) {
+            sendErrorTranslation(player, "tport.command.edit.item.isOffered",
+                    asTPort(tport), asPlayer(tport.getOfferedTo()));
+            return;
+        }
+        
+        ItemStack newItem = player.getInventory().getItemInMainHand();
+        if (newItem.getType().equals(Material.AIR)) {
+            sendErrorTranslation(player, "tport.command.edit.item.noItem");
+            return;
+        }
+        ItemStack oldItem = tport.getItem();
+        tport.setItem(newItem);
+        tport.save();
+        player.getInventory().setItemInMainHand(oldItem);
+        
+        sendSuccessTranslation(player, "tport.command.edit.item.succeeded", asTPort(tport), newItem.getType().name());
     }
 }

@@ -46,8 +46,14 @@ public class Back extends SubCommand {
         }
     }
     
+    public static boolean hasBack(Player player) {
+        return prevTPorts.containsKey(player.getUniqueId());
+    }
+    
+    private final EmptyCommand emptySafetyCheck;
+    
     public Back() {
-        EmptyCommand emptySafetyCheck = new EmptyCommand() {
+        emptySafetyCheck = new EmptyCommand() {
             @Override
             public Message permissionsHover() {
                 return formatInfoTranslation("tport.command.back.safetyCheck.permissionHover", "TPort.back", TPORT_PUBLIC.getPermission(), "TPort.basic");
@@ -68,6 +74,9 @@ public class Back extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!emptySafetyCheck.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return Arrays.asList("true", "false", getPrevLocNameAsString(player));
     }
     
@@ -120,20 +129,19 @@ public class Back extends SubCommand {
             
             TPort tport = TPortManager.getTPort(tportOwner, tportUUID);
             if (prevLoc == null) {
-                if (tport != null) {
-                    if (!Open.emptyOpenPlayerTPort.hasPermissionToRun(player, true)) {
-                        return false;
-                    }
-                    prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportName", tport.getName(), "tportUUID", tport.getTportID(), "tportOwner", tportOwner, "prevLoc", player.getLocation()));
-                    if (tport.teleport(player, safetyCheck, false,
-                            "tport.command.back.TPORT.to.succeeded", "tport.command.back.TPORT.to.tpRequested")) {
-                        return true;
-                    } else {
-                        prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportUUID", tportUUID, "tportOwner", tportOwner, "prevLoc", null));
-                        return false;
-                    }
-                } else {
+                if (!Open.getInstance().emptyOpenPlayerTPort.hasPermissionToRun(player, true)) {
+                    return false;
+                }
+                if (tport == null) {
                     sendErrorTranslation(player, "tport.command.back.TPORT.to.tportNotFound", tportName);
+                    return false;
+                }
+                prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportName", tport.getName(), "tportUUID", tport.getTportID(), "tportOwner", tportOwner, "prevLoc", player.getLocation()));
+                if (tport.teleport(player, safetyCheck, false,
+                        "tport.command.back.TPORT.to.succeeded", "tport.command.back.TPORT.to.tpRequested")) {
+                    return true;
+                } else {
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportUUID", tportUUID, "tportOwner", tportOwner, "prevLoc", null));
                     return false;
                 }
             } else {
@@ -259,33 +267,31 @@ public class Back extends SubCommand {
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);
             
             if (prevLoc == null) {
-                if (toPlayer != null) {
-                    if (!tportData.getConfig().getBoolean("tport." + toPlayerUUID + ".tp.statement", true)) {
-                        ArrayList<String> whitelist = (ArrayList<String>) tportData.getConfig().getStringList("tport." + toPlayerUUID + "tp.players");
-                        if (!whitelist.contains(player.getUniqueId().toString())) {
-                            sendErrorTranslation(player, "tport.command.back.PLAYER.to.whitelistError");
-                            return false;
-                        }
-                    }
-                    
-                    Location location = Offset.getPLTPOffset(toPlayer).applyOffset(toPlayer.getLocation());
-                    
-                    if (!safetyCheck || SafetyCheck.isSafe(location)) {
-                        prevTPorts.put(player.getUniqueId(), new PrevTPort("PLAYER", "playerUUID", toPlayerUUID, "prevLoc", player.getLocation()));
-                        requestTeleportPlayer(player, location, () -> {
-                            sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.back.PLAYER.to.succeeded", toPlayer);
-                            sendInfoTranslation(Bukkit.getPlayer(toPlayer.getUniqueId()), "tport.command.back.PLAYER.to.succeededOtherPlayer", player);
-                        }, (p, delay, tickMessage, seconds, secondMessage) -> {
-                            sendSuccessTranslation(p, "tport.command.back.PLAYER.to.toRequested", toPlayer, delay, tickMessage, seconds, secondMessage);
-                            sendInfoTranslation(toPlayer, "tport.command.back.PLAYER.to.requestedOtherPlayer", p);
-                        });
-                    } else {
-                        sendErrorTranslation(player, "tport.command.back.PLAYER.to.notSafe", toPlayer);
+                if (toPlayer == null) {
+                    sendErrorTranslation(player, "tport.command.back.PLAYER.to.notOnlineAnymore", PlayerUUID.getPlayerName(toPlayerUUID));
+                    return false;
+                }
+                if (!tportData.getConfig().getBoolean("tport." + toPlayerUUID + ".tp.statement", true)) {
+                    ArrayList<String> whitelist = (ArrayList<String>) tportData.getConfig().getStringList("tport." + toPlayerUUID + "tp.players");
+                    if (!whitelist.contains(player.getUniqueId().toString())) {
+                        sendErrorTranslation(player, "tport.command.back.PLAYER.to.whitelistError");
                         return false;
                     }
-                    return true;
+                }
+                
+                Location location = Offset.getPLTPOffset(toPlayer).applyOffset(toPlayer.getLocation());
+                
+                if (!safetyCheck || SafetyCheck.isSafe(location)) {
+                    prevTPorts.put(player.getUniqueId(), new PrevTPort("PLAYER", "playerUUID", toPlayerUUID, "prevLoc", player.getLocation()));
+                    requestTeleportPlayer(player, location, () -> {
+                        sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.back.PLAYER.to.succeeded", toPlayer);
+                        sendInfoTranslation(Bukkit.getPlayer(toPlayer.getUniqueId()), "tport.command.back.PLAYER.to.succeededOtherPlayer", player);
+                    }, (p, delay, tickMessage, seconds, secondMessage) -> {
+                        sendSuccessTranslation(p, "tport.command.back.PLAYER.to.toRequested", toPlayer, delay, tickMessage, seconds, secondMessage);
+                        sendInfoTranslation(toPlayer, "tport.command.back.PLAYER.to.requestedOtherPlayer", p);
+                    });
                 } else {
-                    sendErrorTranslation(player, "tport.command.back.PLAYER.to.notOnlineAnymore", PlayerUUID.getPlayerName(toPlayerUUID));
+                    sendErrorTranslation(player, "tport.command.back.PLAYER.to.notSafe", toPlayer);
                     return false;
                 }
             } else {
@@ -297,8 +303,8 @@ public class Back extends SubCommand {
                     sendErrorTranslation(player, "tport.command.back.PLAYER.from.notSafe", asPlayer(toPlayer, UUID.fromString(toPlayerUUID)));
                     return false;
                 }
-                return true;
             }
+            return true;
         }, (prevTPort) -> {
             String playerName = PlayerUUID.getPlayerName((String) prevTPort.getData().get("playerUUID"));
             Location prevLoc = (Location) prevTPort.getData().getOrDefault("prevLoc", null);

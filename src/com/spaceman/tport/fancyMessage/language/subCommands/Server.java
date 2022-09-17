@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -21,18 +22,21 @@ import static com.spaceman.tport.fancyMessage.language.Language.getAvailableLang
 
 public class Server extends SubCommand {
     
-    private final EmptyCommand language;
+    private final EmptyCommand emptyServerLanguage;
     
     public Server() {
-        language = new EmptyCommand();
-        language.setCommandName("language", ArgumentType.OPTIONAL);
-        language.setCommandDescription(formatInfoTranslation("tport.command.language.server.language.commandDescription"));
-        language.setPermissions("TPort.language.setServerLanguage", "TPort.admin.language");
-        addAction(language);
+        emptyServerLanguage = new EmptyCommand();
+        emptyServerLanguage.setCommandName("language", ArgumentType.OPTIONAL);
+        emptyServerLanguage.setCommandDescription(formatInfoTranslation("tport.command.language.server.language.commandDescription"));
+        emptyServerLanguage.setPermissions("TPort.language.setServerLanguage", "TPort.admin.language");
+        addAction(emptyServerLanguage);
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        if (!emptyServerLanguage.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
         return getAvailableLang();
     }
     
@@ -48,7 +52,7 @@ public class Server extends SubCommand {
         if (args.length == 2) {
             sendInfoTranslation(player, "tport.command.language.server.succeeded", Language.getServerLangName());
         } else if (args.length == 3) {
-            if (!language.hasPermissionToRun(player, true)) {
+            if (!emptyServerLanguage.hasPermissionToRun(player, true)) {
                 return;
             }
             String currentServerLanguage = Language.getServerLangName();
@@ -66,7 +70,8 @@ public class Server extends SubCommand {
             Message hereMessage = new Message();
             hereMessage.addText(textComponent("tport.command.language.server.language.here", varErrorColor,
                     new HoverEvent(textComponent("/tport language set " + currentServerLanguage, varInfoColor)),
-                    ClickEvent.runCommand("/tport language set " + currentServerLanguage)).setType(TextType.TRANSLATE));
+                    ClickEvent.runCommand("/tport language set " + currentServerLanguage))
+                    .setType(TextType.TRANSLATE).setInsertion("/tport language set " + currentServerLanguage));
             
             for (Player p : Bukkit.getOnlinePlayers()) {
                 sendInfoTranslation(p, "tport.command.language.server.language.succeededOtherPlayers", player, args[2], hereMessage);

@@ -24,11 +24,10 @@ public class Create extends SubCommand {
     public void run(String[] args, Player player) {
         // tport tag create <tag>
         
-        if (!emptyTag.hasPermissionToRun(player, true)) {
-            return;
-        }
-        
         if (args.length == 3) {
+            if (!emptyTag.hasPermissionToRun(player, true)) {
+                return;
+            }
             String tag = Tag.getTag(args[2]);
             if (tag != null) {
                 sendErrorTranslation(player, "tport.command.tag.create.tag.alreadyExist", tag);

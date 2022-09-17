@@ -1,6 +1,7 @@
 package com.spaceman.tport.fancyMessage.inventories;
 
 import com.google.gson.JsonObject;
+import com.spaceman.tport.commands.tport.ResourcePack;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
@@ -10,6 +11,7 @@ import net.minecraft.network.protocol.game.PacketPlayOutOpenWindow;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.inventory.Container;
 import net.minecraft.world.inventory.Containers;
+import org.apache.http.annotation.Contract;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -32,6 +34,9 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 
 public class FancyInventory implements InventoryHolder {
+    
+    public static final int nextModelData = 5145462;
+    public static final int prevModelData = 5145463;
     
     private final HashMap<String, Object> holderData;
     
@@ -228,6 +233,7 @@ public class FancyInventory implements InventoryHolder {
             FancyClickEvent.addFunction(im, ClickType.SHIFT_RIGHT, null, ((whoClicked, clickType, pdc, fancyInventory) ->
                     fancyInventory.getData("invCreator", InventoryCreator.class).openInventory(whoClicked, fancyInventory.getData("totalPages", Integer.class, 0), fancyInventory)));
             is.setItemMeta(im);
+            ResourcePack.applyModelData(is, nextModelData, player.getUniqueId());
             
             inv.setItem(size - 1, is);
         }
@@ -256,6 +262,7 @@ public class FancyInventory implements InventoryHolder {
             FancyClickEvent.addFunction(im, ClickType.SHIFT_RIGHT, null, ((whoClicked, clickType, pdc, fancyInventory) ->
                     fancyInventory.getData("invCreator", InventoryCreator.class).openInventory(whoClicked, 0, fancyInventory)));
             is.setItemMeta(im);
+            ResourcePack.applyModelData(is, prevModelData, player.getUniqueId());
             
             inv.setItem(8, is);
         }

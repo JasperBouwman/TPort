@@ -25,6 +25,8 @@ import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class SafetyCheck extends SubCommand {
     
+    private final EmptyCommand emptyCheck;
+    
     public SafetyCheck() {
         EmptyCommand empty = new EmptyCommand() {
             @Override
@@ -34,7 +36,7 @@ public class SafetyCheck extends SubCommand {
         };
         empty.setCommandName("", ArgumentType.FIXED);
         
-        EmptyCommand emptyCheck = new EmptyCommand();
+        emptyCheck = new EmptyCommand();
         emptyCheck.setCommandName("check", ArgumentType.FIXED);
         emptyCheck.setCommandDescription(formatInfoTranslation("tport.command.safetyCheck.check.commandDescription"));
         emptyCheck.setPermissions("TPort.safetyCheck.check", "TPort.basic");
@@ -112,6 +114,9 @@ public class SafetyCheck extends SubCommand {
             return;
         } else if (args.length == 2) {
             if (args[1].equalsIgnoreCase("check")) {
+                if (!emptyCheck.hasPermissionToRun(player, true)) {
+                    return;
+                }
                 Message state;
                 if (safetyChecker.isSafe(player.getLocation())) {
                     state = formatTranslation(goodColor, goodColor, "tport.command.safetyCheck.check.safe");
@@ -129,9 +134,8 @@ public class SafetyCheck extends SubCommand {
                 sendErrorTranslation(player, "tport.command.safetyCheck.source.sourceNotFound");
                 return;
             }
-            
             if (args.length == 2) { //get source
-                formatInfoTranslation("tport.command.safetyCheck.source.succeeded", source, source.getState(player));
+                sendInfoTranslation(player, "tport.command.safetyCheck.source.succeeded", source, source.getState(player));
             } else { //set source
                 Boolean newState = Main.toBoolean(args[2]);
                 if (newState == null) {
@@ -174,7 +178,7 @@ public class SafetyCheck extends SubCommand {
             }
         }
         public void setState(Player player, boolean state) {
-            if (hasPermission(player, false)) {
+            if (hasPermission(player, false)) { //todo false?
                 tportData.getConfig().set("tport." + player.getUniqueId() + ".safetyCheck." + this.name() + ".state", state);
                 tportData.saveConfig();
             }

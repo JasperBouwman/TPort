@@ -18,7 +18,7 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.Files.tportData;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class LogData extends SubCommand {
     
@@ -131,7 +131,7 @@ public class LogData extends SubCommand {
             if (tport.isLogged()) {
                 getLogData(tport, -1).sendAndTranslateMessage(player);
             } else {
-                sendInfoTranslation(player, "tport.command.log.logData.tportName.tportNotLogged", tport);
+                sendInfoTranslation(player, "tport.command.log.logData.tportName.tportNotLogged", asTPort(tport));
             }
         }
         else if (args.length == 4) {
@@ -141,20 +141,19 @@ public class LogData extends SubCommand {
                 return;
             }
             if (!tport.isLogged()) {
-                sendErrorTranslation(player, "tport.command.log.logData.tportName.player.tportNotLogged", tport);
+                sendErrorTranslation(player, "tport.command.log.logData.tportName.player.tportNotLogged", asTPort(tport));
                 return;
             }
-            UUID uuid = PlayerUUID.getPlayerUUID(args[3]);
-            if (uuid == null || !tportData.getConfig().contains("tport." + uuid)) {
-                sendErrorTranslation(player, "tport.command.playerNotFound", args[3]);
+            UUID uuid = PlayerUUID.getPlayerUUID(args[3], player);
+            if (uuid == null) {
                 return;
             }
             if (tport.getLogged().contains(uuid)) {
                 sendInfoTranslation(player, "tport.command.log.logData.tportName.player.succeeded",
-                        asPlayer(uuid), tport, tport.getLogMode(uuid));
+                        asPlayer(uuid), asTPort(tport), tport.getLogMode(uuid));
             } else {
                 sendErrorTranslation(player, "tport.command.log.logData.tportName.player.notLogged",
-                        asPlayer(uuid), tport);
+                        asPlayer(uuid), asTPort(tport));
             }
         }
         else {

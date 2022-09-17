@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.pltp.whitelist;
 
-import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -24,9 +23,12 @@ public class Add extends SubCommand {
         emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
         emptyPlayer.setCommandDescription(formatInfoTranslation("tport.command.PLTP.whitelist.add.players.commandDescription"));
         emptyPlayer.setTabRunnable((args, player) -> {
+            if (emptyPlayer.hasPermissionToRun(player, false)) {
+                return Collections.emptyList();
+            }
             List<String> list;
             
-            list = Main.getPlayerNames();
+            list = PlayerUUID.getPlayerNames();
             list.remove(player.getName());
             
             tportData.getConfig().getStringList("tport." + player.getUniqueId() + ".tp.players").stream()
@@ -41,7 +43,10 @@ public class Add extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
-        return getActions().get(0).tabList(player, args);
+        if (!emptyPlayer.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
+        return emptyPlayer.tabList(player, args);
     }
     
     @Override
@@ -61,9 +66,8 @@ public class Add extends SubCommand {
         
         for (int i = 3; i < args.length; i++) {
             String addPlayerName = args[i];
-            UUID addPlayerUUID = PlayerUUID.getPlayerUUID(addPlayerName);
-            if (addPlayerUUID == null || !tportData.getConfig().contains("tport." + addPlayerUUID)) {
-                sendErrorTranslation(player, "tport.command.playerNotFound", addPlayerName);
+            UUID addPlayerUUID = PlayerUUID.getPlayerUUID(addPlayerName, player);
+            if (addPlayerUUID == null) {
                 return;
             }
             
@@ -84,7 +88,7 @@ public class Add extends SubCommand {
             sendSuccessTranslation(player, "tport.command.PLTP.whitelist.add.players.succeeded",
                     asPlayer(addPlayerUUID));
             
-            sendInfoTranslation(Bukkit.getPlayer(addPlayerUUID), "tport.command.PLTP.whitelist.add.players.succeededOtherPlayer", player);
+            sendInfoTranslation(Bukkit.getPlayer(addPlayerUUID), "tport.command.PLTP.whitelist.add.players.succeededOtherPlayer", asPlayer(player));
         }
     }
 }

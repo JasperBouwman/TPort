@@ -57,6 +57,7 @@ public class PreviewEvents implements Listener {
     public void onWorldInteract(PlayerInteractEvent e) {
         if (isPreviewing(e.getPlayer().getUniqueId())) {
             cancelPreview(e.getPlayer());
+            e.setCancelled(true);
         }
     }
     
@@ -74,6 +75,7 @@ public class PreviewEvents implements Listener {
         if (p != null) {
             player.teleport(p.oldLocation());
             player.setGameMode(p.oldGameMode());
+//            Bukkit.getScheduler().runTaskLater(Main.getInstance(), player::closeInventory, 1);
             if (sendMessage) sendInfoTranslation(player, "tport.tport.tport.cancelPreview.succeeded", p.tport());
             return true;
         }

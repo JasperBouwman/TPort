@@ -1,6 +1,5 @@
 package com.spaceman.tport.commands.tport.dynmap;
 
-import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -24,8 +23,9 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
-import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Search extends SubCommand {
     
@@ -41,6 +41,9 @@ public class Search extends SubCommand {
         emptyPlayer.setCommandDescription(formatInfoTranslation("tport.command.dynmapCommand.search.player.commandDescription", infoColor));
         emptyPlayer.setPermissions(emptyPlayerTPort.getPermissions());
         emptyPlayer.setTabRunnable((args, player) -> {
+            if (emptyPlayerTPort.hasPermissionToRun(player, false)) {
+                return Collections.emptyList();
+            }
             UUID argOneUUID = PlayerUUID.getPlayerUUID(args[2]);
             if (argOneUUID == null) {
                 return Collections.emptyList();
@@ -60,7 +63,10 @@ public class Search extends SubCommand {
     
     @Override
     public List<String> tabList(Player player, String[] args) {
-        return Main.getPlayerNames();
+        if (!emptyPlayerTPort.hasPermissionToRun(player, false)) {
+            return Collections.emptyList();
+        }
+        return PlayerUUID.getPlayerNames();
     }
     
     @Override
@@ -84,21 +90,20 @@ public class Search extends SubCommand {
             }
             
             String newPlayerName = args[2];
-            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
-            if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-                sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
+            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName, player);
+            if (newPlayerUUID == null) {
                 return;
             }
             Player newPlayer = Bukkit.getPlayer(newPlayerUUID);
             if (newPlayer == null) {
-                sendErrorTranslation(player, "tport.command.playerNotOnline", newPlayerName);
+                sendErrorTranslation(player, "tport.command.playerNotOnline", asPlayer(newPlayerUUID));
                 return;
             }
             
             Location l = newPlayer.getLocation();
             String url = ip + String.format("?worldname=%s&mapname=flat&zoom=6&x=%s&y=%s&z=%s#", l.getWorld().getName(), l.getX(), l.getY(), l.getZ());
             
-            Message message = formatInfoTranslation("tport.command.dynmapCommand.search.player.succeeded", newPlayer);
+            Message message = formatInfoTranslation("tport.command.dynmapCommand.search.player.succeeded", asPlayer(newPlayer));
             message.getText().forEach(textComponent -> textComponent
                     .setInsertion(url)
                     .addTextEvent(hoverEvent(textComponent(url, infoColor)))
@@ -117,9 +122,8 @@ public class Search extends SubCommand {
             }
             
             String newPlayerName = args[2];
-            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName);
-            if (newPlayerUUID == null || !tportData.getConfig().contains("tport." + newPlayerUUID)) {
-                sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
+            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName, player);
+            if (newPlayerUUID == null) {
                 return;
             }
             
@@ -132,7 +136,7 @@ public class Search extends SubCommand {
             Location l = tport.getLocation();
             String url = ip + String.format("?worldname=%s&mapname=flat&zoom=6&x=%s&y=%s&z=%s#", l.getWorld().getName(), l.getX(), l.getY(), l.getZ());
             
-            Message message = formatInfoTranslation("tport.command.dynmapCommand.search.player.tport.succeeded", tport);
+            Message message = formatInfoTranslation("tport.command.dynmapCommand.search.player.tport.succeeded", asTPort(tport));
             message.getText().forEach(textComponent -> textComponent
                     .setInsertion(url)
                     .addTextEvent(hoverEvent(textComponent(url, infoColor)))

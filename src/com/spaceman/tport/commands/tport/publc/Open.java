@@ -10,10 +10,7 @@ import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_PUBLIC;
@@ -48,6 +45,9 @@ public class Open extends SubCommand {
         emptyTPort.setPermissions("TPort.public.open.tp", "TPort.basic");
         emptyTPort.addAction(emptyTPortSafetyCheck);
         emptyTPort.setTabRunnable(((args, player) -> {
+            if (emptyTPort.hasPermissionToRun(player, false)) {
+                return Collections.emptyList();
+            }
             try {
                 Integer.parseInt(args[args.length - 2]);
                 return new ArrayList<>();
@@ -66,7 +66,6 @@ public class Open extends SubCommand {
             TPort tport = getTPort(UUID.fromString(tportID));
             if (tport != null) {
                 if (tport.getName().equalsIgnoreCase(name)) {
-                    
                     return tport;
                 }
             }
@@ -118,27 +117,27 @@ public class Open extends SubCommand {
             }
             
             TPort publicTPort = getPublicTPort(args[2]);
-            if (publicTPort != null) {
-                
-                Boolean safetyCheckState;
-                if (args.length == 3) {
-                    if (TPORT_PUBLIC.hasPermission(player, true)) {
-                        safetyCheckState = Main.toBoolean(args[1]);
-                        if (safetyCheckState == null) {
-                            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public open <TPort name> [true|false]");
-                            return;
-                        }
-                    } else {
+            if (publicTPort == null) {
+                sendErrorTranslation(player, "tport.command.public.open.noPublicTPortFound", args[2]);
+                return;
+            }
+            
+            Boolean safetyCheckState;
+            if (args.length == 3) {
+                if (TPORT_PUBLIC.hasPermission(player, true)) {
+                    safetyCheckState = Main.toBoolean(args[1]);
+                    if (safetyCheckState == null) {
+                        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public open <TPort name> [true|false]");
                         return;
                     }
                 } else {
-                    safetyCheckState = TPORT_PUBLIC.getState(player);
+                    return;
                 }
-                
-                publicTPort.teleport(player, safetyCheckState);
             } else {
-                sendErrorTranslation(player, "tport.command.public.open.noPublicTPortFound", args[2]);
+                safetyCheckState = TPORT_PUBLIC.getState(player);
             }
+    
+            publicTPort.teleport(player, safetyCheckState);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public open <TPort name|page>");
         }
