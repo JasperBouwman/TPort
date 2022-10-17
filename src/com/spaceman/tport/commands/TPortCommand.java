@@ -148,7 +148,6 @@ public class TPortCommand extends CommandTemplate {
         if (Features.Feature.BiomeTP.isEnabled()) addAction(new BiomeTP());
         if (Features.Feature.FeatureTP.isEnabled()) addAction(new FeatureTP());
         addAction(new Home());
-        addAction(new SetHome());
         addAction(new ColorThemeCommand());
         addAction(new Reload());
         addAction(CooldownCommand.getInstance());
@@ -256,8 +255,8 @@ public class TPortCommand extends CommandTemplate {
         // tport featureTP search <feature...>
         // tport featureTP mode [mode]
         // tport home [safetyCheck]
-        // tport setHome
-        // tport setHome <player> <TPort name>
+        // tport home get
+        // tport home set <player> <TPort name>
         // tport colorTheme
         // tport colorTheme set <theme>
         // tport colorTheme set <type> <chat color>

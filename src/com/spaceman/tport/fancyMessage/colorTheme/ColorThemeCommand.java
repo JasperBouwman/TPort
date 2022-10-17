@@ -60,28 +60,28 @@ public class ColorThemeCommand extends SubCommand {
             }
         }));
         emptySetType.setRunnable(((args, player) -> {
-            if (args.length == 4) {
-                if (ColorType.getTypes().contains(args[2])) {
-                    if (Arrays.stream(ChatColor.values()).map(ChatColor::name).anyMatch(c -> c.equalsIgnoreCase(args[3]))) { //tport colorTheme set <type> <chat color>
-                        ColorType.valueOf(args[2]).setColor(player, new MultiColor(ChatColor.valueOf(args[3].toUpperCase())));
-                        
-                        Message message = formatTranslation(ColorType.valueOf(args[2]), ColorType.varInfo2Color, "tport.colorTheme.this");
-                        message.getText().forEach(t -> t.setInsertion(ColorType.valueOf(args[2]).getColor(player).getColorAsValue()));
-                        sendSuccessTranslation(player, "tport.colorTheme.set.type.chat.succeeded", ColorType.valueOf(args[2]).name(), message);
-                    } else if (args[3].matches("#[0-9a-fA-F]{6}")) {//tport colorTheme set <type> <hex color>
-                        ColorType.valueOf(args[2]).setColor(player, new MultiColor(args[3]));
-                        
-                        Message message = formatTranslation(ColorType.valueOf(args[2]), ColorType.varInfo2Color, "tport.colorTheme.this");
-                        message.getText().forEach(t -> t.setInsertion(ColorType.valueOf(args[2]).getColor(player).getColorAsValue()));
-                        sendSuccessTranslation(player, "tport.colorTheme.set.type.hex.succeeded", ColorType.valueOf(args[2]).name(), message);
-                    } else {
-                        sendErrorTranslation(player, "tport.colorTheme.set.type.colorNotFound", args[3]);
-                    }
-                } else {
-                    sendErrorTranslation(player, "tport.colorTheme.set.type.colorTypeNotFound", args[2]);
-                }
-            } else {
+            if (args.length != 4) {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport colorTheme set <type> <chat color|hex color>");
+                return;
+            }
+            if (!ColorType.getTypes().contains(args[2])) {
+                sendErrorTranslation(player, "tport.colorTheme.set.type.colorTypeNotFound", args[2]);
+                return;
+            }
+            if (Arrays.stream(ChatColor.values()).map(ChatColor::name).anyMatch(c -> c.equalsIgnoreCase(args[3]))) { //tport colorTheme set <type> <chat color>
+                ColorType.valueOf(args[2]).setColor(player, new MultiColor(ChatColor.valueOf(args[3].toUpperCase())));
+                
+                Message message = formatTranslation(ColorType.valueOf(args[2]), ColorType.varInfo2Color, "tport.colorTheme.this");
+                message.getText().forEach(t -> t.setInsertion(ColorType.valueOf(args[2]).getColor(player).getColorAsValue()));
+                sendSuccessTranslation(player, "tport.colorTheme.set.type.chat.succeeded", ColorType.valueOf(args[2]).name(), message);
+            } else if (args[3].matches("#[0-9a-fA-F]{6}")) {//tport colorTheme set <type> <hex color>
+                ColorType.valueOf(args[2]).setColor(player, new MultiColor(args[3]));
+                
+                Message message = formatTranslation(ColorType.valueOf(args[2]), ColorType.varInfo2Color, "tport.colorTheme.this");
+                message.getText().forEach(t -> t.setInsertion(ColorType.valueOf(args[2]).getColor(player).getColorAsValue()));
+                sendSuccessTranslation(player, "tport.colorTheme.set.type.hex.succeeded", ColorType.valueOf(args[2]).name(), message);
+            } else {
+                sendErrorTranslation(player, "tport.colorTheme.set.type.colorNotFound", args[3]);
             }
         }));
         emptySetType.addAction(emptySetTypeChat);
@@ -132,17 +132,17 @@ public class ColorThemeCommand extends SubCommand {
         emptyGet.setCommandName("get", ArgumentType.FIXED);
         emptyGet.setTabRunnable((args, player) -> Arrays.stream(ColorTheme.ColorType.values()).map(Enum::name).collect(Collectors.toList()));
         emptyGet.setRunnable(((args, player) -> {
-            if (args.length == 3) {
-                if (ColorType.getTypes().contains(args[2])) {
-                    Message message = formatTranslation(ColorType.valueOf(args[2]), ColorType.varInfo2Color, "tport.colorTheme.this");
-                    message.getText().forEach(t -> t.setInsertion(ColorType.valueOf(args[2]).getColor(player).getColorAsValue()));
-                    sendInfoTranslation(player, "tport.colorTheme.get.succeeded", ColorType.valueOf(args[2]).name(), message);
-                } else {
-                    sendErrorTranslation(player, "tport.colorTheme.get.colorNotFound", args[2]);
-                }
-            } else {
+            if (args.length != 3) {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport colorTheme get <type>");
+                return;
             }
+            if (!ColorType.getTypes().contains(args[2])) {
+                sendErrorTranslation(player, "tport.colorTheme.get.colorNotFound", args[2]);
+                return;
+            }
+            Message message = formatTranslation(ColorType.valueOf(args[2]), ColorType.varInfo2Color, "tport.colorTheme.this");
+            message.getText().forEach(t -> t.setInsertion(ColorType.valueOf(args[2]).getColor(player).getColorAsValue()));
+            sendInfoTranslation(player, "tport.colorTheme.get.succeeded", ColorType.valueOf(args[2]).name(), message);
         }));
         emptyGet.addAction(emptyGetType);
         
@@ -167,12 +167,12 @@ public class ColorThemeCommand extends SubCommand {
         if (args.length == 1) {
             ColorTheme colorTheme = ColorTheme.getTheme(player);
             
-            TextComponent infoMessage             = textComponent("tport.colorTheme.info",         ColorType.varInfoColor).addTextEvent(hoverEvent(colorTheme.getVarInfoColor().getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarInfoColor().getColorAsValue()).setType(TextType.TRANSLATE);
-            TextComponent successMessage          = textComponent("tport.colorTheme.success",      ColorType.varSuccessColor).addTextEvent(hoverEvent(colorTheme.getVarSuccessColor().getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarSuccessColor().getColorAsValue()).setType(TextType.TRANSLATE);
-            TextComponent errorMessage            = textComponent("tport.colorTheme.error",        ColorType.varErrorColor).addTextEvent(hoverEvent(colorTheme.getVarErrorColor().getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarErrorColor().getColorAsValue()).setType(TextType.TRANSLATE);
-            TextComponent secondaryInfoMessage    = textComponent("tport.colorTheme.secondary",    ColorType.varInfo2Color).addTextEvent(hoverEvent(colorTheme.getVarInfo2Color().getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarInfo2Color().getColorAsValue()).setType(TextType.TRANSLATE);
+            TextComponent infoMessage             = textComponent("tport.colorTheme.info",         ColorType.varInfoColor)    .addTextEvent(hoverEvent(colorTheme.getVarInfoColor()    .getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarInfoColor()    .getColorAsValue()).setType(TextType.TRANSLATE);
+            TextComponent successMessage          = textComponent("tport.colorTheme.success",      ColorType.varSuccessColor) .addTextEvent(hoverEvent(colorTheme.getVarSuccessColor() .getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarSuccessColor() .getColorAsValue()).setType(TextType.TRANSLATE);
+            TextComponent errorMessage            = textComponent("tport.colorTheme.error",        ColorType.varErrorColor)   .addTextEvent(hoverEvent(colorTheme.getVarErrorColor()   .getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarErrorColor()   .getColorAsValue()).setType(TextType.TRANSLATE);
+            TextComponent secondaryInfoMessage    = textComponent("tport.colorTheme.secondary",    ColorType.varInfo2Color)   .addTextEvent(hoverEvent(colorTheme.getVarInfo2Color()   .getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarInfo2Color()   .getColorAsValue()).setType(TextType.TRANSLATE);
             TextComponent secondarySuccessMessage = textComponent("tport.colorTheme.secondary",    ColorType.varSuccess2Color).addTextEvent(hoverEvent(colorTheme.getVarSuccess2Color().getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarSuccess2Color().getColorAsValue()).setType(TextType.TRANSLATE);
-            TextComponent secondaryErrorMessage   = textComponent("tport.colorTheme.secondary",    ColorType.varError2Color).addTextEvent(hoverEvent(colorTheme.getVarError2Color().getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarError2Color().getColorAsValue()).setType(TextType.TRANSLATE);
+            TextComponent secondaryErrorMessage   = textComponent("tport.colorTheme.secondary",    ColorType.varError2Color)  .addTextEvent(hoverEvent(colorTheme.getVarError2Color()  .getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarError2Color()  .getColorAsValue()).setType(TextType.TRANSLATE);
             
             TextComponent info = textComponent("tport.colorTheme.succeeded", colorTheme.getInfoColor()).setType(TextType.TRANSLATE).addTranslateWith(infoMessage, secondaryInfoMessage).addTextEvent(hoverEvent(colorTheme.getInfoColor().getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getInfoColor().getColorAsValue());
             TextComponent success = textComponent("tport.colorTheme.succeeded", colorTheme.getSuccessColor()).setType(TextType.TRANSLATE).addTranslateWith(successMessage, secondarySuccessMessage).addTextEvent(hoverEvent(colorTheme.getSuccessColor().getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getSuccessColor().getColorAsValue());

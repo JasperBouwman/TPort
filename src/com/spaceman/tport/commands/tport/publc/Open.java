@@ -45,7 +45,7 @@ public class Open extends SubCommand {
         emptyTPort.setPermissions("TPort.public.open.tp", "TPort.basic");
         emptyTPort.addAction(emptyTPortSafetyCheck);
         emptyTPort.setTabRunnable(((args, player) -> {
-            if (emptyTPort.hasPermissionToRun(player, false)) {
+            if (!emptyTPort.hasPermissionToRun(player, false)) {
                 return Collections.emptyList();
             }
             try {
@@ -123,9 +123,9 @@ public class Open extends SubCommand {
             }
             
             Boolean safetyCheckState;
-            if (args.length == 3) {
+            if (args.length == 4) {
                 if (TPORT_PUBLIC.hasPermission(player, true)) {
-                    safetyCheckState = Main.toBoolean(args[1]);
+                    safetyCheckState = Main.toBoolean(args[3]);
                     if (safetyCheckState == null) {
                         sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public open <TPort name> [true|false]");
                         return;
@@ -136,7 +136,7 @@ public class Open extends SubCommand {
             } else {
                 safetyCheckState = TPORT_PUBLIC.getState(player);
             }
-    
+            
             publicTPort.teleport(player, safetyCheckState);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public open <TPort name|page>");

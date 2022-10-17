@@ -442,6 +442,16 @@
   "tport.tport.tport.cancelPreview.succeeded": "Stopped previewing TPort %s",
   "tport.tport.tport.cancelPreview.reload": "Stopped previewing TPort %s because of a server reload",
 
+
+
+
+
+  "tport.command.home.get.commandDescription": "This command is used to get your home TPort",
+  "tport.command.home.get.succeeded": "Your home TPort is set to %s",
+  "tport.command.home.get.noHome": "You don't have a home set",
+  "tport.command.home.get.homeNotFound": "Your home TPort was not found, it may be removed",
+  "tport.command.home.set.player.tportName.commandDescription": "This command is used to set your home TPort",
+  "tport.command.home.set.player.tportName.succeeded": "Successfully set home to TPort %s",
   "tport.command.home.commandDescription": "This command is used to teleport to your home TPort",
   "tport.command.home.safetyCheck.permissionHover": "Permissions: (%1$s and %2$s) or %3$s",
   "_comment.tport.command.home.safetyCheck.permissionHover": "%1$s 'TPort.open', %2$s 'TPort.safetyCheck.TPORT_HOME', %1$3s 'TPort.basic'",
@@ -815,13 +825,6 @@
   "tport.command.search.dimension.dimensionNotExist": "Dimension %s does not exist",
   "tport.command.search.tag.commandDescription": "This command is used to search TPorts by their tag",
   "tport.command.search.tag.tagNotExist": "Tag %s does not exist",
-
-  "tport.command.setHome.commandDescription": "This command is used to get your home TPort",
-  "tport.command.setHome.succeeded": "Your home TPort is set to %s",
-  "tport.command.setHome.noHome": "You don't have a home set",
-  "tport.command.setHome.homeNotFound": "Your home TPort was not found, it may be removed",
-  "tport.command.setHome.player.tportName.commandDescription": "This command is used to set your home TPort",
-  "tport.command.setHome.player.tportName.succeeded": "Successfully set home to TPort %s",
 
   "tport.command.features.commandDescription": "This command is used to get the state of all available features",
   "tport.command.features.feature.commandDescription": "This command is used to get the description of the given feature",
@@ -1256,6 +1259,7 @@
 
   "tport.command.resourcePack.resolution.resolution.commandDescription": "This command is used to set your selected resource pack resolution, when selected %s you must have a TPort Resource Pack installed and selected",
   "tport.command.resourcePack.resolution.resolution.alreadyInResolution": "Your TPort Resource Pack is already in resolution %s",
+  "tport.command.resourcePack.resolution.resolution.succeeded": "Successfully set your resolution to %s",
   "tport.command.resourcePack.resolution.commandDescription": "This command is used to get your selected resource pack resolution, when selected %s you must have a TPort Resource Pack installed and selected",
   "tport.command.resourcePack.resolution.succeeded": "Your selected resolution is set to %s",
   "tport.command.resourcePack.resolution.allResolutions": "Available resolutions:\n%s",

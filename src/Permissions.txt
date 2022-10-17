@@ -99,8 +99,8 @@ Permissions can work with trees.
 /tport colorTheme get <type>
 /tport home                                                                                                   TPort.home                                  OR TPort.basic
 /tport home <safetyCheck>                                                                                    (TPort.home AND TPort.safetyCheck.TPORT_HOME) OR TPort.basic
-/tport setHome
-/tport setHome <player> <TPort name>                                                                          TPort.setHome                               OR TPort.basic
+/tport home get
+/tport home set <player> <TPort name>                                                                         TPort.home.set                              OR TPort.basic
 /tport public                                                                                                 TPort.public.open                           OR TPort.basic
 /tport public open <page>                                                                                     TPort.public.open.page                      OR TPort.basic
 /tport public open <TPort name>                                                                               TPort.public.open.tp                        OR TPort.basic

@@ -22,19 +22,29 @@ public class CommandEvent implements Listener {
             }
         }
         
-        if (Redirect.Redirects.Locate_FeatureTP.isEnabled() && e.getMessage().matches("/locate .+")) {
+        if (Redirect.Redirects.Locate_FeatureTP.isEnabled() && e.getMessage().matches("/locate structure .+")) {
             e.setCancelled(true);
-            TPortCommand.executeInternal(e.getPlayer(), "FeatureTP search" + e.getMessage().substring(7));
+            String structureQuery = e.getMessage().substring(18);
+            TPortCommand.executeInternal(e.getPlayer(), "FeatureTP search " + structureQuery);
             if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
-                Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "FeatureTP search" + e.getMessage().substring(7) + "'");
+                Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "FeatureTP search " + structureQuery + "'");
             }
         }
         
-        if (Redirect.Redirects.LocateBiome_BiomeTP.isEnabled() && e.getMessage().matches("/locateBiome .+")) {
+        if (Redirect.Redirects.LocateBiome_BiomeTP.isEnabled() && e.getMessage().matches("/locate biome .+")) {
             e.setCancelled(true);
-            TPortCommand.executeInternal(e.getPlayer(), "BiomeTP whitelist" + e.getMessage().substring(12));
-            if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
-                Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "BiomeTP whitelist" + e.getMessage().substring(12) + "'");
+            String biomeQuery = e.getMessage().substring(14);
+            System.out.println(biomeQuery);
+            if (biomeQuery.startsWith("#")) {
+                TPortCommand.executeInternal(e.getPlayer(), "BiomeTP preset " + biomeQuery);
+                if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
+                    Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "BiomeTP preset " + biomeQuery + "'");
+                }
+            } else {
+                TPortCommand.executeInternal(e.getPlayer(), "BiomeTP whitelist " + biomeQuery);
+                if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
+                    Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "BiomeTP whitelist " + biomeQuery + "'");
+                }
             }
         }
         

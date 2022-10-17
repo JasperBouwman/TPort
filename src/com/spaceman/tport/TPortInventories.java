@@ -431,7 +431,7 @@ public class TPortInventories {
         Message invertedBackTPLore = (backSafetyState == null ? null : formatInfoTranslation("tport.tportInventories.openMainGUI.backTP.inverted", ClickType.SHIFT_LEFT, !backSafetyState));
         
         Message homeTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openMainGUI.home.title", "Home");
-        TPort homeTPortObject = SetHome.getHome(player);
+        TPort homeTPortObject = Home.getHome(player);
         List<Message> homeLore = new ArrayList<>();
         if (homeTPortObject == null) {
             homeLore.add(formatTranslation(varInfoColor, varInfo2Color, "tport.tportInventories.openMainGUI.home.unknown"));
@@ -522,7 +522,7 @@ public class TPortInventories {
         ResourcePack.applyModelData(publicTP, (Features.Feature.PublicTP.isEnabled() ? public_tp_model : public_tp_grayed_model), player.getUniqueId());
         ResourcePack.applyModelData(mainLayout, (!pPermission && !tPermission ? main_layout_grayed_model : main_layout_model), player.getUniqueId());
         ResourcePack.applyModelData(sorting, (nextSort == null ? sorting_grayed_model : sorting_model), player.getUniqueId());
-        ResourcePack.applyModelData(home, (SetHome.hasHome(player, true) ? home_model : home_grayed_model), player.getUniqueId());
+        ResourcePack.applyModelData(home, (Home.hasHome(player, true) ? home_model : home_grayed_model), player.getUniqueId());
         
         inv.setItem(2, biomeTP);
         inv.setItem(4, featureTP);

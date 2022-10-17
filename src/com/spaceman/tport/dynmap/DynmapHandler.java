@@ -3,10 +3,12 @@ package com.spaceman.tport.dynmap;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.commands.tport.Features;
+import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 import org.dynmap.DynmapAPI;
 import org.dynmap.markers.Marker;
@@ -19,6 +21,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class DynmapHandler {
@@ -113,15 +116,44 @@ public class DynmapHandler {
             m = markerSet.createMarker("TPort-" + tport.getTportID(), "TPort: " + tport.getName(), false,
                     tport.getLocation().getWorld().getName(), tport.getLocation().getX(), tport.getLocation().getY(), tport.getLocation().getZ(),
                     markerIcon, false);
-            m.setDescription("Owner: " + PlayerUUID.getPlayerName(tport.getOwner()));
+            //new line support thanks to u/DirtyEarplug https://www.reddit.com/r/Dynmap/comments/hni0xn/comment/iqyczk4/?utm_source=share&utm_medium=web2x&context=3
+            setMarkerDescription(m, tport);
         } else if (m != null && !tport.showOnDynmap()) {
             m.deleteMarker();
         } else if (m != null && tport.showOnDynmap()) {
             m.setLabel("TPort: " + tport.getName());
             m.setLocation(tport.getLocation().getWorld().getName(), tport.getLocation().getX(), tport.getLocation().getY(), tport.getLocation().getZ());
             m.setMarkerIcon(markerIcon);
-            m.setDescription("Owner: " + PlayerUUID.getPlayerName(tport.getOwner()));
+            setMarkerDescription(m, tport);
         }
+    }
+    
+    private static void setMarkerDescription(Marker marker, TPort tport) {
+        //new line support thanks to u/DirtyEarplug https://www.reddit.com/r/Dynmap/comments/hni0xn/comment/iqyczk4/?utm_source=share&utm_medium=web2x&context=3
+        StringBuilder description = new StringBuilder();
+        description.append("Owner: ").append(PlayerUUID.getPlayerName(tport.getOwner()));
+        description.append("<br></br>");
+        
+        if (tport.hasDescription()) {
+            for (String s : tport.getDescription().split("\\\\n")) {
+                description.append("<br></br>").append(ChatColor.stripColor(s));
+            }
+            description.append("<br></br>");
+        }
+        //todo add whitelist
+        description.append("<br></br>Private State: ").append(tport.getPrivateState().name());
+        description.append("<br></br>Preview State: ").append(tport.getPreviewState().name());
+        if (tport.hasRange()) description.append("<br></br>Range: ").append(tport.getRange());
+        if (Features.Feature.PublicTP.isEnabled()) description.append("<br></br>Public TPort: ").append(tport.isPublicTPort());
+        description.append("<br></br>Default LogMode: ").append(tport.getDefaultLogMode().name());
+        description.append("<br></br>Notify Mode: ").append(tport.getNotifyMode().name());
+        //todo add tags
+        if (tport.isOffered()) {
+            description.append("<br></br>");
+            description.append("Offered to: ").append(PlayerUUID.getPlayerName(tport.getOfferedTo()));
+        }
+        
+        marker.setDescription(description.toString());
     }
     
     public static String getTPortIconName(TPort tport) {

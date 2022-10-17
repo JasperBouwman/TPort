@@ -79,6 +79,7 @@ public class Resolution extends SubCommand {
             
             setResourcePackResolution(player.getUniqueId(), newResolution);
             updateResourcePack(player);
+            sendSuccessTranslation(player, "tport.command.resourcePack.resolution.resolution.succeeded", newResolution);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport resourcePack resolution [resolution]");
         }

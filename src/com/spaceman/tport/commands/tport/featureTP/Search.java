@@ -117,6 +117,7 @@ public class Search extends SubCommand {
             String argument = args[i].toLowerCase();
             
             if (argument.charAt(0) == '#') { //tag list
+                if (argument.startsWith("#minecraft:")) argument = "#" + argument.substring(11);
                 for (Pair<String, List<String>> tag : tags) {
                     if (!tag.getLeft().equals(argument)) {
                         continue;
@@ -134,6 +135,7 @@ public class Search extends SubCommand {
                 }
                 sendErrorTranslation(player, "tport.command.featureTP.search.tag.tagNotExist", argument);
             } else { //feature
+                if (argument.startsWith("minecraft:")) argument = argument.substring(10);
                 for (String feature : features) {
                     if (!feature.equals(argument)) {
                         continue;

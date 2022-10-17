@@ -79,8 +79,8 @@
 /TPort featureTP search <feature...>
 /TPort home
 /TPort home <safetyCheck>
-/TPort setHome
-/TPort setHome <player> <TPort name>
+/tport home get
+/tport home set <player> <TPort name>
 /TPort colorTheme
 /TPort colorTheme set <theme>
 /TPort colorTheme set <type> <chat color>

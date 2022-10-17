@@ -61,6 +61,7 @@ public class Whitelist extends SubCommand {
             List<String> whitelist = new ArrayList<>();
             for (int i = 2; i < args.length; i++) {
                 String biomeName = args[i].toLowerCase();
+                if (biomeName.startsWith("minecraft:")) biomeName = biomeName.substring(10);
                 
                 if (!possibleBiomes.contains(biomeName)) {
                     sendErrorTranslation(player, "tport.command.biomeTP.whitelist.biome.worldNotGenerateBiome", biomeName);

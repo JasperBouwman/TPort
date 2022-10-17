@@ -237,6 +237,7 @@ public class TPort implements ConfigurationSerializable {
     
     public void setPrivateState(PrivateState privateState) {
         this.privateState = privateState;
+        DynmapHandler.updateTPort(this);
     }
     
     public WhitelistVisibility getWhitelistVisibility() {
@@ -332,6 +333,7 @@ public class TPort implements ConfigurationSerializable {
         }
         
         this.description = ChatColor.translateAlternateColorCodes('&', description);
+        DynmapHandler.updateTPort(this);
     }
     
     public String getName() {
@@ -349,6 +351,7 @@ public class TPort implements ConfigurationSerializable {
     
     public void setRange(int range) {
         this.range = Math.max(range, 0);
+        if (this.hasRange()) DynmapHandler.updateTPort(this);
     }
     
     public boolean hasRange() {
@@ -429,6 +432,7 @@ public class TPort implements ConfigurationSerializable {
     
     public void setDefaultLogMode(LogMode defaultLogMode) {
         this.defaultLogMode = defaultLogMode;
+        DynmapHandler.updateTPort(this);
     }
     
     public void addLogged(UUID uuid, LogMode logMode) {
@@ -467,14 +471,15 @@ public class TPort implements ConfigurationSerializable {
         this.publicTPort = publicTPort;
         if (publicTPort) {
             if (!privateState.canGoPublic()) {
-                privateState = PrivateState.OPEN;
+                this.setPrivateState(PrivateState.OPEN);
                 sendInfoTranslation(player, "tport.tport.tport.setPublicTPort.incompatiblePrivateState", this, privateState);
             }
             if (!previewState.canGoPublic()) {
-                previewState = PreviewState.ON;
+                this.setPreviewState(PreviewState.ON);
                 sendInfoTranslation(player, "tport.tport.tport.setPublicTPort.incompatiblePreviewState", this, previewState);
             }
         }
+        if (b) DynmapHandler.updateTPort(this);
         return b;
     }
     
@@ -499,6 +504,7 @@ public class TPort implements ConfigurationSerializable {
     
     public void setNotifyMode(NotifyMode notifyMode) {
         this.notifyMode = notifyMode;
+        DynmapHandler.updateTPort(this);
     }
     
     public void notifyOwner(Player teleporter) {
@@ -515,6 +521,7 @@ public class TPort implements ConfigurationSerializable {
     }
     public void setPreviewState(PreviewState previewState) {
         this.previewState = previewState;
+        DynmapHandler.updateTPort(this);
     }
     
     public boolean addTag(String tag) {
@@ -719,7 +726,7 @@ public class TPort implements ConfigurationSerializable {
             else hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.whitelist.list", whitelistMessage));
         }
         
-        hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.range", this.getRange()));
+        if (this.hasRange()) hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.range", this.getRange()));
         if (Features.Feature.PublicTP.isEnabled()) hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.publicTPort", this.isPublicTPort()));
         hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.defaultLogMode", this.getDefaultLogMode().name()));
         hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.notifyMode", this.getNotifyMode().name()));

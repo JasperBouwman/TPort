@@ -58,7 +58,9 @@ public class Preset extends SubCommand {
             if (!hasPermissionToRun(player, true)) {
                 return;
             }
-            BiomeTP.BiomeTPPresets.BiomePreset preset = BiomeTP.BiomeTPPresets.getPreset(args[2], player.getWorld());
+            String biomePreset = args[2];
+            if (biomePreset.startsWith("#minecraft:")) biomePreset = "#" + biomePreset.substring(11);
+            BiomeTP.BiomeTPPresets.BiomePreset preset = BiomeTP.BiomeTPPresets.getPreset(biomePreset, player.getWorld());
             if (preset == null) {
                 sendErrorTranslation(player, "tport.command.biomeTP.preset.presetNotExist", args[2]);
                 return;

@@ -159,50 +159,26 @@ public class Main extends JavaPlugin {
         return arg.equals("false") || arg.equals("no") || arg.equals("n") || arg.equals("disable");
     }
     
-    @Override
-    public void onLoad() {
-    }
-    
     public static final String discordLink = "https://discord.gg/tq5RTmSbHU";
     public void onEnable() {
         
         /*
-         * changelog 1.19.2 update:
+         * changelog 1.19.3 update:
          *
-         * changed permission from '/tport edit <tport name> add <tag>' from TPort.edit.tag.add.<tag> to TPort.tags.type.<tag>
-         * removed permissions: TPort.delay.get.own and TPort.restriction.get.own. A player should always be able to get their delay/restriction
-         * removed permissions: TPort.particleAnimation.old.enable.get and TPort.particleAnimation.new.enable.get
+         * added a confirmation when using /tport resourcePack resolution <resolution>
          *
-         * added the implementation for the permission of the command /tport safetyCheck check
+         * fixed command /tport public open <TPort name> [safetyCheck]
+         * fixed error with command /tport open
+         * fixed command redirection of /locate <biome|structure>
+         
+         * the /tport setHome command has moved into the /tport home command:
+         *  /tport home                             teleport to your home
+         *  /tport home <safetyCheck>               teleport to your home with selected safety check
+         *  /tport home get                         gives the current home
+         *  /tport home set <player> <TPort name>   set the selected TPort as your home
          *
-         * added custom model data IDs to buttons in TPort GUI's. These work with the TPort Resource Pack.
-         * use /tport resourcePack state [state] to enable/disable the resource pack. When set to enabled, TPort prompts the sender to download the resource pack
-         * Commands:
-         *  /tport resourcePack
-         *  /tport resourcePack state [state]
-         *  /tport resourcePack resolution [resolution]
-         * These resource packs are freely downloadable on the github repository
+         * Dynmap TPort icons now show more information about the TPort
          *
-         * set all permission detection after the syntax detection
-         *
-         * added /tport world
-         * added a GUI for the command /tport world [world]
-         * This GUI can be opened from the command /tport world, or from the Main GUI
-         *
-         * if a player opened a chest while previewing a TPort, the inventory opens. When the player started the preview near that chest the inventory stayed opened.
-         * Now the inventory won't even open
-         *
-         * with shift+left click you can invert the safety check for this teleport
-         * when using /tport open with one of your own TPort, it now used the TPORT_OWN safety check source
-         *
-         * added a home button on the Main GUI
-         * added '/tport setHome', this allows you to check what your home TPort is set to
-         *
-         * fixed /tport log add <tport name> <player[:LogMode]...>
-         * added error check for a non-existing log mode, previous it defaulted to ALL
-         *
-         *
-         * changed language key: 'tport.events.inventoryClick.onInventoryClick.clearSelectedBiomes' to 'tport.tportInventories.openBiomeTP.clearSelected.succeeded'
          */
         
         /*
@@ -220,11 +196,6 @@ public class Main extends JavaPlugin {
          * - use on items
          * - use om items in itemFrame
          * - use on sign
-         *
-         * /tport home                              teleport home
-         * /tport home <true|false>                 teleport home with given safety check state
-         * /tport home get                          gives the current home set
-         * /tport home set <player> <Tport name>    sets the home of the selected TPort
          *
          * unify getPlayer in commands
          *

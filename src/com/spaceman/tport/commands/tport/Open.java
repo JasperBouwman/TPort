@@ -81,15 +81,16 @@ public class Open extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport open <player> [TPort name] [safetyCheck]
-        
-        String newPlayerName = args[1];
-        
+    
+    
         if (args.length == 2) {
+            String newPlayerName = args[1];
             UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName, player);
             if (newPlayerUUID != null) {
                 openTPortGUI(newPlayerUUID, player);
             }
         } else if (args.length == 3 || args.length == 4) {
+            String newPlayerName = args[1];
             if (!emptyOpenPlayerTPort.hasPermissionToRun(player, true)) {
                 return;
             }
