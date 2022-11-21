@@ -20,10 +20,11 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTr
 
 public abstract class SubCommand {
     
+    protected static final String descriptionNotGiven = "tport.commandHandler.subCommand.descriptionNotGiven";
     private final ArrayList<SubCommand> actions = new ArrayList<>();
     private ArgumentType argumentType = ArgumentType.FIXED;
     private String commandName = getName("");
-    private Message commandDescription = formatErrorTranslation( "tport.commandHandler.subCommand.descriptionNotGiven");
+    private Message commandDescription = formatErrorTranslation(descriptionNotGiven);
     private boolean linked = false;
     
     private List<String> permissions = new ArrayList<>();

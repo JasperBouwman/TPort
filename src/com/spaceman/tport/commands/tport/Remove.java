@@ -4,6 +4,7 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -20,7 +21,7 @@ public class Remove extends SubCommand {
     public Remove() {
         EmptyCommand emptyTPort = new EmptyCommand();
         emptyTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyTPort.setCommandDescription(formatInfoTranslation("tport.command.remove.commandDescription"));
+        emptyTPort.setCommandDescription(formatInfoTranslation("tport.command.remove.tportName.commandDescription"));
         addAction(emptyTPort);
     }
     
@@ -32,7 +33,7 @@ public class Remove extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport remove <TPort name>
-    
+        
         if (args.length != 2) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport remove <TPort name>");
             return;
@@ -43,12 +44,12 @@ public class Remove extends SubCommand {
             return;
         }
         if (tport.isOffered()) {
-            sendErrorTranslation(player, "tport.command.remove.isOffered", tport.getName(), PlayerUUID.getPlayerName(tport.getOfferedTo()));
+            sendErrorTranslation(player, "tport.command.remove.tportName.isOffered", tport.getName(), PlayerUUID.getPlayerName(tport.getOfferedTo()));
             return;
         }
         removePublicTPort(tport.getName(), player, true);
         TPortManager.removeTPort(tport);
-        sendSuccessTranslation(player, "tport.command.remove.succeeded", tport.getName());
+        sendSuccessTranslation(player, "tport.command.remove.tportName.succeeded", tport.getName());
         Main.giveItems(player, tport.getItem());
     }
 }

@@ -28,9 +28,12 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
+import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
@@ -339,7 +342,12 @@ public class Message implements Cloneable {
         }
         try {
             EntityPlayer entityPlayer = (EntityPlayer) player.getClass().getMethod("getHandle").invoke(player);
-            entityPlayer.b.a(new ClientboundSystemChatPacket(this.translateJSON(player), false));
+        
+            String message = translateJSON(ColorTheme.getTheme(player));
+            @Nullable IChatMutableComponent chatComponent = IChatBaseComponent.ChatSerializer.a(message);
+            entityPlayer.b.a(new ClientboundSystemChatPacket(chatComponent, false));
+            
+//            entityPlayer.b.a(new ClientboundSystemChatPacket(this.translateJSON(player), false));
         } catch (Exception ex) {
             ex.printStackTrace();
             player.sendMessage(this.translateString());

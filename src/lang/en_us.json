@@ -82,15 +82,15 @@
   "tport.command.help.language.description": "TPort can be translated in a customizable way. When your language is set to %1$s your language will follow the default of the server. When set to %2$s you will need a TPort Language Resource Pack, you can download language files from %3$s. Using this file you need to make an Resource Pack",
   "tport.command.help.cooldown.description": "Cooldowns are used to decrease the load on the server. Some features use these cooldowns. Each cooldown can be set using %1$s. The time of each cooldown can be a number (in milliseconds), or set to '%2$s'. when set to %2$s the cooldown will be taken from the permission %3$s of the player. Lastly the value can be set to the name of another cooldown name. This way you can link cooldowns together",
 
-  "tport.command.add.description.permissionHover": "Permissions: (%1$s and %2$s) or %3$s. Permission '%4$s' overrules permissions %1$s and %3$s",
-  "_comment.tport.command.add.description.permissionHover": "%1$s 'tport.add', %2$s 'tport.edit.description', %3$s 'tport.basic', %4$s 'tport.add.<X>'",
-  "tport.command.add.description.commandDescription": "This command is used to add a TPort to your saved TPorts list, and all arguments after the name are the description of that TPort. With %1$s you can add a new line. With the character %2$s and a color code you can add colors to your description",
-  "tport.command.add.permissionHover" : "%2$s or %3$s, permission %1$s will overrule all other permissions",
-  "_comment.tport.command.add.permissionHover" : "%1$s 'tport.add.<X>', %2$s 'tport.add', %3$s 'tport.basic'",
-  "tport.command.add.commandDescription" : "This command is used to add a TPort to your saved TPorts list",
-  "tport.command.add.wrongUsage2": "The name is single word, and the description can be a sentence",
-  "tport.command.add.noItem": "You must hold an item in your main hand",
-  "tport.command.add.noDescription": "Could not add description to TPort, missing permissions: %s or %s",
+  "tport.command.add.tportName.description.permissionHover": "Permissions: (%1$s and %2$s) or %3$s. Permission '%4$s' overrules permissions %1$s and %3$s",
+  "_comment.tport.command.add.tportName.description.permissionHover": "%1$s 'tport.add', %2$s 'tport.edit.description', %3$s 'tport.basic', %4$s 'tport.add.<X>'",
+  "tport.command.add.tportName.description.commandDescription": "This command is used to add a TPort to your saved TPorts list, and all arguments after the name are the description of that TPort. With %1$s you can add a new line. With the character %2$s and a color code you can add colors to your description",
+  "tport.command.add.tportName.permissionHover" : "%2$s or %3$s, permission %1$s will overrule all other permissions",
+  "_comment.tport.command.add.tportName.permissionHover" : "%1$s 'tport.add.<X>', %2$s 'tport.add', %3$s 'tport.basic'",
+  "tport.command.add.tportName.commandDescription" : "This command is used to add a TPort to your saved TPorts list",
+  "tport.command.add.tportName.wrongUsage2": "The name is single word, and the description can be a sentence",
+  "tport.command.add.tportName.noItem": "You must hold an item in your main hand",
+  "tport.command.add.tportName.noDescription": "Could not add description to TPort, missing permissions: %s or %s",
   "tport.tport.tportManager.addTPort.numberName": "TPort name can't be a number, but it can contain a number",
   "tport.tport.tportManager.addTPort.specialChars": "TPort name can't contain any special characters, only %1$s, %2$s, '%3$s' and '%4$s'",
   "_comment.tport.tport.tportManager.addTPort.specialChars": "%1$s 'A-Z', %2$s '0-9', %3$s '-', %4$s '_'",
@@ -442,10 +442,6 @@
   "tport.tport.tport.cancelPreview.succeeded": "Stopped previewing TPort %s",
   "tport.tport.tport.cancelPreview.reload": "Stopped previewing TPort %s because of a server reload",
 
-
-
-
-
   "tport.command.home.get.commandDescription": "This command is used to get your home TPort",
   "tport.command.home.get.succeeded": "Your home TPort is set to %s",
   "tport.command.home.get.noHome": "You don't have a home set",
@@ -633,6 +629,7 @@
   "tport.commandHandler.subCommand.permissionHover.singular": "Permission: %s",
   "tport.commandHandler.subCommand.permissionHover.multiple": "Permissions: %s",
   "tport.commandHandler.subCommand.descriptionNotGiven": "Sub-command description not given",
+  "tport.commandHandler.subCommand.shorten.generalDescription": "This is not the complete command, for more help use %s",
 
   "tport.command.PLTP.state.enabled": "enabled",
   "tport.command.PLTP.state.disabled": "disabled",
@@ -753,9 +750,9 @@
   "tport.command.reload.commandDescription": "This command is used to reload the plugin",
   "tport.command.reload.succeeded": "TPort has been reloaded",
 
-  "tport.command.remove.commandDescription": "This command is used to remove the given TPort from your TPorts",
-  "tport.command.remove.isOffered": "You can't remove TPort %s while its offered to %s",
-  "tport.command.remove.succeeded": "Successfully removed TPort %s",
+  "tport.command.remove.tportName.commandDescription": "This command is used to remove the given TPort from your TPorts",
+  "tport.command.remove.tportName.isOffered": "You can't remove TPort %s while its offered to %s",
+  "tport.command.remove.tportName.succeeded": "Successfully removed TPort %s",
   "tport.main.dropItem": "Your inventory is full, dropped %s on the ground",
 
   "tport.command.removePlayer.player.commandDescription": "This command is used to remove a player from the Main TPort GUI, this will also remove all TPorts of the given player and can not be undone. Mostly used when a player is not coming back and you want to clear out the Main TPort GUI",
@@ -1170,7 +1167,7 @@
   "tport.tportInventories.openMainGUI.backTP.title": "Open %s",
   "tport.tportInventories.openMainGUI.backTP.inverted": "Click %s for backTP with inverted safetyCheck (%s)",
   "tport.tportInventories.openMainGUI.home.title": "Teleport to %s",
-  "tport.tportInventories.openMainGUI.home.unknown": "unknown",
+  "tport.tportInventories.openMainGUI.home.unknown": "You don't have a home set",
   "tport.tportInventories.openMainGUI.home.tportName": "TPort name: %s",
   "tport.tportInventories.openMainGUI.home.inverted": "Click %s to teleport home with inverted safetyCheck (%s)",
   "tport.tportInventories.openMainGUI.publicTP.title": "Open %s",

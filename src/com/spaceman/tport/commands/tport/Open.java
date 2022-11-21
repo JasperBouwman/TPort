@@ -81,8 +81,7 @@ public class Open extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport open <player> [TPort name] [safetyCheck]
-    
-    
+        
         if (args.length == 2) {
             String newPlayerName = args[1];
             UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName, player);
@@ -107,13 +106,12 @@ public class Open extends SubCommand {
             Boolean safetyCheck;
             if (tport.getOwner().equals(player.getUniqueId())) {
                 if (args.length == 4) {
-                    if (TPORT_OWN.hasPermission(player, true)) {
-                        safetyCheck = Main.toBoolean(args[3]);
-                        if (safetyCheck == null) {
-                            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport open <player> [TPort name] [true|false]");
-                            return;
-                        }
-                    } else {
+                    if (!TPORT_OWN.hasPermission(player, true)) {
+                        return;
+                    }
+                    safetyCheck = Main.toBoolean(args[3]);
+                    if (safetyCheck == null) {
+                        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport open <player> [TPort name] [true|false]");
                         return;
                     }
                 } else {
@@ -121,13 +119,12 @@ public class Open extends SubCommand {
                 }
             } else {
                 if (args.length == 4) {
-                    if (TPORT_OPEN.hasPermission(player, true)) {
-                        safetyCheck = Main.toBoolean(args[3]);
-                        if (safetyCheck == null) {
-                            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport open <player> [TPort name] [true|false]");
-                            return;
-                        }
-                    } else {
+                    if (!TPORT_OPEN.hasPermission(player, true)) {
+                        return;
+                    }
+                    safetyCheck = Main.toBoolean(args[3]);
+                    if (safetyCheck == null) {
+                        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport open <player> [TPort name] [true|false]");
                         return;
                     }
                 } else {
