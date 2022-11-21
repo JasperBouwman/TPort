@@ -22,21 +22,21 @@ public class Add extends SubCommand {
         emptyAddTPortDescription = new EmptyCommand() {
             @Override
             public Message permissionsHover() {
-                return formatInfoTranslation("tport.command.add.description.permissionHover", "TPort.add.[X]", "TPort.edit.description", "TPort.basic", "TPort.add.<X>");
+                return formatInfoTranslation("tport.command.add.tportName.description.permissionHover", "TPort.add.[X]", "TPort.edit.description", "TPort.basic", "TPort.add.<X>");
             }
         };
         emptyAddTPortDescription.setCommandName("description...", ArgumentType.OPTIONAL);
-        emptyAddTPortDescription.setCommandDescription(formatInfoTranslation("tport.command.add.description.commandDescription", "\\n", "&"));
+        emptyAddTPortDescription.setCommandDescription(formatInfoTranslation("tport.command.add.tportName.description.commandDescription", "\\n", "&"));
         emptyAddTPortDescription.setPermissions("TPort.add.[X]", "TPort.edit.description", "TPort.basic");
         
         EmptyCommand emptyAddTPort = new EmptyCommand() {
             @Override
             public Message permissionsHover() {
-                return formatInfoTranslation("tport.command.add.permissionHover", "TPort.add.<X>", "TPort.add", "TPort.basic");
+                return formatInfoTranslation("tport.command.add.tportName.permissionHover", "TPort.add.<X>", "TPort.add", "TPort.basic");
             }
         };
         emptyAddTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
-        emptyAddTPort.setCommandDescription(formatInfoTranslation("tport.command.add.commandDescription"));
+        emptyAddTPort.setCommandDescription(formatInfoTranslation("tport.command.add.tportName.commandDescription"));
         emptyAddTPort.addAction(emptyAddTPortDescription);
         emptyAddTPort.setPermissions("TPort.add.<X>", "TPort.add", "TPort.basic");
         
@@ -49,13 +49,13 @@ public class Add extends SubCommand {
         
         if (args.length == 1) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport add <TPort name> [description...]");
-            sendErrorTranslation(player, "tport.command.add.wrongUsage2");
+            sendErrorTranslation(player, "tport.command.add.tportName.wrongUsage2");
             return;
         }
         
         ItemStack item = new ItemStack(player.getInventory().getItemInMainHand());
         if (item.getType().equals(Material.AIR)) {
-            sendErrorTranslation(player, "tport.command.add.noItem");
+            sendErrorTranslation(player, "tport.command.add.tportName.noItem");
             return;
         }
         TPort newTPort = new TPort(player.getUniqueId(), args[1], player.getLocation(), item);
@@ -64,7 +64,7 @@ public class Add extends SubCommand {
             if (emptyAddTPortDescription.hasPermissionToRun(player, false)) {
                 newTPort.setDescription(StringUtils.join(args, " ", 2, args.length));
             } else {
-                sendErrorTranslation(player, "tport.command.add.noDescription", "TPort.edit.description", "TPort.basic");
+                sendErrorTranslation(player, "tport.command.add.tportName.noDescription", "TPort.edit.description", "TPort.basic");
             }
         }
         

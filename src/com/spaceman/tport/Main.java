@@ -163,28 +163,22 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         
         /*
-         * changelog 1.19.3 update:
+         * changelog 1.19.4 update: todo UPDATE VERSION IN plugin.yml
          *
-         * added a confirmation when using /tport resourcePack resolution <resolution>
+         * Fixed command description for incomplete command given by the command /tport help tport
+         * these missing command descriptions where due to the command not being complete, example: '/tport edit' alone is not valid therefor had no description
          *
-         * fixed command /tport public open <TPort name> [safetyCheck]
-         * fixed error with command /tport open
-         * fixed command redirection of /locate <biome|structure>
-         
-         * the /tport setHome command has moved into the /tport home command:
-         *  /tport home                             teleport to your home
-         *  /tport home <safetyCheck>               teleport to your home with selected safety check
-         *  /tport home get                         gives the current home
-         *  /tport home set <player> <TPort name>   set the selected TPort as your home
+         * Fixed messages for servers running Paper
          *
-         * Dynmap TPort icons now show more information about the TPort
-         *
+         * Fixed issue in the Main TPort GUI where the button for HomeTP was not correct when the player has no home set
          */
         
         /*
          * //todo
          *
          * unify EmptyCommand names
+         *
+         * create /tport preview <player> [TPort name]
          *
          * add POI
          *

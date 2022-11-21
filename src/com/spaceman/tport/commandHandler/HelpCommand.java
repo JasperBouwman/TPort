@@ -115,13 +115,25 @@ public class HelpCommand extends SubCommand {
         commandHelp.setCommandDescription(formatInfoTranslation("tport.command.help.command.commandDescription"));
         commandHelp.setRunnable((args, player) -> {
             //command help <command...>
-            if (shortenFirst && args.length == 2) { //todo add command description to all first arg commands
+            if (shortenFirst && args.length == 2) {
                 String command = "/" + StringUtils.join(args, " ", 1, args.length);
                 Message commands = new Message();
                 boolean color = true;
                 
                 for (SubCommand subCommand : template.getActions()) {
-                    TextComponent commandComponent = commandToComponent("/" + template.getName() + " " + subCommand.getCommandName(), subCommand, player, color);
+                    TextComponent commandComponent;
+                    if (subCommand.getActions().size() == 0) {
+                        commandComponent = commandToComponent("/" + template.getName() + " " + subCommand.getCommandName(), subCommand, player, color);
+                    } else {
+                        if (subCommand.getCommandDescription().getText().get(0).getText().equals(descriptionNotGiven)) {
+                            EmptyCommand descriptionHack = new EmptyCommand();
+                            descriptionHack.setCommandDescription(formatInfoTranslation("tport.commandHandler.subCommand.shorten.generalDescription",
+                                    "/" + template.getName() + " help " + template.getName() + " " + subCommand.getCommandName()));
+                            commandComponent = commandToComponent("/" + template.getName() + " " + subCommand.getCommandName() + " <...>", descriptionHack, player, color);
+                        } else {
+                            commandComponent = commandToComponent("/" + template.getName() + " " + subCommand.getCommandName() + " [...]", subCommand, player, color);
+                        }
+                    }
                     commands.addText(commandComponent);
                     commands.addNewLine();
                     color = !color;

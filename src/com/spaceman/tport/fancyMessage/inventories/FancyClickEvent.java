@@ -119,7 +119,7 @@ public class FancyClickEvent implements Listener {
         }
         
         e.setCancelled(true);
-        PersistentDataContainer pdc = item.getItemMeta().getPersistentDataContainer();
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
         
         NamespacedKey runCommandKey = new NamespacedKey(Main.getInstance(), "runCommand_" + clickType.name());
         if (pdc.has(runCommandKey, PersistentDataType.STRING)) {

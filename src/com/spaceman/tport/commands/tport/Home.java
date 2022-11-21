@@ -39,7 +39,10 @@ public class Home extends SubCommand {
     
     @Nullable
     public static TPort getHome(Player player) {
-        String homeID = tportData.getConfig().getString("tport." + player.getUniqueId() + ".home", TPortManager.defUUID.toString());
+        String homeID = tportData.getConfig().getString("tport." + player.getUniqueId() + ".home", null);
+        if (homeID == null) {
+            return null;
+        }
         return TPortManager.getTPort(UUID.fromString(homeID));
     }
     
