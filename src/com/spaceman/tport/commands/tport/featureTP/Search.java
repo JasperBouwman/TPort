@@ -13,6 +13,7 @@ import com.spaceman.tport.metrics.FeatureSearchCounter;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 import net.minecraft.core.*;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.WorldServer;
@@ -243,13 +244,15 @@ public class Search extends SubCommand {
         }
 
         IRegistryCustom registry = worldServer.s();
-        IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
+//        IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
+        IRegistry<Structure> structureRegistry =  worldServer.s().d(Registries.av); //1.19.3
 
         for (String feature : features) {
             Structure o = structureRegistry.a(new MinecraftKey(feature));
             Optional<ResourceKey<Structure>> optional = structureRegistry.c(o);
             if (optional.isPresent()) {
-                Holder<Structure> holder = structureRegistry.c(optional.get());
+//                Holder<Structure> holder = structureRegistry.c(optional.get());
+                Holder<Structure> holder = structureRegistry.d(o);
                 featureList.add(holder);
 //            System.out.println(structureRegistry.b(holder.a()).a());
             }
@@ -266,7 +269,8 @@ public class Search extends SubCommand {
             WorldServer worldServer = (WorldServer) nmsWorld;
             
             IRegistryCustom registry = worldServer.s();
-            IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
+//            IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
+            IRegistry<Structure> structureRegistry =  worldServer.s().d(Registries.av); //1.19.3
             
             Set<Holder<BiomeBase>> generateInBiomesList = featureList.stream().flatMap((holder) -> holder.a().a().a()).collect(Collectors.toSet());
             
@@ -276,7 +280,8 @@ public class Search extends SubCommand {
             } else {
                 ChunkGenerator chunkGenerator = worldServer.k().g();
 //              Field f = ChunkGenerator.class.getDeclaredField("d"); //1.18.2
-                Field f = ChunkGenerator.class.getDeclaredField("c"); //1.19
+//              Field f = ChunkGenerator.class.getDeclaredField("c"); //1.19
+                Field f = ChunkGenerator.class.getDeclaredField("b"); //1.19.3
                 f.setAccessible(true);
                 WorldChunkManager worldChunkManager = (WorldChunkManager) f.get(chunkGenerator);
                 
@@ -293,6 +298,7 @@ public class Search extends SubCommand {
                         if (generatedBiomes.stream().anyMatch(holder.a().a()::a)) {
                             
                             Method m = ChunkGenerator.class.getDeclaredMethod("a", Holder.class, RandomState.class);
+                            
                             m.setAccessible(true);
                             List<StructurePlacement> l = (List<StructurePlacement>) m.invoke(chunkGenerator, holder, worldServer.k().h());
                             for (StructurePlacement structureplacement : l) {

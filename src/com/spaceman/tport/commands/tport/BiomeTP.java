@@ -17,6 +17,7 @@ import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
 import net.minecraft.core.*;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.tags.TagKey;
@@ -88,11 +89,13 @@ public class BiomeTP extends SubCommand {
 
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.t().d(IRegistry.aR); //1.18.1
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
-                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
-                return biomeRegistry.d().stream().map(MinecraftKey::a).map(String::toLowerCase).collect(Collectors.toList());
+//              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
+                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(Registries.al); //1.19.3
+                return biomeRegistry.e().stream().map(MinecraftKey::a).map(String::toLowerCase).collect(Collectors.toList());
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 Main.getInstance().getLogger().log(Level.WARNING, "Can't use NMS (try updating TPort), using legacy mode for BiomeTP");
                 legacyBiomeTP = true;
+                e.printStackTrace();
             }
         }
         return Arrays.stream(Biome.values()).map(Enum::name).map(String::toLowerCase).collect(Collectors.toList());
@@ -107,10 +110,13 @@ public class BiomeTP extends SubCommand {
                 ChunkGenerator chunkGenerator = worldServer.k().g();
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.t().d(IRegistry.aR); //1.18.1
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
-                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
+//              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
+                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(Registries.al); //1.19.3
 
 //              Field f = ChunkGenerator.class.getDeclaredField("b"); //1.18.1
-                Field f = ChunkGenerator.class.getDeclaredField("c"); //1.18.2
+//              Field f = ChunkGenerator.class.getDeclaredField("c"); //1.18.2
+                Field f = ChunkGenerator.class.getDeclaredField("b"); //1.19.3
+                
                 f.setAccessible(true);
                 WorldChunkManager worldChunkManager = (WorldChunkManager) f.get(chunkGenerator);
                 
@@ -123,6 +129,7 @@ public class BiomeTP extends SubCommand {
             } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException | NoSuchMethodError | ClassCastException e) {
                 Main.getInstance().getLogger().log(Level.WARNING, "Can't use NMS (try updating TPort), using legacy mode for BiomeTP");
                 legacyBiomeTP = true;
+                e.printStackTrace();
             }
         }
         
@@ -154,11 +161,13 @@ public class BiomeTP extends SubCommand {
                 ChunkGenerator chunkGenerator = worldServer.k().g();
                 
 //              WorldChunkManager worldChunkManager = chunkGenerator.e(); //1.18.2
-                WorldChunkManager worldChunkManager = chunkGenerator.d(); //1.19
+//                WorldChunkManager worldChunkManager = chunkGenerator.d(); //1.19
+                WorldChunkManager worldChunkManager = chunkGenerator.c(); //1.19.3
                 
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.t().d(IRegistry.aR); //1.18.1
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
-                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
+//              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
+                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(Registries.al); //1.19.3
                 List<BiomeBase> baseList = biomes.stream().map(biome -> biomeRegistry.a(new MinecraftKey(biome.toLowerCase()))).filter(Objects::nonNull).toList();
                 
                 Predicate<Holder<BiomeBase>> predicate = (holder) -> baseList.stream().anyMatch((biomeBase) -> biomeBase.equals(holder.a())); //1.18.2
@@ -166,7 +175,8 @@ public class BiomeTP extends SubCommand {
                 Location blockPos;
 //              Climate.Sampler climateSampler = worldServer.k().g().c(); //1.18.1
 //              Climate.Sampler climateSampler = worldServer.k().g().d(); //1.18.2
-                Climate.Sampler climateSampler = worldServer.k().h().c(); //1.19
+//              Climate.Sampler climateSampler = worldServer.k().h().c(); //1.19
+                Climate.Sampler climateSampler = worldServer.k().h().c().b(); //1.19.3
                 
                 for (int squareSize = 0; squareSize <= quartSize; squareSize += increment) {
                     for (int zOffset = -squareSize; zOffset <= squareSize; zOffset += increment) {
@@ -557,14 +567,16 @@ public class BiomeTP extends SubCommand {
                 WorldServer worldServer = (WorldServer) nmsWorld;
                 
                 IRegistryCustom registry = worldServer.s();
-                IRegistry<BiomeBase> biomeRegistry = registry.d(IRegistry.aR);
+//              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
+                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(Registries.al); //1.19.3
                 
                 ArrayList<BiomePreset> presets = new ArrayList<>();
                 
-                for (String tagKeyName : biomeRegistry.i().map((tagKey) -> tagKey.b().a()).toList()) {
-                    TagKey<BiomeBase> tagKey = TagKey.a(IRegistry.aR, new MinecraftKey(tagKeyName));
+                for (String tagKeyName : biomeRegistry.i().map((tagKey) -> tagKey.getFirst().b().a()).toList()) {
+                    TagKey<BiomeBase> tagKey = TagKey.a(Registries.al, new MinecraftKey(tagKeyName));
                     
-                    Optional<HolderSet.Named<BiomeBase>> optional = biomeRegistry.c(tagKey);
+//                    Optional<HolderSet.Named<BiomeBase>> optional = biomeRegistry.c(tagKey);
+                    Optional<HolderSet.Named<BiomeBase>> optional = biomeRegistry.b(tagKey);
                     if (optional.isPresent()) {
                         HolderSet.Named<BiomeBase> named = optional.get();
                         Stream<Holder<BiomeBase>> values = named.a();

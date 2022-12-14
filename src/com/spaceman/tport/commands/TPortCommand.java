@@ -73,7 +73,13 @@ public class TPortCommand extends CommandTemplate {
         
         ColorTheme theme = ColorTheme.getTheme(player.getUniqueId());
         
-        Message title = formatTranslation(ColorType.titleColor, ColorType.titleColor, "tport.command.headDisplay.title", head.getName());
+        Message title;
+        if (head.getName() == null) {
+            title = formatTranslation(ColorType.titleColor, ColorType.titleColor, "tport.command.headDisplay.title", head.getUniqueId());
+        } else {
+            title = formatTranslation(ColorType.titleColor, ColorType.titleColor, "tport.command.headDisplay.title", head.getName());
+        }
+        
         List<Message> lore = getPlayerData(head.getUniqueId());
         
         if (head.isOnline()) {

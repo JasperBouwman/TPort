@@ -17,6 +17,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.IRegistry;
 import net.minecraft.core.IRegistryCustom;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.tags.TagKey;
@@ -89,9 +90,10 @@ public class FeatureTP extends SubCommand {
             WorldServer worldServer = (WorldServer) nmsWorld;
 
             IRegistryCustom registry = worldServer.s();
-            IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
+//          IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
+            IRegistry<Structure> structureRegistry =  worldServer.s().d(Registries.av); //1.19.3
 
-            return structureRegistry.d().stream().map(MinecraftKey::a).map(String::toLowerCase).toList();
+            return structureRegistry.e().stream().map(MinecraftKey::a).map(String::toLowerCase).toList();
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
             e.printStackTrace();
             return new ArrayList<>();
@@ -105,14 +107,16 @@ public class FeatureTP extends SubCommand {
             WorldServer worldServer = (WorldServer) nmsWorld;
             
             IRegistryCustom registry = worldServer.s();
-            IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
+//            IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
+            IRegistry<Structure> structureRegistry =  worldServer.s().d(Registries.av); //1.19.3
             
-            List<String> tags = structureRegistry.i().map((tagKey) -> tagKey.b().a()).toList();
+//            List<String> tags = structureRegistry.i().map((tagKey) -> tagKey.b().a()).toList();
+            List<String> tags = structureRegistry.i().map((tagKey) -> tagKey.getFirst().b().a()).toList();
             
             for (String tagKeyName : tags) {
-                TagKey<Structure> tagKey = TagKey.a(IRegistry.aN, new MinecraftKey(tagKeyName));
+                TagKey<Structure> tagKey = TagKey.a(Registries.av, new MinecraftKey(tagKeyName));
                 
-                Optional<HolderSet.Named<Structure>> optional = structureRegistry.c(tagKey);
+                Optional<HolderSet.Named<Structure>> optional = structureRegistry.b(tagKey);
                 if (optional.isPresent()) {
                     HolderSet.Named<Structure> named = optional.get();
                     Stream<Holder<Structure>> values = named.a();

@@ -163,14 +163,11 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         
         /*
-         * changelog 1.19.4 update:
+         * changelog 1.19.5 update:
          *
-         * Fixed command description for incomplete command given by the command /tport help tport
-         * these missing command descriptions where due to the command not being complete, example: '/tport edit' alone is not valid therefor had no description
-         *
-         * Fixed messages for servers running Paper
-         *
-         * Fixed issue in the Main TPort GUI where the button for HomeTP was not correct when the player has no home set
+         * fixed TPort from crashing at startup
+         * fixed BiomeTP
+         * FeatureTP is disabled for this update (next update it should be working again)
          */
         
         /*
