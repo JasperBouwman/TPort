@@ -163,11 +163,9 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         
         /*
-         * changelog 1.19.5 update:
+         * changelog 1.19.6 update:
          *
-         * fixed TPort from crashing at startup
-         * fixed BiomeTP
-         * FeatureTP is disabled for this update (next update it should be working again)
+         * fixed FeatureTP
          */
         
         /*
