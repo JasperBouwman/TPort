@@ -3,6 +3,7 @@ package com.spaceman.tport.commands.tport.pltp.whitelist;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.pltp.Whitelist;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -12,7 +13,6 @@ import java.util.*;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Add extends SubCommand {
     
@@ -31,7 +31,7 @@ public class Add extends SubCommand {
             list = PlayerUUID.getPlayerNames();
             list.remove(player.getName());
             
-            tportData.getConfig().getStringList("tport." + player.getUniqueId() + ".tp.players").stream()
+            Whitelist.getPLTPWhitelist(player).stream()
                     .map(PlayerUUID::getPlayerName).filter(Objects::nonNull).forEach(list::remove);
             list.removeAll(Arrays.asList(args).subList(3, args.length));
             return list;
@@ -61,8 +61,7 @@ public class Add extends SubCommand {
             return;
         }
         
-        UUID playerUUID = player.getUniqueId();
-        ArrayList<String> list = (ArrayList<String>) tportData.getConfig().getStringList("tport." + playerUUID + ".tp.players");
+        ArrayList<String> list = Whitelist.getPLTPWhitelist(player);
         
         for (int i = 3; i < args.length; i++) {
             String addPlayerName = args[i];
@@ -71,7 +70,7 @@ public class Add extends SubCommand {
                 return;
             }
             
-            if (addPlayerUUID.equals(playerUUID)) {
+            if (addPlayerUUID.equals(player.getUniqueId())) {
                 sendErrorTranslation(player, "tport.command.PLTP.whitelist.add.players.yourself");
                 continue;
             }
@@ -83,8 +82,7 @@ public class Add extends SubCommand {
             }
             
             list.add(addPlayerUUID.toString());
-            tportData.getConfig().set("tport." + playerUUID + ".tp.players", list);
-            tportData.saveConfig();
+            Whitelist.setPLTPWhitelist(player, list);
             sendSuccessTranslation(player, "tport.command.PLTP.whitelist.add.players.succeeded",
                     asPlayer(addPlayerUUID));
             

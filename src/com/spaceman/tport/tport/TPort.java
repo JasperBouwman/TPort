@@ -61,6 +61,7 @@ public class TPort implements ConfigurationSerializable {
     private ArrayList<String> tags = new ArrayList<>();
     private boolean showOnDynmap = true;
     private String dynmapIconID = "";
+    private boolean shouldReturnItem = true;
     
     private boolean active;
     private String inactiveWorldName = null;
@@ -148,6 +149,7 @@ public class TPort implements ConfigurationSerializable {
         
         tport.showOnDynmap((Boolean) args.getOrDefault("showOnDynmap", true));
         tport.setDynmapIconID((String) args.getOrDefault("dynmapIconID", ""));
+        tport.setShouldReturnItem((Boolean) args.getOrDefault("shouldReturnItem", true));
         
         return tport;
     }
@@ -195,6 +197,7 @@ public class TPort implements ConfigurationSerializable {
         
         map.put("showOnDynmap", showOnDynmap);
         map.put("dynmapIconID", dynmapIconID);
+        map.put("shouldReturnItem", shouldReturnItem);
         
         return map;
     }
@@ -560,6 +563,14 @@ public class TPort implements ConfigurationSerializable {
     public void setDynmapIconID(String dynmapIconID) {
         this.dynmapIconID = dynmapIconID;
         DynmapHandler.updateTPort(this);
+    }
+    
+    public boolean shouldReturnItem() {
+        return shouldReturnItem;
+    }
+    
+    public void setShouldReturnItem(boolean shouldReturnItem) {
+        this.shouldReturnItem = shouldReturnItem;
     }
     
     //this is used when a TPort is being converted to a TextComponent in ColorTheme#formatTranslation(String color, String varColor, String id, Object... objects)
@@ -1034,11 +1045,11 @@ public class TPort implements ConfigurationSerializable {
             boolean shouldNotify(UUID uuid, TPort tport);
         }
     }
-
+    
     public enum PreviewState implements MessageUtils.MessageDescription {
         ON(ChatColor.RED + "on", true),
         OFF(ChatColor.GREEN + "off", false),
-        NOTIFIED(ChatColor.YELLOW + "notified",true);
+        NOTIFIED(ChatColor.YELLOW + "notified", true);
         
         private final boolean canGoPublic;
         private final String displayName;

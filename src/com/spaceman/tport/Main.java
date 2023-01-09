@@ -3,7 +3,6 @@ package com.spaceman.tport;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commands.TPortCommand;
-import com.spaceman.tport.commands.tport.Tag;
 import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.commands.tport.biomeTP.Accuracy;
@@ -31,7 +30,10 @@ import com.spaceman.tport.tpEvents.restrictions.WalkRestriction;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
@@ -160,12 +162,27 @@ public class Main extends JavaPlugin {
     }
     
     public static final String discordLink = "https://discord.gg/tq5RTmSbHU";
+    public static final String[] supportedVersions = new String[]{"1.19.3"}; //todo update compatible version
     public void onEnable() {
         
         /*
-         * changelog 1.19.6 update:
+         * changelog 1.19.7 update:
          *
-         * fixed FeatureTP
+         * default state of permissions is now set to false, so that new users who are not using permissions and are all not OP can still use TPort
+         * default state of backup is now set to true
+         *
+         * You can now preview players with the command '/tport preview <player> [TPort name]'
+         * To edit these PLTP preview settings use '/tport PLTP preview [state]'
+         *
+         * TPort now automatically checks if its up-to-date
+         *
+         * Added to the feature settings:
+         *  - TPortTakesItem
+         * This controls if when adding a TPort it takes the item out of your inventory or not. When set to true it takes the item, when set to false it does not take the item
+         *
+         * added a max of 50 characters to a TPort name (applies only to newly added TPorts)
+         *
+         * updated the pack format for the resource packs
          */
         
         /*
@@ -173,9 +190,9 @@ public class Main extends JavaPlugin {
          *
          * unify EmptyCommand names
          *
-         * create /tport preview <player> [TPort name]
-         *
          * add POI
+         *
+         * in the TPortInventories at the openTPortGUI add right click message for preview
          *
          * /tport history
          * /tport history back
@@ -198,6 +215,7 @@ public class Main extends JavaPlugin {
          * */
         
         this.getLogger().log(Level.INFO, "TPort has now a Discord server, for any questions/more go to: " + discordLink);
+        Version.checkForLatestVersion();
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");

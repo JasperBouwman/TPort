@@ -3,6 +3,7 @@ package com.spaceman.tport.commands.tport;
 import com.spaceman.tport.commandHandler.CommandTemplate;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.pltp.*;
+import com.spaceman.tport.commands.tport.pltp.Preview;
 import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
@@ -16,6 +17,7 @@ public class PLTP extends SubCommand {
         addAction(new Whitelist());
         addAction(new TP());
         addAction(new Offset());
+        addAction(new Preview());
     }
     
     @Override
@@ -31,6 +33,7 @@ public class PLTP extends SubCommand {
         // tport PLTP whitelist <add|remove> <player...>
         // tport PLTP tp <player>
         // tport PLTP offset [offset]
+        // tport PLTP preview [state]
         
         if (args.length > 1) {
             if (runCommands(getActions(), args[1], args, player)) {

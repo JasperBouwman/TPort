@@ -38,7 +38,7 @@ public class Auto extends SubCommand {
     }
     
     public static void save() {
-        if (tportConfig.getConfig().getBoolean("backup.auto.state", false)) {
+        if (getBackupState()) {
             File dir = new File(Main.getInstance().getDataFolder(), "/backup");
             if (!dir.mkdir()) {
                 ArrayList<File> files = new ArrayList<>();
@@ -48,7 +48,7 @@ public class Auto extends SubCommand {
                     }
                 }
                 files.sort(Comparator.comparingLong(File::lastModified));
-                int count = tportConfig.getConfig().getInt("backup.auto.count", 10);
+                int count = getBackupCount();
                 if (files.size() >= count) {
                     for (int i = 0; i <= files.size() - count; i++) {
                         try {
@@ -99,19 +99,35 @@ public class Auto extends SubCommand {
         return emptyCount.hasPermissionToRun(player, false) ? Arrays.asList("true", "false", "<count>") : Collections.emptyList();
     }
     
+    public static int getBackupCount() {
+        return tportConfig.getConfig().getInt("backup.auto.count", 10);
+    }
+    public static void setBackupCount(int count) {
+        tportConfig.getConfig().set("backup.auto.count", count);
+        tportConfig.saveConfig();
+    }
+    
+    public static boolean getBackupState() {
+        return tportConfig.getConfig().getBoolean("backup.auto.state", true);
+    }
+    public void setBackupState(boolean state) {
+        tportConfig.getConfig().set("backup.auto.state", state);
+        tportConfig.saveConfig();
+    }
+    
     @Override
     public void run(String[] args, Player player) {
         // tport backup auto [state|count]
         
         if (args.length == 2) {
-            int count = tportConfig.getConfig().getInt("backup.auto.count", 10);
-            
             Message stateAsMessage;
-            if (tportConfig.getConfig().getBoolean("backup.auto.state", false)) {
+            if (getBackupState()) {
                 stateAsMessage = formatTranslation(ColorType.goodColor, varInfoColor, "tport.command.backup.auto.true");
             } else {
                 stateAsMessage = formatTranslation(ColorType.badColor, varInfoColor, "tport.command.backup.auto.false");
             }
+            
+            int count = getBackupCount();
             sendInfoTranslation(player, "tport.command.backup.auto.getStateAndCount", stateAsMessage, count);
         } else if (args.length == 3) {
             if (!emptyCount.hasPermissionToRun(player, true)) {
@@ -119,9 +135,8 @@ public class Auto extends SubCommand {
             }
             try {
                 int newCount = Integer.parseInt(args[2]);
-                tportConfig.getConfig().set("backup.auto.count", newCount);
-                tportConfig.saveConfig();
-                sendSuccessTranslation(player, "tport.command.backup.auto.setStateSucceeded", newCount);
+                setBackupCount(newCount);
+                sendSuccessTranslation(player, "tport.command.backup.auto.setCountSucceeded", newCount);
             } catch (NumberFormatException nfe) {
                 Boolean newState = Main.toBoolean(args[2]);
                 if (newState == null) {
@@ -129,9 +144,8 @@ public class Auto extends SubCommand {
                     return;
                 }
                 
-                tportConfig.getConfig().set("backup.auto.state", newState);
-                tportConfig.saveConfig();
-                sendSuccessTranslation(player, "tport.command.backup.auto.setCountSucceeded", newState);
+                setBackupState(newState);
+                sendSuccessTranslation(player, "tport.command.backup.auto.setStateSucceeded", newState);
             }
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport backup auto [state|count]");

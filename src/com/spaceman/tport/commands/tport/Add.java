@@ -58,6 +58,12 @@ public class Add extends SubCommand {
             sendErrorTranslation(player, "tport.command.add.tportName.noItem");
             return;
         }
+        
+        if (args[1].length() > 50) {
+            sendErrorTranslation(player, "tport.command.add.tportName.nameTooLong");
+            return;
+        }
+        
         TPort newTPort = new TPort(player.getUniqueId(), args[1], player.getLocation(), item);
         
         if (args.length > 2) {
@@ -68,8 +74,15 @@ public class Add extends SubCommand {
             }
         }
         
-        if (TPortManager.addTPort(player, newTPort, true) != null) {
-            player.getInventory().setItem(player.getInventory().getHeldItemSlot(), new ItemStack(Material.AIR));
+        TPort addedTPort = TPortManager.addTPort(player, newTPort, true);
+        if (addedTPort != null) { //tport is added
+            if (Features.Feature.TPortTakesItem.isEnabled()) {
+                //should return item is true as default
+                player.getInventory().setItem(player.getInventory().getHeldItemSlot(), new ItemStack(Material.AIR));
+            } else {
+                addedTPort.setShouldReturnItem(false);
+                addedTPort.save();
+            }
         }
     }
 }

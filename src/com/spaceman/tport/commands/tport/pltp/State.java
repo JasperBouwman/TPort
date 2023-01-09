@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.UUID;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -42,12 +43,23 @@ public class State extends SubCommand {
         return Arrays.asList("true", "false");
     }
     
+    public static boolean getPLTPState(Player player) {
+        return getPLTPState(player.getUniqueId());
+    }
+    public static boolean getPLTPState(UUID uuid) {
+        return tportData.getConfig().getBoolean("tport." + uuid + ".tp.statement", true);
+    }
+    public static void setPLTPState(Player player, boolean pltpState) {
+        tportData.getConfig().set("tport." + player.getUniqueId() + ".tp.statement", pltpState);
+        tportData.saveConfig();
+    }
+    
     @Override
     public void run(String[] args, Player player) {
         // tport PLTP state [state]
         
         if (args.length == 2) {
-            boolean pltpState = tportData.getConfig().getBoolean("tport." + player.getUniqueId() + ".tp.statement", true);
+            boolean pltpState = getPLTPState(player);
             sendInfoTranslation(player, "tport.command.PLTP.state.succeeded", (pltpState ?
                     formatTranslation(goodColor, varInfo2Color, "tport.command.PLTP.state.enabled") :
                     formatTranslation(badColor, varInfo2Color, "tport.command.PLTP.state.disabled")));
@@ -60,15 +72,14 @@ public class State extends SubCommand {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP state [true|false]");
                 return;
             }
-            boolean oldPltpState = tportData.getConfig().getBoolean("tport." + player.getUniqueId() + ".tp.statement", true);
+            boolean oldPltpState = getPLTPState(player);
             
             if (pltpState == oldPltpState) {
                 sendErrorTranslation(player, "tport.command.PLTP.state.state.alreadyInState", (pltpState ?
                         formatTranslation(goodColor, varInfo2Color, "tport.command.PLTP.state.enabled") :
                         formatTranslation(badColor, varInfo2Color, "tport.command.PLTP.state.disabled")));
             } else {
-                tportData.getConfig().set("tport." + player.getUniqueId() + ".tp.statement", pltpState);
-                tportData.saveConfig();
+                setPLTPState(player, pltpState);
                 sendSuccessTranslation(player, "tport.command.PLTP.state.state.succeeded", (pltpState ?
                         formatTranslation(goodColor, varInfo2Color, "tport.command.PLTP.state.enabled") :
                         formatTranslation(badColor, varInfo2Color, "tport.command.PLTP.state.disabled")));

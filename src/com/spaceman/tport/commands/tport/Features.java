@@ -201,24 +201,27 @@ public class Features extends SubCommand {
     }
     
     public enum Feature implements MessageUtils.MessageDescription {
-        BiomeTP(true),
-        FeatureTP(true),
-        BackTP(true),
-        PublicTP(true),
-        PLTP(true),
-        Dynmap(true),
-        Metrics(true),
-        Permissions(false),
-        ParticleAnimation(true),
-        Redirects(true),
-        Preview(true),
-        WorldTP(true),
-        FeatureSettings(false);
+        BiomeTP(true, true),
+        FeatureTP(true, true),
+        BackTP(true, true),
+        PublicTP(true, true),
+        PLTP(true, true),
+        Dynmap(true, true),
+        Metrics(true, true),
+        Permissions(false, false),
+        ParticleAnimation(true, true),
+        Redirects(true, true),
+        Preview(true, true),
+        WorldTP(true, true),
+        TPortTakesItem(false, true),
+        FeatureSettings(false, true);
         
         private final boolean reloadCommands;
+        private final boolean defaultValue;
         
-        Feature(boolean reloadCommands) {
+        Feature(boolean reloadCommands, boolean defaultValue) {
             this.reloadCommands = reloadCommands;
+            this.defaultValue = defaultValue;
         }
         
         public static List<String> getStringValues() {
@@ -235,7 +238,7 @@ public class Features extends SubCommand {
         }
         
         public boolean isEnabled() {
-            return tportConfig.getConfig().getBoolean("features." + this.name() + ".enabled", true);
+            return tportConfig.getConfig().getBoolean("features." + this.name() + ".enabled", defaultValue);
         }
         
         public Message setState(boolean enable) {

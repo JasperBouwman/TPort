@@ -8,7 +8,11 @@ import com.spaceman.tport.commands.tport.biomeTP.Random;
 import com.spaceman.tport.commands.tport.featureTP.Mode;
 import com.spaceman.tport.commands.tport.mainLayout.Players;
 import com.spaceman.tport.commands.tport.mainLayout.TPorts;
+import com.spaceman.tport.commands.tport.pltp.Consent;
 import com.spaceman.tport.commands.tport.pltp.Offset;
+import com.spaceman.tport.commands.tport.pltp.Preview;
+import com.spaceman.tport.commands.tport.pltp.State;
+import com.spaceman.tport.commands.tport.pltp.Whitelist;
 import com.spaceman.tport.commands.tport.publc.Move;
 import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.dynmap.DynmapHandler;
@@ -107,7 +111,7 @@ public class TPortInventories {
         FancyClickEvent.removeAllFunctions(im);
         
         ColorTheme theme = ColorTheme.getTheme(player);
-        Boolean safetyState = null; // false when player has no permission
+        Boolean safetyState = null; // null when player has no permission
         if (tport.getOwner().equals(player.getUniqueId())) {
             if (TPORT_OWN.hasPermission(player, false)) {
                 safetyState = TPORT_OWN.getState(player);
@@ -174,7 +178,7 @@ public class TPortInventories {
         lore.add(new Message());
         if (tport.getOwner().equals(player.getUniqueId()) && !extended) {
             TPortInventories.QuickEditType type = TPortInventories.QuickEditType.getForPlayer(player.getUniqueId());
-            lore.add(formatInfoTranslation("tport.tport.tport.hoverData.editing", type.getDisplayName()));
+            lore.add(formatInfoTranslation("tport.tport.tport.hoverData.editing", ClickType.RIGHT, type.getDisplayName()));
             lore.add(formatInfoTranslation("tport.tport.tport.hoverData.buttons",
                     ClickType.SHIFT_RIGHT, type.getNext().getDisplayName()));
             lore.add(new Message());
@@ -597,23 +601,27 @@ public class TPortInventories {
         
         inv.setItem(26, createBack(player, BackType.MAIN, BackType.OWN, BackType.PUBLIC));
         
-        boolean pltpState = tportData.getConfig().getBoolean("tport." + ownerUUID + ".tp.statement", true);
+        boolean pltpState = State.getPLTPState(ownerUUID);
         if (ownerUUID.equals(player.getUniqueId())) {
             ItemStack warp = new ItemStack(Material.PLAYER_HEAD);
             
-            boolean pltpConsent = tportData.getConfig().getBoolean("tport." + ownerUUID + ".tp.consent", false);
+            boolean pltpConsent = Consent.shouldAskConsent(ownerUUID);
             Offset.PLTPOffset pltpOffset = Offset.getPLTPOffset(player);
+            Preview.PreviewState previewState = Preview.getPreviewState(ownerUUID);
             
             Message warpTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openTPortGUI.playerHead.own.format.title");
             List<Message> warpLore = new ArrayList<>();
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.PLTPState", pltpState));
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.PLTPConsent", pltpConsent));
+            warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.PLTPPreview", previewState));
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.PLTPOffset", pltpOffset.name()));
             warpLore.add(new Message());
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.whenLeftClick",
                     ClickType.LEFT, !pltpState));
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.whenRightClick",
                     ClickType.RIGHT, !pltpConsent));
+            warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.whenShiftLeftClick",
+                    ClickType.SHIFT_LEFT, previewState.getNext().name()));
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.whenShiftRightClick",
                     ClickType.SHIFT_RIGHT, pltpOffset.getNext().name()));
             
@@ -625,6 +633,7 @@ public class TPortInventories {
             
             FancyClickEvent.addCommand(warp, ClickType.LEFT, "tport PLTP state " + !pltpState, "tport own");
             FancyClickEvent.addCommand(warp, ClickType.RIGHT, "tport PLTP consent " + !pltpConsent, "tport own");
+            FancyClickEvent.addCommand(warp, ClickType.SHIFT_LEFT, "tport PLTP preview " + previewState.getNext(), "tport own");
             FancyClickEvent.addCommand(warp, ClickType.SHIFT_RIGHT, "tport PLTP offset " + pltpOffset.getNext(), "tport own");
             
             SkullMeta skin = (SkullMeta) warp.getItemMeta();
@@ -638,8 +647,7 @@ public class TPortInventories {
             ItemStack warp = new ItemStack(Material.PLAYER_HEAD);
             String warpTitleSuffix;
             if (!pltpState) {
-                ArrayList<String> list = (ArrayList<String>) tportData.getConfig()
-                        .getStringList("tport." + ownerUUID + "tp.players");
+                ArrayList<String> list = Whitelist.getPLTPWhitelist(ownerUUID);
                 
                 if (list.contains(player.getUniqueId().toString())) {
                     warpTitleSuffix = "warp";
@@ -647,7 +655,7 @@ public class TPortInventories {
                     warpTitleSuffix = "off";
                 }
             } else if (Bukkit.getPlayer(ownerUUID) != null) {
-                warpTitleSuffix = "warp"; //todo add shift for inverted safety check
+                warpTitleSuffix = "warp"; //todo add right click message for preview
             } else {
                 warpTitleSuffix = "offline";
             }
@@ -659,6 +667,7 @@ public class TPortInventories {
             }
             MessageUtils.setCustomItemData(warp, theme, warpTitle, null);
             FancyClickEvent.addCommand(warp, ClickType.LEFT, "tport PLTP tp " + newPlayerName);
+            FancyClickEvent.addCommand(warp, ClickType.RIGHT, "tport preview " + newPlayerName);
             
             SkullMeta skin = (SkullMeta) warp.getItemMeta();
             if (skin != null) {

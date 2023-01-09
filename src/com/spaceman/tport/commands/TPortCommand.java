@@ -9,9 +9,7 @@ import com.spaceman.tport.commandHandler.HelpCommand;
 import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.cooldown.CooldownCommand;
 import com.spaceman.tport.events.PreviewEvents;
-import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.MessageUtils;
-import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.*;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorThemeCommand;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
@@ -34,6 +32,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.spaceman.tport.TPortInventories.openMainTPortGUI;
+import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
@@ -81,10 +80,13 @@ public class TPortCommand extends CommandTemplate {
         }
         
         List<Message> lore = getPlayerData(head.getUniqueId());
+        lore.add(new Message());
+        lore.add(formatInfoTranslation("tport.command.headDisplay.leftClick", ClickType.LEFT));
         
         if (head.isOnline()) {
-            lore.add(new Message());
-            lore.add(formatInfoTranslation("tport.command.headDisplay.whenOnline", ClickType.RIGHT, head.getName()));
+            lore.add(formatInfoTranslation("tport.command.headDisplay.whenOnline.PLTP", ClickType.RIGHT, head.getName()));
+            lore.add(formatInfoTranslation("tport.command.headDisplay.whenOnline.preview",
+                    textComponent(Keybinds.DROP, varInfoColor).setType(TextType.KEYBIND), head.getName()));
         }
         
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
@@ -97,9 +99,10 @@ public class TPortCommand extends CommandTemplate {
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         if (meta != null) {
             meta.setOwningPlayer(head);
-    
+            
             FancyClickEvent.addCommand(meta, ClickType.LEFT, "tport open " + head.getName());
             FancyClickEvent.addCommand(meta, ClickType.RIGHT, "tport pltp tp " + head.getName());
+            FancyClickEvent.addCommand(meta, ClickType.DROP, "tport preview " + head.getName());
             item.setItemMeta(meta);
         }
         return item;
@@ -212,146 +215,7 @@ public class TPortCommand extends CommandTemplate {
     
     @Override
     public boolean execute(@Nonnull CommandSender sender, @Nonnull String command, @Nonnull String[] args) {
-        // tport
-        // tport open <player> [TPort name] [safetyCheck]
-        // tport add <TPort name> [description...]
-        // tport remove <TPort name>
-        // tport edit <TPort name> description set <description...>
-        // tport edit <TPort name> description remove
-        // tport edit <TPort name> description get
-        // tport edit <TPort name> name <new TPort name>
-        // tport edit <TPort name> item
-        // tport edit <TPort name> location
-        // tport edit <TPort name> private
-        // tport edit <TPort name> private <state>
-        // tport edit <TPort name> whitelist add <player...>
-        // tport edit <TPort name> whitelist remove <player...>
-        // tport edit <TPort name> whitelist list
-        // tport edit <TPort name> whitelist clone <TPort name>
-        // tport edit <TPort name> whitelist visibility
-        // tport edit <TPort name> whitelist visibility <state>
-        // tport edit <TPort name> move <slot|TPort name>
-        // tport edit <TPort name> range [range]
-        // tport edit <TPort name> tag add <tag>
-        // tport edit <TPort name> tag remove <tag>
-        // tport edit <TPort name> preview [state]
-        // tport edit <TPort name> dynmap show [state]
-        // tport edit <TPort name> dynmap icon [icon]
-        // tport PLTP state [state]
-        // tport PLTP consent [state]
-        // tport PLTP whitelist list
-        // tport PLTP whitelist add <player...>
-        // tport PLTP whitelist remove <player...>
-        // tport PLTP tp <player>
-        // tport PLTP offset
-        // tport PLTP offset <offset>
-        // tport teleporter create <type> [data...]
-        // tport teleporter remove
-        // tport own [TPort name] [safetyCheck]
-        // tport back [safetyCheck]
-        // tport biomeTP
-        // tport biomeTP accuracy [accuracy]
-        // tport biomeTP whitelist <biome...>
-        // tport biomeTP blacklist <biome...>
-        // tport biomeTP preset [preset]
-        // tport biomeTP random
-        // tport biomeTP mode [mode]
-        // tport featureTP
-        // tport featureTP search <mode> <feature...>
-        // tport featureTP search <feature...>
-        // tport featureTP mode [mode]
-        // tport home [safetyCheck]
-        // tport home get
-        // tport home set <player> <TPort name>
-        // tport colorTheme
-        // tport colorTheme set <theme>
-        // tport colorTheme set <type> <chat color>
-        // tport colorTheme set <type> <hex color>
-        // tport colorTheme get <type>
-        // tport reload
-        // tport cooldown <cooldown> [value]
-        // tport removePlayer <player>
-        // tport help
-        // tport public
-        // tport public open <page>
-        // tport public open <TPort name> [safetyCheck]
-        // tport public add <TPort name>
-        // tport public remove <own TPort name|all TPort name>
-        // tport public list [own|all]
-        // tport public move <TPort name> <slot|TPort name>
-        // tport public listSize [size]
-        // tport transfer offer <player> <TPort name>
-        // tport transfer revoke <TPort name>
-        // tport transfer accept <player> <TPort name>
-        // tport transfer reject <player> <TPort name>
-        // tport transfer list
-        // tport version
-        // tport log read <TPort name> [player]
-        // tport log TimeZone [TimeZone]
-        // tport log timeFormat [format...]
-        // tport log clear <TPort name...>
-        // tport log logData [TPort name] [player]
-        // tport log add <TPort name> <player[:LogMode]...>
-        // tport log remove <TPort name> <player...>
-        // tport log default <TPort name> [default LogMode]
-        // tport log notify [TPort name] [state]
-        // tport log logSize [size]
-        // tport backup save <name>
-        // tport backup load <name>
-        // tport backup auto [state|count]
-        // tport particleAnimation new set <particleAnimation> [data...]
-        // tport particleAnimation new edit <data...>
-        // tport particleAnimation new test
-        // tport particleAnimation new enable [state]
-        // tport particleAnimation old set <particleAnimation> [data...]
-        // tport particleAnimation old edit <data...>
-        // tport particleAnimation old test
-        // tport particleAnimation old enable [state]
-        // tport delay handler [state]
-        // tport delay set <player> <delay>
-        // tport delay get [player]
-        // tport restriction handler [state]
-        // tport restriction set <player> <type>
-        // tport restriction get [player]
-        // tport cancel
-        // tport redirect [redirect] [state]
-        // tport tag create <tag>
-        // tport tag delete <tag>
-        // tport tag list
-        // tport tag reset
-        // tport search <type>
-        // tport search <type> <query...>
-        // tport search <type> <mode> <query...>
-        // tport sort [sorter]
-        // tport safetyCheck
-        // tport safetyCheck <source> [state]
-        // tport safetyCheck check
-        // tport metrics viewStats
-        // tport dynmap
-        // tport dynmap show <player> [tport name]
-        // tport dynmap IP [IP]
-        // tport mainLayout players [state]
-        // tport mainLayout TPorts [state]
-        // tport world [world]
-        // tport requests
-        // tport requests accept [player...]
-        // tport requests reject [player...]
-        // tport requests revoke [player...]
-        // tport language server [language]
-        // tport language get
-        // tport language set custom
-        // tport language set server
-        // tport language set <language>
-        // tport language test <id>
-        // tport language repair <language> [repair with]
-        // tport features
-        // tport features <feature>
-        // tport features <feature> state
-        // tport features <feature> state <state>
-        // tport preview <player> <TPort name>
-        // tport resourcePack
-        // tport resourcePack state [state]
-        // tport resourcePack resolution [resolution]
+        // for list of commands see the Permissions.txt
         
         if (!(sender instanceof Player player)) {
             sender.sendMessage("You have to be a player to use this command");

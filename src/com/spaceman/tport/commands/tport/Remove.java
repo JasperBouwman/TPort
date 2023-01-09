@@ -4,7 +4,6 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -12,6 +11,7 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
+import static com.spaceman.tport.commands.tport.Features.Feature.TPortTakesItem;
 import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
 import static com.spaceman.tport.commands.tport.publc.Remove.removePublicTPort;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -50,6 +50,10 @@ public class Remove extends SubCommand {
         removePublicTPort(tport.getName(), player, true);
         TPortManager.removeTPort(tport);
         sendSuccessTranslation(player, "tport.command.remove.tportName.succeeded", tport.getName());
-        Main.giveItems(player, tport.getItem());
+        if (tport.shouldReturnItem()) {
+            Main.giveItems(player, tport.getItem());
+        } else if (TPortTakesItem.isEnabled()) {
+            sendInfoTranslation(player, "tport.command.remove.tportName.noItemReturn", TPortTakesItem);
+        }
     }
 }

@@ -3,16 +3,19 @@ package com.spaceman.tport.commands.tport.home;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.Home;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
-import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class Set extends SubCommand {
     
@@ -75,8 +78,7 @@ public class Set extends SubCommand {
             return;
         }
         
-        tportData.getConfig().set("tport." + player.getUniqueId() + ".home", tport.getTportID().toString());
-        tportData.saveConfig();
+        Home.setHome(player, tport);
         sendSuccessTranslation(player, "tport.command.home.set.player.tportName.succeeded", asTPort(tport));
     }
 }

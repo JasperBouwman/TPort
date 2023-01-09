@@ -24,7 +24,7 @@ public class Preview extends SubCommand {
     public Preview() {
         emptyPreviewState = new EmptyCommand();
         emptyPreviewState.setCommandName("state", ArgumentType.OPTIONAL);
-        emptyPreviewState.setCommandDescription(formatInfoTranslation("This command is used to set the preview state of the given TPort"));
+        emptyPreviewState.setCommandDescription(formatInfoTranslation("tport.command.edit.preview.state.commandDescription"));
         emptyPreviewState.setPermissions("TPort.edit.preview", "TPort.basic");
         
         addAction(emptyPreviewState);

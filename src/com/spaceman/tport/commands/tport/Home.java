@@ -45,6 +45,10 @@ public class Home extends SubCommand {
         }
         return TPortManager.getTPort(UUID.fromString(homeID));
     }
+    public static void setHome(Player player, TPort home) {
+        tportData.getConfig().set("tport." + player.getUniqueId() + ".home", home.getTportID().toString());
+        tportData.saveConfig();
+    }
     
     public Home() {
         emptyHomeSafetyCheck = new EmptyCommand() {

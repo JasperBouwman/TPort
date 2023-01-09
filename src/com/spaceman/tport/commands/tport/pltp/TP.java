@@ -22,7 +22,6 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.tpEvents.TPEManager.tpPlayerToPlayer;
 
 public class TP extends SubCommand {
@@ -66,21 +65,21 @@ public class TP extends SubCommand {
         if (newPlayerUUID == null) {
             return;
         }
-        Player warp = Bukkit.getPlayer(newPlayerUUID);
-        if (warp == null) {
+        Player warpTo = Bukkit.getPlayer(newPlayerUUID);
+        if (warpTo == null) {
             sendErrorTranslation(player, "tport.command.playerNotOnline", asPlayer(newPlayerUUID));
             return;
         }
         
-        ArrayList<String> whitelist = (ArrayList<String>) tportData.getConfig().getStringList("tport." + warp.getUniqueId() + ".tp.players");
-        if (!tportData.getConfig().getBoolean("tport." + warp.getUniqueId() + ".tp.statement", true)) {
+        ArrayList<String> whitelist = Whitelist.getPLTPWhitelist(warpTo);
+        if (!State.getPLTPState(warpTo)) {
             if (!whitelist.contains(player.getUniqueId().toString())) {
-                sendErrorTranslation(player, "tport.command.PLTP.TP.player.setOffNotWhitelisted", warp);
+                sendErrorTranslation(player, "tport.command.PLTP.TP.player.setOffNotWhitelisted", warpTo);
                 return;
             }
         }
         
-        if (tportData.getConfig().getBoolean("tport." + warp.getUniqueId() + ".tp.consent", false)) {
+        if (Consent.shouldAskConsent(warpTo)) {
             if (!whitelist.contains(player.getUniqueId().toString())) {
                 
                 if (!CooldownManager.PlayerTP.hasCooled(player, true)) {
@@ -90,7 +89,7 @@ public class TP extends SubCommand {
                 if (TPRequest.hasRequest(player, true)) {
                     return;
                 }
-                TPRequest.createPLTPRequest(player.getUniqueId(), warp.getUniqueId());
+                TPRequest.createPLTPRequest(player.getUniqueId(), warpTo.getUniqueId());
                 
                 Message accept = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
                 accept.getText().forEach(t -> t
@@ -105,14 +104,14 @@ public class TP extends SubCommand {
                         .addTextEvent(ClickEvent.runCommand("/tport requests revoke"))
                         .addTextEvent(new HoverEvent(textComponent("/tport requests revoke", infoColor))));
                 
-                sendInfoTranslation(warp, "tport.command.PLTP.TP.player.askConsent", player, accept, reject);
-                sendInfoTranslation(player, "tport.command.PLTP.TP.player.consentAsked", warp, "true", revoke);
+                sendInfoTranslation(warpTo, "tport.command.PLTP.TP.player.askConsent", player, accept, reject);
+                sendInfoTranslation(player, "tport.command.PLTP.TP.player.consentAsked", warpTo, "true", revoke);
                 
                 return;
             }
         }
         
-        tp(player, warp);
+        tp(player, warpTo);
     }
     
     public static boolean tp(Player player, Player toPlayer) {

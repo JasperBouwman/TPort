@@ -62,6 +62,8 @@ Permissions can work with trees.
 /tport PLTP tp <player>                                                                                       TPort.PLTP.tp                               OR TPort.basic
 /tport PLTP offset
 /tport PLTP offset <offset>
+/tport PLTP preview
+/tport PLTP preview <state>                                                                                   TPort.pltp.preview.set                      OR TPort.basic
 /tport help
 /tport open <player>
 /tport open <player> <TPort name>                                                                             TPort.open                                  OR TPort.basic
@@ -209,6 +211,8 @@ Permissions can work with trees.
 /tport features <feature>
 /tport features <feature> state
 /tport features <feature> state <state>                                                                       TPort.features.setState                      OR TPort.admin.features
-/tport preview <player> <TPort name>                                                                          TPort.preview                                OR TPort.basic
+/tport preview <player>                                                                                       TPort.preview.player                         OR TPort.basic
+/tport preview <player> <TPort name>                                                                          TPort.preview.tport                          OR TPort.basic
 /tport resourcePack
-/tport resourcePack <state>
+/tport resourcePack state [state]
+/tport resourcePack resolution [resolution]

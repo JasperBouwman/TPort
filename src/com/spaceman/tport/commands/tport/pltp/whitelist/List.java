@@ -1,6 +1,7 @@
 package com.spaceman.tport.commands.tport.pltp.whitelist;
 
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.pltp.Whitelist;
 import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 
@@ -11,7 +12,6 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.va
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
-import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class List extends SubCommand {
     
@@ -26,7 +26,7 @@ public class List extends SubCommand {
         
         if (args.length == 3) {
             boolean color = true;
-            ArrayList<String> whitelist = (ArrayList<String>) tportData.getConfig().getStringList("tport." + player.getUniqueId() + ".tp.players");
+            ArrayList<String> whitelist = Whitelist.getPLTPWhitelist(player);
             
             Message playerList = new Message();
             for (int i = 0; i < whitelist.size(); i++) {

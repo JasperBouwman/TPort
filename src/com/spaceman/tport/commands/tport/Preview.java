@@ -22,15 +22,18 @@ import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.a
 public class Preview extends SubCommand {
     
     private final EmptyCommand emptyPreviewPlayerTPort;
+    private final EmptyCommand emptyPreviewPlayer;
     
     public Preview() {
         emptyPreviewPlayerTPort = new EmptyCommand();
-        emptyPreviewPlayerTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyPreviewPlayerTPort.setCommandName("TPort name", ArgumentType.OPTIONAL);
         emptyPreviewPlayerTPort.setCommandDescription(formatInfoTranslation("tport.command.preview.player.tportName.commandDescription"));
-        emptyPreviewPlayerTPort.setPermissions("TPort.preview", "TPort.basic");
+        emptyPreviewPlayerTPort.setPermissions("TPort.preview.tport", "TPort.basic");
         
-        EmptyCommand emptyPreviewPlayer = new EmptyCommand();
+        emptyPreviewPlayer = new EmptyCommand();
         emptyPreviewPlayer.setCommandName("player", ArgumentType.REQUIRED);
+        emptyPreviewPlayerTPort.setPermissions("TPort.preview.player", "TPort.basic");
+        emptyPreviewPlayer.setCommandDescription(formatInfoTranslation("tport.command.preview.player.commandDescription"));
         emptyPreviewPlayer.setTabRunnable((args, player) -> {
             UUID argOneUUID = PlayerUUID.getPlayerUUID(args[1]);
             if (argOneUUID == null) {
@@ -52,37 +55,67 @@ public class Preview extends SubCommand {
     
     @Override
     public void run(String[] args, Player player) {
-        // tport preview <player> <TPort name>
+        // tport preview <player> [TPort name]
         
-        if (args.length != 3) {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport preview <player> <TPort name>");
-            return;
+        if (args.length == 2) {
+            if (!emptyPreviewPlayer.hasPermissionToRun(player, true)) {
+                return;
+            }
+            
+            String newPlayerName = args[1];
+            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName, player);
+            if (newPlayerUUID == null) {
+                return;
+            }
+            
+            if (newPlayerUUID.equals(player.getUniqueId())) {
+                sendErrorTranslation(player, "tport.command.preview.player.cantPreviewSelf");
+                return;
+            }
+            
+            Player preview = Bukkit.getPlayer(newPlayerUUID);
+            if (preview == null) {
+                sendErrorTranslation(player, "tport.command.playerNotOnline", asPlayer(newPlayerUUID));
+                return;
+            }
+            
+            com.spaceman.tport.commands.tport.pltp.Preview.PreviewState previewState = com.spaceman.tport.commands.tport.pltp.Preview.getPreviewState(newPlayerUUID);
+            if (previewState == com.spaceman.tport.commands.tport.pltp.Preview.PreviewState.OFF) {
+                sendInfoTranslation(player, "tport.command.preview.player.stateOFF", asPlayer(preview), previewState);
+                return;
+            }
+            PreviewEvents.preview(player, preview);
+            if (previewState == com.spaceman.tport.commands.tport.pltp.Preview.PreviewState.NOTIFIED) {
+                sendInfoTranslation(preview, "tport.command.preview.player.notifyOwner", asPlayer(player));
+            }
+        } else if (args.length == 3) {
+            if (!emptyPreviewPlayerTPort.hasPermissionToRun(player, true)) {
+                return;
+            }
+            
+            String newPlayerName = args[1];
+            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName, player);
+            if (newPlayerUUID == null) {
+                return;
+            }
+            
+            TPort tport = TPortManager.getTPort(newPlayerUUID, args[2]);
+            if (tport == null) {
+                sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
+                return;
+            }
+            
+            if (tport.getPreviewState() == TPort.PreviewState.OFF) {
+                sendInfoTranslation(player, "tport.command.preview.player.tportName.stateOFF", asTPort(tport), tport.getPreviewState());
+                return;
+            }
+            
+            PreviewEvents.preview(player, tport);
+            if (tport.getPreviewState() == TPort.PreviewState.NOTIFIED) {
+                sendInfoTranslation(Bukkit.getPlayer(tport.getOwner()), "tport.command.preview.player.tportName.notifyOwner", asPlayer(player), asTPort(tport));
+            }
+        } else {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport preview <player> [TPort name]");
         }
-        if (!emptyPreviewPlayerTPort.hasPermissionToRun(player, true)) {
-            return;
-        }
-        
-        String newPlayerName = args[1];
-        UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName, player);
-        if (newPlayerUUID == null) {
-            return;
-        }
-        
-        TPort tport = TPortManager.getTPort(newPlayerUUID, args[2]);
-        if (tport == null) {
-            sendErrorTranslation(player, "tport.command.noTPortFound", args[2]);
-            return;
-        }
-        
-        if (tport.getPreviewState() == TPort.PreviewState.OFF) {
-            sendInfoTranslation(player, "tport.command.preview.player.tportName.stateOFF", tport.getPreviewState());
-            return;
-        }
-        
-        PreviewEvents.preview(player, tport);
-        if (tport.getPreviewState() == TPort.PreviewState.NOTIFIED) {
-            sendInfoTranslation(Bukkit.getPlayer(tport.getOwner()), "tport.command.preview.player.tportName.notifyOwner", asPlayer(player), asTPort(tport));
-        }
-    
     }
 }

@@ -15,6 +15,9 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTranslation;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class PreviewEvents implements Listener {
     
@@ -61,12 +64,14 @@ public class PreviewEvents implements Listener {
         }
     }
     
-    private record PreviewObject(Location oldLocation, TPort tport, GameMode oldGameMode) { }
+    private record PreviewObject(Location oldLocation, TPort tport, UUID player, GameMode oldGameMode) { }
     private static final HashMap<UUID, PreviewObject> previews = new HashMap<>();
     
     public static boolean isPreviewing(UUID uuid) {
         return previews.containsKey(uuid);
     }
+    
+    @SuppressWarnings("UnusedReturnValue")
     public static boolean cancelPreview(Player player) {
         return cancelPreview(player, true);
     }
@@ -76,7 +81,12 @@ public class PreviewEvents implements Listener {
             player.teleport(p.oldLocation());
             player.setGameMode(p.oldGameMode());
 //            Bukkit.getScheduler().runTaskLater(Main.getInstance(), player::closeInventory, 1);
-            if (sendMessage) sendInfoTranslation(player, "tport.tport.tport.cancelPreview.succeeded", p.tport());
+            if (sendMessage)
+                if (p.tport() == null) {
+                    sendSuccessTranslation(player, "tport.tport.tport.cancelPreview.succeeded.player", asPlayer(p.player()));
+                } else {
+                    sendSuccessTranslation(player, "tport.tport.tport.cancelPreview.succeeded.tport", asTPort(p.tport()));
+                }
             return true;
         }
         return false;
@@ -84,17 +94,33 @@ public class PreviewEvents implements Listener {
     public static void cancelAllPreviews() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (cancelPreview(player, false))
-                sendInfoTranslation(player, "tport.tport.tport.cancelPreview.reload");
+                sendInfoTranslation(player, "tport.tport.tport.cancelPreview.reload"); //todo give reason tport/player
         }
     }
-    public static void preview(Player player, TPort tport) {
-        if (!isPreviewing(player.getUniqueId())) {
-            previews.put(player.getUniqueId(), new PreviewObject(player.getLocation(), tport, player.getGameMode()));
+    
+    private static void createPreviewObject(Player player, TPort tport, UUID previewUUID) {
+        GameMode gm = player.getGameMode();
+        Location l = player.getLocation();
+        if (isPreviewing(player.getUniqueId())) {
+            PreviewObject po = previews.get(player.getUniqueId());
+            gm = po.oldGameMode;
+            l = po.oldLocation;
         }
+        previews.put(player.getUniqueId(), new PreviewObject(l, tport, previewUUID, gm));
+    }
+    
+    public static void preview(Player player, TPort tport) {
+        createPreviewObject(player, tport, null);
         player.setGameMode(GameMode.SPECTATOR);
         player.teleport(tport.getLocation());
         
-        sendInfoTranslation(player, "tport.tport.tport.preview.succeeded", tport);
+        sendSuccessTranslation(player, "tport.tport.tport.preview.succeeded.tport", asTPort(tport));
     }
-    
+    public static void preview(Player player, Player preview) {
+        createPreviewObject(player, null, preview.getUniqueId());
+        player.setGameMode(GameMode.SPECTATOR);
+        player.teleport(preview);
+        
+        sendSuccessTranslation(player, "tport.tport.tport.preview.succeeded.player", asPlayer(preview));
+    }
 }

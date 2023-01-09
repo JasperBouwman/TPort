@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.UUID;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -42,12 +43,23 @@ public class Consent extends SubCommand {
         return Arrays.asList("true", "false");
     }
     
+    public static boolean shouldAskConsent(Player player) {
+        return shouldAskConsent(player.getUniqueId());
+    }
+    public static boolean shouldAskConsent(UUID uuid) {
+        return tportData.getConfig().getBoolean("tport." + uuid + ".tp.consent", false);
+    }
+    public static void shouldAskConsent(Player player, boolean consentState) {
+        tportData.getConfig().set("tport." + player.getUniqueId() + ".tp.consent", consentState);
+        tportData.saveConfig();
+    }
+    
     @Override
     public void run(String[] args, Player player) {
         // tport PLTP consent [state]
         
         if (args.length == 2) {
-            boolean pltpState = tportData.getConfig().getBoolean("tport." + player.getUniqueId() + ".tp.consent", false);
+            boolean pltpState = shouldAskConsent(player);
             sendInfoTranslation(player, "tport.command.PLTP.consent.succeeded", (pltpState ?
                     formatTranslation(goodColor, varInfo2Color, "tport.command.PLTP.consent.enabled") :
                     formatTranslation(badColor, varInfo2Color, "tport.command.PLTP.consent.disabled")));
@@ -60,15 +72,14 @@ public class Consent extends SubCommand {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP consent [true|false]");
                 return;
             }
-            boolean oldConsentState = tportData.getConfig().getBoolean("tport." + player.getUniqueId() + ".tp.consent", false);
+            boolean oldConsentState = shouldAskConsent(player);
             
             if (consentState == oldConsentState) {
                 sendSuccessTranslation(player, "tport.command.PLTP.consent.state.alreadyInState", (consentState ?
                         formatTranslation(goodColor, varInfo2Color, "tport.command.PLTP.consent.enabled") :
                         formatTranslation(badColor, varInfo2Color, "tport.command.PLTP.consent.disabled")));
             } else {
-                tportData.getConfig().set("tport." + player.getUniqueId() + ".tp.consent", consentState);
-                tportData.saveConfig();
+                shouldAskConsent(player, consentState);
                 sendSuccessTranslation(player, "tport.command.PLTP.consent.state.succeeded", (consentState ?
                         formatTranslation(goodColor, varInfo2Color, "tport.command.PLTP.consent.enabled") :
                         formatTranslation(badColor, varInfo2Color, "tport.command.PLTP.consent.disabled")));

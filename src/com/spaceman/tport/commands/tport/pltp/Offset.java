@@ -28,6 +28,10 @@ public class Offset extends SubCommand {
     public static PLTPOffset getPLTPOffset(Player player) {
         return PLTPOffset.valueOf((tportData.getConfig().getString("tport." + player.getUniqueId() + ".tp.offset", "IN")));
     }
+    public static void setPLTPOffset(Player player, PLTPOffset offset) {
+        tportData.getConfig().set("tport." + player.getUniqueId() + ".tp.offset", offset.name());
+        tportData.saveConfig();
+    }
     
     @Override
     public Message getCommandDescription() {
@@ -52,8 +56,7 @@ public class Offset extends SubCommand {
                 sendErrorTranslation(player, "tport.command.PLTP.offset.offset.offsetNotExist", args[2]);
                 return;
             }
-            tportData.getConfig().set("tport." + player.getUniqueId() + ".tp.offset", newOffset.name());
-            tportData.saveConfig();
+            setPLTPOffset(player, newOffset);
             sendSuccessTranslation(player, "tport.command.PLTP.offset.offset.succeeded", newOffset);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP offset [offset]");
