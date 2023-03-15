@@ -89,9 +89,9 @@ public class FeatureTP extends SubCommand {
             Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
             WorldServer worldServer = (WorldServer) nmsWorld;
 
-            IRegistryCustom registry = worldServer.s();
+//            IRegistryCustom registry = worldServer.s();
 //          IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
-            IRegistry<Structure> structureRegistry =  worldServer.s().d(Registries.av); //1.19.3
+            IRegistry<Structure> structureRegistry =  worldServer.u_().d(Registries.ax); //1.19.4
 
             return structureRegistry.e().stream().map(MinecraftKey::a).map(String::toLowerCase).toList();
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
@@ -106,15 +106,15 @@ public class FeatureTP extends SubCommand {
             Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
             WorldServer worldServer = (WorldServer) nmsWorld;
             
-            IRegistryCustom registry = worldServer.s();
+//            IRegistryCustom registry = worldServer.s();
 //            IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
-            IRegistry<Structure> structureRegistry =  worldServer.s().d(Registries.av); //1.19.3
+            IRegistry<Structure> structureRegistry =  worldServer.u_().d(Registries.ax); //1.19.4
             
 //            List<String> tags = structureRegistry.i().map((tagKey) -> tagKey.b().a()).toList();
             List<String> tags = structureRegistry.i().map((tagKey) -> tagKey.getFirst().b().a()).toList();
             
             for (String tagKeyName : tags) {
-                TagKey<Structure> tagKey = TagKey.a(Registries.av, new MinecraftKey(tagKeyName));
+                TagKey<Structure> tagKey = TagKey.a(Registries.ax, new MinecraftKey(tagKeyName));
                 
                 Optional<HolderSet.Named<Structure>> optional = structureRegistry.b(tagKey);
                 if (optional.isPresent()) {

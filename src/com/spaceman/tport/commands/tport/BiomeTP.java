@@ -90,9 +90,10 @@ public class BiomeTP extends SubCommand {
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.t().d(IRegistry.aR); //1.18.1
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
-                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(Registries.al); //1.19.3
+//              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(Registries.al); //1.19.3
+                IRegistry<BiomeBase> biomeRegistry = worldServer.u_().d(Registries.an); //1.19.4
                 return biomeRegistry.e().stream().map(MinecraftKey::a).map(String::toLowerCase).collect(Collectors.toList());
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            } catch (Exception e) {
                 Main.getInstance().getLogger().log(Level.WARNING, "Can't use NMS (try updating TPort), using legacy mode for BiomeTP");
                 legacyBiomeTP = true;
                 e.printStackTrace();
@@ -111,7 +112,8 @@ public class BiomeTP extends SubCommand {
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.t().d(IRegistry.aR); //1.18.1
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
-                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(Registries.al); //1.19.3
+//              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(Registries.al); //1.19.3
+                IRegistry<BiomeBase> biomeRegistry = worldServer.u_().d(Registries.an); //1.19.4
 
 //              Field f = ChunkGenerator.class.getDeclaredField("b"); //1.18.1
 //              Field f = ChunkGenerator.class.getDeclaredField("c"); //1.18.2
@@ -120,13 +122,13 @@ public class BiomeTP extends SubCommand {
                 f.setAccessible(true);
                 WorldChunkManager worldChunkManager = (WorldChunkManager) f.get(chunkGenerator);
                 
-                return worldChunkManager.b().stream()
+                return worldChunkManager.c().stream()
                         .map((b) -> biomeRegistry.b(b.a()))
                         .filter(Objects::nonNull)
                         .map(MinecraftKey::a)
                         .map(String::toLowerCase)
                         .collect(Collectors.toList());
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchFieldException | NoSuchMethodError | ClassCastException e) {
+            } catch (Exception e) {
                 Main.getInstance().getLogger().log(Level.WARNING, "Can't use NMS (try updating TPort), using legacy mode for BiomeTP");
                 legacyBiomeTP = true;
                 e.printStackTrace();
@@ -167,7 +169,8 @@ public class BiomeTP extends SubCommand {
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.t().d(IRegistry.aR); //1.18.1
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aP); //1.18.2
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
-                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(Registries.al); //1.19.3
+//              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(Registries.al); //1.19.3
+                IRegistry<BiomeBase> biomeRegistry = worldServer.u_().d(Registries.an); //1.19.4
                 List<BiomeBase> baseList = biomes.stream().map(biome -> biomeRegistry.a(new MinecraftKey(biome.toLowerCase()))).filter(Objects::nonNull).toList();
                 
                 Predicate<Holder<BiomeBase>> predicate = (holder) -> baseList.stream().anyMatch((biomeBase) -> biomeBase.equals(holder.a())); //1.18.2
@@ -208,7 +211,7 @@ public class BiomeTP extends SubCommand {
                 }
                 
                 return null;
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            } catch (Exception e) {
                 Main.getInstance().getLogger().log(Level.WARNING, "Can't use NMS (try updating TPort), using legacy mode for BiomeTP");
                 legacyBiomeTP = true;
             }
@@ -566,14 +569,15 @@ public class BiomeTP extends SubCommand {
                 Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
                 WorldServer worldServer = (WorldServer) nmsWorld;
                 
-                IRegistryCustom registry = worldServer.s();
+//                IRegistryCustom registry = worldServer.s();
 //              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(IRegistry.aR); //1.19
-                IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(Registries.al); //1.19.3
+//              IRegistry<BiomeBase> biomeRegistry = worldServer.s().d(Registries.al); //1.19.3
+                IRegistry<BiomeBase> biomeRegistry = worldServer.u_().d(Registries.an); //1.19.4
                 
                 ArrayList<BiomePreset> presets = new ArrayList<>();
                 
                 for (String tagKeyName : biomeRegistry.i().map((tagKey) -> tagKey.getFirst().b().a()).toList()) {
-                    TagKey<BiomeBase> tagKey = TagKey.a(Registries.al, new MinecraftKey(tagKeyName));
+                    TagKey<BiomeBase> tagKey = TagKey.a(Registries.an, new MinecraftKey(tagKeyName));
                     
 //                    Optional<HolderSet.Named<BiomeBase>> optional = biomeRegistry.c(tagKey);
                     Optional<HolderSet.Named<BiomeBase>> optional = biomeRegistry.b(tagKey);
@@ -634,7 +638,7 @@ public class BiomeTP extends SubCommand {
 
                 tagPresets.put(world.getName(), presets);
                 return presets;
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | NoSuchMethodError e) {
+            } catch (Exception e) {
                 Main.getInstance().getLogger().log(Level.WARNING, "Can't use NMS (try updating TPort), using legacy mode for BiomeTP");
                 legacyBiomeTP = true;
             }

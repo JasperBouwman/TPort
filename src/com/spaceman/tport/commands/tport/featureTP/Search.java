@@ -244,9 +244,9 @@ public class Search extends SubCommand {
             return null;
         }
 
-        IRegistryCustom registry = worldServer.s();
+//        IRegistryCustom registry = worldServer.s();
 //        IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
-        IRegistry<Structure> structureRegistry =  worldServer.s().d(Registries.av); //1.19.3
+        IRegistry<Structure> structureRegistry =  worldServer.u_().d(Registries.ax); //1.19.4
 
         for (String feature : features) {
             Structure o = structureRegistry.a(new MinecraftKey(feature));
@@ -262,124 +262,6 @@ public class Search extends SubCommand {
         return searchFeature_1_19_3(player, startLocation, featureList, features);
     }
     
-    private static Pair<Location, String> searchFeature_1_18_2(@Nullable Player player, Location startLocation, List<Holder<Structure>> featureList, List<String> features) {
-        try {
-            BlockPosition startPosition = new BlockPosition(startLocation.getBlockX(), startLocation.getBlockY(), startLocation.getBlockZ());
-            
-            Object nmsWorld = Objects.requireNonNull(startLocation.getWorld()).getClass().getMethod("getHandle").invoke(startLocation.getWorld());
-            WorldServer worldServer = (WorldServer) nmsWorld;
-            
-            IRegistryCustom registry = worldServer.s();
-//            IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
-            IRegistry<Structure> structureRegistry =  worldServer.s().d(Registries.av); //1.19.3
-            
-            Set<Holder<BiomeBase>> generateInBiomesList = featureList.stream().flatMap((holder) -> holder.a().a().a()).collect(Collectors.toSet());
-            
-            if (generateInBiomesList.isEmpty()) {
-                sendErrorTranslation(player, "tport.command.featureTP.search.feature.featuresNotGenerating");
-                return null; //does not generate at all
-            } else {
-                ChunkGenerator chunkGenerator = worldServer.k().g();
-//              Field f = ChunkGenerator.class.getDeclaredField("d"); //1.18.2
-//              Field f = ChunkGenerator.class.getDeclaredField("c"); //1.19
-                Field f = ChunkGenerator.class.getDeclaredField("b"); //1.19.3
-                f.setAccessible(true);
-                WorldChunkManager worldChunkManager = (WorldChunkManager) f.get(chunkGenerator);
-                
-                Set<Holder<BiomeBase>> generatedBiomes = worldChunkManager.b();
-                if (Collections.disjoint(generatedBiomes, generateInBiomesList)) {
-                    sendErrorTranslation(player, "tport.command.featureTP.search.feature.featuresNotGeneratingInWorld");
-                    return null; //does not generate in world
-                } else {
-                    com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>> pair = null;
-                    double d0 = Double.MAX_VALUE;
-                    Map<StructurePlacement, Set<Holder<Structure>>> map = new Object2ObjectArrayMap<>();
-                    
-                    for (Holder<Structure> holder : featureList) {
-                        if (generatedBiomes.stream().anyMatch(holder.a().a()::a)) {
-                            
-                            Method m = ChunkGenerator.class.getDeclaredMethod("a", Holder.class, RandomState.class);
-                            
-                            m.setAccessible(true);
-                            List<StructurePlacement> l = (List<StructurePlacement>) m.invoke(chunkGenerator, holder, worldServer.k().h());
-                            for (StructurePlacement structureplacement : l) {
-                                map.computeIfAbsent(structureplacement, (p_211663_) -> new ObjectArraySet()).add(holder);
-                            }
-                        }
-                    }
-                    
-                    List<Map.Entry<StructurePlacement, Set<Holder<Structure>>>> list = new ArrayList<>(map.size());
-                    
-                    for (Map.Entry<StructurePlacement, Set<Holder<Structure>>> entry : map.entrySet()) {
-                        StructurePlacement structureplacement1 = entry.getKey();
-                        if (structureplacement1 instanceof ConcentricRingsStructurePlacement concentricringsstructureplacement) {
-                            Method m = ChunkGenerator.class.getDeclaredMethod("a", Set.class, WorldServer.class, StructureManager.class, BlockPosition.class, boolean.class, ConcentricRingsStructurePlacement.class);
-                            m.setAccessible(true);
-                            BlockPosition blockpos = (BlockPosition) m.invoke(chunkGenerator, entry.getValue(), worldServer, worldServer.a(), startPosition, false, concentricringsstructureplacement);
-                            double d1 = startPosition.j(blockpos);
-                            if (d1 < d0) {
-                                d0 = d1;
-                                pair = com.mojang.datafixers.util.Pair.of(blockpos, entry.getValue().iterator().next());
-                            }
-                        } else if (structureplacement1 instanceof RandomSpreadStructurePlacement) {
-                            list.add(entry);
-                        }
-                    }
-                    
-                    if (!list.isEmpty()) {
-                        int sectionX = SectionPosition.a(startLocation.getX());
-                        int sectionZ = SectionPosition.a(startLocation.getZ());
-                        
-                        for (int k = 0; k <= 100; ++k) {
-                            boolean flag = false;
-                            
-                            for (Map.Entry<StructurePlacement, Set<Holder<Structure>>> entry1 : list) {
-                                RandomSpreadStructurePlacement randomspreadstructureplacement = (RandomSpreadStructurePlacement) entry1.getKey();
-                                
-                                Method m = ChunkGenerator.class.getDeclaredMethod("a", Set.class, IWorldReader.class, StructureManager.class, int.class, int.class, int.class, boolean.class, long.class, RandomSpreadStructurePlacement.class);
-                                m.setAccessible(true);
-                                com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>> pair1 = (com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>>) m
-                                        .invoke(chunkGenerator, entry1.getValue(), worldServer, worldServer.a(), sectionX, sectionZ, k, false, worldServer.B(), randomspreadstructureplacement);
-                                if (pair1 != null) {
-                                    flag = true;
-                                    double d2 = startPosition.j(pair1.getFirst());
-                                    if (d2 < d0) {
-                                        d0 = d2;
-                                        pair = pair1;
-                                    }
-                                }
-                            }
-                            
-                            if (flag) {
-                                if (pair == null) {
-                                    if (features.size() == 1) sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.singular", featuresToMessageError(features));
-                                    else                      sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.multiple", featuresToMessageError(features));
-                                    return null;
-                                }
-                                return new Pair<>(new Location(startLocation.getWorld(), pair.getFirst().u(), 200, pair.getFirst().w()),
-                                        structureRegistry.b(pair.getSecond().a()).a());
-                            }
-                        }
-                    }
-                    
-                    if (pair == null) {
-                        if (features.size() == 1) sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.singular", featuresToMessageError(features));
-                        else                      sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.multiple", featuresToMessageError(features));
-                        return null;
-                    }
-                    return new Pair<>(new Location(startLocation.getWorld(), pair.getFirst().u(), 200, pair.getFirst().w()),
-                            structureRegistry.b(pair.getSecond().a()).a());
-                }
-            }
-        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException | NoSuchFieldException e) {
-            e.printStackTrace();
-        }
-        
-        if (features.size() == 1) sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.singular", featuresToMessageError(features));
-        else                      sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.multiple", featuresToMessageError(features));
-        return null;
-    }
-    
     private static Pair<Location, String> searchFeature_1_19_3(@Nullable Player player, Location startLocation, List<Holder<Structure>> featureList, List<String> features) {
         
         try {
@@ -388,9 +270,9 @@ public class Search extends SubCommand {
             Object nmsWorld = Objects.requireNonNull(startLocation.getWorld()).getClass().getMethod("getHandle").invoke(startLocation.getWorld());
             WorldServer worldServer = (WorldServer) nmsWorld;
             
-            IRegistryCustom registry = worldServer.s();
+//            IRegistryCustom registry = worldServer.s();
 //            IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
-            IRegistry<Structure> structureRegistry =  worldServer.s().d(Registries.av); //1.19.3
+            IRegistry<Structure> structureRegistry =  worldServer.u_().d(Registries.ax); //1.19.4
             
             Set<Holder<BiomeBase>> generateInBiomesList = featureList.stream().flatMap((holder) -> holder.a().a().a()).collect(Collectors.toSet());
             
@@ -405,7 +287,7 @@ public class Search extends SubCommand {
                 f.setAccessible(true);
                 WorldChunkManager worldChunkManager = (WorldChunkManager) f.get(chunkGenerator);
                 
-                Set<Holder<BiomeBase>> generatedBiomes = worldChunkManager.b();
+                Set<Holder<BiomeBase>> generatedBiomes = worldChunkManager.c();
                 if (Collections.disjoint(generatedBiomes, generateInBiomesList)) {
                     sendErrorTranslation(player, "tport.command.featureTP.search.feature.featuresNotGeneratingInWorld");
                     return null; //does not generate in world
@@ -456,7 +338,7 @@ public class Search extends SubCommand {
                                 Method m = ChunkGenerator.class.getDeclaredMethod("a", Set.class, IWorldReader.class, StructureManager.class, int.class, int.class, int.class, boolean.class, long.class, RandomSpreadStructurePlacement.class);
                                 m.setAccessible(true);
                                 com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>> pair1 = (com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>>) m
-                                        .invoke(chunkGenerator, entry1.getValue(), worldServer, worldServer.a(), sectionX, sectionZ, k, false, worldServer.B(), randomspreadstructureplacement);
+                                        .invoke(chunkGenerator, entry1.getValue(), worldServer, worldServer.a(), sectionX, sectionZ, k, false, chunkgeneratorstructurestate.d(), randomspreadstructureplacement);
                                 if (pair1 != null) {
                                     flag = true;
                                     double d2 = startPosition.j(pair1.getFirst());
