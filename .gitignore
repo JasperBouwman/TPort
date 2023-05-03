@@ -1,5 +1,6 @@
 /.idea
 /out
+/texture_generator/texture_output/
 *.iml
 
 *.class
