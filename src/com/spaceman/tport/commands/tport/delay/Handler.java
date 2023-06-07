@@ -28,7 +28,9 @@ public class Handler extends SubCommand {
         emptyHandlerState.setPermissions("TPort.delay.handler.set", "TPort.admin.delay");
         
         addAction(emptyHandlerState);
+        
         setPermissions("TPort.delay.handler.get", "TPort.admin.delay");
+        setCommandDescription(formatInfoTranslation("tport.command.delay.handler.commandDescription"));
     }
     
     @Override
@@ -38,11 +40,6 @@ public class Handler extends SubCommand {
         } else {
             return Collections.emptyList();
         }
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.delay.handler.commandDescription");
     }
     
     @Override

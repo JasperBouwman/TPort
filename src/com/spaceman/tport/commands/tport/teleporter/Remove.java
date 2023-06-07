@@ -2,7 +2,6 @@ package com.spaceman.tport.commands.tport.teleporter;
 
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.Teleporter;
-import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -12,11 +11,7 @@ public class Remove extends SubCommand {
     
     public Remove() {
         setPermissions("TPort.teleporter.remove");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.teleporter.remove.commandDescription");
+        setCommandDescription(formatInfoTranslation("tport.command.teleporter.remove.commandDescription"));
     }
     
     @Override

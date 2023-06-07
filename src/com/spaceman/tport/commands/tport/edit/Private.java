@@ -40,6 +40,8 @@ public class Private extends SubCommand {
         emptyState.setCommandDescription(getEmptyStateCommandDescription());
         emptyState.setPermissions("TPort.edit.private", "TPort.basic");
         addAction(emptyState);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.edit.private.commandDescription"));
     }
     
     @Override
@@ -51,14 +53,9 @@ public class Private extends SubCommand {
     }
     
     @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.edit.private.commandDescription");
-    }
-    
-    @Override
     public void run(String[] args, Player player) {
         //tport edit <TPort name> private [state]
-    
+        
         if (args.length == 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
             if (tport == null) {

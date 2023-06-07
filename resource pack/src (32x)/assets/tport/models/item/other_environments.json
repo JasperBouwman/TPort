@@ -1,6 +1,6 @@
 {
-	"parent": "minecraft:item/generated",
-	"textures": {
-		"layer0": "tport:item/other_environments"
-	}
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "tport:item/world_tp/other_environments"
+  }
 }

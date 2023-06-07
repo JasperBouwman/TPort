@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "tport:item/settings/remove_player/settings_remove_player_cancel"
+  }
+}

@@ -48,11 +48,14 @@ public class SafetyCheck extends SubCommand {
         EmptyCommand emptySource = new EmptyCommand();
         emptySource.setCommandName("source", ArgumentType.OPTIONAL);
         emptySource.setCommandDescription(formatInfoTranslation("tport.command.safetyCheck.source.commandDescription"));
+        emptySource.setTabRunnable(((args, player) -> SafetyCheckSource.get(args[1]) != null ? List.of("true", "false") : List.of()));
         emptySource.addAction(emptySourceState);
         
         addAction(empty);
         addAction(emptyCheck);
         addAction(emptySource);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.safetyCheck.commandDescription"));
     }
     
     private static SafetyChecker safetyChecker = (l -> true);
@@ -70,11 +73,6 @@ public class SafetyCheck extends SubCommand {
         List<String> list = Arrays.stream(SafetyCheckSource.values()).map(Enum::name).collect(Collectors.toList());
         list.add("check");
         return list;
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.safetyCheck.commandDescription");
     }
     
     @Override
@@ -143,8 +141,9 @@ public class SafetyCheck extends SubCommand {
                     return;
                 }
                 
-                source.setState(player, newState);
-                sendSuccessTranslation(player, "tport.command.safetyCheck.source.state.succeeded", source, source.getState(player));
+                if (source.setState(player, newState)) {
+                    sendSuccessTranslation(player, "tport.command.safetyCheck.source.state.succeeded", source, source.getState(player));
+                }
             }
             return;
         }
@@ -177,11 +176,13 @@ public class SafetyCheck extends SubCommand {
                 return false;
             }
         }
-        public void setState(Player player, boolean state) {
-            if (hasPermission(player, false)) { //todo false?
+        public boolean setState(Player player, boolean state) {
+            if (hasPermission(player, true)) {
                 tportData.getConfig().set("tport." + player.getUniqueId() + ".safetyCheck." + this.name() + ".state", state);
                 tportData.saveConfig();
+                return true;
             }
+            return false;
         }
         
         public static SafetyCheckSource get(String name) {
@@ -199,13 +200,13 @@ public class SafetyCheck extends SubCommand {
         }
         
         @Override
-        public String getName() {
-            return name();
+        public TextComponent getName(String varColor) {
+            return new TextComponent(name(), varColor);
         }
         
         @Override
         public String getInsertion() {
-            return getName();
+            return name();
         }
     }
 }

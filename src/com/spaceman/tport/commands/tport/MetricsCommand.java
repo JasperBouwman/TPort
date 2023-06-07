@@ -37,6 +37,11 @@ public class MetricsCommand extends SubCommand {
     public void run(String[] args, Player player) {
         // tport metrics viewStats
         
+        if (Features.Feature.Metrics.isDisabled())  {
+            Features.Feature.Metrics.sendDisabledMessage(player);
+            return;
+        }
+        
         if (args.length == 1 || (args.length == 2 && args[1].equalsIgnoreCase("viewStats"))) {
             if (!Features.Feature.Metrics.isEnabled()) {
                 sendErrorTranslation(player, "tport.command.metricsCommand.viewStats.notEnabled", "/tport features Metrics state true");

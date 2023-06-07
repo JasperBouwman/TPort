@@ -104,7 +104,9 @@ public class Home extends SubCommand {
         addAction(emptyHomeSafetyCheck);
         addAction(new Get());
         addAction(new Set());
+        
         setPermissions("TPort.home", "TPort.basic");
+        setCommandDescription(formatInfoTranslation("tport.command.home.commandDescription"));
     }
     
     @Override
@@ -119,20 +121,16 @@ public class Home extends SubCommand {
     }
     
     @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.home.commandDescription");
-    }
-    
-    public void test(String[] args, Player player) {
+    public void run(String[] args, Player player) {
         //tport home [safetyCheck]
         //tport home get
         //tport home set <player> <TPort name>
-        
+    
         if (args.length == 1) {
             if (!hasPermissionToRun(player, true)) {
                 return;
             }
-            
+        
             if (!hasHome(player, false)) {
                 sendErrorTranslation(player, "tport.command.home.noHome");
                 return;
@@ -142,62 +140,12 @@ public class Home extends SubCommand {
                 sendErrorTranslation(player, "tport.command.home.homeNotFound");
                 return;
             }
-            
+        
             tport.teleport(player, TPORT_HOME.getState(player));
         } else {
             if (!runCommands(getActions(), args[1], args, player)) {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport home " + CommandTemplate.convertToArgs(getActions(), true));
             }
         }
-    }
-    
-    @Override
-    public void run(String[] args, Player player) {
-        //tport home [safetyCheck]
-        
-        //todo
-        // tport home
-        // tport home <safetyCheck>
-        // tport home get
-        // tport home set <player> <TPort name>
-        
-        test(args, player);
-
-//
-//        if (args.length != 1 && args.length != 2) {
-//            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport home [safetyCheck]");
-//            return;
-//        }
-//        if (!hasPermissionToRun(player, true)) {
-//            return;
-//        }
-//
-//        if (!tportData.getConfig().contains("tport." + player.getUniqueId() + ".home")) {
-//            sendErrorTranslation(player, "tport.command.home.noHome");
-//            return;
-//        }
-//        String homeID = tportData.getConfig().getString("tport." + player.getUniqueId() + ".home", TPortManager.defUUID.toString());
-//        TPort tport = TPortManager.getTPort(UUID.fromString(homeID));
-//        if (tport == null) {
-//            sendErrorTranslation(player, "tport.command.home.homeNotFound");
-//            return;
-//        }
-//
-//        Boolean safetyCheckState;
-//        if (args.length == 2) {
-//            if (TPORT_HOME.hasPermission(player, true)) {
-//                safetyCheckState = Main.toBoolean(args[1]);
-//                if (safetyCheckState == null) {
-//                    sendErrorTranslation(player, "tport.command.wrongUsage", "/tport home [true|false]");
-//                    return;
-//                }
-//            } else {
-//                return;
-//            }
-//        } else {
-//            safetyCheckState = TPORT_HOME.getState(player);
-//        }
-//
-//        tport.teleport(player, safetyCheckState);
     }
 }

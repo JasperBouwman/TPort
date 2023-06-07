@@ -18,7 +18,7 @@ public class Remove extends SubCommand {
     
     public Remove() {
         EmptyCommand emptyTag = new EmptyCommand();
-        emptyTag.setCommandName("TPort name", ArgumentType.REQUIRED);
+        emptyTag.setCommandName("tag", ArgumentType.REQUIRED);
         emptyTag.setCommandDescription(formatInfoTranslation("tport.command.edit.tag.remove.commandDescription"));
         addAction(emptyTag);
     }

@@ -31,7 +31,7 @@ public class Remove extends SubCommand {
         EmptyCommand emptyOwn = new EmptyCommand();
         emptyOwn.setCommandName("own TPort name", ArgumentType.REQUIRED);
         emptyOwn.setCommandDescription(formatInfoTranslation("tport.command.public.remove.own.commandDescription"));
-    
+        
         emptyAll = new EmptyCommand();
         emptyAll.setCommandName("all TPort name", ArgumentType.REQUIRED);
         emptyAll.setCommandDescription(formatInfoTranslation("tport.command.public.remove.all.commandDescription"));

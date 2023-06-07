@@ -3,7 +3,6 @@ package com.spaceman.tport.commands.tport.biomeTP;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -24,16 +23,13 @@ public class Mode extends SubCommand {
         emptyModeMode.setCommandDescription(formatInfoTranslation("tport.command.biomeTP.mode.mode.commandDescription"));
         emptyModeMode.setPermissions(worldSearchString);
         addAction(emptyModeMode);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.biomeTP.mode.commandDescription"));
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
         return Arrays.stream(com.spaceman.tport.commands.tport.featureTP.Mode.WorldSearchMode.values()).map(Enum::name).collect(Collectors.toList());
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.biomeTP.mode.commandDescription");
     }
     
     public static com.spaceman.tport.commands.tport.featureTP.Mode.WorldSearchMode getDefMode(UUID uuid) {

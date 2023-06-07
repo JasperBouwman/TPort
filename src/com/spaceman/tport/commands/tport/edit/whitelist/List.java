@@ -16,9 +16,8 @@ import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.
 
 public class List extends SubCommand {
     
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.edit.whitelist.list.commandDescription");
+    public List() {
+        setCommandDescription(formatInfoTranslation("tport.command.edit.whitelist.list.commandDescription"));
     }
     
     @Override

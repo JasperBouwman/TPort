@@ -16,7 +16,6 @@ import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.IRegistry;
-import net.minecraft.core.IRegistryCustom;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.server.level.WorldServer;
@@ -39,7 +38,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.spaceman.tport.TPortInventories.openFeatureTP;
+import static com.spaceman.tport.inventories.TPortInventories.openFeatureTP;
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
@@ -72,6 +71,11 @@ public class FeatureTP extends SubCommand {
         // tport featureTP search [mode] <feature...>
         // tport featureTP mode [mode]
         
+        if (Features.Feature.FeatureTP.isDisabled())  {
+            Features.Feature.FeatureTP.sendDisabledMessage(player);
+            return;
+        }
+        
         if (args.length == 1) {
             if (empty.hasPermissionToRun(player, true)) {
                 openFeatureTP(player);
@@ -91,7 +95,8 @@ public class FeatureTP extends SubCommand {
 
 //            IRegistryCustom registry = worldServer.s();
 //          IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
-            IRegistry<Structure> structureRegistry =  worldServer.u_().d(Registries.ax); //1.19.4
+//            IRegistry<Structure> structureRegistry =  worldServer.u_().d(Registries.ax); //1.19.4
+            IRegistry<Structure> structureRegistry =  worldServer.B_().d(Registries.az); //1.20
 
             return structureRegistry.e().stream().map(MinecraftKey::a).map(String::toLowerCase).toList();
         } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
@@ -108,13 +113,14 @@ public class FeatureTP extends SubCommand {
             
 //            IRegistryCustom registry = worldServer.s();
 //            IRegistry<Structure> structureRegistry = registry.d(IRegistry.aN);
-            IRegistry<Structure> structureRegistry =  worldServer.u_().d(Registries.ax); //1.19.4
+//            IRegistry<Structure> structureRegistry =  worldServer.u_().d(Registries.ax); //1.19.4
+            IRegistry<Structure> structureRegistry =  worldServer.B_().d(Registries.az); //1.20
             
 //            List<String> tags = structureRegistry.i().map((tagKey) -> tagKey.b().a()).toList();
             List<String> tags = structureRegistry.i().map((tagKey) -> tagKey.getFirst().b().a()).toList();
             
             for (String tagKeyName : tags) {
-                TagKey<Structure> tagKey = TagKey.a(Registries.ax, new MinecraftKey(tagKeyName));
+                TagKey<Structure> tagKey = TagKey.a(Registries.az, new MinecraftKey(tagKeyName));
                 
                 Optional<HolderSet.Named<Structure>> optional = structureRegistry.b(tagKey);
                 if (optional.isPresent()) {
@@ -201,15 +207,15 @@ public class FeatureTP extends SubCommand {
                 featureLClick = MessageUtils.translateMessage(featureLClick, playerLang);
                 featureRClick = MessageUtils.translateMessage(featureRClick, playerLang);
             }
-            MessageUtils.setCustomItemData(item, theme, null, Arrays.asList(featureLClick, featureRClick));
+            Message featureTitle = formatTranslation(varInfoColor, varInfoColor, "%s", feature);
+            MessageUtils.setCustomItemData(item, theme, featureTitle, Arrays.asList(featureLClick, featureRClick));
             
             ItemMeta im = item.getItemMeta();
-            im.setDisplayName(theme.getVarInfoColor() + feature);
             
             im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "feature"), PersistentDataType.STRING, feature.toLowerCase());
             if (selected) Glow.addGlow(im);
             
-            FancyClickEvent.addFunction(im, ClickType.LEFT, "featureTP_select", ((whoClicked, clickType, pdc, fancyInventory) -> {
+            FancyClickEvent.addFunction(im, ClickType.LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
                 NamespacedKey featureKey = new NamespacedKey(Main.getInstance(), "feature");
                 if (pdc.has(featureKey, PersistentDataType.STRING)) {
                     ArrayList<String> innerFeatureSelection = fancyInventory.getData("featureSelection", ArrayList.class, new ArrayList<String>());
@@ -225,7 +231,6 @@ public class FeatureTP extends SubCommand {
             }));
             FancyClickEvent.addCommand(im, ClickType.RIGHT, "tport featureTP search " + feature);
             
-            im.setDisplayName(theme.getVarInfoColor() + feature);
             item.setItemMeta(im);
             if (selected) features.add(0, item);
             else features.add(item);
@@ -279,15 +284,15 @@ public class FeatureTP extends SubCommand {
             if (playerLang != null) { //if player has no custom language, translate it
                 lore = MessageUtils.translateMessage(lore, playerLang);
             }
-            MessageUtils.setCustomItemData(is, theme, null, lore);
+            Message featureTitle = formatTranslation(varInfo2Color, varInfo2Color, "%s", pair.getLeft());
+            MessageUtils.setCustomItemData(is, theme, featureTitle, lore);
             
             ItemMeta im = is.getItemMeta();
-            im.setDisplayName(theme.getVarInfo2Color() + pair.getLeft());
             String featuresAsString = String.join("|", pair.getRight());
             im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "featureTag/name"), PersistentDataType.STRING, pair.getLeft());
             im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "featureTag/features"), PersistentDataType.STRING, featuresAsString);
             
-            FancyClickEvent.addFunction(im, ClickType.LEFT, "featureTP_selectAdditive", ((whoClicked, clickType, pdc, fancyInventory) -> {
+            FancyClickEvent.addFunction(im, ClickType.LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
                 NamespacedKey tagKey = new NamespacedKey(Main.getInstance(), "featureTag/features");
                 if (pdc.has(tagKey, PersistentDataType.STRING)) {
                     String innerFeatures = pdc.get(tagKey, PersistentDataType.STRING);
@@ -298,7 +303,7 @@ public class FeatureTP extends SubCommand {
                     openFeatureTP(whoClicked, fancyInventory.getData("page", Integer.class, 0), fancyInventory);
                 }
             }));
-            FancyClickEvent.addFunction(im, ClickType.SHIFT_LEFT, "featureTP_selectOverwrite", ((whoClicked, clickType, pdc, fancyInventory) -> {
+            FancyClickEvent.addFunction(im, ClickType.SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
                 NamespacedKey tagKey = new NamespacedKey(Main.getInstance(), "featureTag/features");
                 if (pdc.has(tagKey, PersistentDataType.STRING)) {
                     String innerFeatures = pdc.get(tagKey, PersistentDataType.STRING);

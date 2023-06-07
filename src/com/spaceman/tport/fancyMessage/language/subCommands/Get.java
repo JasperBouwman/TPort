@@ -9,9 +9,8 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Get extends SubCommand {
     
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.language.get.commandDescription");
+    public Get() {
+        setCommandDescription(formatInfoTranslation("tport.command.language.get.commandDescription"));
     }
     
     @Override

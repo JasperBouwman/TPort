@@ -18,14 +18,14 @@ public class Set extends SubCommand {
         EmptyCommand emptySetCustom = new EmptyCommand();
         emptySetCustom.setCommandName("custom", ArgumentType.FIXED);
         emptySetCustom.setCommandDescription(formatInfoTranslation("tport.command.language.set.custom.commandDescription"));
-    
+        
         EmptyCommand emptySetServer = new EmptyCommand();
         emptySetServer.setCommandName("server", ArgumentType.FIXED);
         emptySetServer.setCommandDescription(formatInfoTranslation("tport.command.language.set.server.commandDescription"));
-    
+        
         EmptyCommand emptySetServerLanguage = new EmptyCommand();
         emptySetServerLanguage.setCommandName("language", ArgumentType.REQUIRED);
-        emptySetServerLanguage.setCommandDescription(formatInfoTranslation("tport.command.language.set.serverLanguage.commandDescription"));
+        emptySetServerLanguage.setCommandDescription(formatInfoTranslation("tport.command.language.set.language.commandDescription"));
         
         addAction(emptySetCustom);
         addAction(emptySetServer);

@@ -21,7 +21,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import static org.bukkit.persistence.PersistentDataType.STRING;
+
 public class FancyClickEvent implements Listener {
+    
+    public static void setStringData(ItemStack item, NamespacedKey key, String value) {
+        ItemMeta im = item.getItemMeta();
+        im.getPersistentDataContainer().set(key, STRING, value);
+        item.setItemMeta(im);
+    }
     
     public static ItemStack addCommand(ItemStack is, ClickType clickType, String command) {
         ItemMeta im = is.getItemMeta();
@@ -48,30 +56,74 @@ public class FancyClickEvent implements Listener {
     }
     
     private static final HashMap<String, FancyClickRunnable> functionsMap = new HashMap<>();
-    public static ItemStack addFunction(ItemStack is, ClickType clickType, @Nullable String funcName, FancyClickRunnable runnable) {
-        ItemMeta im = is.getItemMeta();
-        if (im != null) {
-            is.setItemMeta(addFunction(im, clickType, funcName, runnable));
+    public static ItemStack addFunction(ItemStack is, FancyClickRunnable runnable, ClickType... clickTypes) {
+        for (ClickType clickType : clickTypes) {
+            addFunction(is, clickType, runnable);
         }
         return is;
     }
-    public static ItemMeta addFunction(ItemMeta im, ClickType clickType, @Nullable String funcName, FancyClickRunnable runnable) {
+    public static ItemStack addFunction(ItemStack is, ClickType clickType, FancyClickRunnable runnable) {
+        ItemMeta im = is.getItemMeta();
+        if (im != null) {
+            is.setItemMeta(addFunction(im, clickType, runnable));
+        }
+        return is;
+    }
+    public static ItemMeta addFunction(ItemMeta im, ClickType clickType, FancyClickRunnable runnable) {
         if (im == null) return null;
-        if (funcName == null) funcName = runnable.toString();
+        String funcName = runnable.toString();
         
         im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "runFunc_" + clickType.name()), PersistentDataType.STRING, funcName);
         functionsMap.putIfAbsent(funcName, runnable);
         
         return im;
     }
+    public static ItemStack setFunction(ItemStack is, ClickType clickType, String funcName) {
+        ItemMeta im = is.getItemMeta();
+        if (im != null) {
+            is.setItemMeta(setFunction(im, clickType, funcName));
+        }
+        return is;
+    }
+    public static ItemMeta setFunction(ItemMeta im, ClickType clickType, String funcName) {
+        if (im == null) return null;
+        if (functionsMap.containsKey(funcName)) {
+            im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "runFunc_" + clickType.name()), PersistentDataType.STRING, funcName);
+        }
+        return im;
+    }
     public static ItemMeta removeFunction(ItemMeta im, ClickType clickType) {
         if (im == null) return null;
-        im.getPersistentDataContainer().remove(new NamespacedKey(Main.getInstance(), "runFuncSer_" + clickType.name()));
+        im.getPersistentDataContainer().remove(new NamespacedKey(Main.getInstance(), "runFunc_" + clickType.name()));
         return im;
+    }
+    public static ItemMeta removeCommand(ItemMeta im, ClickType clickType) {
+        if (im == null) return null;
+        im.getPersistentDataContainer().remove(new NamespacedKey(Main.getInstance(), "runCommand_" + clickType.name()));
+        return im;
+    }
+    public static String getFunctionName(ItemStack is, ClickType clickType) {
+        ItemMeta im = is.getItemMeta();
+        if (im != null) {
+            return getFunctionName(im, clickType);
+        }
+        return null;
+    }
+    public static String getFunctionName(ItemMeta im, ClickType clickType) {
+        return im.getPersistentDataContainer().get(new NamespacedKey(Main.getInstance(), "runFunc_" + clickType.name()), PersistentDataType.STRING);
+    }
+    @Nullable
+    public static FancyClickRunnable getFunction(String funcName) {
+        return functionsMap.get(funcName);
     }
     public static ItemMeta removeAllFunctions(ItemMeta im) {
         if (im == null) return null;
         Arrays.stream(ClickType.values()).forEach(clickType -> removeFunction(im, clickType));
+        return im;
+    }
+    public static ItemMeta removeAllCommands(ItemMeta im) {
+        if (im == null) return null;
+        Arrays.stream(ClickType.values()).forEach(clickType -> removeCommand(im, clickType));
         return im;
     }
     @FunctionalInterface
@@ -85,7 +137,7 @@ public class FancyClickEvent implements Listener {
         if (!(e.getInventory().getHolder() instanceof FancyInventory fancyInventory)) {
             return;
         }
-    
+        
         List<ItemStack> originalContent = Arrays.asList(fancyInventory.getData("originalContent", ItemStack[].class, new ItemStack[0]));
         for (ItemStack item : e.getInventory().getContents()) {
             if (!originalContent.contains(item)) {

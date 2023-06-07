@@ -9,8 +9,10 @@ import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.dynmap.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
+import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.TPRequest;
 import org.bukkit.Bukkit;
@@ -26,15 +28,15 @@ import org.bukkit.util.NumberConversions;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.spaceman.tport.fancyMessage.MessageUtils.transformColoredTextToMessage;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
+import static com.spaceman.tport.inventories.QuickEditInventories.*;
 import static com.spaceman.tport.tpEvents.TPEManager.tpPlayerToTPort;
 
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "FieldMayBeFinal"})
@@ -53,7 +55,7 @@ public class TPort implements ConfigurationSerializable {
     private int slot = -1;
     private boolean publicTPort = false;
     private UUID offeredTo = null;
-    private ArrayList<Pair<Calendar, UUID>> logBook = new ArrayList<>();
+    private ArrayList<LogEntry> logBook = new ArrayList<>();
     private HashMap<UUID, LogMode> logged = new HashMap<>();
     private LogMode defaultLogMode = LogMode.NONE;
     private NotifyMode notifyMode = NotifyMode.NONE;
@@ -121,13 +123,17 @@ public class TPort implements ConfigurationSerializable {
             tport.offeredTo = UUID.fromString((String) args.get("offeredTo"));
         }
         if (args.containsKey("logBook")) {
-            ArrayList<Pair<Calendar, UUID>> log = new ArrayList<>();
+            ArrayList<LogEntry> log = new ArrayList<>();
             //noinspection unchecked
             for (Pair<Long, String> pair : ((ArrayList<Pair<Long, String>>) args.get("logBook"))) {
                 Calendar c = Calendar.getInstance();
                 c.setTime(new Date(pair.getLeft()));
-                log.add(new Pair<>(c, UUID.fromString(pair.getRight())));
+                log.add(new LogEntry(UUID.fromString(pair.getRight()), c, null, null));
             }
+            tport.setLogBook(log);
+        }
+        if (args.containsKey("logBook_v2")) {
+            ArrayList<LogEntry> log = (ArrayList<LogEntry>) args.get("logBook_v2");
             tport.setLogBook(log);
         }
         if (args.containsKey("logged")) {
@@ -181,8 +187,7 @@ public class TPort implements ConfigurationSerializable {
             map.put("whitelist", whitelist.stream().map(UUID::toString).collect(Collectors.toList()));
         if (!description.isEmpty()) map.put("description", description);
         if (range != 0) map.put("range", range);
-        if (!logBook.isEmpty())
-            map.put("logBook", logBook.stream().map(p -> new Pair<>(p.getLeft().getTime().getTime(), p.getRight().toString())).collect(Collectors.toList()));
+        if (!logBook.isEmpty()) map.put("logBook_v2", logBook);
         if (!logged.isEmpty()) {
             HashMap<String, String> newLogged = new HashMap<>();
             for (UUID uuid : logged.keySet()) {
@@ -223,7 +228,6 @@ public class TPort implements ConfigurationSerializable {
     
     public void setLocation(Location location) {
         this.location = location;
-        DynmapHandler.updateTPort(this);
     }
     
     public Biome getBiome() {
@@ -240,7 +244,6 @@ public class TPort implements ConfigurationSerializable {
     
     public void setPrivateState(PrivateState privateState) {
         this.privateState = privateState;
-        DynmapHandler.updateTPort(this);
     }
     
     public WhitelistVisibility getWhitelistVisibility() {
@@ -284,7 +287,6 @@ public class TPort implements ConfigurationSerializable {
     
     public void setOwner(UUID owner) {
         this.owner = owner;
-        DynmapHandler.updateTPort(this);
     }
     
     public boolean hasClaimedOwner() {
@@ -295,48 +297,34 @@ public class TPort implements ConfigurationSerializable {
         return description != null && !description.isEmpty();
     }
     
-    public String getDescription() {
+    public Message getDescription() {
+        Message d = new Message();
+        ArrayList<Message> listedDescription = getListedDescription();
+        for (int i = 0; i < listedDescription.size() - 1; i++) {
+            Message m = listedDescription.get(i);
+            d.addMessage(m);
+            d.addNewLine();
+        }
+        d.addMessage(listedDescription.get(listedDescription.size() - 1));
+        return d;
+    }
+    public ArrayList<Message> getListedDescription() {
+        return transformColoredTextToMessage("&9" + description, "#5555ff");
+    }
+    
+    public String getRawDescription() {
         return description;
+    }
+    
+    public String getTextDescription() {
+        return getDescription().getText().stream().map(TextComponent::getText).collect(Collectors.joining());
     }
     
     public void setDescription(@Nullable String description) {
         if (description == null) {
             description = "";
         }
-        
-        Pattern hexPattern = Pattern.compile("#[0-9a-fA-F]{6}");
-        Matcher hexMatcher = hexPattern.matcher(description);
-        while (hexMatcher.find()) {
-            String hexColor = description.substring(hexMatcher.start(), hexMatcher.start() + 7);
-            description = description.replace(hexColor, "&x" + hexColor.substring(1).replaceAll("(.)", "&$1"));
-            hexMatcher = hexPattern.matcher(description);
-        }
-        
-        Pattern rgbPattern = Pattern.compile("(\\$(([01][0-9]{2})|(2[0-4][0-9])|(25[0-5]))){3}");
-        Matcher rgbMatcher = rgbPattern.matcher(description);
-        while (rgbMatcher.find()) {
-            String rgbColor = description.substring(rgbMatcher.start(), rgbMatcher.start() + 12);
-            
-            //this used bit shift to move the correct color values to their places (rgb).
-            //this is done in a lambda, but this used only final objects.
-            //this is a problem because I needed an int that stored how far the bits should be shifted.
-            //the final int array of size 1 got around that. The array is final, but the int inside that array
-            //is not final, this stores how far the bits should shift
-            final int[] shift = {16};
-            int color = Arrays.stream(rgbColor.substring(1).split("\\$")).mapToInt(Integer::parseInt).map(i -> {
-                i <<= shift[0];
-                shift[0] -= 8;
-                return i;
-            }).sum();
-            color = ((255) << 24) | color; //this is only to make sure that the leading zeroes are not forgotten (set alpha to max)
-            String hexColor = Integer.toHexString(color).substring(2);
-            
-            description = description.replace(rgbColor, "&x" + hexColor.replaceAll("(.)", "&$1"));
-            rgbMatcher = rgbPattern.matcher(description);
-        }
-        
-        this.description = ChatColor.translateAlternateColorCodes('&', description);
-        DynmapHandler.updateTPort(this);
+        this.description = description;
     }
     
     public String getName() {
@@ -345,7 +333,6 @@ public class TPort implements ConfigurationSerializable {
     
     public void setName(String name) {
         this.name = name;
-        DynmapHandler.updateTPort(this);
     }
     
     public int getRange() {
@@ -397,12 +384,12 @@ public class TPort implements ConfigurationSerializable {
         this.logBook = new ArrayList<>();
     }
     
-    public ArrayList<Pair<Calendar, UUID>> getLogBook() {
-        logBook.sort(Comparator.comparing(pair -> pair.getLeft().getTime()));
+    public ArrayList<LogEntry> getLogBook() {
+        logBook.sort(Comparator.comparing(logEntry -> logEntry.timeOfTeleport().getTime()));
         return logBook;
     }
     
-    public void setLogBook(ArrayList<Pair<Calendar, UUID>> log) {
+    public void setLogBook(ArrayList<LogEntry> log) {
         this.logBook = log;
     }
     
@@ -412,8 +399,9 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public void log(UUID consumer) {
-        if (getLogMode(consumer).shouldLog(consumer, this)) {
-            logBook.add(new Pair<>(Calendar.getInstance(), consumer));
+        LogMode logMode = getLogMode(consumer);
+        if (logMode.shouldLog(consumer, this)) {
+            logBook.add(new LogEntry(consumer, Calendar.getInstance(), logMode, Bukkit.getPlayer(owner) != null));
             while (logBook.size() > LogSize.getLogSize()) {
                 logBook.remove(logBook.size() - 1);
             }
@@ -424,7 +412,8 @@ public class TPort implements ConfigurationSerializable {
         return new ArrayList<>(logged.keySet());
     }
     
-    public LogMode getLogMode(UUID uuid) {
+    public LogMode getLogMode(@Nullable UUID uuid) {
+        if (uuid == null) return LogMode.NONE;
         if (uuid.equals(owner)) return logged.getOrDefault(owner, LogMode.NONE);
         return logged.getOrDefault(uuid, defaultLogMode);
     }
@@ -435,7 +424,6 @@ public class TPort implements ConfigurationSerializable {
     
     public void setDefaultLogMode(LogMode defaultLogMode) {
         this.defaultLogMode = defaultLogMode;
-        DynmapHandler.updateTPort(this);
     }
     
     public void addLogged(UUID uuid, LogMode logMode) {
@@ -507,7 +495,6 @@ public class TPort implements ConfigurationSerializable {
     
     public void setNotifyMode(NotifyMode notifyMode) {
         this.notifyMode = notifyMode;
-        DynmapHandler.updateTPort(this);
     }
     
     public void notifyOwner(Player teleporter) {
@@ -524,19 +511,24 @@ public class TPort implements ConfigurationSerializable {
     }
     public void setPreviewState(PreviewState previewState) {
         this.previewState = previewState;
-        DynmapHandler.updateTPort(this);
     }
     
     public boolean addTag(String tag) {
         if (!tags.contains(tag)) {
             tags.add(tag);
+            DynmapHandler.updateTPort(this);
             return true;
         }
         return false;
     }
     
     public boolean removeTag(String tag) {
-        return tags.remove(tag);
+        if (tags.contains(tag)) {
+            tags.remove(tag);
+            DynmapHandler.updateTPort(this);
+            return true;
+        }
+        return false;
     }
     
     public ArrayList<String> getTags() {
@@ -553,7 +545,6 @@ public class TPort implements ConfigurationSerializable {
     
     public void showOnDynmap(boolean state) {
         showOnDynmap = state;
-        DynmapHandler.updateTPort(this);
     }
     
     public String getDynmapIconID() {
@@ -562,7 +553,6 @@ public class TPort implements ConfigurationSerializable {
     
     public void setDynmapIconID(String dynmapIconID) {
         this.dynmapIconID = dynmapIconID;
-        DynmapHandler.updateTPort(this);
     }
     
     public boolean shouldReturnItem() {
@@ -587,6 +577,7 @@ public class TPort implements ConfigurationSerializable {
     
     public void save() {
         TPortManager.saveTPort(this);
+        DynmapHandler.updateTPort(this);
     }
     
     public void setInactiveWorldName(String inactiveWorldName) {
@@ -700,18 +691,16 @@ public class TPort implements ConfigurationSerializable {
         return true;
     }
     
-    public List<Message> getHoverData(boolean extended) {
+    public List<Message> getHoverData(boolean addOwner) {
         List<Message> hoverData = new ArrayList<>(15);
         
-        if (extended) {
+        if (addOwner) {
             hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.tportOwner", PlayerUUID.getPlayerName(this.getOwner())));
             hoverData.add(new Message());
         }
         
         if (this.hasDescription()) {
-            for (String s : this.getDescription().split("\\\\n")) {
-                hoverData.add(new Message(textComponent(ChatColor.BLUE + s)));
-            }
+            hoverData.addAll(this.getListedDescription());
             hoverData.add(new Message());
         }
         
@@ -739,8 +728,8 @@ public class TPort implements ConfigurationSerializable {
         
         if (this.hasRange()) hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.range", this.getRange()));
         if (Features.Feature.PublicTP.isEnabled()) hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.publicTPort", this.isPublicTPort()));
-        hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.defaultLogMode", this.getDefaultLogMode().name()));
-        hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.notifyMode", this.getNotifyMode().name()));
+        hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.defaultLogMode", this.getDefaultLogMode()));
+        hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.notifyMode", this.getNotifyMode()));
         if (DynmapHandler.isEnabled()) {
             hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.dynmapShow", this.showOnDynmap()));
             hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.dynmapIcon", DynmapHandler.getTPortIconName(this)));
@@ -756,7 +745,11 @@ public class TPort implements ConfigurationSerializable {
             }
             tagsMessage.removeLast();
             
-            hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.tags", tagsMessage));
+            if (this.getTags().size() == 1) {
+                hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.tag", tagsMessage));
+            } else {
+                hoverData.add(formatInfoTranslation("tport.tport.tport.hoverData.tags", tagsMessage));
+            }
         }
         
         if (this.isOffered()) {
@@ -768,17 +761,17 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public enum PrivateState implements MessageUtils.MessageDescription {
-        OPEN(ChatColor.RED + "open", true, false,
+        OPEN(new TextComponent("open", ChatColor.RED), true, false, quick_edit_private_open_model,
                 (player, tport) -> true),
-        PRIVATE(ChatColor.GREEN + "private", false, true,
+        PRIVATE(new TextComponent("private", ChatColor.GREEN), false, true, quick_edit_private_private_model,
                 (player, tport) -> tport.getWhitelist().contains(player)),
-        ONLINE(ChatColor.YELLOW + "online", true, true,
+        ONLINE(new TextComponent("online", ChatColor.YELLOW), true, true, quick_edit_private_online_model,
                 (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null || PRIVATE.hasAccess(player, tport)),
-        PRION(ChatColor.GOLD + "private online", false, true,
+        PRION(new TextComponent("private online", ChatColor.GOLD), false, true, quick_edit_private_prion_model,
                 (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null && PRIVATE.hasAccess(player, tport)),
-        CONSENT_PRIVATE(ChatColor.DARK_AQUA + "consent private", false, true,
+        CONSENT_PRIVATE(new TextComponent("consent private", ChatColor.DARK_AQUA), false, true, quick_edit_private_consent_private_model,
                 (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null ? null : PRIVATE.hasAccess(player, tport)),
-        CONSENT_CLOSE(ChatColor.BLUE + "consent close", false, true,
+        CONSENT_CLOSE(new TextComponent("consent close", ChatColor.BLUE), false, true, quick_edit_private_consent_close_model,
                 (player, tport) -> (Bukkit.getPlayer(tport.getOwner()) != null && tport.getWhitelist().contains(player)) ? null : false);
         
         /*
@@ -791,14 +784,16 @@ public class TPort implements ConfigurationSerializable {
          * */
         
         private final AccessTester tester;
-        private final String displayName;
+        private final TextComponent displayName;
         private final boolean canGoPublic;
         private final boolean usesWhitelist;
+        private final InventoryModel inventoryModel;
         
-        PrivateState(String displayName, boolean canGoPublic, boolean usesWhitelist, AccessTester tester) {
+        PrivateState(TextComponent displayName, boolean canGoPublic, boolean usesWhitelist, InventoryModel inventoryModel, AccessTester tester) {
             this.displayName = displayName;
             this.canGoPublic = canGoPublic;
             this.tester = tester;
+            this.inventoryModel = inventoryModel;
             this.usesWhitelist = usesWhitelist;
         }
         
@@ -817,6 +812,10 @@ public class TPort implements ConfigurationSerializable {
                 }
                 return def;
             }
+        }
+        
+        public InventoryModel getInventoryModel() {
+            return inventoryModel;
         }
         
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -847,23 +846,23 @@ public class TPort implements ConfigurationSerializable {
                     tport);
         }
         
-        public String getDisplayName() {
-            return displayName;
+        public TextComponent getDisplayName() {
+            return new TextComponent(displayName.getText(), displayName.getColor());
         }
         
         @Override
         public Message getDescription() {
-            return formatInfoTranslation("tport.tport.tport.privateState." + this.name() + ".description", this.getDisplayName());
+            return formatInfoTranslation("tport.tport.tport.privateState." + this.name() + ".description", getDisplayName());
         }
         
         @Override
-        public String getName() {
-            return name();
+        public TextComponent getName(String unused) {
+            return getDisplayName();
         }
         
         @Override
         public String getInsertion() {
-            return getName();
+            return name();
         }
         
         public Boolean hasAccess(Player player, TPort tport) {
@@ -888,8 +887,20 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public enum WhitelistVisibility implements MessageUtils.MessageDescription {
-        ON,
-        OFF;
+        ON(new TextComponent("on", ChatColor.GREEN), quick_edit_whitelist_visibility_on_model),
+        OFF(new TextComponent("off", ChatColor.RED), quick_edit_whitelist_visibility_off_model);
+        
+        private final TextComponent displayName;
+        private final InventoryModel model;
+        
+        WhitelistVisibility(TextComponent displayName, InventoryModel model) {
+            this.displayName = displayName;
+            this.model = model;
+        }
+        
+        public InventoryModel getModel() {
+            return model;
+        }
         
         public static WhitelistVisibility get(@Nullable String name) {
             try {
@@ -907,32 +918,38 @@ public class TPort implements ConfigurationSerializable {
             }
         }
         
-        @Override
-        public Message getDescription() {
-            return formatInfoTranslation("tport.tport.tport.whitelistVisibility." + this.name() + ".description", this.name());
+        public TextComponent getDisplayName() {
+            return new TextComponent(displayName.getText(), displayName.getColor());
         }
         
         @Override
-        public String getName() {
-            return name();
+        public Message getDescription() {
+            return formatInfoTranslation("tport.tport.tport.whitelistVisibility." + this.name() + ".description", this.getDisplayName());
+        }
+        
+        @Override
+        public TextComponent getName(String ignore) {
+            return getDisplayName();
         }
         
         @Override
         public String getInsertion() {
-            return getName();
+            return name();
         }
     }
     
     public enum LogMode implements MessageUtils.MessageDescription {
-        ONLINE((uuid, tport) -> Bukkit.getPlayer(tport.getOwner()) != null),
-        OFFLINE((uuid, tport) -> Bukkit.getPlayer(tport.getOwner()) == null),
-        ALL((uuid, tport) -> true),
-        NONE((uuid, tport) -> false);
+        ONLINE((uuid, tport) -> Bukkit.getPlayer(tport.getOwner()) != null, quick_edit_log_mode_online_model),
+        OFFLINE((uuid, tport) -> Bukkit.getPlayer(tport.getOwner()) == null, quick_edit_log_mode_offline_model),
+        ALL((uuid, tport) -> true, quick_edit_log_mode_all_model),
+        NONE((uuid, tport) -> false, quick_edit_log_mode_none_model);
         
         private final LogTester tester;
+        private final InventoryModel model;
         
-        LogMode(LogTester tester) {
+        LogMode(LogTester tester, InventoryModel model) {
             this.tester = tester;
+            this.model = model;
         }
         
         public static LogMode get(@Nullable String name) {
@@ -964,19 +981,23 @@ public class TPort implements ConfigurationSerializable {
             return Arrays.asList(values()).get(0);
         }
         
+        public InventoryModel getModel() {
+            return model;
+        }
+        
         @Override
         public Message getDescription() {
             return formatInfoTranslation("tport.tport.tport.logMode." + this.name() + ".description", this.name());
         }
         
         @Override
-        public String getName() {
-            return name();
+        public TextComponent getName(String varColor) {
+            return new TextComponent(name(), varColor);
         }
         
         @Override
         public String getInsertion() {
-            return getName();
+            return name();
         }
         
         @FunctionalInterface
@@ -986,14 +1007,22 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public enum NotifyMode implements MessageUtils.MessageDescription {
-        ONLINE((uuid, tport) -> Bukkit.getPlayer(tport.getOwner()) != null),
-        LOG((uuid, tport) -> tport.getLogMode(uuid).shouldLog(uuid, tport)),
-        NONE((uuid, tport) -> false);
+        ONLINE(new TextComponent("online", ChatColor.GREEN), quick_edit_notify_online_model, (uuid, tport) -> Bukkit.getPlayer(tport.getOwner()) != null),
+        LOG(new TextComponent("log", ChatColor.YELLOW), quick_edit_notify_log_model, (uuid, tport) -> tport.getLogMode(uuid).shouldLog(uuid, tport)),
+        NONE(new TextComponent("none", ChatColor.RED), quick_edit_notify_none_model, (uuid, tport) -> false);
         
         private final NotifyTester tester;
+        private final TextComponent displayName;
+        private final InventoryModel model;
         
-        NotifyMode(NotifyTester tester) {
+        NotifyMode(TextComponent displayName, InventoryModel model, NotifyTester tester) {
+            this.displayName = displayName;
+            this.model = model;
             this.tester = tester;
+        }
+        
+        public InventoryModel getModel() {
+            return model;
         }
         
         public static NotifyMode get(@Nullable String name) {
@@ -1013,19 +1042,23 @@ public class TPort implements ConfigurationSerializable {
             return tester.shouldNotify(uuid, tport);
         }
         
-        @Override
-        public Message getDescription() {
-            return formatInfoTranslation("tport.tport.tport.notifyMode." + this.name() + ".description", this.name());
+        public TextComponent getDisplayName() {
+            return new TextComponent(displayName.getText(), displayName.getColor());
         }
         
         @Override
-        public String getName() {
-            return name();
+        public Message getDescription() {
+            return formatInfoTranslation("tport.tport.tport.notifyMode." + this.name() + ".description", this.getDisplayName());
+        }
+        
+        @Override
+        public TextComponent getName(String varColor) {
+            return getDisplayName();
         }
         
         @Override
         public String getInsertion() {
-            return getName();
+            return name();
         }
         
         public NotifyMode getNext() {
@@ -1047,16 +1080,25 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public enum PreviewState implements MessageUtils.MessageDescription {
-        ON(ChatColor.RED + "on", true),
-        OFF(ChatColor.GREEN + "off", false),
-        NOTIFIED(ChatColor.YELLOW + "notified", true);
+        ON(new TextComponent("on", ChatColor.GREEN), quick_edit_preview_on_model, true),
+        OFF(new TextComponent("off", ChatColor.RED), quick_edit_preview_off_model, false),
+        NOTIFIED(new TextComponent("notified", ChatColor.YELLOW), quick_edit_preview_notified_model, true);
         
         private final boolean canGoPublic;
-        private final String displayName;
+        private final TextComponent displayName;
+        private final InventoryModel model;
         
-        PreviewState(String displayName, boolean canGoPublic) {
+        PreviewState(TextComponent displayName, InventoryModel model, boolean canGoPublic) {
             this.displayName = displayName;
+            this.model = model;
             this.canGoPublic = canGoPublic;
+        }
+        
+        public InventoryModel getModel() {
+            if (Features.Feature.Preview.isDisabled()) {
+                return quick_edit_preview_grayed_model;
+            }
+            return model;
         }
         
         public boolean canGoPublic() {
@@ -1080,8 +1122,8 @@ public class TPort implements ConfigurationSerializable {
             };
         }
         
-        public String getDisplayName() {
-            return displayName;
+        public TextComponent getDisplayName() {
+            return new TextComponent(displayName.getText(), displayName.getColor());
         }
         
         @Override
@@ -1090,13 +1132,47 @@ public class TPort implements ConfigurationSerializable {
         }
         
         @Override
-        public String getName() {
-            return name();
+        public TextComponent getName(String ignore) {
+            return getDisplayName();
         }
         
         @Override
         public String getInsertion() {
-            return getName();
+            return name();
         }
     }
+    
+    public record LogEntry(UUID teleportedUUID, Calendar timeOfTeleport, LogMode loggedMode,
+                           Boolean ownerOnline) implements ConfigurationSerializable {
+            
+            public LogEntry(UUID teleportedUUID, Calendar timeOfTeleport, @Nullable LogMode loggedMode, @Nullable Boolean ownerOnline) {
+                this.teleportedUUID = teleportedUUID;
+                this.timeOfTeleport = timeOfTeleport;
+                this.loggedMode = loggedMode;
+                this.ownerOnline = ownerOnline;
+            }
+            
+            @SuppressWarnings("unused")
+            public static LogEntry deserialize(Map<String, Object> args) {
+                UUID teleportedUUID = UUID.fromString((String) args.get("teleportedUUID"));
+                Calendar timeOfTeleport = Calendar.getInstance();
+                timeOfTeleport.setTime(new Date((Long) args.get("timeOfTeleport")));
+                String loggedModeName = (String) args.getOrDefault("loggedMode", null);
+                LogMode loggedMode = loggedModeName == null ? null : LogMode.get(loggedModeName);
+                Boolean ownerOnline = (Boolean) args.getOrDefault("ownerOnline", null);
+                
+                return new LogEntry(teleportedUUID, timeOfTeleport, loggedMode, ownerOnline);
+            }
+            
+            @Nonnull
+            @Override
+            public Map<String, Object> serialize() {
+                return Main.asMap(
+                        new Pair<>("teleportedUUID", teleportedUUID.toString()),
+                        new Pair<>("timeOfTeleport", timeOfTeleport.getTime().getTime()),
+                        loggedMode == null ? null : new Pair<>("loggedMode", loggedMode.name()),
+                        ownerOnline == null ? null : new Pair<>("ownerOnline", ownerOnline)
+                );
+            }
+        }
 }

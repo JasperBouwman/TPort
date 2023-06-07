@@ -1,7 +1,6 @@
 package com.spaceman.tport.commands.tport.home;
 
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tport.TPort;
 import org.bukkit.entity.Player;
 
@@ -11,9 +10,8 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Get extends SubCommand {
     
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.home.get.commandDescription");
+    public Get() {
+        setCommandDescription(formatInfoTranslation("tport.command.home.get.commandDescription"));
     }
     
     @Override

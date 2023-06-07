@@ -5,6 +5,7 @@ import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -29,6 +30,8 @@ public class Preview extends SubCommand {
         emptyPreviewState.setPermissions("TPort.pltp.preview.set", "TPort.basic");
         
         addAction(emptyPreviewState);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.pltp.preview.commandDescription"));
     }
     
     @Override
@@ -37,11 +40,6 @@ public class Preview extends SubCommand {
             return Collections.emptyList();
         }
         return Arrays.stream(PreviewState.values()).map(s -> s.name().toLowerCase()).collect(Collectors.toList());
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.pltp.preview.commandDescription");
     }
     
     public static PreviewState getPreviewState(UUID uuid) {
@@ -115,13 +113,13 @@ public class Preview extends SubCommand {
         }
         
         @Override
-        public String getName() {
-            return name();
+        public TextComponent getName(String ignore) {
+            return new TextComponent(getDisplayName());
         }
         
         @Override
         public String getInsertion() {
-            return getName();
+            return name();
         }
     }
     

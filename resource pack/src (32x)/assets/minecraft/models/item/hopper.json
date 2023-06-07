@@ -1,7 +1,14 @@
 {
-	"parent": "minecraft:item/generated",
-	"textures": {"layer0": "minecraft:item/hopper"},
-	"overrides": [
-		{"predicate": {"custom_model_data": 5145462},"model": "tport:item/arrow_down"}
-	]
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/hopper"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 5145462
+      },
+      "model": "tport:item/next"
+    }
+  ]
 }

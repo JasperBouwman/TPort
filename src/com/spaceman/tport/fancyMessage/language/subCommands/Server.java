@@ -30,6 +30,8 @@ public class Server extends SubCommand {
         emptyServerLanguage.setCommandDescription(formatInfoTranslation("tport.command.language.server.language.commandDescription"));
         emptyServerLanguage.setPermissions("TPort.language.setServerLanguage", "TPort.admin.language");
         addAction(emptyServerLanguage);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.language.server.commandDescription"));
     }
     
     @Override
@@ -38,11 +40,6 @@ public class Server extends SubCommand {
             return Collections.emptyList();
         }
         return getAvailableLang();
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.language.server.commandDescription");
     }
     
     @Override

@@ -18,6 +18,9 @@ public class Add extends SubCommand {
     
     private final EmptyCommand emptyAddTPortDescription;
     
+    public static final String[] emptyAddTPort_permissions = new String[]{"TPort.add.<X>", "TPort.add", "TPort.basic"};
+    public static final String emptyAddTPort_permissionsHoverID = "tport.command.add.tportName.permissionHover";
+    
     public Add() {
         emptyAddTPortDescription = new EmptyCommand() {
             @Override
@@ -32,13 +35,13 @@ public class Add extends SubCommand {
         EmptyCommand emptyAddTPort = new EmptyCommand() {
             @Override
             public Message permissionsHover() {
-                return formatInfoTranslation("tport.command.add.tportName.permissionHover", "TPort.add.<X>", "TPort.add", "TPort.basic");
+                return formatInfoTranslation(emptyAddTPort_permissionsHoverID, (Object[]) emptyAddTPort_permissions);
             }
         };
         emptyAddTPort.setCommandName("TPort name", ArgumentType.REQUIRED);
         emptyAddTPort.setCommandDescription(formatInfoTranslation("tport.command.add.tportName.commandDescription"));
         emptyAddTPort.addAction(emptyAddTPortDescription);
-        emptyAddTPort.setPermissions("TPort.add.<X>", "TPort.add", "TPort.basic");
+        emptyAddTPort.setPermissions(emptyAddTPort_permissions);
         
         addAction(emptyAddTPort);
     }
@@ -77,7 +80,7 @@ public class Add extends SubCommand {
         TPort addedTPort = TPortManager.addTPort(player, newTPort, true);
         if (addedTPort != null) { //tport is added
             if (Features.Feature.TPortTakesItem.isEnabled()) {
-                //should return item is true as default
+                //'should return item' is true as default
                 player.getInventory().setItem(player.getInventory().getHeldItemSlot(), new ItemStack(Material.AIR));
             } else {
                 addedTPort.setShouldReturnItem(false);

@@ -94,7 +94,7 @@ public class PreviewEvents implements Listener {
     public static void cancelAllPreviews() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (cancelPreview(player, false))
-                sendInfoTranslation(player, "tport.tport.tport.cancelPreview.reload"); //todo give reason tport/player
+                sendInfoTranslation(player, "tport.tport.tport.cancelPreview.reload");
         }
     }
     

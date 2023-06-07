@@ -4,7 +4,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -26,9 +25,11 @@ public class Get extends SubCommand {
     public Get() {
         emptyPlayer = new EmptyCommand();
         emptyPlayer.setCommandName("player", ArgumentType.OPTIONAL);
-        emptyPlayer.setCommandDescription(formatInfoTranslation("tport.command.delay.get.player.commandDescription", ColorTheme.ColorType.infoColor));
+        emptyPlayer.setCommandDescription(formatInfoTranslation("tport.command.delay.get.player.commandDescription"));
         emptyPlayer.setPermissions("TPort.delay.get.all", "TPort.admin.delay");
         addAction(emptyPlayer);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.delay.get.commandDescription"));
     }
     
     @Override
@@ -37,11 +38,6 @@ public class Get extends SubCommand {
             return Collections.emptyList();
         }
         return isPermissionBased() ? Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()) : PlayerUUID.getPlayerNames();
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.delay.get.commandDescription", ColorTheme.ColorType.infoColor);
     }
     
     @Override
@@ -77,7 +73,7 @@ public class Get extends SubCommand {
                     sendErrorTranslation(player, "tport.command.playerNotOnline", asPlayer(newUUID));
                     return;
                 }
-                delay = delayTime(player);
+                delay = delayTime(newPlayer);
             } else {
                 delay = delayTime(newUUID);
             }

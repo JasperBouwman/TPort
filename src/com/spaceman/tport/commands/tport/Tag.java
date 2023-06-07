@@ -51,6 +51,7 @@ public class Tag extends SubCommand {
         for (String t : tags) {
             if (t.equalsIgnoreCase(tag)) {
                 tags.remove(t);
+                saveTags();
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         tport.removeTag(t);
@@ -70,6 +71,8 @@ public class Tag extends SubCommand {
         createTag("Base");
         createTag("Mine");
         createTag("Temp");
+        
+        saveTags();
         
         for (String uuid : tportData.getKeys("tport")) {
             for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {

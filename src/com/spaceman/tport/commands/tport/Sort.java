@@ -1,7 +1,8 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Pair;
-import com.spaceman.tport.TPortInventories;
+import com.spaceman.tport.inventories.ItemFactory;
+import com.spaceman.tport.inventories.TPortInventories;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -30,6 +31,8 @@ public class Sort extends SubCommand {
         emptySorter.setCommandDescription(formatInfoTranslation("tport.command.sort.sorter.commandDescription"));
         emptySorter.setPermissions(permissionPrefix + "<sorter>");
         addAction(emptySorter);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.sort.commandDescription"));
     }
     
     private static final HashMap<String, Pair<Sorter, Message>> sorters = new HashMap<>();
@@ -138,11 +141,6 @@ public class Sort extends SubCommand {
     }
     
     @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.sort.commandDescription");
-    }
-    
-    @Override
     public void run(String[] args, Player player) {
         // tport sort [sorter]
         
@@ -181,30 +179,35 @@ public class Sort extends SubCommand {
                     textComponent(sorterName, varInfoColor, new HoverEvent(getDescription(sorterName))),
                     availableSorters);
         } else if (args.length == 2) {
-            Sorter sorter = getSorterExact(args[1]);
-            
-            if (sorter == null) {
-                sendErrorTranslation(player, "tport.command.sort.sorter.notExist", args[1]);
-                return;
+            if (setSorter(player, args[1])) {
+                TPortInventories.openMainTPortGUI(player);
             }
-            
-            if (!hasPermission(player, true, permissionPrefix + args[1])) {
-                return;
-            }
-            
-            tportData.getConfig().set("tport." + player.getUniqueId() + ".sorter", args[1]);
-            tportData.saveConfig();
-            
-            TPortInventories.openMainTPortGUI(player);
-            
-            sendSuccessTranslation(player, "tport.command.sort.sorter.succeeded", args[1]);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport sort [sorter]");
         }
     }
     
+    public static boolean setSorter(Player player, String sorterName) {
+        Sorter sorter = getSorterExact(sorterName);
+        
+        if (sorter == null) {
+            sendErrorTranslation(player, "tport.command.sort.sorter.notExist", sorterName);
+            return false;
+        }
+        
+        if (!hasPermission(player, true, permissionPrefix + sorterName)) {
+            return false;
+        }
+        
+        tportData.getConfig().set("tport." + player.getUniqueId() + ".sorter", sorterName);
+        tportData.saveConfig();
+        
+        sendSuccessTranslation(player, "tport.command.sort.sorter.succeeded", sorterName);
+        return true;
+    }
+    
     @FunctionalInterface
     public interface Sorter {
-        List<ItemStack> sort(Player player);
+        List<ItemStack> sort(Player player, ItemFactory.HeadAttributes... attributes);
     }
 }

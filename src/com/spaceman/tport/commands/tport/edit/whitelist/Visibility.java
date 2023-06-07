@@ -15,8 +15,8 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 
 public class Visibility extends SubCommand {
@@ -38,6 +38,8 @@ public class Visibility extends SubCommand {
         emptyState.setCommandDescription(getEmptyCommandDescription());
         emptyState.setPermissions("TPort.edit.whitelist.visibility", "TPort.basic");
         addAction(emptyState);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.edit.whitelist.visibility.commandDescription"));
     }
     
     @Override
@@ -46,11 +48,6 @@ public class Visibility extends SubCommand {
             return Collections.emptyList();
         }
         return Arrays.stream(TPort.WhitelistVisibility.values()).map(Enum::name).collect(Collectors.toList());
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.edit.whitelist.visibility.commandDescription");
     }
     
     @Override

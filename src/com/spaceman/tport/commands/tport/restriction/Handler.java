@@ -28,7 +28,9 @@ public class Handler extends SubCommand {
         emptyHandlerState.setPermissions("TPort.restriction.handler.set", "TPort.admin.restriction");
         
         addAction(emptyHandlerState);
+        
         setPermissions("TPort.restriction.handler.get", "TPort.admin.restriction");
+        setCommandDescription(formatInfoTranslation("tport.command.restriction.handler.commandDescription"));
     }
     
     @Override
@@ -38,11 +40,6 @@ public class Handler extends SubCommand {
         } else {
             return Collections.emptyList();
         }
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.restriction.handler.commandDescription");
     }
     
     @Override

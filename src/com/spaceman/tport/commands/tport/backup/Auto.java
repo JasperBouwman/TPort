@@ -8,6 +8,7 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -35,63 +36,75 @@ public class Auto extends SubCommand {
         
         addAction(emptyState);
         addAction(emptyCount);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.backup.auto.commandDescription"));
+    }
+    
+    public static String getBackupName() {
+        return new SimpleDateFormat("dd-MMM-yyyy-hh;mm;ss").format(Calendar.getInstance().getTime());
+    }
+    private static void removeRedundant() {
+        File dir = new File(Main.getInstance().getDataFolder(), "/backup");
+        if (!dir.mkdir()) {
+            ArrayList<File> files = new ArrayList<>();
+            for (File f : dir.listFiles()) {
+                if (f.getName().startsWith("auto-")) {
+                    files.add(f);
+                }
+            }
+            files.sort(Comparator.comparingLong(File::lastModified));
+            int count = getBackupCount();
+            if (files.size() >= count) {
+                for (int i = 0; i <= files.size() - count; i++) {
+                    try {
+                        if (!files.get(i).delete()) {
+                            Main.getInstance().getLogger().warning("Could not delete redundant backup " + files.get(i).getName());
+                        }
+                    } catch (SecurityException se) {
+                        Main.getInstance().getLogger().warning("Could not delete redundant backup " + files.get(i).getName());
+                    }
+                }
+            }
+        }
     }
     
     public static void save() {
         if (getBackupState()) {
-            File dir = new File(Main.getInstance().getDataFolder(), "/backup");
-            if (!dir.mkdir()) {
-                ArrayList<File> files = new ArrayList<>();
-                for (File f : dir.listFiles()) {
-                    if (f.getName().startsWith("auto-")) {
-                        files.add(f);
-                    }
-                }
-                files.sort(Comparator.comparingLong(File::lastModified));
-                int count = getBackupCount();
-                if (files.size() >= count) {
-                    for (int i = 0; i <= files.size() - count; i++) {
-                        try {
-                            if (!files.get(i).delete()) {
-                                Main.getInstance().getLogger().warning("Could not delete redundant backup " + files.get(i).getName());
-                            }
-                        } catch (SecurityException se) {
-                            Main.getInstance().getLogger().warning("Could not delete redundant backup " + files.get(i).getName());
-                        }
-                    }
-                }
-            }
-            String name = new SimpleDateFormat("dd-MMM-yyyy-hh;mm;ss").format(Calendar.getInstance().getTime());
+            removeRedundant();
+            save("auto-" + getBackupName(), null);
+        }
+    }
+    public static void save(String backupName, Player player) {
+        if (getBackupState()) {
+            
+            String name = backupName;
             int version = 0;
             while (true) {
                 String suffix = "";
                 if (version != 0) {
                     suffix = "(" + version + ")";
                 }
-                File file = new File(Main.getInstance().getDataFolder(), "/backup/auto-" + name + suffix + ".yml");
+                File file = new File(Main.getInstance().getDataFolder(), "/backup/" + name + suffix + ".yml");
                 try {
                     if (file.createNewFile()) {
-                        Files configFile = new Files(Main.getInstance(), "/backup/auto-" + name + suffix + ".yml");
+                        Files configFile = new Files(Main.getInstance(), "/backup/" + name + suffix + ".yml");
                         
                         configFile.getConfig().set("tport", tportData.getConfig().getConfigurationSection("tport"));
                         configFile.getConfig().set("public", tportData.getConfig().getConfigurationSection("public"));
                         configFile.saveConfig();
                         Main.getInstance().getLogger().info("Auto backup " + name + " succeeded");
+                        sendSuccessTranslation(player, "tport.command.backup.save.name.succeeded", file.getName());
                         return;
                     }
                     version++;
                 } catch (IOException e) {
                     e.printStackTrace();
                     Main.getInstance().getLogger().warning("Could not auto backup file " + name + ": " + e.getMessage());
+                    sendErrorTranslation(player, "tport.command.backup.save.name.error", e.getMessage());
                     return;
                 }
             }
         }
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.backup.auto.commandDescription");
     }
     
     @Override

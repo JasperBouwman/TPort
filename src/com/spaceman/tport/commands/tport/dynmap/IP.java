@@ -5,7 +5,6 @@ import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.DynmapCommand;
 import com.spaceman.tport.dynmap.DynmapHandler;
-import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 
 import java.io.BufferedReader;
@@ -37,6 +36,9 @@ public class IP extends SubCommand {
                 "http://0.0.0.0:PORT/", "http://example.com/"));
         emptyIP.setPermissions("TPort.dynmap.ip", "TPort.admin.dynmap");
         addAction(emptyIP);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.dynmapCommand.ip.commandDescription",
+                formatTranslation(varInfoColor, varInfo2Color, "tport.command.dynmapCommand.searchAsText")));
     }
     
     public static String getIP() {
@@ -51,12 +53,6 @@ public class IP extends SubCommand {
             }
         }
         return setIP;
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.dynmapCommand.ip.commandDescription",
-                formatTranslation(varInfoColor, varInfo2Color, "tport.command.dynmapCommand.searchAsText"));
     }
     
     @Override

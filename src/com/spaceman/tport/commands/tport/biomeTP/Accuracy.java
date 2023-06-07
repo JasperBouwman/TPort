@@ -5,6 +5,7 @@ import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.TextComponent;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.Player;
 
@@ -23,6 +24,8 @@ public class Accuracy extends SubCommand {
         emptySize.setCommandDescription(formatInfoTranslation("tport.command.biomeTP.accuracy.accuracy.commandDescription"));
         emptySize.setPermissions("TPort.biomeTP.accuracy", "TPort.admin.biomeTP");
         addAction(emptySize);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.biomeTP.accuracy.commandDescription"));
     }
     
     @Override
@@ -31,11 +34,6 @@ public class Accuracy extends SubCommand {
             return Collections.emptyList();
         }
         return accuracies.keySet();
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.biomeTP.accuracy.commandDescription");
     }
     
     @Override
@@ -110,8 +108,8 @@ public class Accuracy extends SubCommand {
         }
         
         @Override
-        public String getName() {
-            return name;
+        public TextComponent getName(String varColor) {
+            return new TextComponent(name, varColor);
         }
         
         @Override

@@ -3,7 +3,6 @@ package com.spaceman.tport.commands.tport.requests;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.TPRequest;
 import org.bukkit.entity.Player;
@@ -27,11 +26,8 @@ public class Reject extends SubCommand {
         emptyPlayer.setTabRunnable((args, player) -> consentTabList(player.getUniqueId(), Arrays.asList(args).subList(1, args.length)));
         emptyPlayer.setLooped(true);
         addAction(emptyPlayer);
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.requests.reject.commandDescription");
+        
+        setCommandDescription(formatInfoTranslation("tport.command.requests.reject.commandDescription"));
     }
     
     @Override

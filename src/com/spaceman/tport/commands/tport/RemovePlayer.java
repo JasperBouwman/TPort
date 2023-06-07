@@ -17,10 +17,9 @@ import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class RemovePlayer extends SubCommand {
     
-    private final EmptyCommand emptyPlayer;
+    private static final EmptyCommand emptyPlayer = new EmptyCommand();
     
     public RemovePlayer() {
-        emptyPlayer = new EmptyCommand();
         emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
         emptyPlayer.setCommandDescription(formatInfoTranslation("tport.command.removePlayer.player.commandDescription"));
         emptyPlayer.setPermissions("TPort.admin.removePlayer");
@@ -44,15 +43,17 @@ public class RemovePlayer extends SubCommand {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport removePlayer <player>");
             return;
         }
-        
+        removePlayer(player, args[1]);
+    }
+    
+    public static void removePlayer(Player player, String toRemoveName) {
         if (!emptyPlayer.hasPermissionToRun(player, true)) {
             return;
         }
         
-        String newPlayerName = args[1];
-        UUID newPlayerUUID = PlayerUUID.getPlayerUUID_OLD2(newPlayerName);
+        UUID newPlayerUUID = PlayerUUID.getPlayerUUID_OLD2(toRemoveName); //find ALL players (even not registered at TPort)
         if (newPlayerUUID == null) {
-            sendErrorTranslation(player, "tport.command.playerNotFound", newPlayerName);
+            sendErrorTranslation(player, "tport.command.playerNotFound", toRemoveName);
             return;
         }
         Player newPlayer = Bukkit.getPlayer(newPlayerUUID);
@@ -64,9 +65,9 @@ public class RemovePlayer extends SubCommand {
         if (tportData.getConfig().contains("tport." + newPlayerUUID)) {
             tportData.getConfig().set("tport." + newPlayerUUID, null);
             tportData.saveConfig();
-            sendSuccessTranslation(player, "tport.command.removePlayer.player.succeeded", newPlayerName);
+            sendSuccessTranslation(player, "tport.command.removePlayer.player.succeeded", toRemoveName);
         } else {
-            sendInfoTranslation(player, "tport.command.removePlayer.player.alreadyRemoved", newPlayerName);
+            sendInfoTranslation(player, "tport.command.removePlayer.player.alreadyRemoved", toRemoveName);
         }
     }
 }

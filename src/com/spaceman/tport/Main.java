@@ -6,12 +6,15 @@ import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.commands.tport.biomeTP.Accuracy;
+import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
 import com.spaceman.tport.dynmap.DynmapHandler;
 import com.spaceman.tport.events.*;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
+import com.spaceman.tport.inventories.ItemFactory;
+import com.spaceman.tport.inventories.TPortInventories;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
 import com.spaceman.tport.metrics.CommandCounter;
 import com.spaceman.tport.metrics.FeatureSearchCounter;
@@ -50,10 +53,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.commands.TPortCommand.getHead;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.Files.tportConfig;
 import static com.spaceman.tport.fileHander.Files.tportData;
+import static com.spaceman.tport.inventories.ItemFactory.HeadAttributes.CLICK_EVENTS;
+import static com.spaceman.tport.inventories.ItemFactory.HeadAttributes.TPORT_AMOUNT;
+import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.ADD_OWNER;
+import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.CLICK_TO_OPEN;
+import static com.spaceman.tport.inventories.ItemFactory.getHead;
 
 public class Main extends JavaPlugin {
     
@@ -92,7 +99,7 @@ public class Main extends JavaPlugin {
     public static <I, J> HashMap<I, J> asMap(Pair<I, J>... pairs) {
         HashMap<I, J> map = new HashMap<>();
         for (Pair<I, J> pair : pairs) {
-            map.put(pair.getLeft(), pair.getRight());
+            if (pair != null) map.put(pair.getLeft(), pair.getRight());
         }
         return map;
     }
@@ -162,13 +169,63 @@ public class Main extends JavaPlugin {
     }
     
     public static final String discordLink = "https://discord.gg/tq5RTmSbHU";
-    public static final String[] supportedVersions = new String[]{"1.19.4"}; //todo update compatible version
+    public static final String[] supportedVersions = new String[]{"1.20"}; //todo update compatible version
     public void onEnable() {
         
         /*
-         * changelog 1.19.8 update:
+         * changelog 1.20 update:
          *
-         * fixed for Minecraft 1.19.4
+         * added '/tport restore', this allows you to restore the last removed TPort (starting from the last reload/startup)
+         * added '/tport public reset' this allows you to make all TPort not public anymore
+         *
+         * '/tport edit <TPort name> item' now follows the TPortTakesItem feature. This allowed players to duplicate items
+         *
+         * added an icon for the placeholder with using the move quick edit to move a TPort
+         *
+         * removed permissions from '/tport'
+         * added permissions to '/tport world' -> 'TPort.world.tp'
+         *
+         * fixed '/tport delay get <player>' when delay is set to be managed by permissions
+         *
+         * added toggle for feature (in /tport feature):
+         * - InterdimensionalTeleporting: When disabled players can not teleport between worlds via TPort (This does not effect worldTP)
+         * - DeathTP: When enabled players can teleport to their death location, when disabled TPort stops listening for deaths for BackTP
+         *
+         * Tports on Dynmap now have as default the TPort logo
+         * TPorts on Dynmap use the same description in all GUI's/chat, the language is the same as the server language
+         * Added colors to the labels of the TPorts shown in Dynmap. To edit the colors use: '/tport dynmap colors <color theme>'
+         * When Dynmap support is successfully enabled you can now click control+(your drop key) to search the TPort/Player on Dynmap. It used the command '/tport dynmap search <player> [TPort]'
+         *
+         * Give description system of Tport a change. Colors now should work as intended. You can use 3 ways to add colors
+         *  - #123456
+         *  - &8
+         *  - $2$20$200
+         * Example 'This is some text, #ff0000This text is red, &9This text is blue, $0$255$0This text is green'
+         *
+         * added GUI for:
+         *  - settings
+         *    Not all settings are working, ony working now are: version, reload, backup, color theme, remove player
+         *    new inventories for:
+         *      - ColorTheme
+         *      - backup
+         *      - Remove Player
+         *  - adding/removing players in the whitelist for PLTP, to access this use your drop key on your own head in your TPort GUI
+         *  - QuickEdits is now its own GUI instead of looping through all the edits. From here you can select what Quick Edit you want on your right click action in your
+         *    own TPort GUI. With left click in the inventory you can use that quick edit. Some Quick Edits have their own sub GUI and others don't.
+         *    new inventories for:
+         *      - Tag selection
+         *      - TPort whitelist selection
+         *      - Remove TPort
+         *      - Edit TPort location
+         *      - TPort private state
+         *      - TPort range
+         *      - Dynmap icon
+         *      - TPort log
+         *          - read log
+         *          - player selection
+         *      - name (uses the TPort Keyboard)
+         *      - description (uses the TPort Keyboard)
+         *      - PublicTP is now added as a toggle (/tport public add <TPort name> or /tport public remove <TPort name>)
          */
         
         /*
@@ -178,7 +235,7 @@ public class Main extends JavaPlugin {
          *
          * add POI
          *
-         * in the TPortInventories at the openTPortGUI add right click message for preview
+         * /tport bed
          *
          * /tport history
          * /tport history back
@@ -198,16 +255,18 @@ public class Main extends JavaPlugin {
          *
          * update /tport version compatible Bukkit versions
          * create tutorial for creating your own Particle Animations and TP Restrictions
+         * create payment system (with elytra pay with fire rockets)
          * */
         
-        this.getLogger().log(Level.INFO, "TPort has now a Discord server, for any questions/more go to: " + discordLink);
+        this.getLogger().log(Level.INFO, "TPort has a Discord server, for any questions/more go to: " + discordLink);
         Version.checkForLatestVersion();
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");
         ConfigurationSerialization.registerClass(Pair.class, "Pair");
         ConfigurationSerialization.registerClass(MultiColor.class, "MultiColor");
-    
+        ConfigurationSerialization.registerClass(TPort.LogEntry.class, "LogEntry");
+        
         ParticleAnimation.registerAnimation(SimpleAnimation::new);
         ParticleAnimation.registerAnimation(ExplosionAnimation::new);
         TPRestriction.registerRestriction(NoneRestriction::new);
@@ -222,24 +281,14 @@ public class Main extends JavaPlugin {
             Location head = feet.clone().add(0, 1, 0);
             Location ground = feet.clone().add(0, -1, 0);
             
-            return !ground.getBlock().getType().equals(Material.LAVA) &&
-                    !ground.getBlock().getType().equals(Material.CAMPFIRE) &&
-                    !ground.getBlock().getType().equals(Material.SOUL_CAMPFIRE) &&
-                    !ground.getBlock().getType().equals(Material.FIRE) && //todo add other damageable blocks
-                    !ground.getBlock().getType().equals(Material.SOUL_FIRE) &&
-                    !ground.getBlock().getType().equals(Material.MAGMA_BLOCK) &&
+            List<Material> damageableMaterials = Arrays.asList //todo add other damageable blocks
+                    (Material.LAVA, Material.CAMPFIRE, Material.SOUL_CAMPFIRE, Material.FIRE, Material.SOUL_FIRE, Material.MAGMA_BLOCK);
+            
+            return !damageableMaterials.contains(ground.getBlock().getType()) &&
                     (ground.getBlock().getType().isSolid() || ground.getBlock().getType().equals(Material.WATER)) &&
                     !head.getBlock().getType().isSolid() &&
-                    !head.getBlock().getType().equals(Material.LAVA) &&
-                    !head.getBlock().getType().equals(Material.FIRE) &&
-                    !head.getBlock().getType().equals(Material.SOUL_FIRE) &&
-                    !head.getBlock().getType().equals(Material.MAGMA_BLOCK) &&
-                    !feet.getBlock().getType().isSolid() &&
-                    !feet.getBlock().getType().equals(Material.LAVA) &&
-                    !feet.getBlock().getType().equals(Material.FIRE) &&
-                    !feet.getBlock().getType().equals(Material.WITHER_ROSE) &&
-                    !feet.getBlock().getType().equals(Material.SOUL_FIRE) &&
-                    !feet.getBlock().getType().equals(Material.MAGMA_BLOCK);
+                    !damageableMaterials.contains(ground.getBlock().getType()) &&
+                    !damageableMaterials.contains(ground.getBlock().getType());
         });
         
         registerBiomeTPPresets();
@@ -247,6 +296,12 @@ public class Main extends JavaPlugin {
         Glow.registerGlow();
         
         Features.convert();
+        
+        ResolutionCommand.Resolution.registerResourcePackResolution("x16", "https://github.com/JasperBouwman/TPort/releases/download/TPort-" +
+                Main.getInstance().getDescription().getVersion() + "/resource_pack_16x.zip");
+        ResolutionCommand.Resolution.registerResourcePackResolution("x32", "https://github.com/JasperBouwman/TPort/releases/download/TPort-" +
+                Main.getInstance().getDescription().getVersion() + "/resource_pack_32x.zip");
+        ResolutionCommand.Resolution.registerResourcePackResolution("custom", null);
         
         TPortCommand.getInstance().register();
         
@@ -256,7 +311,7 @@ public class Main extends JavaPlugin {
         pm.registerEvents(new RespawnEvent(), this);
         pm.registerEvents(new CommandEvent(), this);
         pm.registerEvents(new FancyClickEvent(), this);
-//        pm.registerEvents(new TeleportEvents(), this);
+        pm.registerEvents(new Sign(), this);
         
         for (Player player : Bukkit.getOnlinePlayers()) {
             JoinEvent.setData(player);
@@ -370,7 +425,7 @@ public class Main extends JavaPlugin {
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         if (searchMode.fits(tport.getName(), query)) {
-                            list.add(TPortInventories.toTPortItem(tport, player, true));
+                            list.add(ItemFactory.toTPortItem(tport, player,ADD_OWNER, CLICK_TO_OPEN));
                         }
                     }
                 }
@@ -414,8 +469,8 @@ public class Main extends JavaPlugin {
                 ArrayList<ItemStack> list = new ArrayList<>();
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        if (searchMode.fits(tport.getDescription().replace("\n", ""), query)) {
-                            list.add(TPortInventories.toTPortItem(tport, player, true));
+                        if (searchMode.fits(tport.getTextDescription().replace("\n", ""), query)) {
+                            list.add(ItemFactory.toTPortItem(tport, player, ADD_OWNER, CLICK_TO_OPEN));
                         }
                     }
                 }
@@ -459,7 +514,7 @@ public class Main extends JavaPlugin {
                 ArrayList<ItemStack> list = new ArrayList<>();
                 for (String uuid : tportData.getKeys("tport")) {
                     if (searchMode.fits(PlayerUUID.getPlayerName(uuid), query)) {
-                        list.add(getOrDefault(getHead(UUID.fromString(uuid), player), new ItemStack(Material.AIR)));
+                        list.add(getOrDefault(getHead(UUID.fromString(uuid), player, TPORT_AMOUNT, CLICK_EVENTS), new ItemStack(Material.AIR)));
                     }
                 }
                 return list;
@@ -488,7 +543,7 @@ public class Main extends JavaPlugin {
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         if (tport.canTeleport(player, false, false, false)) {
-                            list.add(TPortInventories.toTPortItem(tport, player, true));
+                            list.add(ItemFactory.toTPortItem(tport, player, ADD_OWNER, CLICK_TO_OPEN));
                         }
                     }
                 }
@@ -538,7 +593,7 @@ public class Main extends JavaPlugin {
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         if (Arrays.stream(query.split(" ")).anyMatch(s -> s.equalsIgnoreCase(tport.getBiome().name()))) {
-                            list.add(TPortInventories.toTPortItem(tport, player, true));
+                            list.add(ItemFactory.toTPortItem(tport, player, ADD_OWNER, CLICK_TO_OPEN));
                         }
                     }
                 }
@@ -579,7 +634,7 @@ public class Main extends JavaPlugin {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         //noinspection ConstantConditions, command checks if available
                         if (BiomeTP.BiomeTPPresets.getPreset(query, tport.getLocation().getWorld()).biomes().stream().anyMatch(b -> b.equalsIgnoreCase(tport.getBiome().name()))) {
-                            list.add(TPortInventories.toTPortItem(tport, player, true));
+                            list.add(ItemFactory.toTPortItem(tport, player, ADD_OWNER, CLICK_TO_OPEN));
                         }
                     }
                 }
@@ -619,7 +674,7 @@ public class Main extends JavaPlugin {
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         if (tport.getDimension().name().equalsIgnoreCase(query)) {
-                            list.add(TPortInventories.toTPortItem(tport, player, true));
+                            list.add(ItemFactory.toTPortItem(tport, player, ADD_OWNER, CLICK_TO_OPEN));
                         }
                     }
                 }
@@ -661,7 +716,7 @@ public class Main extends JavaPlugin {
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         if (tport.getTags().contains(query)) {
-                            list.add(TPortInventories.toTPortItem(tport, player, true));
+                            list.add(ItemFactory.toTPortItem(tport, player, ADD_OWNER, CLICK_TO_OPEN));
                         }
                     }
                 }
@@ -671,24 +726,24 @@ public class Main extends JavaPlugin {
     }
     
     private void registerSorters() {
-        Sort.addSorter("alphabet", (player) -> {
+        Sort.addSorter("alphabet", (player, attributes) -> {
             ArrayList<String> playerList = new ArrayList<>(tportData.getKeys("tport"));
-            return playerList.stream().map(playerUUID -> getOrDefault(getHead(UUID.fromString(playerUUID), player), new ItemStack(Material.AIR))).sorted((item1, item2) -> {
+            return playerList.stream().map(playerUUID -> getOrDefault(getHead(UUID.fromString(playerUUID), player, attributes), new ItemStack(Material.AIR))).sorted((item1, item2) -> {
                 //noinspection ConstantConditions
                 return item1.getItemMeta().getDisplayName().compareToIgnoreCase(item2.getItemMeta().getDisplayName());
             }).collect(Collectors.toList());
             
         }, formatInfoTranslation("tport.main.sorter.alphabet.description"));
         
-        Sort.addSorter("oldest", (player) -> {
+        Sort.addSorter("oldest", (player, attributes) -> {
             ArrayList<String> playerList = new ArrayList<>(tportData.getKeys("tport"));
-            return playerList.stream().map(playerUUID -> getOrDefault(getHead(UUID.fromString(playerUUID), player), new ItemStack(Material.AIR))).collect(Collectors.toList());
+            return playerList.stream().map(playerUUID -> getOrDefault(getHead(UUID.fromString(playerUUID), player, attributes), new ItemStack(Material.AIR))).collect(Collectors.toList());
         }, formatInfoTranslation("tport.main.sorter.oldest.description"));
         
-        Sort.addSorter("newest", (player) -> {
+        Sort.addSorter("newest", (player, attributes) -> {
             ArrayList<String> playerList = new ArrayList<>(tportData.getKeys("tport"));
             Collections.reverse(playerList);
-            return playerList.stream().map(playerUUID -> getOrDefault(getHead(UUID.fromString(playerUUID), player), new ItemStack(Material.AIR))).collect(Collectors.toList());
+            return playerList.stream().map(playerUUID -> getOrDefault(getHead(UUID.fromString(playerUUID), player, attributes), new ItemStack(Material.AIR))).collect(Collectors.toList());
         }, formatInfoTranslation("tport.main.sorter.newest.description"));
     }
     

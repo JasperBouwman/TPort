@@ -6,7 +6,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.dynmap.DynmapHandler;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -29,6 +28,8 @@ public class Icon extends SubCommand {
         emptyIcon.setCommandDescription(formatInfoTranslation("tport.command.edit.dynmap.icon.icon.commandDescription"));
         emptyIcon.setPermissions("TPort.edit.dynmap.setIcon", "TPort.basic");
         addAction(emptyIcon);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.edit.dynmap.icon.commandDescription"));
     }
     
     @Override
@@ -37,11 +38,6 @@ public class Icon extends SubCommand {
             return Collections.emptyList();
         }
         return Main.getOrDefault(DynmapHandler.getIcons(), new ArrayList<Pair<String, String>>()).stream().map(Pair::getRight).collect(Collectors.toList());
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.edit.dynmap.icon.commandDescription");
     }
     
     @Override
@@ -77,6 +73,7 @@ public class Icon extends SubCommand {
                 return;
             }
             tport.setDynmapIconID(id);
+            tport.save();
             sendSuccessTranslation(player, "tport.command.edit.dynmap.icon.icon.succeeded", tport, DynmapHandler.getTPortIconName(tport));
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> dynmap show [state]");

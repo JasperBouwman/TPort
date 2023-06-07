@@ -16,6 +16,7 @@ public class Pair<L, R> implements ConfigurationSerializable {
         this.right = r;
     }
     
+    @SuppressWarnings("unused")
     public static <L, R> Pair<L, R> deserialize(Map<String, Object> args) {
         //noinspection unchecked
         return new Pair<>((L) args.get("left"), (R) args.get("right"));

@@ -9,13 +9,11 @@ import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fancyMessage.events.ScoreEvent;
-import net.minecraft.network.chat.ChatMessageType;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.chat.IChatMutableComponent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.EntityPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -29,11 +27,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
@@ -42,7 +38,8 @@ import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 
 public class Message implements Cloneable {
     
-    private final ArrayList<TextComponent> components = new ArrayList<>();
+    private ArrayList<TextComponent> components = new ArrayList<>();
+    private boolean translated = false;
     
     public Message() {
     }
@@ -74,6 +71,15 @@ public class Message implements Cloneable {
     
     public String translateString() {
         return components.stream().map(TextComponent::getText).collect(Collectors.joining());
+    }
+    
+    public String translateHTML(ColorTheme theme) {
+        StringBuilder str = new StringBuilder();
+        for (TextComponent component : components) {
+            str.append("<span style='color: ").append(component.translateColor(theme)).append(";'>").append(component.getText()).append("</span>");
+        }
+        
+        return str.toString();
     }
     
     public static void testAll(Player player) { //todo check all functions
@@ -290,6 +296,14 @@ public class Message implements Cloneable {
         addText(TextComponent.NEW_LINE);
     }
     
+    public boolean isTranslated() {
+        return translated;
+    }
+    
+    public void setTranslated(boolean translated) {
+        this.translated = translated;
+    }
+    
     public ArrayList<TextComponent> getText() {
         return components;
     }
@@ -300,6 +314,13 @@ public class Message implements Cloneable {
     
     public boolean isEmpty() {
         return components.isEmpty();
+    }
+    
+    public Message translateMessage(@Nullable JsonObject translateFile) {
+        if (translateFile != null) {
+            this.components = MessageUtils.translateMessage(this, translateFile).getText();
+        }
+        return this;
     }
     
     public void sendTitle(Player player, TitleTypes titleTypes) {
@@ -319,9 +340,9 @@ public class Message implements Cloneable {
             
             if (fadeIn != -1 || displayTime != -1 || fadeOut != -1) {
                 ClientboundSetTitlesAnimationPacket clientboundSetTitlesAnimationPacket = new ClientboundSetTitlesAnimationPacket(fadeIn, displayTime, fadeOut);
-                entityPlayer.b.a(clientboundSetTitlesAnimationPacket);
+                entityPlayer.c.a(clientboundSetTitlesAnimationPacket);
             }
-            entityPlayer.b.a(packetObject);
+            entityPlayer.c.a(packetObject);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -332,7 +353,9 @@ public class Message implements Cloneable {
         if (playerLang == null) { //custom language
             sendMessage(player);
         } else {
-            MessageUtils.translateMessage(this, playerLang).sendMessage(player);
+            this.translateMessage(playerLang);
+            this.sendMessage(player);
+//            MessageUtils.translateMessage(this, playerLang).sendMessage(player);
         }
     }
     
@@ -340,17 +363,16 @@ public class Message implements Cloneable {
         if (player == null) {
             return;
         }
+        String message = translateJSON(ColorTheme.getTheme(player));
         try {
             EntityPlayer entityPlayer = (EntityPlayer) player.getClass().getMethod("getHandle").invoke(player);
-        
-            String message = translateJSON(ColorTheme.getTheme(player));
             @Nullable IChatMutableComponent chatComponent = IChatBaseComponent.ChatSerializer.a(message);
-            entityPlayer.b.a(new ClientboundSystemChatPacket(chatComponent, false));
+            entityPlayer.c.a(new ClientboundSystemChatPacket(chatComponent, false));
             
 //            entityPlayer.b.a(new ClientboundSystemChatPacket(this.translateJSON(player), false));
         } catch (Exception ex) {
             ex.printStackTrace();
-            player.sendMessage(this.translateString());
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + message);
         }
     }
     

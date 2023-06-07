@@ -3,7 +3,6 @@ package com.spaceman.tport.commands.tport.mainLayout;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -12,10 +11,9 @@ import java.util.Collections;
 
 import static com.spaceman.tport.commandHandler.ArgumentType.OPTIONAL;
 import static com.spaceman.tport.commands.tport.MainLayout.showPlayers;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Players extends SubCommand {
     
@@ -33,6 +31,8 @@ public class Players extends SubCommand {
         emptyPlayersState.setPermissions("TPort.mainLayout.players");
         
         addAction(emptyPlayersState);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.mainLayout.players.commandDescription"));
     }
     
     @Override
@@ -41,11 +41,6 @@ public class Players extends SubCommand {
             return Collections.emptyList();
         }
         return Arrays.asList("true", "false");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.mainLayout.players.commandDescription");
     }
     
     @Override

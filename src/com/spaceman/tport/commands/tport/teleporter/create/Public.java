@@ -4,7 +4,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.publc.Open;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -32,11 +31,7 @@ public class Public extends SubCommand {
         addAction(emptyPublicTPort);
         
         setPermissions("TPort.teleporter.create");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.teleporter.create.public.commandDescription");
+        setCommandDescription(formatInfoTranslation("tport.command.teleporter.create.public.commandDescription"));
     }
     
     @Override

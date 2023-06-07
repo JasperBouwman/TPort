@@ -47,6 +47,7 @@ public class FeatureTP extends SubCommand {
         addAction(emptyFeatureTPFeature);
         
         setPermissions("TPort.teleporter.create");
+        setCommandDescription(formatInfoTranslation("tport.command.teleporter.create.featureTP.commandDescription"));
     }
     
     @Override
@@ -55,11 +56,6 @@ public class FeatureTP extends SubCommand {
         com.spaceman.tport.commands.tport.FeatureTP.getTags(player.getWorld()).stream().map(Pair::getLeft).forEach(list::add);
         Arrays.stream(Mode.WorldSearchMode.values()).map(Enum::name).forEach(list::add);
         return list;
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.teleporter.create.featureTP.commandDescription");
     }
     
     @Override

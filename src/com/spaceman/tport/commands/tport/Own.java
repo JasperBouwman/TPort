@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.TPortInventories.openTPortGUI;
+import static com.spaceman.tport.inventories.TPortInventories.openTPortGUI;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_OWN;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
@@ -50,15 +50,11 @@ public class Own extends SubCommand {
         addAction(emptyOwnTPort);
         
         this.setPermissions(emptyOwnTPort.getPermissions());
+        this.setCommandDescription(formatInfoTranslation("tport.command.own.commandDescription"));
     }
     
     public static List<String> getOwnTPorts(Player player) {
         return TPortManager.getTPortList(player.getUniqueId()).stream().map(TPort::getName).collect(Collectors.toList());
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.own.commandDescription");
     }
     
     @Override

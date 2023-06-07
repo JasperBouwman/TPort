@@ -1,9 +1,11 @@
 {
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "minecraft:block/netherrack"
-  },
-	"overrides": [
-		{"predicate": {"custom_model_data": 5145497},"model": "tport:item/nether"}
-	]
+  "parent": "minecraft:block/netherrack",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 5145557
+      },
+      "model": "tport:item/nether"
+    }
+  ]
 }

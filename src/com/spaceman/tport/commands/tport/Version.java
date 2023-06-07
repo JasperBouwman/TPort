@@ -57,6 +57,19 @@ public class Version extends SubCommand {
         return null;
     }
     
+    private static boolean isLatest(String[] latestVersion, String[] currentVersion, int index) {
+        if (latestVersion.length == index && currentVersion.length == index) {
+            return true;
+        }
+        
+        int latest  = latestVersion.length == index  ? 0 : Integer.parseInt( latestVersion[index]);
+        int current = currentVersion.length == index ? 0 : Integer.parseInt(currentVersion[index]);
+        if (latest > current) {
+            return false;
+        } else {
+            return isLatest(latestVersion, currentVersion, index + 1);
+        }
+    }
     //return true if current version is the latest version
     //return false if current version is not the latest version
     //return null if getLatestVersionName could not check for latest version
@@ -66,11 +79,11 @@ public class Version extends SubCommand {
             //could not check the latest version
             return null;
         }
-        String latestVersion  = latestVersionName.substring(6);
-        String currentVersion = Main.getInstance().getDescription().getVersion();
+        String[] latestVersion  = latestVersionName.substring(6).split("\\.");
+        String[] currentVersion = Main.getInstance().getDescription().getVersion().split("\\.");
         
         //latest version is always higher or the same then the current version
-        return latestVersion.equals(currentVersion);
+        return isLatest(latestVersion, currentVersion, 0);
     }
     
     public static void checkForLatestVersion() {
@@ -81,7 +94,7 @@ public class Version extends SubCommand {
             return;
         }
         if (isLatest) {
-            Main.getInstance().getLogger().log(Level.INFO, "Your are running the latest version of TPort");
+            Main.getInstance().getLogger().log(Level.INFO, "You are running the latest version of TPort");
             return;
         }
         
@@ -95,9 +108,8 @@ public class Version extends SubCommand {
         Main.getInstance().getLogger().log(Level.INFO, "Before downloading please check first for compatibility with your Minecraft/Bukkit version");
     }
     
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.version.commandDescription", Main.getInstance().getDescription().getVersion());
+    public Version() {
+        setCommandDescription(formatInfoTranslation("tport.command.version.commandDescription", Main.getInstance().getDescription().getVersion()));
     }
     
     @Override

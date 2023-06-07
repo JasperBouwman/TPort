@@ -4,7 +4,6 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -28,11 +27,8 @@ public class State extends SubCommand {
                 formatTranslation(badColor, varInfo2Color, "tport.command.PLTP.state.disabled")));
         emptyState.setPermissions("TPort.PLTP.state.set", "TPort.basic");
         addAction(emptyState);
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.PLTP.state.commandDescription");
+        
+        setCommandDescription(formatInfoTranslation("tport.command.PLTP.state.commandDescription"));
     }
     
     @Override

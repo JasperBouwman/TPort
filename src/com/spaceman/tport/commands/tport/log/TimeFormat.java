@@ -25,11 +25,8 @@ public class TimeFormat extends SubCommand {
         emptyFormat.setCommandName("format...", ArgumentType.OPTIONAL);
         emptyFormat.setCommandDescription(formatInfoTranslation("tport.command.log.timeFormat.format.commandDescription"));
         addAction(emptyFormat);
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.log.timeFormat.commandDescription");
+        
+        setCommandDescription(formatInfoTranslation("tport.command.log.timeFormat.commandDescription"));
     }
     
     private String getFormatExample(Player player, String timeFormat) {
@@ -39,12 +36,20 @@ public class TimeFormat extends SubCommand {
         return sdf.format(Calendar.getInstance().getTime());
     }
     
+    public static String getTimeFormat(Player player) {
+        return tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
+    }
+    public static void setTimeFormat(Player player, String format) {
+        tportData.getConfig().set("tport." + player.getUniqueId() + ".timeFormat", format);
+        tportData.saveConfig();
+    }
+    
     @Override
     public void run(String[] args, Player player) {
         // tport log timeFormat [format...]
         
         if (args.length == 2) {
-            String timeFormat = tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
+            String timeFormat = getTimeFormat(player);
             
             Message here = new Message();
             here.addText(textComponent("tport.command.log.timeFormat.here", varInfoColor, ClickEvent.runCommand("/tport log timeFormat EEE MMM dd HH:mm:ss zzz yyyy"),
@@ -69,8 +74,7 @@ public class TimeFormat extends SubCommand {
                 sendErrorTranslation(player, "tport.command.log.timeFormat.format.invalidFormat", here);
                 return;
             }
-            tportData.getConfig().set("tport." + player.getUniqueId() + ".timeFormat", format);
-            tportData.saveConfig();
+            setTimeFormat(player, format);
             
             sendSuccessTranslation(player, "tport.command.log.timeFormat.format.succeeded", format, getFormatExample(player, format));
         } else {

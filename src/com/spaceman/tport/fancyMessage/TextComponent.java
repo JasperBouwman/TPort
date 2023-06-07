@@ -222,7 +222,7 @@ public class TextComponent implements Cloneable {
         return jsonObject;
     }
     
-    private String translateColor(ColorTheme theme) {
+    public String translateColor(ColorTheme theme) {
         return Arrays.stream(ColorTheme.ColorType.values())
                 .filter(type -> type.name().equalsIgnoreCase(color))
                 .findFirst().map(type -> type.getColor(theme).getColorAsValue()).orElse(color);

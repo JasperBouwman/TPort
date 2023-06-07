@@ -1,6 +1,7 @@
 package com.spaceman.tport.events;
 
 import com.spaceman.tport.commands.tport.Back;
+import com.spaceman.tport.commands.tport.Features;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,7 +14,9 @@ public class RespawnEvent implements Listener {
     @EventHandler
     @SuppressWarnings("unused")
     public void onRespawn(PlayerRespawnEvent e) {
-        Player player = e.getPlayer();
-        prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.DEATH, "deathLoc", player.getLocation(), "prevLoc", null));
+        if (Features.Feature.DeathTP.isEnabled()) {
+            Player player = e.getPlayer();
+            prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.DEATH, "deathLoc", player.getLocation(), "prevLoc", null));
+        }
     }
 }

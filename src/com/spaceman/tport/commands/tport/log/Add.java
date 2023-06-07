@@ -92,7 +92,7 @@ public class Add extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport log add <TPort name> <player[:LogMode]...>
-    
+        
         if (args.length <= 3) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log add <TPort name> <player[:LogMode]...>");
             return;

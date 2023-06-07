@@ -5,7 +5,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.ParticleAnimationCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
 import com.spaceman.tport.tpEvents.TPEManager;
 import org.bukkit.entity.Player;
@@ -14,10 +13,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Enable extends SubCommand {
     
@@ -33,6 +30,8 @@ public class Enable extends SubCommand {
         emptyEnableState.setPermissions("TPort.particleAnimation." + this.type + ".enable.set");
         
         addAction(emptyEnableState);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.particleAnimationCommand." + this.type + ".enable.commandDescription"));
     }
     
     @Override
@@ -41,11 +40,6 @@ public class Enable extends SubCommand {
             return Collections.emptyList();
         }
         return Arrays.asList("true", "false");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.particleAnimationCommand." + this.type + ".enable.commandDescription");
     }
     
     @Override

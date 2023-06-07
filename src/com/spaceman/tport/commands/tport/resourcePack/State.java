@@ -25,11 +25,8 @@ public class State extends SubCommand {
         emptyStateState.setCommandDescription(formatInfoTranslation("tport.command.resourcePack.state.state.commandDescription"));
         
         addAction(emptyStateState);
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.resourcePack.state.commandDescription");
+        
+        setCommandDescription(formatInfoTranslation("tport.command.resourcePack.state.commandDescription"));
     }
     
     @Override

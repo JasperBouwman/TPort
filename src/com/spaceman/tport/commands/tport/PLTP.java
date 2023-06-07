@@ -35,6 +35,11 @@ public class PLTP extends SubCommand {
         // tport PLTP offset [offset]
         // tport PLTP preview [state]
         
+        if (Features.Feature.PLTP.isDisabled())  {
+            Features.Feature.PLTP.sendDisabledMessage(player);
+            return;
+        }
+        
         if (args.length > 1) {
             if (runCommands(getActions(), args[1], args, player)) {
                 return;

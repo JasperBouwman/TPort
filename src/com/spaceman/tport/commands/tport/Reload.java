@@ -4,7 +4,6 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.cooldown.CooldownManager;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.tpEvents.TPEManager;
@@ -26,6 +25,7 @@ public class Reload extends SubCommand {
     
     public Reload() {
         setPermissions("TPort.admin.reload");
+        setCommandDescription(formatInfoTranslation("tport.command.reload.commandDescription"));
     }
     
     public static void reloadTPort() {
@@ -50,6 +50,7 @@ public class Reload extends SubCommand {
             tportConfig.getConfig().set("biomeTP.searches", 100);
             tportConfig.saveConfig();
         }
+        
         if (!tportConfig.getConfig().contains("tags.list")) {
             Tag.resetTags();
         }
@@ -59,11 +60,6 @@ public class Reload extends SubCommand {
         TPEManager.loadTPE(tportConfig);
         ColorTheme.loadThemes(tportConfig);
         Tag.loadTags();
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.reload.commandDescription");
     }
     
     @Override

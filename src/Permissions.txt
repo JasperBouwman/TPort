@@ -102,6 +102,8 @@ Permissions can work with trees.
 /tport home                                                                                                   TPort.home                                  OR TPort.basic
 /tport home <safetyCheck>                                                                                    (TPort.home AND TPort.safetyCheck.TPORT_HOME) OR TPort.basic
 /tport home get
+/tport home set                                                                                               TPort.home.set                              OR TPort.basic
+/tport home set <player>                                                                                      TPort.home.set                              OR TPort.basic
 /tport home set <player> <TPort name>                                                                         TPort.home.set                              OR TPort.basic
 /tport public                                                                                                 TPort.public.open                           OR TPort.basic
 /tport public open <page>                                                                                     TPort.public.open.page                      OR TPort.basic
@@ -117,6 +119,7 @@ Permissions can work with trees.
 /tport public move <TPort name> <slot|TPort name>                                                             TPort.public.move                           OR TPort.admin.public
 /tport public listSize
 /tport public listSize <size>                                                                                 TPort.public.listSize                       OR TPort.admin.public
+/tport public reset                                                                                           TPort.public.reset                          OR TPort.admin.public
 /tport transfer offer <player> <TPort name>                                                                   TPort.transfer.offer                        OR TPort.basic
 /tport transfer revoke <TPort name>
 /tport transfer accept <player> <TPort name>                                                                  TPort.transfer.accept                       OR TPort.basic
@@ -186,13 +189,15 @@ Permissions can work with trees.
 /tport dynmap search <player> [tport name]                                                                    TPort.dynmap.search                         OR TPort.basic
 /tport dynmap IP
 /tport dynmap IP [IP]                                                                                         TPort.dynmap.ip                             OR TPort.admin.dynmap
+/tport dynmap colors
+/tport dynmap colors [color theme]                                                                            TPort.dynmap.colors                         OR TPort.admin.dynmap
 /tport mainLayout players
 /tport mainLayout players [state]                                                                             TPort.mainLayout.players
   also for Main TPort GUI
 /tport mainLayout TPorts
 /tport mainLayout TPorts [state]                                                                              TPort.mainLayout.TPorts
   also for Main TPort GUI
-/tport world
+/tport world                                                                                                  TPort.world.tp
 /tport world <world>                                                                                          TPort.world.tp
 /tport requests
 /tport requests accept [player...]
@@ -216,3 +221,5 @@ Permissions can work with trees.
 /tport resourcePack
 /tport resourcePack state [state]
 /tport resourcePack resolution [resolution]
+/tport restore
+/tport settings

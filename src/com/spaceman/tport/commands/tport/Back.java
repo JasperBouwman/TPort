@@ -65,11 +65,7 @@ public class Back extends SubCommand {
         addAction(emptySafetyCheck);
         
         this.setPermissions("TPort.back", "TPort.basic");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.back.commandDescription");
+        this.setCommandDescription(formatInfoTranslation("tport.command.back.commandDescription"));
     }
     
     @Override
@@ -83,6 +79,11 @@ public class Back extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         //tport back [safetyCheck]
+        
+        if (Features.Feature.BackTP.isDisabled())  {
+            Features.Feature.BackTP.sendDisabledMessage(player);
+            return;
+        }
         
         if (args.length > 2) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport back [safetyCheck]");

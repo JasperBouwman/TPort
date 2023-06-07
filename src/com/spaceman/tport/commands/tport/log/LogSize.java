@@ -3,7 +3,6 @@ package com.spaceman.tport.commands.tport.log;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -19,6 +18,8 @@ public class LogSize extends SubCommand {
         emptySize.setCommandDescription(formatInfoTranslation("tport.command.log.logSize.size.commandDescription"));
         emptySize.setPermissions("TPort.log.logSize", "TPort.admin.log");
         addAction(emptySize);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.log.logSize.commandDescription"));
     }
     
     public static int getLogSize() {
@@ -28,11 +29,6 @@ public class LogSize extends SubCommand {
     private static void setLogSize(int size) {
         tportConfig.getConfig().set("logbook.size", size);
         tportConfig.saveConfig();
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.log.logSize.commandDescription");
     }
     
     @Override

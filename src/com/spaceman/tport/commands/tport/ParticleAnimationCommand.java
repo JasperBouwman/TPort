@@ -44,6 +44,11 @@ public class ParticleAnimationCommand extends SubCommand {
         // tport particleAnimation old enable [state]
         // tport particleAnimation list
         
+        if (Features.Feature.ParticleAnimation.isDisabled())  {
+            Features.Feature.ParticleAnimation.sendDisabledMessage(player);
+            return;
+        }
+        
         if (args.length > 1) {
             if (runCommands(getActions(), args[1], args, player)) {
                 return;

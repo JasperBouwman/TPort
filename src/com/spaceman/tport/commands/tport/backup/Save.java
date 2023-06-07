@@ -1,17 +1,12 @@
 package com.spaceman.tport.commands.tport.backup;
 
-import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
-import java.io.File;
-import java.io.IOException;
-
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fileHander.Files.tportData;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
 public class Save extends SubCommand {
     
@@ -19,45 +14,38 @@ public class Save extends SubCommand {
     
     public Save() {
         emptyName = new EmptyCommand();
-        emptyName.setCommandName("name", ArgumentType.REQUIRED);
-        emptyName.setCommandDescription(formatInfoTranslation("tport.command.backup.save.commandDescription"));
+        emptyName.setCommandName("name", ArgumentType.OPTIONAL);
+        emptyName.setCommandDescription(formatInfoTranslation("tport.command.backup.save.name.commandDescription"));
         emptyName.setPermissions("TPort.admin.backup.save");
         addAction(emptyName);
+        
+        setPermissions(emptyName.getPermissions());
+        setCommandDescription(formatInfoTranslation("tport.command.backup.save.commandDescription"));
     }
     
     @Override
     public void run(String[] args, Player player) {
-        // tport backup save <name>
-    
-        if (args.length != 3) {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport backup save <name>");
-            return;
-        }
-        if (!emptyName.hasPermissionToRun(player, true)) {
-            return;
-        }
+        // tport backup save [name]
         
-        if (args[2].startsWith("auto-")) {
-            sendErrorTranslation(player, "tport.command.backup.save.prefixError", "auto-");
-            return;
-        }
-        
-        new File(Main.getInstance().getDataFolder(), "/backup").mkdir();
-        File file = new File(Main.getInstance().getDataFolder(), "/backup/" + args[2] + ".yml");
-        try {
-            if (file.createNewFile()) {
-                Files configFile = new Files(Main.getInstance(), "/backup/" + file.getName());
-                
-                configFile.getConfig().set("tport", tportData.getConfig().getConfigurationSection("tport"));
-                configFile.getConfig().set("public", tportData.getConfig().getConfigurationSection("public"));
-                configFile.saveConfig();
-                sendSuccessTranslation(player, "tport.command.backup.save.succeeded", file.getName());
-            } else {
-                sendErrorTranslation(player, "tport.command.backup.save.nameUsed", file.getName());
+        if (args.length == 2) {
+            if (!this.hasPermissionToRun(player, true)) {
+                return;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            sendErrorTranslation(player, "tport.command.backup.save.error", e.getMessage());
+            
+            Auto.save(Auto.getBackupName(), player);
+        } else if (args.length == 3) {
+            if (!emptyName.hasPermissionToRun(player, true)) {
+                return;
+            }
+            
+            if (args[2].startsWith("auto-")) {
+                sendErrorTranslation(player, "tport.command.backup.save.name.prefixError", "auto-");
+                return;
+            }
+            
+            Auto.save(args[2], player);
+        } else {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport backup save <name>");
         }
     }
 }

@@ -3,7 +3,6 @@ package com.spaceman.tport.commands.tport.mainLayout;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -32,6 +31,8 @@ public class TPorts extends SubCommand {
         emptyTPortsState.setPermissions("TPort.mainLayout.TPorts");
         
         addAction(emptyTPortsState);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.mainLayout.tports.commandDescription"));
     }
     
     @Override
@@ -45,11 +46,6 @@ public class TPorts extends SubCommand {
             return Collections.emptyList();
         }
         return Arrays.asList("true", "false");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.mainLayout.tports.commandDescription");
     }
     
     @Override

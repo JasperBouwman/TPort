@@ -57,6 +57,11 @@ public class Preview extends SubCommand {
     public void run(String[] args, Player player) {
         // tport preview <player> [TPort name]
         
+        if (Features.Feature.Preview.isDisabled())  {
+            Features.Feature.Preview.sendDisabledMessage(player);
+            return;
+        }
+        
         if (args.length == 2) {
             if (!emptyPreviewPlayer.hasPermissionToRun(player, true)) {
                 return;

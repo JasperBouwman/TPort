@@ -115,6 +115,11 @@ public class Features extends SubCommand {
     public void run(String[] args, Player player) {
         //tport features <feature> state [state]
         
+        if (Feature.FeatureSettings.isDisabled())  {
+            Feature.FeatureSettings.sendDisabledMessage(player);
+            return;
+        }
+        
         if (args.length == 1) { //get info about all features
             Message list = new Message();
             Message delimiter = formatInfoTranslation("tport.command.features.delimiter");
@@ -214,6 +219,8 @@ public class Features extends SubCommand {
         Preview(true, true),
         WorldTP(true, true),
         TPortTakesItem(false, true),
+        InterdimensionalTeleporting(false, true),
+        DeathTP(false, true),
         FeatureSettings(false, true);
         
         private final boolean reloadCommands;
@@ -240,6 +247,9 @@ public class Features extends SubCommand {
         public boolean isEnabled() {
             return tportConfig.getConfig().getBoolean("features." + this.name() + ".enabled", defaultValue);
         }
+        public boolean isDisabled() {
+            return !isEnabled();
+        }
         
         public Message setState(boolean enable) {
             tportConfig.getConfig().set("features." + this.name() + ".enabled", enable);
@@ -251,19 +261,28 @@ public class Features extends SubCommand {
             return formatSuccessTranslation("tport.command.features.feature." + this.name() + ".setState", this, stateMessage, "/tport reload");
         }
         
+        public Message getDisabledMessage() {
+            Message stateMessage = formatTranslation(varErrorColor, varError2Color, "tport.command.features.disable");
+            String command = "/tport features " + this.name() + " state true";
+            return formatErrorTranslation("tport.command.features.feature." + this.name() + ".disabledMessage", stateMessage, command);
+        }
+        public void sendDisabledMessage(Player player) {
+            getDisabledMessage().sendAndTranslateMessage(player);
+        }
+        
         @Override
         public Message getDescription() {
             return formatInfoTranslation("tport.command.features.feature." + this.name() + ".description");
         }
         
         @Override
-        public String getName() {
-            return name();
+        public TextComponent getName(String varColor) {
+            return new TextComponent(name(), varColor);
         }
         
         @Override
         public String getInsertion() {
-            return getName();
+            return name();
         }
     }
 }

@@ -6,6 +6,7 @@ import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.SafetyCheck;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -23,6 +24,8 @@ public class Offset extends SubCommand {
         emptyOffset.setCommandName("offset", ArgumentType.OPTIONAL);
         emptyOffset.setCommandDescription(formatInfoTranslation("tport.command.PLTP.offset.offset.commandDescription"));
         addAction(emptyOffset);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.PLTP.offset.commandDescription", "IN", "BEHIND"));
     }
     
     public static PLTPOffset getPLTPOffset(Player player) {
@@ -31,11 +34,6 @@ public class Offset extends SubCommand {
     public static void setPLTPOffset(Player player, PLTPOffset offset) {
         tportData.getConfig().set("tport." + player.getUniqueId() + ".tp.offset", offset.name());
         tportData.saveConfig();
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.PLTP.offset.commandDescription", "IN", "BEHIND");
     }
     
     @Override
@@ -110,13 +108,13 @@ public class Offset extends SubCommand {
         }
         
         @Override
-        public String getName() {
-            return name();
+        public TextComponent getName(String varColor) {
+            return new TextComponent(name(), varColor);
         }
         
         @Override
         public String getInsertion() {
-            return getName();
+            return name();
         }
         
         @FunctionalInterface

@@ -4,8 +4,7 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.TextComponent;
-import com.spaceman.tport.fancyMessage.TextType;
+import com.spaceman.tport.inventories.SettingsInventories;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -17,9 +16,7 @@ import java.util.stream.Stream;
 
 import static com.spaceman.tport.commandHandler.CommandTemplate.convertToArgs;
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 
 public class ColorThemeCommand extends SubCommand {
     
@@ -165,26 +162,7 @@ public class ColorThemeCommand extends SubCommand {
         //tport colorTheme get <type>
         
         if (args.length == 1) {
-            ColorTheme colorTheme = ColorTheme.getTheme(player);
-            
-            TextComponent infoMessage             = textComponent("tport.colorTheme.info",         ColorType.varInfoColor)    .addTextEvent(hoverEvent(colorTheme.getVarInfoColor()    .getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarInfoColor()    .getColorAsValue()).setType(TextType.TRANSLATE);
-            TextComponent successMessage          = textComponent("tport.colorTheme.success",      ColorType.varSuccessColor) .addTextEvent(hoverEvent(colorTheme.getVarSuccessColor() .getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarSuccessColor() .getColorAsValue()).setType(TextType.TRANSLATE);
-            TextComponent errorMessage            = textComponent("tport.colorTheme.error",        ColorType.varErrorColor)   .addTextEvent(hoverEvent(colorTheme.getVarErrorColor()   .getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarErrorColor()   .getColorAsValue()).setType(TextType.TRANSLATE);
-            TextComponent secondaryInfoMessage    = textComponent("tport.colorTheme.secondary",    ColorType.varInfo2Color)   .addTextEvent(hoverEvent(colorTheme.getVarInfo2Color()   .getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarInfo2Color()   .getColorAsValue()).setType(TextType.TRANSLATE);
-            TextComponent secondarySuccessMessage = textComponent("tport.colorTheme.secondary",    ColorType.varSuccess2Color).addTextEvent(hoverEvent(colorTheme.getVarSuccess2Color().getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarSuccess2Color().getColorAsValue()).setType(TextType.TRANSLATE);
-            TextComponent secondaryErrorMessage   = textComponent("tport.colorTheme.secondary",    ColorType.varError2Color)  .addTextEvent(hoverEvent(colorTheme.getVarError2Color()  .getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getVarError2Color()  .getColorAsValue()).setType(TextType.TRANSLATE);
-            
-            TextComponent info = textComponent("tport.colorTheme.succeeded", colorTheme.getInfoColor()).setType(TextType.TRANSLATE).addTranslateWith(infoMessage, secondaryInfoMessage).addTextEvent(hoverEvent(colorTheme.getInfoColor().getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getInfoColor().getColorAsValue());
-            TextComponent success = textComponent("tport.colorTheme.succeeded", colorTheme.getSuccessColor()).setType(TextType.TRANSLATE).addTranslateWith(successMessage, secondarySuccessMessage).addTextEvent(hoverEvent(colorTheme.getSuccessColor().getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getSuccessColor().getColorAsValue());
-            TextComponent error = textComponent("tport.colorTheme.succeeded", colorTheme.getErrorColor()).setType(TextType.TRANSLATE).addTranslateWith(errorMessage, secondaryErrorMessage).addTextEvent(hoverEvent(colorTheme.getErrorColor().getColorAsValue(), colorTheme.getInfoColor())).setInsertion(colorTheme.getErrorColor().getColorAsValue());
-            
-            Message message = new Message();
-            message.addText(info);
-            message.addNewLine();
-            message.addText(success);
-            message.addNewLine();
-            message.addText(error);
-            message.sendAndTranslateMessage(player);
+            SettingsInventories.openTPortColorThemeGUI(player);
         } else {
             if (!runCommands(getActions(), args[1], args, player)) {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport colorTheme " + convertToArgs(getActions(), true));

@@ -82,6 +82,7 @@ public class PlayerEncapsulation extends Encapsulation {
     public HoverEvent getHoverEvent() {
         HoverEvent hEvent = new HoverEvent();
         hEvent.addText(textComponent("/tport pltp tp " + name, ColorTheme.ColorType.infoColor));
+        hEvent.addText(TextComponent.NEW_LINE);
         
         for (Message message : getPlayerData(uuid)) {
             hEvent.addText(TextComponent.NEW_LINE);

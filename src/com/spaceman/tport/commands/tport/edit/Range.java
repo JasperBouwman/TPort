@@ -3,7 +3,6 @@ package com.spaceman.tport.commands.tport.edit;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -22,11 +21,8 @@ public class Range extends SubCommand {
         emptyRange.setCommandDescription(formatInfoTranslation("tport.command.edit.range.range.commandDescription", "0"));
         emptyRange.setPermissions("TPort.edit.range", "TPort.basic");
         addAction(emptyRange);
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.edit.range.commandDescription");
+        
+        setCommandDescription(formatInfoTranslation("tport.command.edit.range.commandDescription"));
     }
     
     @Override

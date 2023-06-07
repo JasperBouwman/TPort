@@ -35,11 +35,8 @@ public class Notify extends SubCommand {
         emptyTPort.setTabRunnable((args, player) -> Arrays.stream(TPort.NotifyMode.values()).map(TPort.NotifyMode::name).collect(Collectors.toList()));
         emptyTPort.addAction(emptyTPortState);
         addAction(emptyTPort);
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.log.notify.commandDescription");
+        
+        setCommandDescription(formatInfoTranslation("tport.command.log.notify.commandDescription"));
     }
     
     @Override

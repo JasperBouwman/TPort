@@ -4,12 +4,10 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.commands.tport.resourcePack.Resolution;
+import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
 import com.spaceman.tport.commands.tport.resourcePack.State;
 import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.UUID;
 
@@ -35,7 +33,7 @@ public class ResourcePack extends SubCommand {
         
         addAction(empty);
         addAction(new State());
-        addAction(new Resolution());
+        addAction(new ResolutionCommand());
     }
     
     @Override
@@ -72,33 +70,22 @@ public class ResourcePack extends SubCommand {
         tportConfig.getConfig().set("resourcePack." + uuid + ".state", state);
         tportConfig.saveConfig();
     }
-    public static Resolution.Resolutions getResourcePackResolution(UUID uuid) {
-        return Resolution.Resolutions.get(tportConfig.getConfig().getString("resourcePack." + uuid + ".resolution"), Resolution.Resolutions.x16);
+    public static ResolutionCommand.Resolution getResourcePackResolution(UUID uuid) {
+        return ResolutionCommand.Resolution.getResolution(tportConfig.getConfig().getString("resourcePack." + uuid + ".resolution"), "x16");
     }
-    public static void setResourcePackResolution(UUID uuid, Resolution.Resolutions resolution) {
-        tportConfig.getConfig().set("resourcePack." + uuid + ".resolution", resolution.name());
+    public static void setResourcePackResolution(UUID uuid, ResolutionCommand.Resolution resolution) {
+        tportConfig.getConfig().set("resourcePack." + uuid + ".resolution", resolution.getName());
         tportConfig.saveConfig();
     }
     
     public static void updateResourcePack(Player player) {
         if (getResourcePackState(player.getUniqueId())) {
-            Resolution.Resolutions res = getResourcePackResolution(player.getUniqueId());
-            String resourcePath = res.getURL();
+            ResolutionCommand.Resolution res = getResourcePackResolution(player.getUniqueId());
+            String resourcePath = res.getUrl();
             if (resourcePath != null) {
                 player.setResourcePack(resourcePath, null, "For a best experience with TPort you should enable the TPort Resource Pack", false);
             }
         }
     }
     
-    public static ItemStack applyModelData(ItemStack is, int modelData, UUID uuid) {
-        if (!getResourcePackState(uuid)) return is;
-        
-        ItemMeta im = is.getItemMeta();
-        if (im == null) return is;
-        
-        im.setCustomModelData(modelData);
-        is.setItemMeta(im);
-        
-        return is;
-    }
 }

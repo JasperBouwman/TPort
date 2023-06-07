@@ -1,41 +1,11 @@
 package com.spaceman.tport.commands.tport;
 
-import com.google.gson.JsonObject;
-import com.spaceman.tport.Glow;
-import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.MessageUtils;
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
-import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
-import net.minecraft.core.IRegistry;
-import net.minecraft.core.IRegistryCustom;
-import net.minecraft.resources.MinecraftKey;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.entity.ai.village.poi.VillagePlaceType;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.spaceman.tport.TPortInventories.openFeatureTP;
+import static com.spaceman.tport.inventories.TPortInventories.openFeatureTP;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatTranslation;
-import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 
 public class POITP extends SubCommand {
     

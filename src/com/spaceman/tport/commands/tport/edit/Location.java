@@ -1,7 +1,6 @@
 package com.spaceman.tport.commands.tport.edit;
 
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -14,11 +13,7 @@ public class Location extends SubCommand {
     
     public Location() {
         setPermissions("TPort.edit.location", "TPort.basic");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.edit.location.commandDescription");
+        setCommandDescription(formatInfoTranslation("tport.command.edit.location.commandDescription"));
     }
     
     @Override

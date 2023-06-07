@@ -3,7 +3,6 @@ package com.spaceman.tport.commands.tport.restriction;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.TPEManager;
 import com.spaceman.tport.tpEvents.TPRestriction;
@@ -29,11 +28,8 @@ public class Get extends SubCommand {
         emptyGetPlayer.setCommandDescription(formatInfoTranslation("tport.command.restriction.get.player.commandDescription"));
         emptyGetPlayer.setPermissions("TPort.restriction.get.all", "TPort.admin.restriction");
         addAction(emptyGetPlayer);
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.restriction.get.commandDescription");
+        
+        setCommandDescription(formatInfoTranslation("tport.command.restriction.get.commandDescription"));
     }
     
     @Override

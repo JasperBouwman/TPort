@@ -39,11 +39,8 @@ public class LogData extends SubCommand {
         });
         emptyTPort.addAction(emptyTPortPlayer);
         addAction(emptyTPort);
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.log.logData.commandDescription");
+        
+        setCommandDescription(formatInfoTranslation("tport.command.log.logData.commandDescription"));
     }
     
     @Override

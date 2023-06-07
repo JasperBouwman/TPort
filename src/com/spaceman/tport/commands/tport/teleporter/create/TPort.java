@@ -41,6 +41,7 @@ public class TPort extends SubCommand {
         addAction(emptyTPortPlayer);
         
         setPermissions("TPort.teleporter.create");
+        setCommandDescription(formatInfoTranslation("tport.command.teleporter.create.tport.commandDescription"));
     }
     
     @Override
@@ -51,11 +52,6 @@ public class TPort extends SubCommand {
     @Override
     public Collection<String> tabList(Player player, String[] args) {
         return PlayerUUID.getPlayerNames();
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.teleporter.create.tport.commandDescription");
     }
     
     @Override

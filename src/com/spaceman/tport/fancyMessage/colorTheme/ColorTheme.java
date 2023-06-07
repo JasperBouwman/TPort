@@ -1,5 +1,6 @@
 package com.spaceman.tport.fancyMessage.colorTheme;
 
+import com.google.gson.JsonObject;
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
@@ -37,6 +38,7 @@ public class ColorTheme implements ConfigurationSerializable {
         defaultThemes.put("darkTheme", new ColorTheme(ChatColor.DARK_GRAY, ChatColor.GRAY, ChatColor.GRAY, ChatColor.DARK_GRAY, ChatColor.GRAY, ChatColor.GRAY, ChatColor.RED, ChatColor.DARK_RED, ChatColor.DARK_RED));
         defaultThemes.put("lightTheme", new ColorTheme(ChatColor.WHITE, ChatColor.GRAY, ChatColor.GRAY, ChatColor.WHITE, ChatColor.GRAY, ChatColor.GRAY, ChatColor.RED, ChatColor.DARK_RED, ChatColor.DARK_RED));
         defaultThemes.put("oceanTheme", new ColorTheme(ChatColor.DARK_AQUA, ChatColor.BLUE, ChatColor.DARK_BLUE, ChatColor.GREEN, ChatColor.DARK_GREEN, ChatColor.DARK_GREEN, ChatColor.RED, ChatColor.DARK_RED, ChatColor.DARK_RED));
+        defaultThemes.put("developerTheme", new ColorTheme(new Color(18, 52, 86), new Color(170, 170, 170), new Color(52,86,120), new Color(85,85,85), new Color(170, 170, 170), new Color(170, 170, 170), new Color(255,85,85), new Color(170,0,0), new Color(170,0,0)));
     }
     
     private MultiColor infoColor;
@@ -205,6 +207,9 @@ public class ColorTheme implements ConfigurationSerializable {
     public static Message formatTranslation(ColorType color, ColorType varColor, String id, Object... objects) {
         return formatTranslation(color.name(), varColor.name(), id, objects);
     }
+    public static Message formatTranslation(MultiColor color, MultiColor varColor, String id, Object... objects) {
+        return formatTranslation(color.getColorAsValue(), varColor.getColorAsValue(), id, objects);
+    }
     public static Message formatInfoTranslation(String id, Object... objects) {
         return formatTranslation(ColorType.infoColor, ColorType.varInfoColor, id, objects);
     }
@@ -213,6 +218,21 @@ public class ColorTheme implements ConfigurationSerializable {
     }
     public static Message formatSuccessTranslation(String id, Object... objects) {
         return formatTranslation(ColorType.successColor, ColorType.varSuccessColor, id, objects);
+    }
+    public static Message formatInfoTranslation(@Nullable JsonObject playerLang, String id, Object... objects) {
+        Message m = formatTranslation(ColorType.infoColor, ColorType.varInfoColor, id, objects);
+        m.translateMessage(playerLang);
+        return m;
+    }
+    public static Message formatErrorTranslation(@Nullable JsonObject playerLang, String id, Object... objects) {
+        Message m = formatTranslation(ColorType.errorColor, ColorType.varErrorColor, id, objects);
+        m.translateMessage(playerLang);
+        return m;
+    }
+    public static Message formatSuccessTranslation(@Nullable JsonObject playerLang, String id, Object... objects) {
+        Message m = formatTranslation(ColorType.successColor, ColorType.varSuccessColor, id, objects);
+        m.translateMessage(playerLang);
+        return m;
     }
     public static void sendInfoTranslation(@Nullable Player player, String id, Object... objects) {
         if (player != null) formatInfoTranslation(id, objects).sendAndTranslateMessage(player);
@@ -250,12 +270,16 @@ public class ColorTheme implements ConfigurationSerializable {
         return false;
     }
     
+    public static HashMap<String, ColorTheme> getDefaultThemesMap() {
+        return defaultThemes;
+    }
+    
     public static ArrayList<String> getDefaultThemes() {
         return new ArrayList<>(defaultThemes.keySet());
     }
     
     public static ColorTheme getDefaultTheme(String name) {
-        return defaultThemes.getOrDefault(name, defaultThemes.values().iterator().next());
+        return defaultThemes.getOrDefault(name, defaultTheme);
     }
     
     public static ColorTheme removeDefaultTheme(String theme) {

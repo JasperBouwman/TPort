@@ -4,7 +4,6 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -28,16 +27,13 @@ public class Mode extends SubCommand {
         emptyModeMode.setCommandDescription(formatInfoTranslation("tport.command.featureTP.mode.mode.commandDescription"));
         emptyModeMode.setPermissions(worldSearchString);
         addAction(emptyModeMode);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.featureTP.mode.commandDescription"));
     }
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
         return Arrays.stream(WorldSearchMode.values()).map(Enum::name).collect(Collectors.toList());
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.featureTP.mode.commandDescription");
     }
     
     public static WorldSearchMode getDefMode(UUID uuid) {

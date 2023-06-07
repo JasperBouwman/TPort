@@ -1,7 +1,11 @@
 {
-	"parent": "minecraft:block/cube_all",
-	"textures": {"all": "minecraft:block/stone"},
-	"overrides": [
-		{"predicate": {"custom_model_data": 5145496},"model": "tport:item/overworld"}
-	]
+  "parent": "minecraft:block/stone",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 5145556
+      },
+      "model": "tport:item/overworld"
+    }
+  ]
 }

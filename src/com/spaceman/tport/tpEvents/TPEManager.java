@@ -15,7 +15,6 @@ import com.spaceman.tport.tpEvents.restrictions.NoneRestriction;
 import com.spaceman.tport.tport.TPort;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.TreeSpecies;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -209,6 +208,17 @@ public class TPEManager {
     }
     
     public static void requestTeleportPlayer(Player player, Location l, Runnable successRunnable, RequestedRunnable requestedRunnable) {
+        requestTeleportPlayer(player, l, false, successRunnable, requestedRunnable);
+    }
+    public static void requestTeleportPlayer(Player player, Location l, boolean ignore_interdimensionalTeleporting, Runnable successRunnable, RequestedRunnable requestedRunnable) {
+        if (
+                !ignore_interdimensionalTeleporting &&
+                Features.Feature.InterdimensionalTeleporting.isDisabled() &&
+                !player.getWorld().equals(l.getWorld())) {
+            sendErrorTranslation(player, "tport.tpEvents.requestTeleportPlayer.InterdimensionalTeleporting.disabled", player.getWorld(), l.getWorld());
+            return;
+        }
+        
         if (TPEManager.hasTPRequest(player.getUniqueId())) {
             Message hereMessage = new Message();
             hereMessage.addText(textComponent("tport.events.inventoryClick.alreadyRequested.here", varErrorColor,
@@ -252,6 +262,7 @@ public class TPEManager {
         }
     }
     
+    
     private static void teleportPlayer(@Nullable Player player, Location l) {
         if (player == null) return;
         
@@ -270,12 +281,12 @@ public class TPEManager {
         }
         
         LivingEntity horse = null;
-        TreeSpecies boatType = null;
+        Boat.Type boatType = null;
         Entity sailor = null;
         if (player.getVehicle() instanceof LivingEntity) {
             horse = (LivingEntity) player.getVehicle();
         } else if (player.getVehicle() instanceof Boat b) {
-            boatType = b.getWoodType();
+            boatType = b.getBoatType();
             if (b.getPassengers().size() > 1) {
                 sailor = b.getPassengers().get(1);
                 sailor.leaveVehicle();
@@ -300,7 +311,7 @@ public class TPEManager {
                 horse.addPassenger(player);
             } else if (boatType != null) {
                 Boat b = player.getWorld().spawn(player.getLocation(), Boat.class);
-                b.setWoodType(boatType);
+                b.setBoatType(boatType);
                 b.teleport(player);
                 b.addPassenger(player);
                 if (sailor != null) {

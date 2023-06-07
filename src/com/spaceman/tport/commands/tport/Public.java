@@ -1,6 +1,6 @@
 package com.spaceman.tport.commands.tport;
 
-import com.spaceman.tport.TPortInventories;
+import com.spaceman.tport.inventories.TPortInventories;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.CommandTemplate;
 import com.spaceman.tport.commandHandler.EmptyCommand;
@@ -36,6 +36,7 @@ public class Public extends SubCommand {
         addAction(new List());
         addAction(Move.getInstance());
         addAction(new ListSize());
+        addAction(new Reset());
     }
     
     @Override
@@ -46,19 +47,21 @@ public class Public extends SubCommand {
         // tport public remove <own TPort name|all TPort name>
         // tport public list [own|all]
         // tport public move <TPort name> <slot|TPort name>
+        // tport public reset
         
-        if (Features.Feature.PublicTP.isEnabled()) {
-            if (args.length == 1) {
-                if (empty.hasPermissionToRun(player, true)) {
-                    TPortInventories.openPublicTPortGUI(player);
-                }
-            } else {
-                if (!runCommands(getActions(), args[1], args, player)) {
-                    sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public " + CommandTemplate.convertToArgs(getActions(), true));
-                }
+        if (Features.Feature.PublicTP.isDisabled())  {
+            Features.Feature.PublicTP.sendDisabledMessage(player);
+            return;
+        }
+        
+        if (args.length == 1) {
+            if (empty.hasPermissionToRun(player, true)) {
+                TPortInventories.openPublicTPortGUI(player);
             }
         } else {
-            sendErrorTranslation(player, "tport.command.public.notEnabled");
+            if (!runCommands(getActions(), args[1], args, player)) {
+                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public " + CommandTemplate.convertToArgs(getActions(), true));
+            }
         }
     }
 }

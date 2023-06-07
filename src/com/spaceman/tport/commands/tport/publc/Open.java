@@ -1,7 +1,7 @@
 package com.spaceman.tport.commands.tport.publc;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.TPortInventories;
+import com.spaceman.tport.inventories.TPortInventories;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;

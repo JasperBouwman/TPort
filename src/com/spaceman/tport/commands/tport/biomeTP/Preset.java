@@ -1,16 +1,16 @@
 package com.spaceman.tport.commands.tport.biomeTP;
 
-import com.spaceman.tport.TPortInventories;
+import com.spaceman.tport.commands.TPortCommand;
+import com.spaceman.tport.inventories.TPortInventories;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.BiomeTP;
-import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 
-import static com.spaceman.tport.commands.TPortCommand.executeInternal;
+import static com.spaceman.tport.commands.TPortCommand.executeTPortCommand;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
@@ -31,11 +31,8 @@ public class Preset extends SubCommand {
         emptyPreset.setPermissions(getPermissions());
         
         addAction(emptyPreset);
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.biomeTP.preset.commandDescription");
+        
+        setCommandDescription(formatInfoTranslation("tport.command.biomeTP.preset.commandDescription"));
     }
     
     @Override
@@ -67,7 +64,7 @@ public class Preset extends SubCommand {
             }
             List<String> command = new ArrayList<>(Arrays.asList("biomeTP", preset.whitelist() ? "whitelist" : "blacklist"));
             command.addAll(preset.biomes());
-            executeInternal(player, command.toArray(new String[0]));
+            TPortCommand.executeTPortCommand(player, command.toArray(new String[0]));
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport biomeTP preset [preset]");
         }

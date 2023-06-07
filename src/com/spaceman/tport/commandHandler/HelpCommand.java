@@ -63,7 +63,7 @@ public class HelpCommand extends SubCommand {
             int maxPages = commandArrayList.size() / listSize;
             if (commandArrayList.size() % listSize != 0) maxPages++;
             if (page > maxPages) page = maxPages;
-            if (page < 0) page = 1;
+            if (page <= 0) page = 1;
             
             int startIndex = (page - 1) * listSize;
             

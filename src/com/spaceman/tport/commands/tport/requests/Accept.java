@@ -32,11 +32,8 @@ public class Accept extends SubCommand {
         emptyPlayer.setTabRunnable((args, player) -> consentTabList(player.getUniqueId(), Arrays.asList(args).subList(1, args.length)));
         emptyPlayer.setLooped(true);
         addAction(emptyPlayer);
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.requests.accept.commandDescription");
+        
+        setCommandDescription(formatInfoTranslation("tport.command.requests.accept.commandDescription"));
     }
     
     @Override

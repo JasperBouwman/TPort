@@ -3,6 +3,7 @@ package com.spaceman.tport.commands.tport;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.dynmap.Colors;
 import com.spaceman.tport.commands.tport.dynmap.IP;
 import com.spaceman.tport.commands.tport.dynmap.Search;
 import com.spaceman.tport.dynmap.DynmapHandler;
@@ -18,7 +19,11 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 public class DynmapCommand extends SubCommand {
     
     public DynmapCommand() {
-        DynmapHandler.enable();
+        if (Features.Feature.BiomeTP.isEnabled())  {
+            DynmapHandler.enable();
+        } else {
+            DynmapHandler.disable();
+        }
         
         EmptyCommand empty = new EmptyCommand() {
             @Override
@@ -32,6 +37,7 @@ public class DynmapCommand extends SubCommand {
         addAction(empty);
         addAction(new Search());
         addAction(new IP());
+        addAction(new Colors());
     }
     
     @Override

@@ -1,9 +1,13 @@
 package com.spaceman.tport.dynmap;
 
+import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.commands.tport.Features;
+import com.spaceman.tport.commands.tport.dynmap.Colors;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
+import com.spaceman.tport.fancyMessage.language.Language;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -16,15 +20,18 @@ import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerIcon;
 import org.dynmap.markers.MarkerSet;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class DynmapHandler {
+    
+    public static final String tport_dynmap_icon = "tport_icon";
     
     //only is true when shouldEnable is true AND when Dynmap API could be found/used
     private static boolean enabled = false;
@@ -49,11 +56,17 @@ public class DynmapHandler {
                 try {
                     DynmapAPI dynmap = (DynmapAPI) dynmapPlugin;
                     MarkerAPI markerAPI = dynmap.getMarkerAPI();
+                    
+                    MarkerIcon tportMarkerIcon = markerAPI.createMarkerIcon(tport_dynmap_icon, "TPort", DynmapHandler.class.getResourceAsStream("tport.png"));
+                    if (tportMarkerIcon == null) tportMarkerIcon = markerAPI.getMarkerIcon(tport_dynmap_icon);
+                    
                     MarkerSet set = markerAPI.createMarkerSet("tports", "TPorts", null, false);
+                    set.setDefaultMarkerIcon(tportMarkerIcon);
                     loadTPorts(markerAPI, set);
                     Main.getInstance().getLogger().log(Level.INFO, "Enabled Dynmap support");
                     enabled = true;
                 } catch (Exception e) {
+                    e.printStackTrace();
                     Main.getInstance().getLogger().log(Level.WARNING, "Tried to enable Dynmap support, error: ", e.getMessage());
                 }
             } else {
@@ -82,6 +95,20 @@ public class DynmapHandler {
     }
     
     private static void loadTPorts(MarkerAPI markerAPI, MarkerSet markerSet) {
+        for (String uuid : tportData.getKeys("tport")) {
+            for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
+                if (tport.showOnDynmap()) {
+                    updateTPort(tport, markerAPI, markerSet);
+                }
+            }
+        }
+    }
+    
+    public static void updateAllTPorts() {
+        DynmapAPI dynmap = (DynmapAPI) Bukkit.getServer().getPluginManager().getPlugin("dynmap");
+        MarkerAPI markerAPI = dynmap.getMarkerAPI();
+        MarkerSet markerSet = markerAPI.getMarkerSet("tports");
+        
         for (String uuid : tportData.getKeys("tport")) {
             for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                 if (tport.showOnDynmap()) {
@@ -130,30 +157,16 @@ public class DynmapHandler {
     
     private static void setMarkerDescription(Marker marker, TPort tport) {
         //new line support thanks to u/DirtyEarplug https://www.reddit.com/r/Dynmap/comments/hni0xn/comment/iqyczk4/?utm_source=share&utm_medium=web2x&context=3
-        StringBuilder description = new StringBuilder();
-        description.append("Owner: ").append(PlayerUUID.getPlayerName(tport.getOwner()));
-        description.append("<br></br>");
+        JsonObject serverLang = Language.getServerLang();
+        ColorTheme colorTheme = Colors.getDynmapTheme();
         
-        if (tport.hasDescription()) {
-            for (String s : tport.getDescription().split("\\\\n")) {
-                description.append("<br></br>").append(ChatColor.stripColor(s));
-            }
-            description.append("<br></br>");
+        StringBuilder newBuilder = new StringBuilder();
+        for (Message m : tport.getHoverData(true)) {
+            Message translated = m.translateMessage(serverLang);
+            String translate = translated.translateHTML(colorTheme);
+            newBuilder.append(translate).append("<br />");
         }
-        //todo add whitelist
-        description.append("<br></br>Private State: ").append(tport.getPrivateState().name());
-        description.append("<br></br>Preview State: ").append(tport.getPreviewState().name());
-        if (tport.hasRange()) description.append("<br></br>Range: ").append(tport.getRange());
-        if (Features.Feature.PublicTP.isEnabled()) description.append("<br></br>Public TPort: ").append(tport.isPublicTPort());
-        description.append("<br></br>Default LogMode: ").append(tport.getDefaultLogMode().name());
-        description.append("<br></br>Notify Mode: ").append(tport.getNotifyMode().name());
-        //todo add tags
-        if (tport.isOffered()) {
-            description.append("<br></br>");
-            description.append("Offered to: ").append(PlayerUUID.getPlayerName(tport.getOfferedTo()));
-        }
-        
-        marker.setDescription(description.toString());
+        marker.setDescription(newBuilder.toString());
     }
     
     public static String getTPortIconName(TPort tport) {
@@ -171,7 +184,7 @@ public class DynmapHandler {
         if (enabled) {
             DynmapAPI dynmap = (DynmapAPI) Bukkit.getServer().getPluginManager().getPlugin("dynmap");
             MarkerAPI markerAPI = dynmap.getMarkerAPI();
-    
+            
             for (MarkerIcon icon : markerAPI.getMarkerIcons()) {
                 if (icon.getMarkerIconLabel().equalsIgnoreCase(label)) {
                     return icon.getMarkerIconID();
@@ -181,6 +194,7 @@ public class DynmapHandler {
         return null;
     }
     
+    @Nullable
     public static List<Pair<String, String>> getIcons() {
         if (enabled) {
             DynmapAPI dynmap = (DynmapAPI) Bukkit.getServer().getPluginManager().getPlugin("dynmap");

@@ -21,9 +21,8 @@ import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class List extends SubCommand {
     
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.transfer.list.commandDescription");
+    public List() {
+        setCommandDescription(formatInfoTranslation("tport.command.transfer.list.commandDescription"));
     }
     
     @Override

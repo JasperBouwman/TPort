@@ -1,7 +1,6 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tpEvents.TPEManager;
 import org.bukkit.entity.Player;
 
@@ -11,11 +10,7 @@ public class Cancel extends SubCommand {
     
     public Cancel() {
         setPermissions("TPort.cancel", "TPort.basic");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.cancel.commandDescription");
+        setCommandDescription(formatInfoTranslation("tport.command.cancel.commandDescription"));
     }
     
     @Override

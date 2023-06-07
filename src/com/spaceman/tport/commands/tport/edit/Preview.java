@@ -3,7 +3,6 @@ package com.spaceman.tport.commands.tport.edit;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -28,6 +27,8 @@ public class Preview extends SubCommand {
         emptyPreviewState.setPermissions("TPort.edit.preview", "TPort.basic");
         
         addAction(emptyPreviewState);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.edit.preview.commandDescription"));
     }
     
     @Override
@@ -36,11 +37,6 @@ public class Preview extends SubCommand {
             return Collections.emptyList();
         }
         return Arrays.stream(TPort.PreviewState.values()).map(s -> s.name().toLowerCase()).collect(Collectors.toList());
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.edit.preview.commandDescription");
     }
     
     @Override

@@ -4,7 +4,7 @@ import com.google.common.base.CharMatcher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
-import com.spaceman.tport.commands.tport.resourcePack.Resolution;
+import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.encapsulation.Encapsulation;
@@ -50,8 +50,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
@@ -532,7 +530,7 @@ public class MessageUtils {
         });
         argumentTranslator.put("messageDescription", (text, object, color, varColor) -> {
             if (object instanceof MessageDescription messageDescription) {
-                TextComponent component = new TextComponent(messageDescription.getName(), varColor);
+                TextComponent component = messageDescription.getName(varColor);
                 Message description = messageDescription.getDescription();
                 if (description != null && !description.isEmpty()) component.addTextEvent(new HoverEvent(description));
                 component.setInsertion(messageDescription.getInsertion());
@@ -553,7 +551,14 @@ public class MessageUtils {
         });
         argumentTranslator.put("clickType", (text, object, color, varColor) -> {
             if (object instanceof ClickType clickType) {
-                TextComponent component = textComponent("tport.fancyMessage.MessageUtils.clickType." + clickType.name(), varColor).setType(TextType.TRANSLATE);
+                TextComponent component;
+                if (clickType == ClickType.CONTROL_DROP || clickType == ClickType.DROP) {
+                    component = textComponent("tport.fancyMessage.MessageUtils.clickType." + clickType.name(), varColor)
+                            .addTranslateWith(textComponent(Keybinds.DROP, varColor).setType(TextType.KEYBIND))
+                            .setType(TextType.TRANSLATE);
+                } else {
+                    component = textComponent("tport.fancyMessage.MessageUtils.clickType." + clickType.name(), varColor).setType(TextType.TRANSLATE);
+                }
                 component.setInsertion(clickType.name());
                 text.addTranslateWith(component);
                 return true;
@@ -593,12 +598,12 @@ public class MessageUtils {
             return false;
         });
         argumentTranslator.put("resourcePackResolution", (text, object, color, varColor) -> {
-            if (object instanceof Resolution.Resolutions resolution) {
-                TextComponent component = new TextComponent(resolution.name(), varColor);
-                component.setInsertion(resolution.name());
+            if (object instanceof ResolutionCommand.Resolution resolution) {
+                TextComponent component = new TextComponent(resolution.getName(), varColor);
+                component.setInsertion(resolution.getName());
                 
                 component.addTextEvent(new HoverEvent(resolution.getDescription()));
-                if (resolution.getURL() != null) component.addTextEvent(new ClickEvent(ClickEvent.OPEN_URL, resolution.getURL()));
+                if (resolution.getUrl() != null) component.addTextEvent(new ClickEvent(ClickEvent.OPEN_URL, resolution.getUrl()));
                 
                 text.addTranslateWith(component);
                 return true;
@@ -695,6 +700,7 @@ public class MessageUtils {
         return translateMessage(new Message(textComponent), translateFile);
     }
     public static List<Message> translateMessage(List<Message> toTranslate, JsonObject translateFile) {
+        if (translateFile == null) return toTranslate;
         List<Message> returnCollection = new ArrayList<>();
         for (Message message : toTranslate) {
             returnCollection.add(translateMessage(message, translateFile));
@@ -704,6 +710,7 @@ public class MessageUtils {
     public static Message translateMessage(@Nullable Message toTranslate, @Nullable JsonObject translateFile) {
         if (translateFile == null) return toTranslate;
         if (toTranslate == null) return null;
+        if (toTranslate.isTranslated()) return toTranslate;
         
         Message message = new Message();
         
@@ -775,71 +782,9 @@ public class MessageUtils {
                             }
                         }
                     } else {
-                        
                         TextComponent newComponent = ((TextComponent) textComponent.clone()).setText(textPiece).setType(TextType.TEXT);
                         newComponent.resetTranslateWith();
                         message.addText(newComponent);
-                        
-                        /*
-                        String hexColorPattern = "\\{&x(&[0-9A-F]){6}}";
-                        String formattingPattern = "\\{&[K-OR]}";
-                        ArrayList<String> colorsList = new ArrayList<>();
-                        Arrays.stream(ColorTheme.ColorType.values()).map(colorType -> "\\{" + colorType.name() + "}").forEach(colorsList::add);
-                        Arrays.stream(ChatColor.values()).map(colorType -> "\\{" + colorType.name() + "}").forEach(colorsList::add);
-                        String colorPattern = String.join("|", colorsList);
-                        String innerDelimiter = "(" + hexColorPattern + "|" + colorPattern + "|" + formattingPattern + ")";
-                        
-                        for (String innerTextPiece : textPiece.split(String.format("(?i)((?<=%1$s)|(?=%1$s))", innerDelimiter))) {
-                            if (innerTextPiece.matches("(?i)" + hexColorPattern)) { //hex colors
-                                String newColor = "#" + innerTextPiece.substring(4, innerTextPiece.length() - 1).replace("&", "");
-                                if (newColor.equals(color)) {
-                                    color = null;
-                                } else {
-                                    color = newColor;
-                                }
-                            } else if (innerTextPiece.matches("(?i)" + colorPattern)) { //theme and chatColor name colors
-                                String newColor = innerTextPiece.substring(1, innerTextPiece.length() - 1);
-                                if (newColor.equals(color)) {
-                                    color = null;
-                                } else {
-                                    color = newColor;
-                                }
-                            } else if (innerTextPiece.matches("(?i)" + formattingPattern)) { //formatting
-                                switch (innerTextPiece.charAt(2)) {
-                                    case 'k': //obfuscated
-                                        if (!attributes.remove(Attribute.OBFUSCATED))
-                                            attributes.add(Attribute.OBFUSCATED);
-                                        break;
-                                    case 'l': //bold
-                                        if (!attributes.remove(Attribute.BOLD))
-                                            attributes.add(Attribute.BOLD);
-                                        break;
-                                    case 'm': //strikethrough
-                                        if (!attributes.remove(Attribute.STRIKETHROUGH))
-                                            attributes.add(Attribute.STRIKETHROUGH);
-                                        break;
-                                    case 'n': //underline
-                                        if (!attributes.remove(Attribute.UNDERLINED))
-                                            attributes.add(Attribute.UNDERLINED);
-                                        break;
-                                    case 'o': //italic
-                                        if (!attributes.remove(Attribute.ITALIC))
-                                            attributes.add(Attribute.ITALIC);
-                                        break;
-                                    case 'r': //reset
-                                    default:
-                                        attributes.clear();
-                                        break;
-                                }
-                            } else { //normal text
-                                TextComponent newComponent = ((TextComponent) textComponent.clone()).setText(innerTextPiece).setType(TextType.TEXT);
-                                if (color != null) newComponent.setColor(color);
-                                newComponent.setAttributes(attributes);
-                                message.addText(newComponent);
-                            }
-                        }
-                        
-                        */
                     }
                 }
                 
@@ -848,6 +793,7 @@ public class MessageUtils {
             }
         }
         
+        message.setTranslated(true);
         return message;
     }
     
@@ -880,13 +826,15 @@ public class MessageUtils {
             Class<?> itemStackClass = nmsStack.getClass();
             
 //            NBTTagCompound tag = nmsStack.u(); //1.18.2
-            NBTTagCompound tag = nmsStack.v(); //1.18.2
+//            NBTTagCompound tag = nmsStack.v(); //1.18.2
+            NBTTagCompound tag = nmsStack.w(); //1.20
             
             NBTTagCompound display = tag.p("display");
             if (displayName != null) display.a("Name", displayName.translateJSON(theme));
             
             if (lore != null) {
-                NBTTagList loreT = display.c("Lore", 8);
+                NBTTagList loreT = new NBTTagList();
+//                NBTTagList loreT = display.c("Lore", 8);
                 int id = 0;
                 for (Message line : lore) {
                     if (line != null) {
@@ -903,13 +851,139 @@ public class MessageUtils {
             return is;
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
+            //todo translate to EN_US (default) and use Message.toColoredString()
         }
         return is;
     }
     
+    public static ArrayList<Message> transformColoredTextToMessage(String coloredText, @Nullable String defaultColor) {
+        //valid color inputs:
+        // #123456
+        // &3
+        // $1$39$255
+        
+        ArrayList<Message> messages = new ArrayList<>();
+        
+        for (String line : coloredText.split("\\\\n")) {
+            StringBuilder singleColorLine = new StringBuilder();
+            String lastHexColor = Main.getOrDefault(defaultColor, "");
+            Message lineMessage = new Message();
+            
+            char[] charArray = line.toCharArray();
+            charLoop:
+            for (int i = 0; i < charArray.length; i++) {
+                char c = charArray[i];
+                if (c == '#') { //look for # (start of hex notation)
+                    if (i + 6 < charArray.length) { //check if notation fits after index i
+                        String possibleHexNotation = line.substring(i, i + 7); //extract notation
+                        if (possibleHexNotation.matches("#[0-9a-fA-F]{6}")) { //check notation
+                            //color found
+                            TextComponent t = new TextComponent(singleColorLine.toString(), lastHexColor);
+                            lineMessage.addText(t);
+                            singleColorLine = new StringBuilder();
+                            
+                            lastHexColor = possibleHexNotation;
+                            i += 6;
+                            continue charLoop;
+                        }
+                    }
+                }
+                
+                else if (c == '&') {
+                    if (i + 1 < charArray.length) { //check if notation fits after index i
+                        String possibleChatColor = line.substring(i, i + 2); //extract notation
+                        if (possibleChatColor.matches("&[0-9a-fA-Fk-oK-OR]")) { //check notation
+                            //color found
+                            TextComponent t = new TextComponent(singleColorLine.toString(), lastHexColor);
+                            lineMessage.addText(t);
+                            singleColorLine = new StringBuilder();
+                            
+                            lastHexColor = new MultiColor(ChatColor.getByChar(possibleChatColor.charAt(1))).getColorAsValue();
+                            i += 1;
+                            continue charLoop;
+                        }
+                    }
+                }
+                
+                else if (c == '$') { //find first dollar
+                    try {
+                        int   redIndex = i;                              //red dollar found
+                        int greenIndex = -1;
+                        int  blueIndex = -1;
+                        int   endIndex = -1;
+                        
+                        for (int j = 1; j < 5; j++) {                   //find green dollar
+                            if (redIndex + j >= charArray.length) break;
+                            char greenDollar = charArray[redIndex + j];
+                            if (greenDollar == '$') {
+                                greenIndex = redIndex + j;
+                                break;
+                            }
+                        }
+                        if (greenIndex == -1) throw new IllegalArgumentException();
+                        for (int j = 1; j < 5; j++) {                   //find blue dollar
+                            if (greenIndex + j >= charArray.length) break;
+                            char blueDollar = charArray[greenIndex + j];
+                            if (blueDollar == '$') {
+                                blueIndex = greenIndex + j;
+                                break;
+                            }
+                        }
+                        if (blueIndex == -1) throw new IllegalArgumentException();
+                        for (int j = 1; j < 5; j++) {                   //find end of blue
+                            if (blueIndex + j >= charArray.length) break;
+                            char end = charArray[blueIndex + j];
+                            if (!String.valueOf(end).matches("\\d")) {
+                                endIndex = blueIndex + j;
+                                break;
+                            }
+                        }
+                        if (endIndex == -1) throw new IllegalArgumentException();
+                        
+                        String   redString = line.substring(  redIndex, greenIndex);
+                        String greenString = line.substring(greenIndex, blueIndex);
+                        String  blueString = line.substring( blueIndex, endIndex);
+                        for (String colorString : List.of(redString, greenString, blueString)) {
+                            try {
+                                int color = Integer.parseInt(colorString.substring(1));
+                                if (color > 255) {
+                                    throw new IllegalArgumentException();
+                                }
+                            } catch (NumberFormatException nfe) {
+                                throw new IllegalArgumentException();
+                            }
+                        }
+                        String endString = redString + greenString + blueString;
+                        
+                        TextComponent t = new TextComponent(singleColorLine.toString(), lastHexColor);
+                        lineMessage.addText(t);
+                        singleColorLine = new StringBuilder();
+                        
+                        int red = Integer.parseInt(redString.substring(1));
+                        int green = Integer.parseInt(greenString.substring(1));
+                        int blue = Integer.parseInt(blueString.substring(1));
+                        
+                        lastHexColor = new MultiColor(new Color(red, green, blue)).getColorAsValue();
+                        
+                        i = endIndex - 1;
+                        continue charLoop;
+                    } catch (IllegalArgumentException ignore) { }
+                }
+                
+                singleColorLine.append(c);
+            }
+            
+            TextComponent t = new TextComponent(singleColorLine.toString(), lastHexColor);
+            lineMessage.addText(t);
+            messages.add(lineMessage);
+        }
+        
+        return messages;
+    }
+    
     public interface MessageDescription {
         Message getDescription();
-        String getName();
+        TextComponent getName(String varColor);
         String getInsertion();
     }
 }

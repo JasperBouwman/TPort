@@ -2,7 +2,6 @@ package com.spaceman.tport.commands.tport.pa.oldAndNew;
 
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.ParticleAnimationCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tpEvents.TPEManager;
 import org.bukkit.entity.Player;
 
@@ -17,11 +16,7 @@ public class Test extends SubCommand {
         this.type = type;
         
         this.setPermissions("TPort.particleAnimation." + this.type + ".test");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.particleAnimationCommand." + this.type + ".test");
+        this.setCommandDescription(formatInfoTranslation("tport.command.particleAnimationCommand." + this.type + ".test"));
     }
     
     @Override

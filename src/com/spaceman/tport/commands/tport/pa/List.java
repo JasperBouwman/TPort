@@ -16,11 +16,7 @@ public class List extends SubCommand {
     
     public List() {
         setPermissions("TPort.particleAnimation.list");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.particleAnimationCommand.list.commandDescription");
+        setCommandDescription(formatInfoTranslation("tport.command.particleAnimationCommand.list.commandDescription"));
     }
     
     @Override

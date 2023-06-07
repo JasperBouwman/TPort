@@ -59,16 +59,16 @@ public class TeleporterEvents implements Listener {
                                 assert command != null;
                                 if (command.contains(" ")) command = "open";
                                 command += " " + PlayerUUID.getPlayerName(tport.getOwner());
-                                TPortCommand.executeInternal(player, command + " " + tport.getName());
+                                TPortCommand.executeTPortCommand(player, command + " " + tport.getName());
                             } else {
                                 sendErrorTranslation(player, "tport.events.teleporterEvents.TPortNotExistAnymore", uuid);
                             }
                         } else if (dataContainer.has(keyPlayerUUID, STRING)) {
                             String command = dataContainer.get(keyCommand, STRING);
                             command += " " + PlayerUUID.getPlayerName(dataContainer.get(keyPlayerUUID, STRING));
-                            TPortCommand.executeInternal(player, command);
+                            TPortCommand.executeTPortCommand(player, command);
                         } else {
-                            TPortCommand.executeInternal(player, dataContainer.get(keyCommand, STRING));
+                            TPortCommand.executeTPortCommand(player, dataContainer.get(keyCommand, STRING));
                         }
                         return true;
                     }

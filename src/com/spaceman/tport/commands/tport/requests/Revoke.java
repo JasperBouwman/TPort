@@ -1,7 +1,6 @@
 package com.spaceman.tport.commands.tport.requests;
 
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tpEvents.TPRequest;
 import org.bukkit.entity.Player;
 
@@ -10,9 +9,8 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTra
 
 public class Revoke extends SubCommand {
     
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.requests.revoke.commandDescription");
+    public Revoke() {
+        setCommandDescription(formatInfoTranslation("tport.command.requests.revoke.commandDescription"));
     }
     
     @Override

@@ -4,7 +4,6 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -28,6 +27,8 @@ public class Show extends SubCommand {
         emptyState.setCommandDescription(formatInfoTranslation("tport.command.edit.dynmap.show.state.commandDescription"));
         emptyState.setPermissions("TPort.edit.dynmap.setShow", "TPort.basic");
         addAction(emptyState);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.edit.dynmap.show.commandDescription"));
     }
     
     @Override
@@ -36,11 +37,6 @@ public class Show extends SubCommand {
             return Collections.emptyList();
         }
         return Arrays.asList("true", "false");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.edit.dynmap.show.commandDescription");
     }
     
     @Override
@@ -77,6 +73,7 @@ public class Show extends SubCommand {
             }
             
             tport.showOnDynmap(show);
+            tport.save();
             sendInfoTranslation(player, "tport.command.edit.dynmap.show.state.succeeded",
                     tport, formatTranslation(infoColor, varInfo2Color, "tport.command.edit.dynmap." + (tport.showOnDynmap() ? "shown" : "hidden")));
         } else {

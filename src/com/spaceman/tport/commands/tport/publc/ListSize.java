@@ -3,7 +3,6 @@ package com.spaceman.tport.commands.tport.publc;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Bukkit;
@@ -26,6 +25,8 @@ public class ListSize extends SubCommand {
         emptySize.setCommandDescription(formatInfoTranslation("tport.command.public.listSize.size.commandDescription"));
         emptySize.setPermissions("TPort.public.listSize", "TPort.admin.public");
         addAction(emptySize);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.public.listSize.commandDescription"));
     }
     
     public static int getPublicTPortSize() {
@@ -54,11 +55,6 @@ public class ListSize extends SubCommand {
         tportData.saveConfig();
         tportConfig.getConfig().set("public.size", size);
         tportConfig.saveConfig();
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.public.listSize.commandDescription");
     }
     
     @Override

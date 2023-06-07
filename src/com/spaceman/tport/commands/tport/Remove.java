@@ -49,6 +49,7 @@ public class Remove extends SubCommand {
         }
         removePublicTPort(tport.getName(), player, true);
         TPortManager.removeTPort(tport);
+        Restore.setRestoreTPort(player.getUniqueId(), tport);
         sendSuccessTranslation(player, "tport.command.remove.tportName.succeeded", tport.getName());
         if (tport.shouldReturnItem()) {
             Main.giveItems(player, tport.getItem());

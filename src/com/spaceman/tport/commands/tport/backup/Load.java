@@ -9,11 +9,9 @@ import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.Files.tportData;
@@ -30,16 +28,22 @@ public class Load extends SubCommand {
         addAction(emptyName);
     }
     
+    public static List<String> getBackups(boolean sortByModify) {
+        Stream<File> s = Arrays.stream(Objects.requireNonNull(new File(Main.getInstance().getDataFolder(), "/backup").listFiles()))
+                .filter(f -> f.getName().endsWith(".yml") && !f.getName().contains(" "));
+        if (sortByModify) {
+            s = s.sorted((file1, file2) -> Long.compare(file2.lastModified(), file1.lastModified()));
+        }
+        return s.map(f -> f.getName().split("\\.")[0])
+                .collect(Collectors.toList());
+    }
+    
     @Override
     public Collection<String> tabList(Player player, String[] args) {
         if (!emptyName.hasPermissionToRun(player, false)) {
             return Collections.emptyList();
         }
-        return Arrays.stream(Objects.requireNonNull(new File(Main.getInstance().getDataFolder(), "/backup").listFiles()))
-                .filter(f -> f.getName().endsWith(".yml")
-                        && !f.getName().contains(" "))
-                .map(f -> f.getName().split("\\.")[0])
-                .collect(Collectors.toList());
+        return getBackups(false);
     }
     
     @Override

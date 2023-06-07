@@ -39,11 +39,8 @@ public class Redirect extends SubCommand {
         emptyRedirect.setTabRunnable(((args, player) -> Arrays.asList("true", "false")));
         emptyRedirect.addAction(emptyRedirectState);
         addAction(emptyRedirect);
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.redirect.commandDescription");
+        
+        setCommandDescription(formatInfoTranslation("tport.command.redirect.commandDescription"));
     }
     
     @Override
@@ -54,6 +51,11 @@ public class Redirect extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport redirect [redirect] [state]
+        
+        if (Features.Feature.Redirects.isDisabled())  {
+            Features.Feature.Redirects.sendDisabledMessage(player);
+            return;
+        }
         
         if (args.length == 1) {
             Message list = new Message();
@@ -172,13 +174,13 @@ public class Redirect extends SubCommand {
         }
         
         @Override
-        public String getName() {
-            return name();
+        public TextComponent getName(String varColor) {
+            return new TextComponent(name(), varColor);
         }
         
         @Override
         public String getInsertion() {
-            return getName();
+            return name();
         }
     }
 }

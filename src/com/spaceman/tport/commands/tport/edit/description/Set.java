@@ -3,10 +3,11 @@ package com.spaceman.tport.commands.tport.edit.description;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -44,10 +45,15 @@ public class Set extends SubCommand {
                         tport, asPlayer(tport.getOfferedTo()));
                 return;
             }
-            
-            tport.setDescription(ChatColor.BLUE + StringUtils.join(args, " ", 4, args.length));
+            String newDescription = StringUtils.join(args, " ", 4, args.length);
+            tport.setDescription(newDescription);
             tport.save();
-            sendSuccessTranslation(player, "tport.command.edit.description.set.succeeded", tport, tport.getDescription());
+            
+            Message description = tport.getDescription();
+            String textDescription = tport.getRawDescription();
+            Message hoverText = formatInfoTranslation("tport.command.edit.description.set.literal", textDescription);
+            description.getText().forEach(m -> m.addTextEvent(new HoverEvent(hoverText)).setInsertion(textDescription));
+            sendSuccessTranslation(player, "tport.command.edit.description.set.succeeded", tport, description);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> description set <description...>");
         }

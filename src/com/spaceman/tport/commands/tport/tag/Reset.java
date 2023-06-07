@@ -2,7 +2,6 @@ package com.spaceman.tport.commands.tport.tag;
 
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.Tag;
-import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -11,11 +10,7 @@ public class Reset extends SubCommand {
     
     public Reset() {
         setPermissions("TPort.tag.reset", "TPort.admin.tag");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.tag.reset.commandDescription");
+        setCommandDescription(formatInfoTranslation("tport.command.tag.reset.commandDescription"));
     }
     
     @Override

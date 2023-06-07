@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-import static com.spaceman.tport.TPortInventories.openTPortGUI;
+import static com.spaceman.tport.inventories.TPortInventories.openTPortGUI;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_OPEN;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_OWN;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;

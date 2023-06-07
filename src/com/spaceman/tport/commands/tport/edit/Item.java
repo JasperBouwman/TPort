@@ -1,13 +1,14 @@
 package com.spaceman.tport.commands.tport.edit;
 
+import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import static com.spaceman.tport.commands.tport.Features.Feature.TPortTakesItem;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
@@ -16,11 +17,7 @@ public class Item extends SubCommand {
     
     public Item() {
         setPermissions("TPort.edit.item", "TPort.basic");
-    }
-    
-    @Override
-    public Message getCommandDescription() {
-        return formatInfoTranslation("tport.command.edit.item.commandDescription");
+        setCommandDescription(formatInfoTranslation("tport.command.edit.item.commandDescription"));
     }
     
     @Override
@@ -51,10 +48,23 @@ public class Item extends SubCommand {
             sendErrorTranslation(player, "tport.command.edit.item.noItem");
             return;
         }
-        ItemStack oldItem = tport.getItem();
+        
+        
+        boolean returnItem = tport.shouldReturnItem();
+        boolean takeItem = TPortTakesItem.isEnabled();
+        if (returnItem && takeItem) {
+            ItemStack oldItem = tport.getItem();
+            player.getInventory().setItemInMainHand(oldItem);
+        } else if (returnItem) {
+            ItemStack oldItem = tport.getItem();
+            Main.giveItems(player, oldItem);
+        } else if (takeItem) {
+            player.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
+        }
+        
         tport.setItem(newItem);
+        tport.setShouldReturnItem(TPortTakesItem.isEnabled());
         tport.save();
-        player.getInventory().setItemInMainHand(oldItem);
         
         sendSuccessTranslation(player, "tport.command.edit.item.succeeded", asTPort(tport), newItem.getType().name());
     }
