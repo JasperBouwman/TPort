@@ -112,7 +112,7 @@ public class ItemFactory {
         
         if (attributesList.contains(HeadAttributes.REMOVE_PLAYER)) {
             lore.add(new Message());
-            setStringData(item, new NamespacedKey(Main.getInstance(), "toRemoveUUID"), head.getUniqueId().toString());;
+            setStringData(item, new NamespacedKey(Main.getInstance(), "toRemoveUUID"), head.getUniqueId().toString());
             addFunction(item, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
                 NamespacedKey toRemoveUUIDKey = new NamespacedKey(Main.getInstance(), "toRemoveUUID");
                 if (pdc.has(toRemoveUUIDKey, STRING)) {

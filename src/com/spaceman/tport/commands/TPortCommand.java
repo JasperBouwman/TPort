@@ -125,6 +125,7 @@ public class TPortCommand extends CommandTemplate {
         addAction(new ResourcePack());
         addAction(new Restore());
         addAction(new Settings());
+//        addAction(new Look());
         
         TextComponent discordServer = new TextComponent("Discord Server", varInfoColor)
                 .addTextEvent(new HoverEvent(new TextComponent(Main.discordLink, infoColor)))

@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.language.Language;
@@ -16,9 +17,11 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static com.spaceman.tport.fancyMessage.MessageUtils.setCustomItemData;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
@@ -32,10 +35,10 @@ import static org.bukkit.persistence.PersistentDataType.STRING;
 
 public class KeyboardGUI {
     
-    public static final int STRING_ONLY = 0b000;
-    public static final int SPACE       = 0b001;
-    public static final int NEWLINE     = 0b010;
-    public static final int COLOR       = 0b100;
+    public static final int TEXT_ONLY = 0b000;
+    public static final int SPACE     = 0b001;
+    public static final int NEWLINE   = 0b010;
+    public static final int COLOR     = 0b100;
     
     private static final String outputStorage = "typedString";
     public static String getKeyboardOutput(FancyInventory inv) {
@@ -114,7 +117,8 @@ public class KeyboardGUI {
     public static final InventoryModel char_comma_model = registerKeyModel(',', Material.OAK_BUTTON, char_dot_model);
     public static final InventoryModel char_space_model = registerKeyModel(' ', Material.OAK_BUTTON, char_comma_model);
     public static final InventoryModel char_backspace_model = registerKeyModel('\b', Material.OAK_BUTTON, char_space_model);
-    public static final int last_model_id = char_backspace_model.getCustomModelData();
+    public static final InventoryModel char_newline_model = registerKeyModel('\b', Material.OAK_BUTTON, char_backspace_model);
+    public static final int last_model_id = char_newline_model.getCustomModelData();
     
     private static Message getKeyTitle(char key) {
         return switch (key) {
@@ -125,8 +129,10 @@ public class KeyboardGUI {
         };
     }
     private static ItemStack getKey(char key, char alternate, ColorTheme colorTheme, JsonObject playerLang, UUID playerUUID) {
+        if (key == '\0') { key = alternate; alternate = '\0'; }
         InventoryModel model = getModel(Character.toLowerCase(key));
         ItemStack item = model.getItem(playerUUID);
+        if (key == '\0') return null;
         
         boolean hasRightClickAction = true;
         Message title;
@@ -175,21 +181,38 @@ public class KeyboardGUI {
     }
     private static void updateKeyboardTitle(Player player, @Nonnull FancyInventory inv) {
         String typedString = getKeyboardOutput(inv);
-        //todo dynamic title length
-//        int maxLength = 25;
-//        int startIndex = Math.max(0, typedString.length() - maxLength);
-//        String titleString = typedString.substring(startIndex);
-//        if (startIndex > 0) titleString = "..." + titleString;
         
         String defColor = inv.getData("defColor", String.class, null);
-        Message titleString = new Message();
-        MessageUtils.transformColoredTextToMessage(typedString, defColor).forEach(titleString::addMessage);
-        Message invTitle = formatInfoTranslation("tport.fancyMessage.inventories.KeyboardGUI.title", titleString);
+        ArrayList<Message> coloredMessage = MessageUtils.transformColoredTextToMessage(typedString, defColor);
+        
+        Message coloredTitle = new Message();
+        coloredMessage.stream()
+                .flatMap(m -> Stream.of( new Message("\n"), m ))
+                .skip(1)
+                .forEachOrdered(coloredTitle::addMessage);
+        int charCount = 0;
+        Message newTitleMessage = new Message();
+        messageLoop:
+        for (int componentIndex = coloredTitle.getText().size() - 1; componentIndex >= 0; componentIndex--) {
+            TextComponent component = coloredTitle.getText().get(componentIndex);
+            
+            for (int charIndex = component.getText().length() - 1; charIndex >= 0; charIndex--) {
+                charCount++;
+                if (charCount >= 25) {
+                    String t = component.getText().substring(charIndex);
+                    if (charIndex != 0) t = "…" + t;
+                    newTitleMessage.getText().add(0, new TextComponent(t, component.getColor()));
+                    break messageLoop;
+                }
+            }
+            newTitleMessage.getText().add(0, component);
+        }
+        
+        Message invTitle = formatInfoTranslation("tport.fancyMessage.inventories.KeyboardGUI.title", newTitleMessage);
         inv.setTitle(invTitle);
         
         ItemStack acceptItem = inv.getItem(inv.getSize() - 1);
-        
-        setCustomItemData(acceptItem, ColorTheme.getTheme(player), null, MessageUtils.transformColoredTextToMessage(typedString, defColor));
+        setCustomItemData(acceptItem, ColorTheme.getTheme(player), null, coloredMessage);
         
         inv.open(player);
     }
@@ -243,7 +266,6 @@ public class KeyboardGUI {
         inv.setItem(44, getKey('.', '>', colorTheme, playerLang, uuid));
     }
     private static void populateAlphabet(FancyInventory inv, ColorTheme colorTheme, JsonObject playerLang, UUID uuid) {
-        
         inv.setItem(0, getKey('1', '!', colorTheme, playerLang, uuid));
         inv.setItem(1, getKey('2', '@', colorTheme, playerLang, uuid));
         inv.setItem(2, getKey('3', '#', colorTheme, playerLang, uuid));
@@ -327,6 +349,7 @@ public class KeyboardGUI {
             FancyInventory newKeyboard = openKeyboard(whoClicked, accFunc, rejFunc, typedString, keyboardSettings);
             newKeyboard.transferData(fancyColorInventory);
             newKeyboard.setData(outputStorage, typedString);
+            updateKeyboardTitle(whoClicked, newKeyboard);
         }));
         inv.setItem(inv.getSize() - 1, acceptColor);
         
@@ -346,6 +369,7 @@ public class KeyboardGUI {
             int keyboardSettings = fancyColorInventory.getData("keyboardSettings", Integer.class);
             FancyInventory newKeyboard = openKeyboard(whoClicked, accFunc, rejFunc, typedString, keyboardSettings);
             newKeyboard.transferData(fancyColorInventory);
+            updateKeyboardTitle(whoClicked, newKeyboard);
         }));
         inv.setItem(inv.getSize() - 9, rejectColor);
         
@@ -531,6 +555,7 @@ public class KeyboardGUI {
         FancyInventory inv = new FancyInventory(6*9, invTitle);
         inv.setData(outputStorage, startInput);
         inv.setData("layout", "qwerty");
+        inv.setData("keyboardSettings", keyboardSettings);
         
         populateQWERTY(inv, colorTheme, playerLang, player.getUniqueId());
         
@@ -549,15 +574,18 @@ public class KeyboardGUI {
         }));
         inv.setItem(47, changeLayout);
         
-        ItemStack openColor = keyboard_color_model.getItem(player);
-        Message openColorTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColor.title", LEFT);
-        setCustomItemData(openColor, colorTheme, openColorTitle, null);
-        addFunction(openColor, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openColorKeyboard(whoClicked, fancyInventory)));
-        inv.setItem(48, openColor);
+        if ((keyboardSettings & COLOR) == COLOR) {
+            ItemStack openColor = keyboard_color_model.getItem(player);
+            Message openColorTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColor.title", LEFT);
+            setCustomItemData(openColor, colorTheme, openColorTitle, null);
+            addFunction(openColor, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openColorKeyboard(whoClicked, fancyInventory)));
+            inv.setItem(48, openColor);
+        }
         
-        if ((keyboardSettings & SPACE) == 1) inv.setItem(49, getKey(' ', '\n', colorTheme, playerLang, player.getUniqueId()));
+        char space = (keyboardSettings & SPACE) == SPACE ? ' ' : '\0';
+        char newLine = (keyboardSettings & NEWLINE) == NEWLINE ? '\n' : '\0';
+        inv.setItem(49, getKey(space, newLine, colorTheme, playerLang, player.getUniqueId()));
         inv.setItem(50, getKey('\b', '\0', colorTheme, playerLang, player.getUniqueId()));
-        inv.setData("keyboardSettings", keyboardSettings);
         
         ItemStack acceptButton = keyboard_accept_model.getItem(player);
         Message acceptTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.accept.title");

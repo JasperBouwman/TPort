@@ -16,10 +16,10 @@ import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
-import net.minecraft.core.*;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.IRegistry;
 import net.minecraft.resources.MinecraftKey;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.BiomeBase;
@@ -37,21 +37,21 @@ import org.bukkit.persistence.PersistentDataType;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.*;
-import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.spaceman.tport.inventories.TPortInventories.openBiomeTP;
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.commands.tport.Back.prevTPorts;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
+import static com.spaceman.tport.inventories.TPortInventories.openBiomeTP;
+import static com.spaceman.tport.reflection.ReflectionManager.*;
 import static com.spaceman.tport.tpEvents.TPEManager.requestTeleportPlayer;
 
 public class BiomeTP extends SubCommand {
@@ -80,79 +80,52 @@ public class BiomeTP extends SubCommand {
         addAction(new Mode());
     }
     
-    public static ResourceKey<IRegistry<BiomeBase>> getBiomeResourceKey() {
-//      return IRegistry.aR;  //1.18.1
-//      return IRegistry.aP;  //1.18.2
-//      return IRegistry.aR;  //1.19
-//      return Registries.al; //1.19.3
-//        return Registries.an; //1.19.4
-        return Registries.ap; //1.20
-    }
-    public static IRegistry<BiomeBase> getBiomeRegistry(WorldServer worldServer) {
-//      return worldServer.t().d(getBiomeResourceKey()); //1.18.1
-//      return worldServer.s().d(getBiomeResourceKey()); //1.18.2
-//        return worldServer.u_().d(getBiomeResourceKey()); //1.19.4 u_=IRegistryCustom
-        return worldServer.B_().d(getBiomeResourceKey());
-    }
-    public static WorldChunkManager getWorldChunkManager(ChunkGenerator chunkGenerator) {
-//      return chunkGenerator.e(); //1.18.2
-//      return chunkGenerator.d(); //1.19
-        return chunkGenerator.c(); //1.19.3
-    }
-    public static Climate.Sampler getClimateSampler(WorldServer worldServer) {
-//      return worldServer.k().g().c();     //1.18.1
-//      return worldServer.k().g().d();     //1.18.2
-//      return worldServer.k().h().c();     //1.19
-        return worldServer.k().h().c().b(); //1.19.3
-    }
-    
     public static List<String> availableBiomes() {
         if (!legacyBiomeTP) {
             try {
                 World world = Bukkit.getWorlds().get(0);
-                Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
-                WorldServer worldServer = (WorldServer) nmsWorld;
+                WorldServer worldServer = getWorldServer(world);
                 
                 IRegistry<BiomeBase> biomeRegistry = getBiomeRegistry(worldServer);
-                return biomeRegistry.e().stream().map(MinecraftKey::a).map(String::toLowerCase).collect(Collectors.toList());
-            } catch (Exception | Error e) {
-                Main.getInstance().getLogger().log(Level.WARNING, "Can't use NMS (try updating TPort), using legacy mode for BiomeTP");
+                List<String> list = new ArrayList<>();
+                for (MinecraftKey key : keySet_fromRegistry(biomeRegistry)) {
+                    String lowerCase = getPathFromMinecraftKey(key).toLowerCase();
+                    list.add(lowerCase);
+                }
+                return list;
+            } catch (Exception | Error ex) {
+                Features.Feature.printSmallNMSErrorInConsole("BiomeTP biome list", true);
+                if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
                 legacyBiomeTP = true;
-                e.printStackTrace();
             }
         }
         return Arrays.stream(Biome.values()).map(Enum::name).map(String::toLowerCase).collect(Collectors.toList());
     }
     
     public static List<String> availableBiomes(World world) {
+        
         if (!legacyBiomeTP) {
             try {
-                Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
-                WorldServer worldServer = (WorldServer) nmsWorld;
+                WorldServer worldServer = getWorldServer(world);
                 
-                ChunkGenerator chunkGenerator = worldServer.k().g();
+                ChunkGenerator chunkGenerator = getChunkGenerator(worldServer);
                 IRegistry<BiomeBase> biomeRegistry = getBiomeRegistry(worldServer);
-
-//              Field f = ChunkGenerator.class.getDeclaredField("b"); //1.18.1
-//              Field f = ChunkGenerator.class.getDeclaredField("c"); //1.18.2
-                Field f = ChunkGenerator.class.getDeclaredField("b"); //1.19.3
+                WorldChunkManager worldChunkManager = getWorldChunkManager(chunkGenerator);
                 
-                f.setAccessible(true);
-                WorldChunkManager worldChunkManager = (WorldChunkManager) f.get(chunkGenerator);
-                
-                return worldChunkManager.c().stream()
-                        .map((b) -> biomeRegistry.b(b.a()))
-                        .filter(Objects::nonNull)
-                        .map(MinecraftKey::a)
-                        .map(String::toLowerCase)
-                        .collect(Collectors.toList());
-            } catch (Exception | Error e) {
-                Main.getInstance().getLogger().log(Level.WARNING, "Can't use NMS (try updating TPort), using legacy mode for BiomeTP");
+                List<String> list = new ArrayList<>();
+                for (Holder<BiomeBase> biomeHolder : getGeneratedBiomes(worldChunkManager)) {
+                    MinecraftKey key = getKeyFromRegistry(biomeRegistry, biomeHolder);
+                    if (key != null) {
+                        list.add(getPathFromMinecraftKey(key).toLowerCase());
+                    }
+                }
+                return list;
+            } catch (Exception | Error ex) {
+                Features.Feature.printSmallNMSErrorInConsole("BiomeTP per world biome list", true);
+                if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
                 legacyBiomeTP = true;
-                e.printStackTrace();
             }
         }
-        
         return availableBiomes();
     }
     
@@ -175,17 +148,28 @@ public class BiomeTP extends SubCommand {
         
         if (!legacyBiomeTP) {
             try {
-                Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
-                WorldServer worldServer = (WorldServer) nmsWorld;
-                
-                ChunkGenerator chunkGenerator = worldServer.k().g();
-                
+                WorldServer worldServer = getWorldServer(world);
+                ChunkGenerator chunkGenerator = getChunkGenerator(worldServer);
                 WorldChunkManager worldChunkManager = getWorldChunkManager(chunkGenerator);
-                
                 IRegistry<BiomeBase> biomeRegistry = getBiomeRegistry(worldServer);
-                List<BiomeBase> baseList = biomes.stream().map(biome -> biomeRegistry.a(new MinecraftKey(biome.toLowerCase()))).filter(Objects::nonNull).toList();
+                List<BiomeBase> baseList = new ArrayList<>();
+                for (String biome : biomes) {
+                    BiomeBase biomeBase = getFromRegistry(biomeRegistry, biome.toLowerCase());
+                    if (biomeBase != null) baseList.add(biomeBase);
+                }
                 
-                Predicate<Holder<BiomeBase>> predicate = (holder) -> baseList.stream().anyMatch((biomeBase) -> biomeBase.equals(holder.a())); //1.18.2
+                Predicate<Holder<BiomeBase>> predicate = (holder) -> {
+                    for (BiomeBase biomeBase : baseList) {
+                        try {
+                            if (biomeBase.equals(getValueFromHolder(holder))) {
+                                return true;
+                            }
+                        } catch (InvocationTargetException | IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    return false;
+                };
                 
                 Location blockPos;
                 Climate.Sampler climateSampler = getClimateSampler(worldServer);
@@ -200,19 +184,20 @@ public class BiomeTP extends SubCommand {
                             
                             int newX = quartX + xOffset;
                             int newZ = quartZ + zOffset;
-    
-                            if (!searchArea.contains(QuartPos.c(newX), QuartPos.c(newZ))) {
+                            
+                            if (!searchArea.contains(newX << 2, newZ << 2)) {
                                 continue;
                             }
                             
                             for (int y : yLevels) {
-                                int newY = QuartPos.a(y);
-                                blockPos = new Location(player.getWorld(), QuartPos.c(newX), startY, QuartPos.c(newZ));
+                                int newY = y >> 2;
                                 
                                 Holder<BiomeBase> currentBiome = worldChunkManager.getNoiseBiome(newX, newY, newZ, climateSampler);
                                 
                                 if (predicate.test(currentBiome)) {
-                                    return new Pair<>(blockPos, biomeRegistry.b(currentBiome.a()).a());
+                                    blockPos = new Location(player.getWorld(), newX << 2, startY, newZ << 2);
+                                    MinecraftKey k = getKeyFromRegistry(biomeRegistry, currentBiome);
+                                    return new Pair<>(blockPos, getPathFromMinecraftKey(k));
                                 }
                             }
                         }
@@ -220,8 +205,9 @@ public class BiomeTP extends SubCommand {
                 }
                 
                 return null;
-            } catch (Exception | Error e) {
-                Main.getInstance().getLogger().log(Level.WARNING, "Can't use NMS (try updating TPort), using legacy mode for BiomeTP");
+            } catch (Exception | Error ex) {
+                Features.Feature.printSmallNMSErrorInConsole("BiomeTP search", true);
+                if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
                 legacyBiomeTP = true;
             }
         }
@@ -237,7 +223,7 @@ public class BiomeTP extends SubCommand {
                     
                     int newX = (quartX + xOffset) << 2;
                     int newZ = (quartZ + zOffset) << 2;
-    
+                    
                     if (!searchArea.contains(newX, newZ)) {
                         continue;
                     }
@@ -577,77 +563,89 @@ public class BiomeTP extends SubCommand {
             if (legacyBiomeTP) return null;
             
             try {
-                Object nmsWorld = Objects.requireNonNull(world).getClass().getMethod("getHandle").invoke(world);
-                WorldServer worldServer = (WorldServer) nmsWorld;
-                
+                WorldServer worldServer = getWorldServer(world);
                 IRegistry<BiomeBase> biomeRegistry = getBiomeRegistry(worldServer);
-                
                 ArrayList<BiomePreset> presets = new ArrayList<>();
                 
-                for (String tagKeyName : biomeRegistry.i().map((tagKey) -> tagKey.getFirst().b().a()).toList()) {
+                List<String> l = getTags(biomeRegistry).map((tagKey) -> {
+                    try {
+                        return getPathFromMinecraftKey(getMinecraftKeyFromTag(tagKey.getFirst()));
+                    } catch (Error | Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }).toList();
+                
+                for (String tagKeyName : l) {
                     TagKey<BiomeBase> tagKey = TagKey.a(getBiomeResourceKey(), new MinecraftKey(tagKeyName));
                     
-//                    Optional<HolderSet.Named<BiomeBase>> optional = biomeRegistry.c(tagKey);
-                    Optional<HolderSet.Named<BiomeBase>> optional = biomeRegistry.b(tagKey);
+                    Optional<HolderSet.Named<BiomeBase>> optional = getOptional(biomeRegistry, tagKey);
                     if (optional.isPresent()) {
                         HolderSet.Named<BiomeBase> named = optional.get();
                         Stream<Holder<BiomeBase>> values = named.a();
-
-                        List<String> biomes = values.map((holder) -> {
-                            return holder.a(); //Holder -> BiomeBase
-                        }).map((biomeBase) -> {
-                            MinecraftKey key = biomeRegistry.b(biomeBase);
+                        
+                        List<String> biomes = values.map(holder -> {
+                            MinecraftKey key;
+                            try {
+                                key = getKeyFromRegistry(biomeRegistry, holder);
+                            } catch (InvocationTargetException | IllegalAccessException e) {
+                                throw new RuntimeException(e);
+                            }
                             if (key != null) {
-                                return key.a().toLowerCase();
+                                return getPathFromMinecraftKey(key).toLowerCase();
                             }
                             return null;
                         }).filter(Objects::nonNull).toList();
-
+                        
                         Material material;
                         if (tagKeyName.startsWith("has_structure/")) {
                             material = FeatureTP.getMaterial(tagKeyName.substring(14));
                         } else {
-                            material = switch (tagKeyName) {
-                                case "is_deep_ocean", "is_river", "is_ocean", "reduce_water_ambient_spawns", "water_on_map_outlines", "has_closer_water_fog" -> Material.WATER_BUCKET;
-                                case "is_mountain" -> Material.STONE;
-                                case "is_hill", "is_overworld" -> Material.GRASS_BLOCK;
-                                case "is_taiga" -> Material.SPRUCE_LOG;
-                                case "is_beach" -> Material.SAND;
-                                case "is_badlands" -> Material.TERRACOTTA;
-                                case "is_nether" -> Material.NETHERRACK;
-                                case "is_jungle" -> Material.JUNGLE_LOG;
-                                case "is_forest" -> Material.OAK_SAPLING;
-                                case "without_zombie_sieges" -> Material.ZOMBIE_HEAD;
-                                case "required_ocean_monument_surrounding" -> Material.DARK_PRISMARINE;
-                                case "spawns_cold_variant_frogs" -> Material.VERDANT_FROGLIGHT;
-                                case "spawns_temperate_variant_frogs" -> Material.OCHRE_FROGLIGHT;
-                                case "spawns_warm_variant_frogs" -> Material.PEARLESCENT_FROGLIGHT;
-                                case "without_patrol_spawns" -> Material.RAVAGER_SPAWN_EGG;
-                                case "allows_surface_slime_spawns" -> Material.SLIME_BALL;
-                                case "without_wandering_trader_spawns" -> Material.WANDERING_TRADER_SPAWN_EGG;
-                                case "polar_bears_spawn_on_alternate_blocks" -> Material.POLAR_BEAR_SPAWN_EGG;
-                                case "is_end" -> Material.END_STONE;
-                                case "plays_underwater_music" -> Material.MUSIC_DISC_MALL;
-                                case "only_allows_snow_and_gold_rabbits" -> Material.RABBIT_SPAWN_EGG;
-                                case "more_frequent_drowned_spawns" -> Material.DROWNED_SPAWN_EGG;
-                                case "allows_tropical_fish_spawns_at_any_height" -> Material.TROPICAL_FISH_SPAWN_EGG;
-                                case "produces_corals_from_bonemeal" -> Material.BRAIN_CORAL;
-                                case "is_savanna" -> Material.ACACIA_LOG;
-                                case "stronghold_biased_to" -> Material.END_PORTAL_FRAME;
-                                case "mineshaft_blocking" -> Material.CHEST_MINECART;
-
-                                default -> Material.DIAMOND_BLOCK;
+                            String materialName = switch (tagKeyName) {
+                                case "is_deep_ocean", "is_river", "is_ocean", "reduce_water_ambient_spawns", "water_on_map_outlines", "has_closer_water_fog" -> "WATER_BUCKET";
+                                case "is_mountain" -> "STONE";
+                                case "is_hill", "is_overworld" -> "GRASS_BLOCK";
+                                case "is_taiga" -> "SPRUCE_LOG";
+                                case "is_beach" -> "SAND";
+                                case "is_badlands" -> "TERRACOTTA";
+                                case "is_nether" -> "NETHERRACK";
+                                case "is_jungle" -> "JUNGLE_LOG";
+                                case "is_forest" -> "OAK_SAPLING";
+                                case "without_zombie_sieges" -> "ZOMBIE_HEAD";
+                                case "required_ocean_monument_surrounding" -> "DARK_PRISMARINE";
+                                case "spawns_cold_variant_frogs" -> "VERDANT_FROGLIGHT";
+                                case "spawns_temperate_variant_frogs" -> "OCHRE_FROGLIGHT";
+                                case "spawns_warm_variant_frogs" -> "PEARLESCENT_FROGLIGHT";
+                                case "without_patrol_spawns" -> "RAVAGER_SPAWN_EGG";
+                                case "allows_surface_slime_spawns" -> "SLIME_BALL";
+                                case "without_wandering_trader_spawns" -> "WANDERING_TRADER_SPAWN_EGG";
+                                case "polar_bears_spawn_on_alternate_blocks" -> "POLAR_BEAR_SPAWN_EGG";
+                                case "is_end" -> "END_STONE";
+                                case "plays_underwater_music" -> "MUSIC_DISC_MALL";
+                                case "only_allows_snow_and_gold_rabbits", "spawns_gold_rabbits", "spawns_white_rabbits" -> "RABBIT_SPAWN_EGG";
+                                case "more_frequent_drowned_spawns" -> "DROWNED_SPAWN_EGG";
+                                case "allows_tropical_fish_spawns_at_any_height" -> "TROPICAL_FISH_SPAWN_EGG";
+                                case "produces_corals_from_bonemeal" -> "BRAIN_CORAL";
+                                case "is_savanna" -> "ACACIA_LOG";
+                                case "stronghold_biased_to" -> "END_PORTAL_FRAME";
+                                case "mineshaft_blocking" -> "CHEST_MINECART";
+                                case "snow_golem_melts" -> "CARVED_PUMPKIN";
+                                case "spawns_snow_foxes" -> "FOX_SPAWN_EGG";
+                                case "increased_fire_burnout" -> "FLINT_AND_STEEL";
+                                
+                                default -> "DIAMOND_BLOCK";
                             };
+                            material = Main.getOrDefault(Material.getMaterial(materialName), Material.DIAMOND_BLOCK);
                         }
-
+                        
                         presets.add(new BiomePreset("#" + tagKeyName, biomes, true, material, true));
                     }
                 }
-
+                
                 tagPresets.put(world.getName(), presets);
                 return presets;
-            } catch (Exception | Error e) {
-                Main.getInstance().getLogger().log(Level.WARNING, "Can't use NMS (try updating TPort), using legacy mode for BiomeTP");
+            } catch (Exception | Error ex) {
+                Features.Feature.printSmallNMSErrorInConsole("BiomeTP Minecraft tags", false);
+                if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
                 legacyBiomeTP = true;
             }
             return null;

@@ -12,13 +12,13 @@
     },
     {
       "predicate": {
-        "custom_model_data": 5145537
+        "custom_model_data": 5145538
       },
       "model": "tport:item/biome_tp_random_tp"
     },
     {
       "predicate": {
-        "custom_model_data": 5145538
+        "custom_model_data": 5145539
       },
       "model": "tport:item/biome_tp_random_tp_grayed"
     }

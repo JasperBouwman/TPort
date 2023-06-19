@@ -101,7 +101,7 @@ public class TPortInventories {
     public static final InventoryModel overworld_model                         = new InventoryModel(Material.STONE,      world_tp_grayed_model, "world_tp");
     public static final InventoryModel nether_model                            = new InventoryModel(Material.NETHERRACK, overworld_model, "world_tp");
     public static final InventoryModel the_end_model                           = new InventoryModel(Material.END_STONE,  nether_model, "world_tp");
-    public static final InventoryModel other_environments_model                = new InventoryModel(Material.REINFORCED_DEEPSLATE, the_end_model, "world_tp");
+    public static final InventoryModel other_environments_model                = new InventoryModel(Material.GLOWSTONE,  the_end_model, "world_tp");
     public static final int last_model_id = other_environments_model.getCustomModelData();
     
     public static void openMainTPortGUI(Player player) {
@@ -474,43 +474,45 @@ public class TPortInventories {
         
         for (String biome : BiomeTP.availableBiomes(player.getWorld())) {
             if (biome.equals("custom")) continue;
-            Material material = switch (biome.toUpperCase()) {
-                case "OCEAN", "RIVER", "DEEP_OCEAN", "LUKEWARM_OCEAN", "COLD_OCEAN", "DEEP_LUKEWARM_OCEAN", "DEEP_COLD_OCEAN" -> Material.WATER_BUCKET;
-                case "PLAINS", "WINDSWEPT_HILLS", "MEADOW" -> Material.GRASS_BLOCK;
-                case "DESERT", "BEACH" -> Material.SAND;
-                case "FOREST", "WINDSWEPT_FOREST" -> Material.OAK_LOG;
-                case "TAIGA", "OLD_GROWTH_PINE_TAIGA", "OLD_GROWTH_SPRUCE_TAIGA" -> Material.SPRUCE_LOG;
-                case "SWAMP" -> Material.LILY_PAD;
-                case "NETHER_WASTES" -> Material.NETHERRACK;
-                case "THE_END", "SMALL_END_ISLANDS", "END_MIDLANDS", "END_HIGHLANDS", "END_BARRENS" -> Material.END_STONE;
-                case "FROZEN_OCEAN", "FROZEN_RIVER", "DEEP_FROZEN_OCEAN" -> Material.ICE;
-                case "ICE_SPIKES", "FROZEN_PEAKS" -> Material.PACKED_ICE;
-                case "SNOWY_PLAINS", "SNOWY_BEACH", "SNOWY_TAIGA" -> Material.SNOW;
-                case "MUSHROOM_FIELDS" -> Material.RED_MUSHROOM_BLOCK;
-                case "JUNGLE", "SPARSE_JUNGLE" -> Material.JUNGLE_LOG;
-                case "BAMBOO_JUNGLE" -> Material.BAMBOO;
-                case "STONY_SHORE", "STONY_PEAKS" -> Material.STONE;
-                case "BIRCH_FOREST", "OLD_GROWTH_BIRCH_FOREST" -> Material.BIRCH_LOG;
-                case "DARK_FOREST" -> Material.DARK_OAK_LOG;
-                case "SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA" -> Material.ACACIA_LOG;
-                case "BADLANDS", "WOODED_BADLANDS", "ERODED_BADLANDS" -> Material.TERRACOTTA;
-                case "WARM_OCEAN" -> Material.BRAIN_CORAL_BLOCK;
-                case "THE_VOID" -> Material.BARRIER;
-                case "SUNFLOWER_PLAINS" -> Material.SUNFLOWER;
-                case "WINDSWEPT_GRAVELLY_HILLS" -> Material.GRAVEL;
-                case "FLOWER_FOREST" -> Material.ROSE_BUSH;
-                case "SOUL_SAND_VALLEY" -> Material.SOUL_SAND;
-                case "CRIMSON_FOREST" -> Material.CRIMSON_NYLIUM;
-                case "WARPED_FOREST" -> Material.WARPED_NYLIUM;
-                case "BASALT_DELTAS" -> Material.BASALT;
-                case "DRIPSTONE_CAVES" -> Material.POINTED_DRIPSTONE;
-                case "LUSH_CAVES" -> Material.GLOW_BERRIES;
-                case "GROVE", "JAGGED_PEAKS" -> Material.SNOW_BLOCK;
-                case "SNOWY_SLOPES" -> Material.POWDER_SNOW_BUCKET;
-                case "MANGROVE_SWAMP" -> Material.MANGROVE_LOG;
-                case "DEEP_DARK" -> Material.SCULK;
-                default -> Material.DIAMOND_BLOCK;
+            String materialName = switch (biome.toUpperCase()) {
+                case "OCEAN", "RIVER", "DEEP_OCEAN", "LUKEWARM_OCEAN", "COLD_OCEAN", "DEEP_LUKEWARM_OCEAN", "DEEP_COLD_OCEAN" -> "WATER_BUCKET";
+                case "PLAINS", "WINDSWEPT_HILLS", "MEADOW" -> "GRASS_BLOCK";
+                case "DESERT", "BEACH" -> "SAND";
+                case "FOREST", "WINDSWEPT_FOREST" -> "OAK_LOG";
+                case "TAIGA", "OLD_GROWTH_PINE_TAIGA", "OLD_GROWTH_SPRUCE_TAIGA" -> "SPRUCE_LOG";
+                case "SWAMP" -> "LILY_PAD";
+                case "NETHER_WASTES" -> "NETHERRACK";
+                case "THE_END", "SMALL_END_ISLANDS", "END_MIDLANDS", "END_HIGHLANDS", "END_BARRENS" -> "END_STONE";
+                case "FROZEN_OCEAN", "FROZEN_RIVER", "DEEP_FROZEN_OCEAN" -> "ICE";
+                case "ICE_SPIKES", "FROZEN_PEAKS" -> "PACKED_ICE";
+                case "SNOWY_PLAINS", "SNOWY_BEACH", "SNOWY_TAIGA" -> "SNOW";
+                case "MUSHROOM_FIELDS" -> "RED_MUSHROOM_BLOCK";
+                case "JUNGLE", "SPARSE_JUNGLE" -> "JUNGLE_LOG";
+                case "BAMBOO_JUNGLE" -> "BAMBOO";
+                case "STONY_SHORE", "STONY_PEAKS" -> "STONE";
+                case "BIRCH_FOREST", "OLD_GROWTH_BIRCH_FOREST" -> "BIRCH_LOG";
+                case "DARK_FOREST" -> "DARK_OAK_LOG";
+                case "SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA" -> "ACACIA_LOG";
+                case "BADLANDS", "WOODED_BADLANDS", "ERODED_BADLANDS" -> "TERRACOTTA";
+                case "WARM_OCEAN" -> "BRAIN_CORAL_BLOCK";
+                case "THE_VOID" -> "BARRIER";
+                case "SUNFLOWER_PLAINS" -> "SUNFLOWER";
+                case "WINDSWEPT_GRAVELLY_HILLS" -> "GRAVEL";
+                case "FLOWER_FOREST" -> "ROSE_BUSH";
+                case "SOUL_SAND_VALLEY" -> "SOUL_SAND";
+                case "CRIMSON_FOREST" -> "CRIMSON_NYLIUM";
+                case "WARPED_FOREST" -> "WARPED_NYLIUM";
+                case "BASALT_DELTAS" -> "BASALT";
+                case "DRIPSTONE_CAVES" -> "POINTED_DRIPSTONE";
+                case "LUSH_CAVES" -> "GLOW_BERRIES";
+                case "GROVE", "JAGGED_PEAKS" -> "SNOW_BLOCK";
+                case "SNOWY_SLOPES" -> "POWDER_SNOW_BUCKET";
+                case "MANGROVE_SWAMP" -> "MANGROVE_LOG";
+                case "DEEP_DARK" -> "SCULK";
+                case "CHERRY_GROVE" -> "CHERRY_LOG";
+                default -> "DIAMOND_BLOCK";
             };
+            Material material = Main.getOrDefault(Material.getMaterial(materialName), Material.DIAMOND_BLOCK);
             
             boolean selected = false;
             Message selectedMessage;

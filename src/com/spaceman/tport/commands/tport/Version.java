@@ -7,6 +7,7 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
@@ -87,25 +88,27 @@ public class Version extends SubCommand {
     }
     
     public static void checkForLatestVersion() {
-        Boolean isLatest = isLatestVersion();
-        
-        if (isLatest == null) {
-            Main.getInstance().getLogger().log(Level.INFO, "Could not check for the latest version");
-            return;
-        }
-        if (isLatest) {
-            Main.getInstance().getLogger().log(Level.INFO, "You are running the latest version of TPort");
-            return;
-        }
-        
-        String githubLink = "https://github.com/JasperBouwman/TPort/releases/tag/" + latestVersionName;
-        String bukkitLink = "https://dev.bukkit.org/projects/tport/files";
-        
-        Main.getInstance().getLogger().log(Level.INFO, "There is a new version of TPort available. Download TPort here:");
-        Main.getInstance().getLogger().log(Level.INFO, githubLink);
-        Main.getInstance().getLogger().log(Level.INFO, "  or here:");
-        Main.getInstance().getLogger().log(Level.INFO, bukkitLink);
-        Main.getInstance().getLogger().log(Level.INFO, "Before downloading please check first for compatibility with your Minecraft/Bukkit version");
+        Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+            Boolean isLatest = isLatestVersion();
+            
+            if (isLatest == null) {
+                Main.getInstance().getLogger().log(Level.INFO, "Could not check for the latest version");
+                return;
+            }
+            if (isLatest) {
+                Main.getInstance().getLogger().log(Level.INFO, "You are running the latest version of TPort");
+                return;
+            }
+            
+            String githubLink = "https://github.com/JasperBouwman/TPort/releases/tag/" + latestVersionName;
+            String bukkitLink = "https://dev.bukkit.org/projects/tport/files";
+            
+            Main.getInstance().getLogger().log(Level.INFO, "There is a new version of TPort available. Download TPort here:");
+            Main.getInstance().getLogger().log(Level.INFO, githubLink);
+            Main.getInstance().getLogger().log(Level.INFO, "  or here:");
+            Main.getInstance().getLogger().log(Level.INFO, bukkitLink);
+            Main.getInstance().getLogger().log(Level.INFO, "Before downloading please check first for compatibility with your Minecraft/Bukkit version");
+        });
     }
     
     public Version() {
@@ -152,15 +155,16 @@ public class Version extends SubCommand {
                             ClickEvent.openUrl(Main.discordLink)
                     ));
             
-            Boolean isLatest = isLatestVersion();
-            if (isLatest == null) {
-                sendErrorTranslation(player, "tport.command.version.couldNotCheck");
-            } else if (isLatest) {
-                sendSuccessTranslation(player, "tport.command.version.isLatest");
-            } else {
-                sendInfoTranslation(player, "tport.command.version.isNotLatest", latestVersionName);
-            }
-            
+            Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                Boolean isLatest = isLatestVersion();
+                if (isLatest == null) {
+                    sendErrorTranslation(player, "tport.command.version.couldNotCheck");
+                } else if (isLatest) {
+                    sendSuccessTranslation(player, "tport.command.version.isLatest");
+                } else {
+                    sendInfoTranslation(player, "tport.command.version.isNotLatest", latestVersionName);
+                }
+            });
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport version");
         }

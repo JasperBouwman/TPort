@@ -1,13 +1,16 @@
 package com.spaceman.tport.fancyMessage.inventories;
 
 import com.google.gson.JsonObject;
+import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
+import com.spaceman.tport.fancyMessage.language.Language;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.chat.IChatMutableComponent;
 import net.minecraft.network.protocol.game.PacketPlayOutOpenWindow;
 import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.inventory.Container;
 import net.minecraft.world.inventory.Containers;
 import org.bukkit.Bukkit;
@@ -22,7 +25,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +33,7 @@ import java.util.List;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.titleColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
+import static com.spaceman.tport.reflection.ReflectionManager.*;
 
 public class FancyInventory implements InventoryHolder {
     
@@ -101,13 +105,14 @@ public class FancyInventory implements InventoryHolder {
     
     public void open(Player player) {
         ensureOriginalContent();
+        ColorTheme theme = ColorTheme.getTheme(player);
         try {
             title = MessageUtils.translateMessage(title, getPlayerLang(player.getUniqueId()));
             
-            IChatMutableComponent chatSerializer = IChatBaseComponent.ChatSerializer.a(title.translateJSON(player));
-            EntityPlayer entityPlayer = (EntityPlayer) player.getClass().getMethod("getHandle").invoke(player);
+            IChatMutableComponent chatSerializer = IChatBaseComponent.ChatSerializer.a(title.translateJSON(theme));
+            EntityPlayer entityPlayer = getEntityPlayer(player);
             
-            String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
+            String version = getServerVersion();
 //            Container c = new CraftContainer(inventory, entityPlayer, entityPlayer.nextContainerCounter());
             Class<?> craftContainer = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftContainer");
             Container container = (Container) craftContainer
@@ -116,12 +121,25 @@ public class FancyInventory implements InventoryHolder {
             
 //            Containers<?> windowType = CraftContainer.getNotchInventoryType(inventory);
             Containers<?> windowType = (Containers<?>) craftContainer.getMethod("getNotchInventoryType", Inventory.class).invoke(null, inventory);
-            entityPlayer.c.a(new PacketPlayOutOpenWindow(container.j, windowType, chatSerializer));
-            entityPlayer.bR = container;
+            getPlayerConnection(entityPlayer).a(new PacketPlayOutOpenWindow(container.j, windowType, chatSerializer));
+            
+//            entityPlayer.bR = container;
+            for (Field f : EntityHuman.class.getFields()) {
+                if (f.getType().equals(Container.class)) {
+                    f.set(entityPlayer, container);
+                    break;
+                }
+            }
+            
             entityPlayer.a(container);
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | ClassNotFoundException | InstantiationException e) {
-            e.printStackTrace();
-            player.openInventory(inventory);
+        } catch (Exception | Error ex) {
+            Features.Feature.printSmallNMSErrorInConsole("Fancy inventory titles", true);
+            if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
+            
+            JsonObject serverLang = Language.getServerLang();
+            Inventory placeholder = Bukkit.createInventory(this, inventory.getSize(), title.translateMessage(serverLang).toColoredString(theme));
+            placeholder.setStorageContents(this.inventory.getStorageContents());
+            player.openInventory(placeholder);
         }
     }
     

@@ -171,13 +171,13 @@ public class SettingsInventories {
             openTPortBackupGUI(whoClicked);
         });
         addFunction(save, RIGHT, (whoClicked, clickType, pdc, fancyInventory) -> {
-            FancyClickEvent.FancyClickRunnable onAccept = (whoClicked1, clickType1, pdc1, fancyInventory1) -> {
-                String currentInputString = getKeyboardOutput(fancyInventory1);
-                TPortCommand.executeTPortCommand(whoClicked1, "backup save " + currentInputString);
+            FancyClickEvent.FancyClickRunnable onAccept = (whoClicked1, clickType1, pdc1, keyboardInventory) -> {
+                String keyboardOutput = getKeyboardOutput(keyboardInventory);
+                TPortCommand.executeTPortCommand(whoClicked1, "backup save " + keyboardOutput);
                 openTPortBackupGUI(whoClicked1);
             };
-            FancyClickEvent.FancyClickRunnable onReject = (whoClicked1, clickType1, pdc1, fancyInventory1) -> openTPortBackupGUI(whoClicked1);
-            KeyboardGUI.openKeyboard(whoClicked, onAccept, onReject, KeyboardGUI.STRING_ONLY);
+            FancyClickEvent.FancyClickRunnable onReject = (whoClicked1, clickType1, pdc1, keyboardInventory) -> openTPortBackupGUI(whoClicked1);
+            KeyboardGUI.openKeyboard(whoClicked, onAccept, onReject, KeyboardGUI.TEXT_ONLY);
         });
         Message saveTitle = formatInfoTranslation("tport.settingsInventories.openTPortBackupGUI.save");
         saveTitle.translateMessage(playerLang);
@@ -580,7 +580,10 @@ public class SettingsInventories {
         
         ItemStack confirm = settings_remove_player_confirm_model.getItem(player);
         addFunction(confirm, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
-            RemovePlayer.removePlayer(whoClicked, PlayerUUID.getPlayerName(fancyInventory.getData("toRemoveUUID", UUID.class)));
+            UUID uuid = fancyInventory.getData("toRemoveUUID", UUID.class);
+            String name = PlayerUUID.getPlayerName(uuid);
+            if (name == null) name = uuid.toString();
+            RemovePlayer.removePlayer(whoClicked, name);
             whoClicked.closeInventory();
         }));
         Message confirmTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openRemovePlayerConfirmationGUI.confirm.title", LEFT, asPlayer((toRemove)));

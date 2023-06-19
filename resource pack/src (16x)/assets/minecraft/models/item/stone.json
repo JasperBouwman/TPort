@@ -3,7 +3,7 @@
   "overrides": [
     {
       "predicate": {
-        "custom_model_data": 5145556
+        "custom_model_data": 5145557
       },
       "model": "tport:item/overworld"
     }

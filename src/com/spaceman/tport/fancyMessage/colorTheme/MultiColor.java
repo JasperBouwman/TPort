@@ -94,7 +94,6 @@ public class MultiColor implements ConfigurationSerializable {
         return new java.awt.Color(Integer.parseInt(hexColor.substring(1, 7), 16));
     }
     
-    @Deprecated
     public String getStringColor() {
         StringBuilder color = new StringBuilder("§x");
         for (char c : hexColor.substring(1).toCharArray()) {

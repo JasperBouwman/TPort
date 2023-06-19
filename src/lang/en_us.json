@@ -925,6 +925,9 @@
   "tport.command.features.feature.TPortTakesItem.description": "When this is enabled, adding a TPort takes the display item out of your inventory. When disabled you keep the display item",
   "tport.command.features.feature.TPortTakesItem.setState": "Successfully %2$s %1$s",
   "tport.command.features.feature.TPortTakesItem.disabledMessage": "NOT USED",
+  "tport.command.features.feature.PrintErrorsInConsole.description": "When this is enabled, any NMS errors that occur will be fully shown in the server console. When disabled only a small error message will show",
+  "tport.command.features.feature.PrintErrorsInConsole.setState": "Successfully %2$s %1$s",
+  "tport.command.features.feature.PrintErrorsInConsole.disabledMessage": "NOT USED",
 
   "tport.command.sort.sorter.commandDescription": "This command is used to set your preferred sorter",
   "tport.command.sort.sorter.notExist": "Sorter %s does not exist",

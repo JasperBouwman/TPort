@@ -66,11 +66,12 @@ public class DynmapHandler {
                     Main.getInstance().getLogger().log(Level.INFO, "Enabled Dynmap support");
                     enabled = true;
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    Main.getInstance().getLogger().log(Level.WARNING, "Tried to enable Dynmap support, error: ", e.getMessage());
+                    Main.getInstance().getLogger().log(Level.WARNING, "Tried to enable Dynmap support, error: " + e.getMessage());
+                    enabled = false;
                 }
             } else {
                 Main.getInstance().getLogger().log(Level.WARNING, "Tried to enable Dynmap support, it was already enabled");
+                enabled = false;
             }
         } else {
             enabled = false;

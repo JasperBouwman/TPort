@@ -4,6 +4,7 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.*;
+import com.spaceman.tport.commands.tport.Tag;
 import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.commands.tport.biomeTP.Accuracy;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
@@ -33,21 +34,23 @@ import com.spaceman.tport.tpEvents.restrictions.WalkRestriction;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Biome;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.RayTraceResult;
 
 import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -169,63 +172,20 @@ public class Main extends JavaPlugin {
     }
     
     public static final String discordLink = "https://discord.gg/tq5RTmSbHU";
-    public static final String[] supportedVersions = new String[]{"1.20"}; //todo update compatible version
+    public static final String[] supportedVersions = new String[]{"1.20.1", "1.20", "1.19.4", "1.18.2"}; //todo update compatible version
     public void onEnable() {
         
         /*
-         * changelog 1.20 update:
+         * changelog 1.20.1 update:
          *
-         * added '/tport restore', this allows you to restore the last removed TPort (starting from the last reload/startup)
-         * added '/tport public reset' this allows you to make all TPort not public anymore
+         * Fixed Unsupported API version
+         * Added Cherry Log to the biome Cherry Grove in BiomeTP
+         * Added Suspicious Gravel to the feature in FeatureTP
+         * Added icons for the new tag lists in BiomeTP - Presets
+         * TPort Keyboard has now a dynamic title length. Inputted colors work better in the title
+         * Added new line button icon 'char_newline.png'
          *
-         * '/tport edit <TPort name> item' now follows the TPortTakesItem feature. This allowed players to duplicate items
-         *
-         * added an icon for the placeholder with using the move quick edit to move a TPort
-         *
-         * removed permissions from '/tport'
-         * added permissions to '/tport world' -> 'TPort.world.tp'
-         *
-         * fixed '/tport delay get <player>' when delay is set to be managed by permissions
-         *
-         * added toggle for feature (in /tport feature):
-         * - InterdimensionalTeleporting: When disabled players can not teleport between worlds via TPort (This does not effect worldTP)
-         * - DeathTP: When enabled players can teleport to their death location, when disabled TPort stops listening for deaths for BackTP
-         *
-         * Tports on Dynmap now have as default the TPort logo
-         * TPorts on Dynmap use the same description in all GUI's/chat, the language is the same as the server language
-         * Added colors to the labels of the TPorts shown in Dynmap. To edit the colors use: '/tport dynmap colors <color theme>'
-         * When Dynmap support is successfully enabled you can now click control+(your drop key) to search the TPort/Player on Dynmap. It used the command '/tport dynmap search <player> [TPort]'
-         *
-         * Give description system of Tport a change. Colors now should work as intended. You can use 3 ways to add colors
-         *  - #123456
-         *  - &8
-         *  - $2$20$200
-         * Example 'This is some text, #ff0000This text is red, &9This text is blue, $0$255$0This text is green'
-         *
-         * added GUI for:
-         *  - settings
-         *    Not all settings are working, ony working now are: version, reload, backup, color theme, remove player
-         *    new inventories for:
-         *      - ColorTheme
-         *      - backup
-         *      - Remove Player
-         *  - adding/removing players in the whitelist for PLTP, to access this use your drop key on your own head in your TPort GUI
-         *  - QuickEdits is now its own GUI instead of looping through all the edits. From here you can select what Quick Edit you want on your right click action in your
-         *    own TPort GUI. With left click in the inventory you can use that quick edit. Some Quick Edits have their own sub GUI and others don't.
-         *    new inventories for:
-         *      - Tag selection
-         *      - TPort whitelist selection
-         *      - Remove TPort
-         *      - Edit TPort location
-         *      - TPort private state
-         *      - TPort range
-         *      - Dynmap icon
-         *      - TPort log
-         *          - read log
-         *          - player selection
-         *      - name (uses the TPort Keyboard)
-         *      - description (uses the TPort Keyboard)
-         *      - PublicTP is now added as a toggle (/tport public add <TPort name> or /tport public remove <TPort name>)
+         * TPort should now work on multiple versions (1.20.1, 1.20, 1.19.4, 1.18.2).
          */
         
         /*
@@ -236,6 +196,7 @@ public class Main extends JavaPlugin {
          * add POI
          *
          * /tport bed
+         * /tport look [type]
          *
          * /tport history
          * /tport history back
@@ -320,6 +281,7 @@ public class Main extends JavaPlugin {
         registerSearchers();
         registerSorters();
         registerBiomeTPAccuracies();
+//        registerLookTypes();
         
         if (Features.Feature.Metrics.isEnabled()) {
             Main.getInstance().getLogger().log(Level.INFO, "Enabling metrics. Thank you for enabling metrics, powered by bStats. To view stats use '/tport metrics viewStats'");
@@ -380,7 +342,7 @@ public class Main extends JavaPlugin {
                 true, Material.NETHERRACK);
 
         BiomeTP.BiomeTPPresets.registerPreset("Trees", Arrays.asList(
-                "FOREST", "WINDSWEPT_FOREST", "DARK_FOREST", "SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA", "JUNGLE", "SPARSE_JUNGLE", "BIRCH_FOREST", "OLD_GROWTH_BIRCH_FOREST", "TAIGA", "OLD_GROWTH_SPRUCE_TAIGA", "OLD_GROWTH_PINE_TAIGA"),
+                "FOREST", "CHERRY_GROVE", "WINDSWEPT_FOREST", "DARK_FOREST", "SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA", "JUNGLE", "SPARSE_JUNGLE", "BIRCH_FOREST", "OLD_GROWTH_BIRCH_FOREST", "TAIGA", "OLD_GROWTH_SPRUCE_TAIGA", "OLD_GROWTH_PINE_TAIGA"),
                 true, Material.OAK_WOOD);
         
 //        BiomeTP.BiomeTPPresets.registerPreset("name", Arrays.asList(
@@ -751,5 +713,59 @@ public class Main extends JavaPlugin {
         Accuracy.createAccuracy("default", 6400, 8, Arrays.asList(200, 0));
         Accuracy.createAccuracy("fine", 4800, 6, Arrays.asList(200, 100, 0, -30));
         Accuracy.createAccuracy("fast", 6400, 8, List.of(100));
+    }
+    
+    private void registerLookTypes() {
+        Look.registerLookType("entity", player -> {
+            Predicate<Entity> predicate = (entity) -> !entity.equals(player) && !entity.equals(player.getVehicle());
+            
+            RayTraceResult r = player.getWorld().rayTraceEntities(player.getEyeLocation(), player.getEyeLocation().getDirection(), 100, predicate);
+            if (r == null) { return null; }
+            Entity e = r.getHitEntity();
+            if (e == null) { return null; }
+            
+            if (e.getType().equals(EntityType.PLAYER)) {
+                Player p = (Player) e;
+                TPortCommand.executeTPortCommand(player, new String[]{"PLTP", "tp", p.getName()});
+                return null;
+            } else {
+                TPEManager.requestTeleportPlayer(player, e.getLocation(), () -> {}, (p, delay, tickMessage, seconds, secondMessage) -> {});
+                return e.getLocation();
+            }
+        });
+        
+        Look.registerLookType("block", (player -> {
+            RayTraceResult r = player.rayTraceBlocks(100, FluidCollisionMode.NEVER);
+            if (r == null) { return null; }
+            Block b = r.getHitBlock();
+            if (b == null) { return null; }
+            
+            Location blockLocation = b.getLocation();
+            if (blockLocation.clone().add(0, 1, 0).getBlock().getType().isSolid()) {
+                blockLocation.add(r.getHitBlockFace().getDirection());
+            } else if (blockLocation.getBlock().getType().isSolid()) {
+                blockLocation.add(0, 1, 0);
+            }
+            blockLocation.add(0.5, 0.1, 0.5);
+            blockLocation.setPitch(player.getLocation().getPitch());
+            blockLocation.setYaw(player.getLocation().getYaw());
+            
+            TPEManager.requestTeleportPlayer(player, blockLocation, () -> {}, (p, delay, tickMessage, seconds, secondMessage) -> {});
+            return blockLocation;
+        }));
+        
+        Look.registerLookType("fluid", (player -> {
+            RayTraceResult r = player.rayTraceBlocks(100, FluidCollisionMode.ALWAYS);
+            if (r == null) { return null; }
+            Block f = r.getHitBlock();
+            if (f == null) { return null; }
+            if (!f.getType().equals(Material.WATER) && !f.getType().equals(Material.LAVA)) { return null; }
+            
+            Location l = f.getLocation().add(0.5, 1.1, 0.5);
+            l.setPitch(player.getLocation().getPitch());
+            l.setYaw(player.getLocation().getYaw());
+            TPEManager.requestTeleportPlayer(player, l, () -> {}, (p, delay, tickMessage, seconds, secondMessage) -> {});
+            return l;
+        }));
     }
 }

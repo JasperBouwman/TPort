@@ -17,6 +17,8 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+import static com.spaceman.tport.reflection.ReflectionManager.getServerVersion;
+
 public class Book {
     
     private final String title;
@@ -82,7 +84,7 @@ public class Book {
         buf.writerIndex(1);
         
         try {
-            String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
+            String version = getServerVersion();
             Object nmsPlayer = player.getClass().getMethod("getHandle").invoke(player);
             Object connection = nmsPlayer.getClass().getField("b").get(nmsPlayer);
             

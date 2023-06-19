@@ -4,12 +4,15 @@ import com.google.common.base.CharMatcher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
+import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.encapsulation.Encapsulation;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
+import com.spaceman.tport.fancyMessage.language.Language;
+import com.spaceman.tport.reflection.ReflectionManager;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
 import com.spaceman.tport.tpEvents.TPRestriction;
 import com.spaceman.tport.tport.TPort;
@@ -53,6 +56,7 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
+import static com.spaceman.tport.reflection.ReflectionManager.getServerVersion;
 
 public class MessageUtils {
     
@@ -645,7 +649,7 @@ public class MessageUtils {
     public static ItemStack getSign(@Nullable ItemStack signItem, ColorTheme theme, List<Message> lines, @Nullable DyeColor glow) {
         ItemStack itemStack = Main.getOrDefault(signItem, new ItemStack(Material.OAK_SIGN));
         try {
-            String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
+            String version = getServerVersion();
             Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
             
             Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
@@ -818,23 +822,20 @@ public class MessageUtils {
     }
     public static ItemStack setCustomItemData(ItemStack is, ColorTheme theme, @Nullable Message displayName, @Nullable Collection<Message> lore) {
         try {
-            String version = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
+            String version = getServerVersion();
             Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
             
             Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
             net.minecraft.world.item.ItemStack nmsStack = (net.minecraft.world.item.ItemStack) craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, is);
             Class<?> itemStackClass = nmsStack.getClass();
             
-//            NBTTagCompound tag = nmsStack.u(); //1.18.2
-//            NBTTagCompound tag = nmsStack.v(); //1.18.2
-            NBTTagCompound tag = nmsStack.w(); //1.20
+            NBTTagCompound tag = ReflectionManager.get(NBTTagCompound.class, nmsStack, null); //search for not @Nullable
             
             NBTTagCompound display = tag.p("display");
             if (displayName != null) display.a("Name", displayName.translateJSON(theme));
             
             if (lore != null) {
                 NBTTagList loreT = new NBTTagList();
-//                NBTTagList loreT = display.c("Lore", 8);
                 int id = 0;
                 for (Message line : lore) {
                     if (line != null) {
@@ -849,9 +850,26 @@ public class MessageUtils {
             ItemMeta im = (ItemMeta) craftItemStack.getMethod("getItemMeta", itemStackClass).invoke(craftItemStack, nmsStack);
             is.setItemMeta(im);
             return is;
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-            //todo translate to EN_US (default) and use Message.toColoredString()
+        } catch (Exception | Error ex) {
+            Features.Feature.printSmallNMSErrorInConsole("Fancy item stacks", true);
+            if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
+            ItemMeta im = is.getItemMeta();
+            if (im != null) {
+                JsonObject serverLang = Language.getServerLang();
+                if (displayName != null) {
+                    im.setDisplayName(displayName.translateMessage(serverLang).toColoredString(theme));
+                }
+                if (lore != null) {
+                    ArrayList<String> lorePlaceholder = new ArrayList<>();
+                    for (Message line : lore) {
+                        if (line != null) {
+                            lorePlaceholder.add(line.translateMessage(serverLang).toColoredString(theme));
+                        }
+                    }
+                    im.setLore(lorePlaceholder);
+                }
+                is.setItemMeta(im);
+            }
         }
         return is;
     }
@@ -864,7 +882,7 @@ public class MessageUtils {
         
         ArrayList<Message> messages = new ArrayList<>();
         
-        for (String line : coloredText.split("\\\\n")) {
+        for (String line : coloredText.split("\\\\n|\n")) {
             StringBuilder singleColorLine = new StringBuilder();
             String lastHexColor = Main.getOrDefault(defaultColor, "");
             Message lineMessage = new Message();
@@ -953,7 +971,6 @@ public class MessageUtils {
                                 throw new IllegalArgumentException();
                             }
                         }
-                        String endString = redString + greenString + blueString;
                         
                         TextComponent t = new TextComponent(singleColorLine.toString(), lastHexColor);
                         lineMessage.addText(t);

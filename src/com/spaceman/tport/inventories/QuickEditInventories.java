@@ -779,28 +779,28 @@ public class QuickEditInventories {
         REMOVE("Remove TPort", quick_edit_remove_model, false, (tport, player, fancyInventory) -> openTPortRemoveGUI(player, tport, fancyInventory)),
         LOCATION("Location", quick_edit_location_model, false, (tport, player, fancyInventory) -> openTPortLocationGUI(player, tport, fancyInventory)),
         NAME("Name", quick_edit_name_model, false, (tport, player, fancyInventory) -> {
-            FancyClickEvent.FancyClickRunnable onAccept = ((whoClicked, clickType, pdc, fancyInventory1) -> {
-                String newTPortName = getKeyboardOutput(fancyInventory1);
-                String tportName = fancyInventory1.getData("tportName", String.class, "");
+            FancyClickEvent.FancyClickRunnable onAccept = ((whoClicked, clickType, pdc, keyboardInventory) -> {
+                String newTPortName = getKeyboardOutput(keyboardInventory);
+                String tportName = keyboardInventory.getData("tportName", String.class, "");
                 TPortCommand.executeTPortCommand(whoClicked, new String[] {"edit", tportName, "name", newTPortName});
                 openTPortGUI(whoClicked.getUniqueId(), whoClicked, null);
             });
-            FancyClickEvent.FancyClickRunnable onReject = ((whoClicked, clickType, pdc, fancyInventory1) -> {
+            FancyClickEvent.FancyClickRunnable onReject = ((whoClicked, clickType, pdc, keyboardInventory) -> {
                 openTPortGUI(whoClicked.getUniqueId(), whoClicked, null);
             });
-            FancyInventory inv = KeyboardGUI.openKeyboard(player, onAccept, onReject, KeyboardGUI.STRING_ONLY);
+            FancyInventory inv = KeyboardGUI.openKeyboard(player, onAccept, onReject, KeyboardGUI.TEXT_ONLY);
             inv.setData("tportName", tport.getName());
         }),
         DESCRIPTION("Description", quick_edit_description_model, false, (tport, player, fancyInventory) -> {
-            FancyClickEvent.FancyClickRunnable onAccept = ((whoClicked, clickType, pdc, fancyInventory1) -> {
-                String description = getKeyboardOutput(fancyInventory1);
+            FancyClickEvent.FancyClickRunnable onAccept = ((whoClicked, clickType, pdc, keyboardInventory) -> {
+                String description = getKeyboardOutput(keyboardInventory);
                 description = description.replace("\n", "\\n");
                 
-                String tportName = fancyInventory1.getData("tportName", String.class, "");
+                String tportName = keyboardInventory.getData("tportName", String.class, "");
                 TPortCommand.executeTPortCommand(whoClicked, new String[] {"edit", tportName, "description", "set", description});
                 openTPortGUI(whoClicked.getUniqueId(), whoClicked, null);
             });
-            FancyClickEvent.FancyClickRunnable onReject = ((whoClicked, clickType, pdc, fancyInventory1) -> {
+            FancyClickEvent.FancyClickRunnable onReject = ((whoClicked, clickType, pdc, keyboardInventory) -> {
                 openTPortGUI(whoClicked.getUniqueId(), whoClicked, null);
             });
             FancyInventory inv = KeyboardGUI.openKeyboard(player, onAccept, onReject, KeyboardGUI.SPACE | KeyboardGUI.NEWLINE | KeyboardGUI.COLOR);

@@ -51,11 +51,17 @@ public class RemovePlayer extends SubCommand {
             return;
         }
         
-        UUID newPlayerUUID = PlayerUUID.getPlayerUUID_OLD2(toRemoveName); //find ALL players (even not registered at TPort)
-        if (newPlayerUUID == null) {
-            sendErrorTranslation(player, "tport.command.playerNotFound", toRemoveName);
-            return;
+        UUID newPlayerUUID;
+        try {
+            newPlayerUUID = UUID.fromString(toRemoveName);
+        } catch (IllegalArgumentException lae) {
+            newPlayerUUID = PlayerUUID.getPlayerUUID_OLD2(toRemoveName); //find ALL players (even not registered at TPort)
+            if (newPlayerUUID == null) {
+                sendErrorTranslation(player, "tport.command.playerNotFound", toRemoveName);
+                return;
+            }
         }
+        
         Player newPlayer = Bukkit.getPlayer(newPlayerUUID);
         if (newPlayer != null) {
             sendErrorTranslation(player, "tport.command.removePlayer.player.isOnline", newPlayer);

@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
@@ -221,6 +222,7 @@ public class Features extends SubCommand {
         TPortTakesItem(false, true),
         InterdimensionalTeleporting(false, true),
         DeathTP(false, true),
+        PrintErrorsInConsole(false, false),
         FeatureSettings(false, true);
         
         private final boolean reloadCommands;
@@ -268,6 +270,12 @@ public class Features extends SubCommand {
         }
         public void sendDisabledMessage(Player player) {
             getDisabledMessage().sendAndTranslateMessage(player);
+        }
+        
+        public static void printSmallNMSErrorInConsole(String nmsError, boolean usedBackup) {
+            String message = "NMS Error in :" + nmsError;
+            if (usedBackup) message += ", used built-in backup. Some features may not keep their full functionality when their backup is used";
+            Main.getInstance().getLogger().log(Level.WARNING, message);
         }
         
         @Override

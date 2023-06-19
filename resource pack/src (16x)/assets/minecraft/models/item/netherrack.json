@@ -3,7 +3,7 @@
   "overrides": [
     {
       "predicate": {
-        "custom_model_data": 5145557
+        "custom_model_data": 5145558
       },
       "model": "tport:item/nether"
     }
