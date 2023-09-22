@@ -33,8 +33,12 @@ public class ListSize extends SubCommand {
         return tportConfig.getConfig().getInt("public.size", 70);
     }
     
+    public static int getTPortAmount() {
+        return tportData.getKeys("public.tports").size();
+    }
+    
     private static void setPublicTPortSize(int size) {
-        for (int publicSlot = size + 1; publicSlot < ListSize.getPublicTPortSize(); publicSlot++) {
+        for (int publicSlot = size; publicSlot < ListSize.getPublicTPortSize(); publicSlot++) {
             if (tportData.getConfig().contains("public.tports." + publicSlot)) {
                 String tportID = tportData.getConfig().getString("public.tports." + publicSlot, TPortManager.defUUID.toString());
                 TPort tport = getTPort(UUID.fromString(tportID));
@@ -47,7 +51,6 @@ public class ListSize extends SubCommand {
                     if (owner != null) {
                         sendInfoTranslation(owner, "tport.command.public.listSize.size.removedSmallerList", tport);
                     }
-                    return;
                 }
             }
         }

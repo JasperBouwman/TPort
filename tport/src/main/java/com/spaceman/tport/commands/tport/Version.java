@@ -81,7 +81,7 @@ public class Version extends SubCommand {
             return null;
         }
         String[] latestVersion  = latestVersionName.substring(6).split("\\.");
-        String[] currentVersion = Main.getInstance().getDescription().getVersion().split("\\.");
+        String[] currentVersion = getCurrentVersion().split("\\.");
         
         //latest version is always higher or the same then the current version
         return isLatest(latestVersion, currentVersion, 0);
@@ -111,8 +111,12 @@ public class Version extends SubCommand {
         });
     }
     
+    public static String getCurrentVersion() {
+        return Main.getInstance().getDescription().getVersion();
+    }
+    
     public Version() {
-        setCommandDescription(formatInfoTranslation("tport.command.version.commandDescription", Main.getInstance().getDescription().getVersion()));
+        setCommandDescription(formatInfoTranslation("tport.command.version.commandDescription", getCurrentVersion()));
     }
     
     @Override
@@ -121,20 +125,25 @@ public class Version extends SubCommand {
         
         if (args.length == 1) {
             
+            int versions = Main.supportedVersions.length;
+            
             String translationID;
-            //noinspection ConstantConditions
-            if (Main.supportedVersions.length == 1) translationID = "tport.command.version.succeeded.singular";
-            else translationID = "tport.command.version.succeeded.multiple";
+            if (versions > 1) translationID = "tport.command.version.succeeded.multiple";
+            else translationID = "tport.command.version.succeeded.singular";
             
             Message versionsMessage = new Message();
-            for (String version : Main.supportedVersions) {
-                versionsMessage.addText(textComponent(version, varInfoColor));
-                versionsMessage.addText(textComponent(", ", infoColor));
+            if (versions != 0) {
+                for (String version : Main.supportedVersions) {
+                    versionsMessage.addText(textComponent(version, varInfoColor));
+                    versionsMessage.addText(textComponent(", ", infoColor));
+                }
+                versionsMessage.removeLast();
+            } else {
+                versionsMessage = formatTranslation(varInfoColor, varInfoColor, "tport.command.version.succeeded.unknown");
             }
-            versionsMessage.removeLast();
             
             sendInfoTranslation(player, translationID,
-                    Main.getInstance().getDescription().getVersion(),
+                    getCurrentVersion(),
                     versionsMessage,
                     textComponent(
                             "https://github.com/JasperBouwman/TPort",

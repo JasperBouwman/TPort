@@ -8,6 +8,7 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.TextType;
+import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -20,6 +21,7 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.events.ClickEvent.runCommand;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 import static com.spaceman.tport.fileHander.Files.tportConfig;
+import static com.spaceman.tport.inventories.SettingsInventories.*;
 
 public class Redirect extends SubCommand {
     
@@ -123,19 +125,33 @@ public class Redirect extends SubCommand {
     }
     
     public enum Redirects implements MessageUtils.MessageDescription {
-        ConsoleFeedback(true, formatInfoTranslation("tport.command.redirect.redirect.consoleFeedback.description")),
-        TP_PLTP(true, formatInfoTranslation("tport.command.redirect.redirect.TP_PLTP.description", "/tp <player>", "/tport PLTP tp <player>")),
-        Locate_FeatureTP(true, formatInfoTranslation("tport.command.redirect.redirect.Locate_FeatureTP.description", "/locate <StructureType>", "/tport FeatureTP <feature>")),
-        LocateBiome_BiomeTP(true, formatInfoTranslation("tport.command.redirect.redirect.LocateBiome_BiomeTP.description", "/locateBiome <biome>", "/tport BiomeTP whitelist <biome>")),
-        Home_TPortHome(false, formatInfoTranslation("tport.command.redirect.redirect.Home_TPortHome.description", "/home", "/tport home", "/home")),
-        Back_TPortBack(false, formatInfoTranslation("tport.command.redirect.redirect.Back_TPortBack.description", "/back", "/tport back"));
+        ConsoleFeedback(true, formatInfoTranslation("tport.command.redirect.redirect.consoleFeedback.description"),
+                settings_redirect_console_feedback_model, settings_redirect_console_feedback_grayed_model),
+        TP_PLTP(true, formatInfoTranslation("tport.command.redirect.redirect.TP_PLTP.description", "/tp <player>", "/tport PLTP tp <player>"),
+                settings_redirect_tp_pltp_model, settings_redirect_tp_pltp_grayed_model),
+        Locate_FeatureTP(true, formatInfoTranslation("tport.command.redirect.redirect.Locate_FeatureTP.description", "/locate structure <structure>", "/tport FeatureTP search <feature>"),
+                settings_redirect_locate_feature_tp_model, settings_redirect_locate_feature_tp_grayed_model),
+        LocateBiome_BiomeTP(true, formatInfoTranslation("tport.command.redirect.redirect.LocateBiome_BiomeTP.description", "/locate biome <biome>", "/tport BiomeTP whitelist <biome>"),
+                settings_redirect_locate_biome_biome_tp_model, settings_redirect_locate_biome_biome_tp_grayed_model),
+        Home_TPortHome(false, formatInfoTranslation("tport.command.redirect.redirect.Home_TPortHome.description", "/home", "/tport home", "/home"),
+                settings_redirect_home_tport_home_model, settings_redirect_home_tport_home_grayed_model),
+        Back_TPortBack(false, formatInfoTranslation("tport.command.redirect.redirect.Back_TPortBack.description", "/back", "/tport back"),
+                settings_redirect_back_tport_back_model, settings_redirect_back_tport_back_grayed_model);
         
         private boolean enabled;
         private final Message description;
+        private final InventoryModel enabledModel;
+        private final InventoryModel disabledModel;
         
-        Redirects(boolean defaultState, Message description) {
+        Redirects(boolean defaultState, Message description, InventoryModel enabledModel, InventoryModel disabledModel) {
             this.enabled = defaultState;
             this.description = description;
+            this.enabledModel = enabledModel;
+            this.disabledModel = disabledModel;
+        }
+        
+        public InventoryModel getModel() {
+            return this.isEnabled() ? enabledModel : disabledModel;
         }
         
         public static void saveRedirects() {

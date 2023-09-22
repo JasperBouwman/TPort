@@ -35,7 +35,7 @@ public class List extends SubCommand {
             ArrayList<Message> offered = new ArrayList<>();
             for (TPort tport : TPortManager.getTPortList(player.getUniqueId())) {
                 if (tport.isOffered()) {
-                    Object otherPlayer = asPlayer(tport.getOfferedTo());
+                    PlayerEncapsulation otherPlayer = asPlayer(tport.getOfferedTo());
                     
                     HoverEvent hEvent = new HoverEvent();
                     hEvent.addMessage(formatInfoTranslation(

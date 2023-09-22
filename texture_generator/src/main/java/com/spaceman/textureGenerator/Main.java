@@ -3,7 +3,7 @@ package com.spaceman.textureGenerator;
 import com.google.gson.*;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
-import com.spaceman.tport.fancyMessage.inventories.KeyboardGUI;
+import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
 import com.spaceman.tport.inventories.QuickEditInventories;
 import com.spaceman.tport.inventories.SettingsInventories;
 import com.spaceman.tport.inventories.TPortInventories;
@@ -104,7 +104,7 @@ public class Main {
     private static JsonObject getJsonObject(Material material) {
         JsonObject j = minecraftJson.get(material);
         if (j == null) {
-            File jsonFile = new File(moduleName + "/src/main/java/model_json/" + material.name().toLowerCase() + ".json");
+            File jsonFile = new File(moduleName + "/src/main/resources/model_json/" + material.name().toLowerCase() + ".json");
             InputStream jsonStream;
             try {
                 jsonStream = new FileInputStream(jsonFile);
@@ -231,7 +231,7 @@ public class Main {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         JsonObject pack_mcmeta = new JsonObject();
         JsonObject pack = new JsonObject();
-        pack.add("pack_format", new JsonPrimitive(15));
+        pack.add("pack_format", new JsonPrimitive(18));
         pack.add("description", new JsonPrimitive(String.format("TPort %s (v%s), made by The_Spaceman", packDir, plugin_yml.get("version"))));
         pack_mcmeta.add("pack", pack);
         System.out.println(gson.toJson(pack_mcmeta));
@@ -258,7 +258,7 @@ public class Main {
         
         for (Model model : models) {
             File texture;
-            texture = new File(moduleName + "/src/main/java/icons/" + packDir + "/" + model.name + ".png");
+            texture = new File(moduleName + "/src/main/resources/icons/" + packDir + "/" + model.name + ".png");
             if (texture.exists()) {
                 try {
                     if (model.subDir == null) {
@@ -276,7 +276,7 @@ public class Main {
             }
         }
         
-        File packPNG = new File(moduleName + "/src/main/java/icons/" + packDir + "/pack.png");
+        File packPNG = new File(moduleName + "/src/main/resources/icons/" + packDir + "/pack.png");
         if (packPNG.exists()) {
             try {
                 FileUtils.copyFile(packPNG, new File(outputDir, "pack.png"));

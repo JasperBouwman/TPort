@@ -19,6 +19,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -36,7 +37,8 @@ import java.util.stream.Collectors;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
-import static com.spaceman.tport.reflection.ReflectionManager.*;
+import static com.spaceman.tport.reflection.ReflectionManager.getPlayerConnection;
+import static com.spaceman.tport.reflection.ReflectionManager.sendPlayerPacket;
 
 public class Message implements Cloneable {
     
@@ -354,7 +356,7 @@ public class Message implements Cloneable {
                 ClientboundSetTitlesAnimationPacket clientboundSetTitlesAnimationPacket = new ClientboundSetTitlesAnimationPacket(fadeIn, displayTime, fadeOut);
                 sendPlayerPacket(player, clientboundSetTitlesAnimationPacket);
             }
-            getPlayerConnection(entityPlayer).a(packetObject);
+            getPlayerConnection(entityPlayer).a(packetObject, null);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

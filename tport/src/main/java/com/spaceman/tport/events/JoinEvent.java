@@ -1,11 +1,13 @@
 package com.spaceman.tport.events;
 
 import com.spaceman.tport.commands.tport.ResourcePack;
+import com.spaceman.tport.fancyMessage.inventories.keyboard.QuickType;
 import com.spaceman.tport.tpEvents.TPRequest;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -21,6 +23,8 @@ public class JoinEvent implements Listener {
             tportData.getConfig().set("tport." + playerUUID + ".tports.0", null);
             tportData.saveConfig();
         }
+        
+        QuickType.setQuickTypeSignHandler(player);
     }
     
     @EventHandler(priority=EventPriority.MONITOR)
@@ -34,5 +38,6 @@ public class JoinEvent implements Listener {
     @SuppressWarnings("unused")
     public void leave(PlayerQuitEvent e) {
         TPRequest.playerLeft(e.getPlayer());
+        QuickType.removeQuickTypeSignHandler(e.getPlayer());
     }
 }

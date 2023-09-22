@@ -1025,557 +1025,605 @@
       "predicate": {
         "custom_model_data": 5145642
       },
-      "model": "tport:item/settings_resource_pack"
+      "model": "tport:item/settings_public_size"
     },
     {
       "predicate": {
         "custom_model_data": 5145643
       },
-      "model": "tport:item/settings_tag"
+      "model": "tport:item/settings_public_fit"
     },
     {
       "predicate": {
         "custom_model_data": 5145644
       },
-      "model": "tport:item/settings_tag_selection"
+      "model": "tport:item/settings_public_reset"
     },
     {
       "predicate": {
         "custom_model_data": 5145645
       },
-      "model": "tport:item/settings_tag_create"
+      "model": "tport:item/settings_public_tports"
     },
     {
       "predicate": {
         "custom_model_data": 5145646
       },
-      "model": "tport:item/settings_tag_reset"
+      "model": "tport:item/settings_resource_pack"
     },
     {
       "predicate": {
         "custom_model_data": 5145647
       },
-      "model": "tport:item/settings_transfer"
+      "model": "tport:item/settings_resource_pack_state_enabled"
     },
     {
       "predicate": {
         "custom_model_data": 5145648
       },
-      "model": "tport:item/settings_transfer_switch_offered"
+      "model": "tport:item/settings_resource_pack_state_disabled"
     },
     {
       "predicate": {
         "custom_model_data": 5145649
       },
-      "model": "tport:item/settings_transfer_switch_offers"
+      "model": "tport:item/settings_resource_pack_resolution"
     },
     {
       "predicate": {
         "custom_model_data": 5145650
       },
-      "model": "tport:item/settings_features"
+      "model": "tport:item/settings_resource_pack_resolution_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145651
       },
-      "model": "tport:item/settings_features_biome_tp"
+      "model": "tport:item/settings_tag"
     },
     {
       "predicate": {
         "custom_model_data": 5145652
       },
-      "model": "tport:item/settings_features_biome_tp_grayed"
+      "model": "tport:item/settings_tag_selection"
     },
     {
       "predicate": {
         "custom_model_data": 5145653
       },
-      "model": "tport:item/settings_features_feature_tp"
+      "model": "tport:item/settings_tag_create"
     },
     {
       "predicate": {
         "custom_model_data": 5145654
       },
-      "model": "tport:item/settings_features_feature_tp_grayed"
+      "model": "tport:item/settings_tag_reset"
     },
     {
       "predicate": {
         "custom_model_data": 5145655
       },
-      "model": "tport:item/settings_features_back_tp"
+      "model": "tport:item/settings_transfer"
     },
     {
       "predicate": {
         "custom_model_data": 5145656
       },
-      "model": "tport:item/settings_features_back_tp_grayed"
+      "model": "tport:item/settings_transfer_switch_offered"
     },
     {
       "predicate": {
         "custom_model_data": 5145657
       },
-      "model": "tport:item/settings_features_public_tp"
+      "model": "tport:item/settings_transfer_switch_offers"
     },
     {
       "predicate": {
         "custom_model_data": 5145658
       },
-      "model": "tport:item/settings_features_public_tp_grayed"
+      "model": "tport:item/settings_features"
     },
     {
       "predicate": {
         "custom_model_data": 5145659
       },
-      "model": "tport:item/settings_features_pltp"
+      "model": "tport:item/settings_features_biome_tp"
     },
     {
       "predicate": {
         "custom_model_data": 5145660
       },
-      "model": "tport:item/settings_features_pltp_grayed"
+      "model": "tport:item/settings_features_biome_tp_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145661
       },
-      "model": "tport:item/settings_features_dynmap"
+      "model": "tport:item/settings_features_feature_tp"
     },
     {
       "predicate": {
         "custom_model_data": 5145662
       },
-      "model": "tport:item/settings_features_dynmap_grayed"
+      "model": "tport:item/settings_features_feature_tp_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145663
       },
-      "model": "tport:item/settings_features_metrics"
+      "model": "tport:item/settings_features_back_tp"
     },
     {
       "predicate": {
         "custom_model_data": 5145664
       },
-      "model": "tport:item/settings_features_metrics_grayed"
+      "model": "tport:item/settings_features_back_tp_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145665
       },
-      "model": "tport:item/settings_features_permissions"
+      "model": "tport:item/settings_features_public_tp"
     },
     {
       "predicate": {
         "custom_model_data": 5145666
       },
-      "model": "tport:item/settings_features_permissions_grayed"
+      "model": "tport:item/settings_features_public_tp_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145667
       },
-      "model": "tport:item/settings_features_particle_animation"
+      "model": "tport:item/settings_features_pltp"
     },
     {
       "predicate": {
         "custom_model_data": 5145668
       },
-      "model": "tport:item/settings_features_particle_animation_grayed"
+      "model": "tport:item/settings_features_pltp_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145669
       },
-      "model": "tport:item/settings_features_redirects"
+      "model": "tport:item/settings_features_dynmap"
     },
     {
       "predicate": {
         "custom_model_data": 5145670
       },
-      "model": "tport:item/settings_features_redirects_grayed"
+      "model": "tport:item/settings_features_dynmap_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145671
       },
-      "model": "tport:item/settings_features_preview"
+      "model": "tport:item/settings_features_metrics"
     },
     {
       "predicate": {
         "custom_model_data": 5145672
       },
-      "model": "tport:item/settings_features_preview_grayed"
+      "model": "tport:item/settings_features_metrics_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145673
       },
-      "model": "tport:item/settings_features_world_tp"
+      "model": "tport:item/settings_features_permissions"
     },
     {
       "predicate": {
         "custom_model_data": 5145674
       },
-      "model": "tport:item/settings_features_world_tp_grayed"
+      "model": "tport:item/settings_features_permissions_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145675
       },
-      "model": "tport:item/settings_features_tport_takes_item"
+      "model": "tport:item/settings_features_particle_animation"
     },
     {
       "predicate": {
         "custom_model_data": 5145676
       },
-      "model": "tport:item/settings_features_tport_takes_item_grayed"
+      "model": "tport:item/settings_features_particle_animation_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145677
       },
-      "model": "tport:item/settings_features_interdimensional_teleporting"
+      "model": "tport:item/settings_features_redirects"
     },
     {
       "predicate": {
         "custom_model_data": 5145678
       },
-      "model": "tport:item/settings_features_interdimensional_teleporting_grayed"
+      "model": "tport:item/settings_features_redirects_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145679
       },
-      "model": "tport:item/settings_features_death_tp"
+      "model": "tport:item/settings_features_preview"
     },
     {
       "predicate": {
         "custom_model_data": 5145680
       },
-      "model": "tport:item/settings_features_death_tp_grayed"
+      "model": "tport:item/settings_features_preview_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145681
       },
-      "model": "tport:item/settings_features_print_errors_in_console"
+      "model": "tport:item/settings_features_world_tp"
     },
     {
       "predicate": {
         "custom_model_data": 5145682
       },
-      "model": "tport:item/settings_features_print_errors_in_console_grayed"
+      "model": "tport:item/settings_features_world_tp_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145683
       },
-      "model": "tport:item/settings_features_feature_settings"
+      "model": "tport:item/settings_features_tport_takes_item"
     },
     {
       "predicate": {
         "custom_model_data": 5145684
       },
-      "model": "tport:item/settings_features_feature_settings_grayed"
+      "model": "tport:item/settings_features_tport_takes_item_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145685
       },
-      "model": "tport:item/settings_redirect"
+      "model": "tport:item/settings_features_interdimensional_teleporting"
     },
     {
       "predicate": {
         "custom_model_data": 5145686
       },
-      "model": "tport:item/settings_redirect_console_feedback"
+      "model": "tport:item/settings_features_interdimensional_teleporting_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145687
       },
-      "model": "tport:item/settings_redirect_console_feedback_grayed"
+      "model": "tport:item/settings_features_death_tp"
     },
     {
       "predicate": {
         "custom_model_data": 5145688
       },
-      "model": "tport:item/settings_redirect_tp_pltp"
+      "model": "tport:item/settings_features_death_tp_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145689
       },
-      "model": "tport:item/settings_redirect_tp_pltp_grayed"
+      "model": "tport:item/settings_features_print_errors_in_console"
     },
     {
       "predicate": {
         "custom_model_data": 5145690
       },
-      "model": "tport:item/settings_redirect_locate_feature_tp"
+      "model": "tport:item/settings_features_print_errors_in_console_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145691
       },
-      "model": "tport:item/settings_redirect_locate_feature_tp_grayed"
+      "model": "tport:item/settings_features_feature_settings"
     },
     {
       "predicate": {
         "custom_model_data": 5145692
       },
-      "model": "tport:item/settings_redirect_locate_biome_biome_tp"
+      "model": "tport:item/settings_features_feature_settings_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145693
       },
-      "model": "tport:item/settings_redirect_locate_biome_biome_tp_grayed"
+      "model": "tport:item/settings_redirect"
     },
     {
       "predicate": {
         "custom_model_data": 5145694
       },
-      "model": "tport:item/settings_redirect_home_tport_home"
+      "model": "tport:item/settings_redirect_console_feedback"
     },
     {
       "predicate": {
         "custom_model_data": 5145695
       },
-      "model": "tport:item/settings_redirect_home_tport_home_grayed"
+      "model": "tport:item/settings_redirect_console_feedback_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145696
       },
-      "model": "tport:item/settings_redirect_back_tport_back"
+      "model": "tport:item/settings_redirect_tp_pltp"
     },
     {
       "predicate": {
         "custom_model_data": 5145697
       },
-      "model": "tport:item/settings_redirect_back_tport_back_grayed"
+      "model": "tport:item/settings_redirect_tp_pltp_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145698
       },
-      "model": "tport:item/settings_remove_player"
+      "model": "tport:item/settings_redirect_locate_feature_tp"
     },
     {
       "predicate": {
         "custom_model_data": 5145699
       },
-      "model": "tport:item/settings_remove_player_confirm"
+      "model": "tport:item/settings_redirect_locate_feature_tp_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145700
       },
-      "model": "tport:item/settings_remove_player_cancel"
+      "model": "tport:item/settings_redirect_locate_biome_biome_tp"
     },
     {
       "predicate": {
         "custom_model_data": 5145701
       },
-      "model": "tport:item/settings_safety_check"
+      "model": "tport:item/settings_redirect_locate_biome_biome_tp_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145702
       },
-      "model": "tport:item/settings_safety_check_tport_open"
+      "model": "tport:item/settings_redirect_home_tport_home"
     },
     {
       "predicate": {
         "custom_model_data": 5145703
       },
-      "model": "tport:item/settings_safety_check_tport_open_grayed"
+      "model": "tport:item/settings_redirect_home_tport_home_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145704
       },
-      "model": "tport:item/settings_safety_check_tport_own"
+      "model": "tport:item/settings_redirect_back_tport_back"
     },
     {
       "predicate": {
         "custom_model_data": 5145705
       },
-      "model": "tport:item/settings_safety_check_tport_own_grayed"
+      "model": "tport:item/settings_redirect_back_tport_back_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145706
       },
-      "model": "tport:item/settings_safety_check_tport_home"
+      "model": "tport:item/settings_remove_player"
     },
     {
       "predicate": {
         "custom_model_data": 5145707
       },
-      "model": "tport:item/settings_safety_check_tport_home_grayed"
+      "model": "tport:item/settings_remove_player_confirm"
     },
     {
       "predicate": {
         "custom_model_data": 5145708
       },
-      "model": "tport:item/settings_safety_check_tport_back"
+      "model": "tport:item/settings_remove_player_cancel"
     },
     {
       "predicate": {
         "custom_model_data": 5145709
       },
-      "model": "tport:item/settings_safety_check_tport_back_grayed"
+      "model": "tport:item/settings_safety_check"
     },
     {
       "predicate": {
         "custom_model_data": 5145710
       },
-      "model": "tport:item/settings_safety_check_tport_public"
+      "model": "tport:item/settings_safety_check_tport_open"
     },
     {
       "predicate": {
         "custom_model_data": 5145711
       },
-      "model": "tport:item/settings_safety_check_tport_public_grayed"
+      "model": "tport:item/settings_safety_check_tport_open_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145712
       },
-      "model": "tport:item/settings_language"
+      "model": "tport:item/settings_safety_check_tport_own"
     },
     {
       "predicate": {
         "custom_model_data": 5145713
       },
-      "model": "tport:item/settings_cooldown"
+      "model": "tport:item/settings_safety_check_tport_own_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145714
       },
-      "model": "tport:item/settings_backup_state_true"
+      "model": "tport:item/settings_safety_check_tport_home"
     },
     {
       "predicate": {
         "custom_model_data": 5145715
       },
-      "model": "tport:item/settings_backup_state_false"
+      "model": "tport:item/settings_safety_check_tport_home_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145716
       },
-      "model": "tport:item/settings_backup_count"
+      "model": "tport:item/settings_safety_check_tport_back"
     },
     {
       "predicate": {
         "custom_model_data": 5145717
       },
-      "model": "tport:item/settings_backup_load"
+      "model": "tport:item/settings_safety_check_tport_back_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145718
       },
-      "model": "tport:item/settings_backup_save"
+      "model": "tport:item/settings_safety_check_tport_public"
     },
     {
       "predicate": {
         "custom_model_data": 5145719
       },
-      "model": "tport:item/settings_color_theme"
+      "model": "tport:item/settings_safety_check_tport_public_grayed"
     },
     {
       "predicate": {
         "custom_model_data": 5145720
       },
-      "model": "tport:item/settings_color_theme_info"
+      "model": "tport:item/settings_language"
     },
     {
       "predicate": {
         "custom_model_data": 5145721
       },
-      "model": "tport:item/settings_color_theme_success"
+      "model": "tport:item/settings_cooldown"
     },
     {
       "predicate": {
         "custom_model_data": 5145722
       },
-      "model": "tport:item/settings_color_theme_error"
+      "model": "tport:item/settings_backup_state_true"
     },
     {
       "predicate": {
         "custom_model_data": 5145723
       },
-      "model": "tport:item/settings_color_theme_good"
+      "model": "tport:item/settings_backup_state_false"
     },
     {
       "predicate": {
         "custom_model_data": 5145724
       },
-      "model": "tport:item/settings_color_theme_bad"
+      "model": "tport:item/settings_backup_count"
     },
     {
       "predicate": {
         "custom_model_data": 5145725
       },
-      "model": "tport:item/settings_color_theme_title"
+      "model": "tport:item/settings_backup_load"
     },
     {
       "predicate": {
         "custom_model_data": 5145726
       },
-      "model": "tport:item/settings_color_theme_select"
+      "model": "tport:item/settings_backup_save"
     },
     {
       "predicate": {
         "custom_model_data": 5145727
       },
-      "model": "tport:item/settings_color_theme_red_add"
+      "model": "tport:item/settings_color_theme"
     },
     {
       "predicate": {
         "custom_model_data": 5145728
       },
-      "model": "tport:item/settings_color_theme_red_remove"
+      "model": "tport:item/settings_color_theme_info"
     },
     {
       "predicate": {
         "custom_model_data": 5145729
       },
-      "model": "tport:item/settings_color_theme_green_add"
+      "model": "tport:item/settings_color_theme_success"
     },
     {
       "predicate": {
         "custom_model_data": 5145730
       },
-      "model": "tport:item/settings_color_theme_green_remove"
+      "model": "tport:item/settings_color_theme_error"
     },
     {
       "predicate": {
         "custom_model_data": 5145731
       },
-      "model": "tport:item/settings_color_theme_blue_add"
+      "model": "tport:item/settings_color_theme_good"
     },
     {
       "predicate": {
         "custom_model_data": 5145732
       },
-      "model": "tport:item/settings_color_theme_blue_remove"
+      "model": "tport:item/settings_color_theme_bad"
     },
     {
       "predicate": {
         "custom_model_data": 5145733
       },
-      "model": "tport:item/settings_restore"
+      "model": "tport:item/settings_color_theme_title"
     },
     {
       "predicate": {
         "custom_model_data": 5145734
+      },
+      "model": "tport:item/settings_color_theme_select"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5145735
+      },
+      "model": "tport:item/settings_color_theme_red_add"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5145736
+      },
+      "model": "tport:item/settings_color_theme_red_remove"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5145737
+      },
+      "model": "tport:item/settings_color_theme_green_add"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5145738
+      },
+      "model": "tport:item/settings_color_theme_green_remove"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5145739
+      },
+      "model": "tport:item/settings_color_theme_blue_add"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5145740
+      },
+      "model": "tport:item/settings_color_theme_blue_remove"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5145741
+      },
+      "model": "tport:item/settings_restore"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5145742
       },
       "model": "tport:item/settings_home"
     }

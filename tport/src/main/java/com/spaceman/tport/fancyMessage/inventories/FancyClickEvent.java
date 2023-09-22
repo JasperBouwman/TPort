@@ -75,21 +75,6 @@ public class FancyClickEvent implements Listener {
         
         im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "runFunc_" + clickType.name()), PersistentDataType.STRING, funcName);
         functionsMap.putIfAbsent(funcName, runnable);
-        
-        return im;
-    }
-    public static ItemStack setFunction(ItemStack is, ClickType clickType, String funcName) {
-        ItemMeta im = is.getItemMeta();
-        if (im != null) {
-            is.setItemMeta(setFunction(im, clickType, funcName));
-        }
-        return is;
-    }
-    public static ItemMeta setFunction(ItemMeta im, ClickType clickType, String funcName) {
-        if (im == null) return null;
-        if (functionsMap.containsKey(funcName)) {
-            im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "runFunc_" + clickType.name()), PersistentDataType.STRING, funcName);
-        }
         return im;
     }
     public static ItemMeta removeFunction(ItemMeta im, ClickType clickType) {

@@ -1,5 +1,6 @@
 package com.spaceman.tport.commands.tport;
 
+import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.inventories.ItemFactory;
 import com.spaceman.tport.inventories.TPortInventories;
@@ -8,17 +9,20 @@ import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.Files.tportData;
+import static com.spaceman.tport.inventories.ItemFactory.getHead;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 
 public class Sort extends SubCommand {
@@ -33,9 +37,33 @@ public class Sort extends SubCommand {
         addAction(emptySorter);
         
         setCommandDescription(formatInfoTranslation("tport.command.sort.commandDescription"));
+        
+        registerSorters();
     }
     
     private static final HashMap<String, Pair<Sorter, Message>> sorters = new HashMap<>();
+    
+    private void registerSorters() {
+        Sort.addSorter("alphabet", (player, attributes, headData) -> {
+            ArrayList<String> playerList = new ArrayList<>(tportData.getKeys("tport"));
+            return playerList.stream().map(playerUUID -> Main.getOrDefault(getHead(UUID.fromString(playerUUID), player, attributes, headData), new ItemStack(Material.AIR))).sorted((item1, item2) -> {
+                //noinspection ConstantConditions
+                return item1.getItemMeta().getDisplayName().compareToIgnoreCase(item2.getItemMeta().getDisplayName());
+            }).collect(Collectors.toList());
+            
+        }, formatInfoTranslation("tport.main.sorter.alphabet.description"));
+        
+        Sort.addSorter("oldest", (player, attributes, headData) -> {
+            ArrayList<String> playerList = new ArrayList<>(tportData.getKeys("tport"));
+            return playerList.stream().map(playerUUID -> Main.getOrDefault(getHead(UUID.fromString(playerUUID), player, attributes, headData), new ItemStack(Material.AIR))).collect(Collectors.toList());
+        }, formatInfoTranslation("tport.main.sorter.oldest.description"));
+        
+        Sort.addSorter("newest", (player, attributes, headData) -> {
+            ArrayList<String> playerList = new ArrayList<>(tportData.getKeys("tport"));
+            Collections.reverse(playerList);
+            return playerList.stream().map(playerUUID -> Main.getOrDefault(getHead(UUID.fromString(playerUUID), player, attributes, headData), new ItemStack(Material.AIR))).collect(Collectors.toList());
+        }, formatInfoTranslation("tport.main.sorter.newest.description"));
+    }
     
     public static Set<String> getSorters() {
         return sorters.keySet();
@@ -208,6 +236,6 @@ public class Sort extends SubCommand {
     
     @FunctionalInterface
     public interface Sorter {
-        List<ItemStack> sort(Player player, ItemFactory.HeadAttributes... attributes);
+        List<ItemStack> sort(Player player, List<ItemFactory.HeadAttributes> attributes, @Nullable Object headData);
     }
 }

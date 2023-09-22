@@ -1,46 +1,68 @@
 package com.spaceman.tport.inventories;
 
 import com.google.gson.JsonObject;
+import com.spaceman.tport.Glow;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.commands.TPortCommand;
-import com.spaceman.tport.commands.tport.RemovePlayer;
+import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.commands.tport.backup.Load;
+import com.spaceman.tport.commands.tport.pltp.Consent;
+import com.spaceman.tport.commands.tport.pltp.Offset;
+import com.spaceman.tport.commands.tport.pltp.Preview;
+import com.spaceman.tport.commands.tport.pltp.State;
+import com.spaceman.tport.commands.tport.publc.ListSize;
+import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
+import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
+import com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
-import com.spaceman.tport.fancyMessage.inventories.KeyboardGUI;
+import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
+import com.spaceman.tport.fancyMessage.language.Language;
 import com.spaceman.tport.playerUUID.PlayerUUID;
+import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
+import static com.spaceman.tport.fancyMessage.MessageUtils.setCustomItemData;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
+import static com.spaceman.tport.fancyMessage.events.ClickEvent.openUrl;
+import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.*;
 import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.getDynamicScrollableInventory;
-import static com.spaceman.tport.fancyMessage.inventories.KeyboardGUI.getKeyboardOutput;
+import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.pageDataName;
+import static com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI.getKeyboardOutput;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
+import static com.spaceman.tport.fileHander.Files.tportData;
+import static com.spaceman.tport.inventories.ItemFactory.*;
 import static com.spaceman.tport.inventories.ItemFactory.BackType.*;
-import static com.spaceman.tport.inventories.ItemFactory.createBack;
-import static com.spaceman.tport.inventories.ItemFactory.getPlayerList;
+import static com.spaceman.tport.inventories.ItemFactory.HeadAttributes.PLTP_WHITELIST;
+import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.*;
+import static com.spaceman.tport.inventories.ItemFactory.toTPortItem;
+import static com.spaceman.tport.inventories.TPortInventories.openHomeEditGUI;
+import static com.spaceman.tport.tport.TPortManager.getTPort;
 import static org.bukkit.event.inventory.ClickType.*;
-import static org.bukkit.event.inventory.ClickType.LEFT;
 import static org.bukkit.persistence.PersistentDataType.STRING;
 
 public class SettingsInventories {
@@ -56,18 +78,101 @@ public class SettingsInventories {
     public static final InventoryModel settings_dynmap_model                   = new InventoryModel(Material.OAK_BUTTON, settings_restriction_model, "settings/dynmap");
     public static final InventoryModel settings_particle_animation_model       = new InventoryModel(Material.OAK_BUTTON, settings_dynmap_model, "settings/particle_animation");
     public static final InventoryModel settings_pltp_model                     = new InventoryModel(Material.OAK_BUTTON, settings_particle_animation_model, "settings/pltp");
-    public static final InventoryModel settings_public_model                   = new InventoryModel(Material.OAK_BUTTON, settings_pltp_model, "settings/public_tp");
-    public static final InventoryModel settings_resource_pack_model            = new InventoryModel(Material.OAK_BUTTON, settings_public_model, "settings/resource_pack");
-    public static final InventoryModel settings_tag_model                      = new InventoryModel(Material.OAK_BUTTON, settings_resource_pack_model, "settings/tag");
-    public static final InventoryModel settings_transfer_model                 = new InventoryModel(Material.OAK_BUTTON, settings_tag_model, "settings/transfer");
-    public static final InventoryModel settings_features_model                 = new InventoryModel(Material.OAK_BUTTON, settings_transfer_model, "settings/features");
-    public static final InventoryModel settings_metrics_model                  = new InventoryModel(Material.OAK_BUTTON, settings_features_model, "settings/metrics");
-    public static final InventoryModel settings_redirect_model                 = new InventoryModel(Material.OAK_BUTTON, settings_metrics_model, "settings/redirect");
-    public static final InventoryModel settings_remove_player_model            = new InventoryModel(Material.OAK_BUTTON, settings_redirect_model, "settings/remove_player");
+    public static final InventoryModel settings_pltp_state_on_model            = new InventoryModel(Material.OAK_BUTTON, settings_pltp_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_state_off_model           = new InventoryModel(Material.OAK_BUTTON, settings_pltp_state_on_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_state_grayed_model        = new InventoryModel(Material.OAK_BUTTON, settings_pltp_state_off_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_consent_on_model          = new InventoryModel(Material.OAK_BUTTON, settings_pltp_state_grayed_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_consent_off_model         = new InventoryModel(Material.OAK_BUTTON, settings_pltp_consent_on_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_consent_grayed_model      = new InventoryModel(Material.OAK_BUTTON, settings_pltp_consent_off_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_offset_in_model           = new InventoryModel(Material.OAK_BUTTON, settings_pltp_consent_grayed_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_offset_behind_model       = new InventoryModel(Material.OAK_BUTTON, settings_pltp_offset_in_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_offset_grayed_model       = new InventoryModel(Material.OAK_BUTTON, settings_pltp_offset_behind_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_preview_on_model          = new InventoryModel(Material.OAK_BUTTON, settings_pltp_offset_grayed_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_preview_off_model         = new InventoryModel(Material.OAK_BUTTON, settings_pltp_preview_on_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_preview_notified_model    = new InventoryModel(Material.OAK_BUTTON, settings_pltp_preview_off_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_preview_grayed_model      = new InventoryModel(Material.OAK_BUTTON, settings_pltp_preview_notified_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_whitelist_model           = new InventoryModel(Material.OAK_BUTTON, settings_pltp_preview_grayed_model, "settings/pltp");
+    public static final InventoryModel settings_pltp_whitelist_grayed_model    = new InventoryModel(Material.OAK_BUTTON, settings_pltp_whitelist_model, "settings/pltp");
+    public static final InventoryModel settings_public_model                   = new InventoryModel(Material.OAK_BUTTON, settings_pltp_whitelist_grayed_model, "settings/public_tp");
+    public static final InventoryModel settings_public_size_model              = new InventoryModel(Material.OAK_BUTTON, settings_public_model, "settings/public_tp");
+    public static final InventoryModel settings_public_fit_model               = new InventoryModel(Material.OAK_BUTTON, settings_public_size_model, "settings/public_tp");
+    public static final InventoryModel settings_public_reset_model             = new InventoryModel(Material.OAK_BUTTON, settings_public_fit_model, "settings/public_tp");
+    public static final InventoryModel settings_public_tports_model            = new InventoryModel(Material.OAK_BUTTON, settings_public_reset_model, "settings/public_tp");
+    public static final InventoryModel settings_resource_pack_model                   = new InventoryModel(Material.OAK_BUTTON, settings_public_tports_model, "settings/resource_pack");
+    public static final InventoryModel settings_resource_pack_state_enabled_model     = new InventoryModel(Material.OAK_BUTTON, settings_resource_pack_model, "settings/resource_pack");
+    public static final InventoryModel settings_resource_pack_state_disabled_model    = new InventoryModel(Material.OAK_BUTTON, settings_resource_pack_state_enabled_model, "settings/resource_pack");
+    public static final InventoryModel settings_resource_pack_resolution_model        = new InventoryModel(Material.OAK_BUTTON, settings_resource_pack_state_disabled_model, "settings/resource_pack");
+    public static final InventoryModel settings_resource_pack_resolution_grayed_model = new InventoryModel(Material.OAK_BUTTON, settings_resource_pack_resolution_model, "settings/resource_pack");
+    public static final InventoryModel settings_tag_model                      = new InventoryModel(Material.OAK_BUTTON, settings_resource_pack_resolution_grayed_model, "settings/tag");
+    public static final InventoryModel settings_tag_selection_model            = new InventoryModel(Material.OAK_BUTTON, settings_tag_model, "settings/tag");
+    public static final InventoryModel settings_tag_create_model               = new InventoryModel(Material.OAK_BUTTON, settings_tag_selection_model, "settings/tag");
+    public static final InventoryModel settings_tag_reset_model                = new InventoryModel(Material.OAK_BUTTON, settings_tag_create_model, "settings/tag");
+    public static final InventoryModel settings_transfer_model                 = new InventoryModel(Material.OAK_BUTTON, settings_tag_reset_model, "settings/transfer");
+    public static final InventoryModel settings_transfer_switch_offered_model  = new InventoryModel(Material.OAK_BUTTON, settings_transfer_model, "settings/transfer");
+    public static final InventoryModel settings_transfer_switch_offers_model   = new InventoryModel(Material.OAK_BUTTON, settings_transfer_switch_offered_model, "settings/transfer");
+    public static final InventoryModel settings_features_model                 = new InventoryModel(Material.OAK_BUTTON, settings_transfer_switch_offers_model, "settings/features");
+    public static final InventoryModel settings_features_biome_tp_model        = new InventoryModel(Material.OAK_BUTTON, settings_features_model, "settings/features");
+    public static final InventoryModel settings_features_biome_tp_grayed_model = new InventoryModel(Material.OAK_BUTTON, settings_features_biome_tp_model, "settings/features");
+    public static final InventoryModel settings_features_feature_tp_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_biome_tp_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_feature_tp_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_feature_tp_model, "settings/features");
+    public static final InventoryModel settings_features_back_tp_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_feature_tp_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_back_tp_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_back_tp_model, "settings/features");
+    public static final InventoryModel settings_features_public_tp_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_back_tp_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_public_tp_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_public_tp_model, "settings/features");
+    public static final InventoryModel settings_features_pltp_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_public_tp_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_pltp_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_pltp_model, "settings/features");
+    public static final InventoryModel settings_features_dynmap_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_pltp_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_dynmap_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_dynmap_model, "settings/features");
+    public static final InventoryModel settings_features_metrics_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_dynmap_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_metrics_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_metrics_model, "settings/features");
+    public static final InventoryModel settings_features_permissions_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_metrics_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_permissions_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_permissions_model, "settings/features");
+    public static final InventoryModel settings_features_particle_animation_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_permissions_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_particle_animation_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_particle_animation_model, "settings/features");
+    public static final InventoryModel settings_features_redirects_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_particle_animation_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_redirects_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_redirects_model, "settings/features");
+    public static final InventoryModel settings_features_preview_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_redirects_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_preview_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_preview_model, "settings/features");
+    public static final InventoryModel settings_features_world_tp_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_preview_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_world_tp_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_world_tp_model, "settings/features");
+    public static final InventoryModel settings_features_tport_takes_item_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_world_tp_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_tport_takes_item_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_tport_takes_item_model, "settings/features");
+    public static final InventoryModel settings_features_interdimensional_teleporting_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_tport_takes_item_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_interdimensional_teleporting_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_interdimensional_teleporting_model, "settings/features");
+    public static final InventoryModel settings_features_death_tp_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_interdimensional_teleporting_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_death_tp_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_death_tp_model, "settings/features");
+    public static final InventoryModel settings_features_print_errors_in_console_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_death_tp_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_print_errors_in_console_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_print_errors_in_console_model, "settings/features");
+    public static final InventoryModel settings_features_feature_settings_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_print_errors_in_console_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_feature_settings_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_feature_settings_model, "settings/features");
+    public static final InventoryModel settings_redirect_model                 = new InventoryModel(Material.OAK_BUTTON, settings_features_feature_settings_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_console_feedback_model             = new InventoryModel(Material.OAK_BUTTON, settings_redirect_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_console_feedback_grayed_model      = new InventoryModel(Material.OAK_BUTTON, settings_redirect_console_feedback_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tp_pltp_model                      = new InventoryModel(Material.OAK_BUTTON, settings_redirect_console_feedback_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tp_pltp_grayed_model               = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tp_pltp_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_locate_feature_tp_model            = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tp_pltp_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_locate_feature_tp_grayed_model     = new InventoryModel(Material.OAK_BUTTON, settings_redirect_locate_feature_tp_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_locate_biome_biome_tp_model        = new InventoryModel(Material.OAK_BUTTON, settings_redirect_locate_feature_tp_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_locate_biome_biome_tp_grayed_model = new InventoryModel(Material.OAK_BUTTON, settings_redirect_locate_biome_biome_tp_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_home_tport_home_model              = new InventoryModel(Material.OAK_BUTTON, settings_redirect_locate_biome_biome_tp_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_home_tport_home_grayed_model       = new InventoryModel(Material.OAK_BUTTON, settings_redirect_home_tport_home_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_back_tport_back_model              = new InventoryModel(Material.OAK_BUTTON, settings_redirect_home_tport_home_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_back_tport_back_grayed_model       = new InventoryModel(Material.OAK_BUTTON, settings_redirect_back_tport_back_model, "settings/redirect");
+    public static final InventoryModel settings_remove_player_model            = new InventoryModel(Material.OAK_BUTTON, settings_redirect_back_tport_back_grayed_model, "settings/remove_player");
     public static final InventoryModel settings_remove_player_confirm_model    = new InventoryModel(Material.OAK_BUTTON, settings_remove_player_model, "settings/remove_player");
     public static final InventoryModel settings_remove_player_cancel_model     = new InventoryModel(Material.OAK_BUTTON, settings_remove_player_confirm_model, "settings/remove_player");
-    public static final InventoryModel settings_safety_check_model             = new InventoryModel(Material.OAK_BUTTON, settings_remove_player_cancel_model, "settings/safety_check");
-    public static final InventoryModel settings_language_model                 = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_model, "settings/language");
+    public static final InventoryModel settings_safety_check_model                     = new InventoryModel(Material.OAK_BUTTON, settings_remove_player_cancel_model, "settings/safety_check");
+    public static final InventoryModel settings_safety_check_tport_open_model          = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_model, "settings/safety_check");
+    public static final InventoryModel settings_safety_check_tport_open_grayed_model   = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_tport_open_model, "settings/safety_check");
+    public static final InventoryModel settings_safety_check_tport_own_model           = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_tport_open_grayed_model, "settings/safety_check");
+    public static final InventoryModel settings_safety_check_tport_own_grayed_model    = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_tport_own_model, "settings/safety_check");
+    public static final InventoryModel settings_safety_check_tport_home_model          = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_tport_own_grayed_model, "settings/safety_check");
+    public static final InventoryModel settings_safety_check_tport_home_grayed_model   = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_tport_home_model, "settings/safety_check");
+    public static final InventoryModel settings_safety_check_tport_back_model          = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_tport_home_grayed_model, "settings/safety_check");
+    public static final InventoryModel settings_safety_check_tport_back_grayed_model   = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_tport_back_model, "settings/safety_check");
+    public static final InventoryModel settings_safety_check_tport_public_model        = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_tport_back_grayed_model, "settings/safety_check");
+    public static final InventoryModel settings_safety_check_tport_public_grayed_model = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_tport_public_model, "settings/safety_check");
+    public static final InventoryModel settings_language_model                 = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_tport_public_grayed_model, "settings/language");
     public static final InventoryModel settings_cooldown_model                 = new InventoryModel(Material.OAK_BUTTON, settings_language_model, "settings/cooldown");
     public static final InventoryModel settings_backup_state_true_model        = new InventoryModel(Material.OAK_BUTTON, settings_cooldown_model, "settings/backup");
     public static final InventoryModel settings_backup_state_false_model       = new InventoryModel(Material.OAK_BUTTON, settings_backup_state_true_model, "settings/backup");
@@ -88,9 +193,11 @@ public class SettingsInventories {
     public static final InventoryModel settings_color_theme_green_remove_model = new InventoryModel(Material.OAK_BUTTON, settings_color_theme_green_add_model, "settings/color_theme");
     public static final InventoryModel settings_color_theme_blue_add_model     = new InventoryModel(Material.OAK_BUTTON, settings_color_theme_green_remove_model, "settings/color_theme");
     public static final InventoryModel settings_color_theme_blue_remove_model  = new InventoryModel(Material.OAK_BUTTON, settings_color_theme_blue_add_model, "settings/color_theme");
-    public static final int last_model_id = settings_color_theme_blue_remove_model.getCustomModelData();
+    public static final InventoryModel settings_restore_model                  = new InventoryModel(Material.OAK_BUTTON, settings_color_theme_blue_remove_model, "settings/restore");
+    public static final InventoryModel settings_home_model                     = new InventoryModel(Material.OAK_BUTTON, settings_restore_model, "settings/home");
+    public static final int last_model_id = settings_home_model.getCustomModelData();
     
-    public static void openTPortBackup_loadBackupGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
+    public static void openBackup_loadBackupGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
         ColorTheme colorTheme = ColorTheme.getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
@@ -99,18 +206,18 @@ public class SettingsInventories {
             ItemStack item = settings_backup_load_model.getItem(player);
             Message title = formatInfoTranslation("tport.settingsInventories.openTPortBackup_load_backupGUI.backup", backup);
             title.translateMessage(playerLang);
-            MessageUtils.setCustomItemData(item, colorTheme, title, null);
+            setCustomItemData(item, colorTheme, title, null);
             addCommand(item, LEFT, "tport backup load " + backup);
             
             items.add(item);
         }
         
-        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openTPortBackup_loadBackupGUI,
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openBackup_loadBackupGUI,
                 "tport.settingsInventories.openTPortBackup_load_backupGUI.title", items, createBack(player, BACKUP, OWN, MAIN));
         
         inv.open(player);
     }
-    public static void openTPortBackupGUI(Player player) {
+    public static void openBackupGUI(Player player) {
         ColorTheme colorTheme = ColorTheme.getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
@@ -124,14 +231,14 @@ public class SettingsInventories {
         autoCountTitle.translateMessage(playerLang);
         autoCountLC.translateMessage(playerLang);
         autoCountRC.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(autoCount, colorTheme, autoCountTitle, Arrays.asList(new Message(), autoCountLC, autoCountRC));
+        setCustomItemData(autoCount, colorTheme, autoCountTitle, Arrays.asList(new Message(), autoCountLC, autoCountRC));
         addFunction(autoCount, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> {
             TPortCommand.executeTPortCommand(whoClicked, "backup auto " + (Auto.getBackupCount() + 1));
-            openTPortBackupGUI(whoClicked);
+            openBackupGUI(whoClicked);
         });
         addFunction(autoCount, ClickType.RIGHT, (whoClicked, clickType, pdc, fancyInventory) -> {
             TPortCommand.executeTPortCommand(whoClicked, "backup auto " + (Auto.getBackupCount() - 1));
-            openTPortBackupGUI(whoClicked);
+            openBackupGUI(whoClicked);
         });
         
         boolean backupState = Auto.getBackupState();
@@ -151,32 +258,32 @@ public class SettingsInventories {
         Message stateLore = formatInfoTranslation("tport.settingsInventories.openTPortBackupGUI.backupState.changeState", LEFT, changeStateMessage);
         stateTitle.translateMessage(playerLang);
         stateLore.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(backupStateItem, colorTheme, stateTitle, Arrays.asList(new Message(), stateLore));
+        setCustomItemData(backupStateItem, colorTheme, stateTitle, Arrays.asList(new Message(), stateLore));
         
         if (Auto.getBackupState()) {
             addFunction(backupStateItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> {
                 TPortCommand.executeTPortCommand(whoClicked, "backup auto false");
-                openTPortBackupGUI(whoClicked);
+                openBackupGUI(whoClicked);
             });
         } else {
             addFunction(backupStateItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> {
                 TPortCommand.executeTPortCommand(whoClicked, "backup auto true");
-                openTPortBackupGUI(whoClicked);
+                openBackupGUI(whoClicked);
             });
         }
         
         ItemStack save = settings_backup_save_model.getItem(player);
         addFunction(save, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> {
             TPortCommand.executeTPortCommand(whoClicked, "backup save");
-            openTPortBackupGUI(whoClicked);
+            openBackupGUI(whoClicked);
         });
         addFunction(save, RIGHT, (whoClicked, clickType, pdc, fancyInventory) -> {
             FancyClickEvent.FancyClickRunnable onAccept = (whoClicked1, clickType1, pdc1, keyboardInventory) -> {
                 String keyboardOutput = getKeyboardOutput(keyboardInventory);
                 TPortCommand.executeTPortCommand(whoClicked1, "backup save " + keyboardOutput);
-                openTPortBackupGUI(whoClicked1);
+                openBackupGUI(whoClicked1);
             };
-            FancyClickEvent.FancyClickRunnable onReject = (whoClicked1, clickType1, pdc1, keyboardInventory) -> openTPortBackupGUI(whoClicked1);
+            FancyClickEvent.FancyClickRunnable onReject = (whoClicked1, clickType1, pdc1, keyboardInventory) -> openBackupGUI(whoClicked1);
             KeyboardGUI.openKeyboard(whoClicked, onAccept, onReject, KeyboardGUI.TEXT_ONLY);
         });
         Message saveTitle = formatInfoTranslation("tport.settingsInventories.openTPortBackupGUI.save");
@@ -185,15 +292,15 @@ public class SettingsInventories {
         saveLeft.translateMessage(playerLang);
         Message saveRight = formatInfoTranslation("tport.settingsInventories.openTPortBackupGUI.save.right", RIGHT);
         saveRight.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(save, colorTheme, saveTitle, Arrays.asList(new Message(), saveLeft, saveRight));
+        setCustomItemData(save, colorTheme, saveTitle, Arrays.asList(new Message(), saveLeft, saveRight));
         
         ItemStack load = settings_backup_load_model.getItem(player);
         Message loadTitle = formatInfoTranslation("tport.settingsInventories.openTPortBackupGUI.load");
         loadTitle.translateMessage(playerLang);
         Message loadLeft = formatInfoTranslation("tport.settingsInventories.openTPortBackupGUI.load.left", LEFT);
         loadLeft.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(load, colorTheme, loadTitle, Arrays.asList(new Message(), loadLeft));
-        addFunction(load, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openTPortBackup_loadBackupGUI(whoClicked, 0, null));
+        setCustomItemData(load, colorTheme, loadTitle, Arrays.asList(new Message(), loadLeft));
+        addFunction(load, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openBackup_loadBackupGUI(whoClicked, 0, null));
         
         ItemStack back = createBack(player, SETTINGS, MAIN, OWN);
         
@@ -251,7 +358,7 @@ public class SettingsInventories {
             ItemStack redAdd = settings_color_theme_red_add_model.getItem(player);
             Message redAddTitle = formatTranslation(colorType, colorType, "tport.settingsInventories.openTPortColorTheme_editTypeGUI.red.add");
             redAddTitle.translateMessage(playerLang);
-            MessageUtils.setCustomItemData(redAdd, colorTheme, redAddTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueAdd1, valueAdd10, valueAdd25, valueAdd100));
+            setCustomItemData(redAdd, colorTheme, redAddTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueAdd1, valueAdd10, valueAdd25, valueAdd100));
             FancyClickEvent.setStringData(redAdd, new NamespacedKey(Main.getInstance(), "colorType_name"), colorType.name());
             addFunction(redAdd, LEFT, ((whoClicked, clickType, pdc, fancyInventory) ->
                     changeColorRunnable(whoClicked, pdc, fancyInventory, (color) -> new Color(Math.min(color.getRed() + 1, 255), color.getGreen(), color.getBlue()))));
@@ -265,7 +372,7 @@ public class SettingsInventories {
             ItemStack redRem = settings_color_theme_red_remove_model.getItem(player);
             Message redRemTitle = formatTranslation(colorType, colorType, "tport.settingsInventories.openTPortColorTheme_editTypeGUI.red.remove");
             redRemTitle.translateMessage(playerLang);
-            MessageUtils.setCustomItemData(redRem, colorTheme, redRemTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueRemove1, valueRemove10, valueRemove25, valueRemove100));
+            setCustomItemData(redRem, colorTheme, redRemTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueRemove1, valueRemove10, valueRemove25, valueRemove100));
             FancyClickEvent.setStringData(redRem, new NamespacedKey(Main.getInstance(), "colorType_name"), colorType.name());
             addFunction(redRem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) ->
                     changeColorRunnable(whoClicked, pdc, fancyInventory, (color) -> new Color(Math.max(color.getRed() - 1, 0), color.getGreen(), color.getBlue()))));
@@ -279,7 +386,7 @@ public class SettingsInventories {
             ItemStack greenAdd = settings_color_theme_green_add_model.getItem(player);
             Message greenAddTitle = formatTranslation(colorType, colorType, "tport.settingsInventories.openTPortColorTheme_editTypeGUI.green.add");
             greenAddTitle.translateMessage(playerLang);
-            MessageUtils.setCustomItemData(greenAdd, colorTheme, greenAddTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueAdd1, valueAdd10, valueAdd25, valueAdd100));
+            setCustomItemData(greenAdd, colorTheme, greenAddTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueAdd1, valueAdd10, valueAdd25, valueAdd100));
             FancyClickEvent.setStringData(greenAdd, new NamespacedKey(Main.getInstance(), "colorType_name"), colorType.name());
             addFunction(greenAdd, LEFT, ((whoClicked, clickType, pdc, fancyInventory) ->
                     changeColorRunnable(whoClicked, pdc, fancyInventory, (color) -> new Color(color.getRed(), Math.min(color.getGreen() + 1, 255), color.getBlue()))));
@@ -293,7 +400,7 @@ public class SettingsInventories {
             ItemStack greenRem = settings_color_theme_green_remove_model.getItem(player);
             Message greenRemTitle = formatTranslation(colorType, colorType, "tport.settingsInventories.openTPortColorTheme_editTypeGUI.green.remove");
             greenRemTitle.translateMessage(playerLang);
-            MessageUtils.setCustomItemData(greenRem, colorTheme, greenRemTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueRemove1, valueRemove10, valueRemove25, valueRemove100));
+            setCustomItemData(greenRem, colorTheme, greenRemTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueRemove1, valueRemove10, valueRemove25, valueRemove100));
             FancyClickEvent.setStringData(greenRem, new NamespacedKey(Main.getInstance(), "colorType_name"), colorType.name());
             addFunction(greenRem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) ->
                     changeColorRunnable(whoClicked, pdc, fancyInventory, (color) -> new Color(color.getRed(), Math.max(color.getGreen() - 1, 0), color.getBlue()))));
@@ -307,7 +414,7 @@ public class SettingsInventories {
             ItemStack blueAdd = settings_color_theme_blue_add_model.getItem(player);
             Message blueAddTitle = formatTranslation(colorType, colorType, "tport.settingsInventories.openTPortColorTheme_editTypeGUI.blue.add");
             blueAddTitle.translateMessage(playerLang);
-            MessageUtils.setCustomItemData(blueAdd, colorTheme, blueAddTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueAdd1, valueAdd10, valueAdd25, valueAdd100));
+            setCustomItemData(blueAdd, colorTheme, blueAddTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueAdd1, valueAdd10, valueAdd25, valueAdd100));
             FancyClickEvent.setStringData(blueAdd, new NamespacedKey(Main.getInstance(), "colorType_name"), colorType.name());
             addFunction(blueAdd, LEFT, ((whoClicked, clickType, pdc, fancyInventory) ->
                     changeColorRunnable(whoClicked, pdc, fancyInventory, (color) -> new Color(color.getRed(), color.getGreen(), Math.min(color.getBlue() + 1, 255)))));
@@ -321,7 +428,7 @@ public class SettingsInventories {
             ItemStack blueRem = settings_color_theme_blue_remove_model.getItem(player);
             Message blueRemTitle = formatTranslation(colorType, colorType, "tport.settingsInventories.openTPortColorTheme_editTypeGUI.blue.remove");
             blueRemTitle.translateMessage(playerLang);
-            MessageUtils.setCustomItemData(blueRem, colorTheme, blueRemTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueRemove1, valueRemove10, valueRemove25, valueRemove100));
+            setCustomItemData(blueRem, colorTheme, blueRemTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueRemove1, valueRemove10, valueRemove25, valueRemove100));
             FancyClickEvent.setStringData(blueRem, new NamespacedKey(Main.getInstance(), "colorType_name"), colorType.name());
             addFunction(blueRem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) ->
                     changeColorRunnable(whoClicked, pdc, fancyInventory, (color) -> new Color(color.getRed(), color.getGreen(), Math.max(color.getBlue() - 1, 0)))));
@@ -343,7 +450,7 @@ public class SettingsInventories {
             }).getItem(player);
             Message masterColorTitle = formatTranslation(colorType, colorType, "tport.settingsInventories.openTPortColorTheme_editTypeGUI.colorTypes." + colorType);
             masterColorTitle.translateMessage(playerLang);
-            MessageUtils.setCustomItemData(masterColor, colorTheme, masterColorTitle, Arrays.asList(valueHEXMessage, valueRGBMessage));
+            setCustomItemData(masterColor, colorTheme, masterColorTitle, Arrays.asList(valueHEXMessage, valueRGBMessage));
             
             inv.setItem(10 + indexOffset, masterColor);
             inv.setItem(11 + indexOffset, redAdd);
@@ -371,7 +478,7 @@ public class SettingsInventories {
             
             addCommand(themeItem, LEFT, "tport colorTheme set " + themeEntry.getKey());
             addFunction(themeItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) ->
-                    openTPortColorTheme_selectTheme(whoClicked, fancyInventory.getData("page", Integer.class), fancyInventory)));
+                    openTPortColorTheme_selectTheme(whoClicked, fancyInventory.getData(pageDataName), fancyInventory)));
             
             Message itemTitle = formatInfoTranslation("tport.settingsInventories.openTPortColorTheme_selectTheme.theme.name", themeEntry.getKey());
             itemTitle.translateMessage(playerLang);
@@ -421,7 +528,7 @@ public class SettingsInventories {
             }
             errorArray.removeLast();
             
-            MessageUtils.setCustomItemData(themeItem, themeEntry.getValue(), itemTitle,
+            setCustomItemData(themeItem, themeEntry.getValue(), itemTitle,
                     Arrays.asList(
                             new Message(), infoTheme, infoList, infoArray,
                             new Message(), successTheme, successList, successArray,
@@ -460,7 +567,7 @@ public class SettingsInventories {
         infoArray.removeLast();
         Message clickToEditInfo = formatInfoTranslation("tport.settingsInventories.openTPortColorThemeGUI.info.clickToEdit", LEFT);
         clickToEditInfo.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(info, colorTheme, infoTheme, Arrays.asList(infoList, infoArray, new Message(), clickToEditInfo));
+        setCustomItemData(info, colorTheme, infoTheme, Arrays.asList(infoList, infoArray, new Message(), clickToEditInfo));
         addFunction(info, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openTPortColorTheme_editTypeGUI(whoClicked, Arrays.asList(infoColor, varInfoColor, varInfo2Color)));
         inv.setItem(10, info);
         
@@ -481,7 +588,7 @@ public class SettingsInventories {
         successArray.removeLast();
         Message clickToEditSuccess = formatSuccessTranslation("tport.settingsInventories.openTPortColorThemeGUI.success.clickToEdit", LEFT);
         clickToEditSuccess.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(success, colorTheme, successTheme, Arrays.asList(successList, successArray, new Message(), clickToEditSuccess));
+        setCustomItemData(success, colorTheme, successTheme, Arrays.asList(successList, successArray, new Message(), clickToEditSuccess));
         addFunction(success, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openTPortColorTheme_editTypeGUI(whoClicked, Arrays.asList(successColor, varSuccessColor, varSuccess2Color)));
         inv.setItem(11, success);
         
@@ -502,7 +609,7 @@ public class SettingsInventories {
         errorArray.removeLast();
         Message clickToEditError = formatErrorTranslation("tport.settingsInventories.openTPortColorThemeGUI.error.clickToEdit", LEFT);
         clickToEditError.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(error, colorTheme, errorTheme, Arrays.asList(errorList, errorArray, new Message(), clickToEditError));
+        setCustomItemData(error, colorTheme, errorTheme, Arrays.asList(errorList, errorArray, new Message(), clickToEditError));
         addFunction(error, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openTPortColorTheme_editTypeGUI(whoClicked, Arrays.asList(errorColor, varErrorColor, varError2Color)));
         inv.setItem(12, error);
         
@@ -513,7 +620,7 @@ public class SettingsInventories {
         goodTheme.translateMessage(playerLang);
         Message clickToEditGood = formatTranslation(goodColor, varInfoColor, "tport.settingsInventories.openTPortColorThemeGUI.good.clickToEdit", LEFT);
         clickToEditGood.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(good, colorTheme, goodTheme, Arrays.asList(new Message(), clickToEditGood));
+        setCustomItemData(good, colorTheme, goodTheme, Arrays.asList(new Message(), clickToEditGood));
         addFunction(good, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openTPortColorTheme_editTypeGUI(whoClicked, Arrays.asList(goodColor, badColor, titleColor)));
         inv.setItem(13, good);
         
@@ -524,7 +631,7 @@ public class SettingsInventories {
         badTheme.translateMessage(playerLang);
         Message clickToEditBad = formatTranslation(badColor, varInfoColor, "tport.settingsInventories.openTPortColorThemeGUI.bad.clickToEdit", LEFT);
         clickToEditBad.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(bad, colorTheme, badTheme, Arrays.asList(new Message(), clickToEditBad));
+        setCustomItemData(bad, colorTheme, badTheme, Arrays.asList(new Message(), clickToEditBad));
         addFunction(bad, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openTPortColorTheme_editTypeGUI(whoClicked, Arrays.asList(goodColor, badColor, titleColor)));
         inv.setItem(14, bad);
         
@@ -535,14 +642,14 @@ public class SettingsInventories {
         titleTheme.translateMessage(playerLang);
         Message clickToEditTitle = formatTranslation(titleColor, varInfoColor, "tport.settingsInventories.openTPortColorThemeGUI.title.clickToEdit", LEFT);
         clickToEditTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(title, colorTheme, titleTheme, Arrays.asList(new Message(), clickToEditTitle));
+        setCustomItemData(title, colorTheme, titleTheme, Arrays.asList(new Message(), clickToEditTitle));
         addFunction(title, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openTPortColorTheme_editTypeGUI(whoClicked, Arrays.asList(goodColor, badColor, titleColor)));
         inv.setItem(15, title);
         
         ItemStack selectFromList = settings_color_theme_select_model.getItem(player);
         Message selectFromListTitle = formatInfoTranslation("tport.settingsInventories.openTPortColorThemeGUI.selectFromList.title", LEFT);
         selectFromListTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(selectFromList, colorTheme, selectFromListTitle, null);
+        setCustomItemData(selectFromList, colorTheme, selectFromListTitle, null);
         addFunction(selectFromList, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openTPortColorTheme_selectTheme(whoClicked, 0, null)));
         inv.setItem(16, selectFromList);
         
@@ -557,7 +664,7 @@ public class SettingsInventories {
                 page,
                 SettingsInventories::openRemovePlayerGUI,
                 "tport.settingsInventories.openRemovePlayerGUI.title",
-                getPlayerList(player, false, true, List.of(ItemFactory.HeadAttributes.REMOVE_PLAYER), List.of()),
+                getPlayerList(player, false, true, List.of(ItemFactory.HeadAttributes.TPORT_AMOUNT, ItemFactory.HeadAttributes.REMOVE_PLAYER), List.of(), null),
                 createBack(player, SETTINGS, OWN, MAIN));
         
         inv.open(player);
@@ -572,10 +679,10 @@ public class SettingsInventories {
         ItemStack cancel = settings_remove_player_cancel_model.getItem(player);
         addFunction(cancel, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openRemovePlayerGUI(whoClicked, 0, null)));
         Message cancelTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openRemovePlayerConfirmationGUI.cancel.title", LEFT, asPlayer((toRemove)));
-        MessageUtils.setCustomItemData(cancel, colorTheme, cancelTitle, null);
+        setCustomItemData(cancel, colorTheme, cancelTitle, null);
         inv.setItem(11, cancel);
         
-        ItemStack head = ItemFactory.getHead(toRemove, player, ItemFactory.HeadAttributes.CONFIRM_REMOVE_PLAYER);
+        ItemStack head = ItemFactory.getHead(toRemove, player, List.of(ItemFactory.HeadAttributes.TPORT_AMOUNT), null);
         inv.setItem(13, head);
         
         ItemStack confirm = settings_remove_player_confirm_model.getItem(player);
@@ -587,8 +694,626 @@ public class SettingsInventories {
             whoClicked.closeInventory();
         }));
         Message confirmTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openRemovePlayerConfirmationGUI.confirm.title", LEFT, asPlayer((toRemove)));
-        MessageUtils.setCustomItemData(confirm, colorTheme, confirmTitle, null);
+        setCustomItemData(confirm, colorTheme, confirmTitle, null);
         inv.setItem(15, confirm);
+        
+        inv.open(player);
+    }
+    
+    public static void openTransferGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        
+        boolean offers = false;
+        if (prevWindow != null) {
+            //noinspection ConstantValue
+            offers = prevWindow.getData("offers", Boolean.class, offers);
+        }
+        
+        ArrayList<ItemStack> items = new ArrayList<>();
+        String titleID;
+        String switchID;
+        ItemStack offerSwitch;
+        if (offers) {
+            titleID = "tport.settingsInventories.openTPortTransferGUI.title.offers";
+            switchID = "tport.settingsInventories.openTPortTransferGUI.switch.toOffered";
+            offerSwitch = settings_transfer_switch_offers_model.getItem(player);
+            
+            for (String uuidString : tportData.getKeys("tport")) {
+                UUID uuid = UUID.fromString(uuidString);
+                for (TPort tport : TPortManager.getTPortList(uuid)) {
+                    if (player.getUniqueId().equals(tport.getOfferedTo())) {
+                        PlayerEncapsulation otherPlayer = asPlayer(tport.getOwner());
+                        ItemStack is = ItemFactory.toTPortItem(tport, player, List.of(ItemFactory.TPortItemAttributes.TRANSFER_OFFERS), otherPlayer);
+                        addFunction(is, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openTransferGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory)));
+                        items.add(is);
+                    }
+                }
+            }
+        } else {
+            titleID = "tport.settingsInventories.openTPortTransferGUI.title.offered";
+            switchID = "tport.settingsInventories.openTPortTransferGUI.switch.toOffers";
+            offerSwitch = settings_transfer_switch_offered_model.getItem(player);
+            
+            for (TPort tport : TPortManager.getTPortList(player.getUniqueId())) {
+                if (tport.isOffered()) {
+                    PlayerEncapsulation otherPlayer = asPlayer(tport.getOfferedTo());
+                    ItemStack is = ItemFactory.toTPortItem(tport, player, List.of(ItemFactory.TPortItemAttributes.TRANSFER_OFFERED), otherPlayer);
+                    addFunction(is, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openTransferGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory)));
+                    items.add(is);
+                }
+            }
+        }
+        
+        Message title = formatInfoTranslation(playerLang, titleID);
+        ItemStack backButton = createBack(player, SETTINGS, OWN, MAIN);
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openTransferGUI, title, items, backButton);
+        inv.setData("offers", offers);
+        
+        Message switchTitle = formatInfoTranslation(playerLang, switchID);
+        setCustomItemData(offerSwitch, colorTheme, switchTitle, null);
+        addFunction(offerSwitch, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            int p = fancyInventory.getData(pageDataName);
+            fancyInventory.setData("offers", !fancyInventory.getData("offers", Boolean.class));
+            openTransferGUI(whoClicked, p, fancyInventory);
+        }));
+        inv.setItem(inv.getSize() - 9, offerSwitch);
+        
+        inv.open(player);
+    }
+    
+    private static ItemStack getFeaturesItem(Features.Feature feature, Player player, @Nullable ColorTheme colorTheme, @Nullable JsonObject playerLang) {
+        if (colorTheme == null) colorTheme = ColorTheme.getTheme(player);
+        if (playerLang == null) playerLang = getPlayerLang(player.getUniqueId());
+        
+        ItemStack is = feature.getModel().getItem(player);
+        
+        Message title = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortFeaturesGUI.feature.title", feature.name());
+        Message stateMessage;
+        Message nextStateMessage;
+        String newState;
+        if (feature.isEnabled()) {
+            stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortFeaturesGUI.feature.enabled");
+            nextStateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortFeaturesGUI.feature.disable");
+            newState = "false";
+        } else {
+            stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortFeaturesGUI.feature.disabled");
+            nextStateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortFeaturesGUI.feature.enable");
+            newState = "true";
+        }
+        Message currentStateMessage = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortFeaturesGUI.feature.state", stateMessage);
+        Message clickMessage = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortFeaturesGUI.feature.nextState", LEFT, nextStateMessage);
+        
+        ArrayList<Message> lore = new ArrayList<>();
+        lore.add(new Message());
+        lore.add(currentStateMessage);
+        lore.add(formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortFeaturesGUI.feature.moreInfo", RIGHT));
+        lore.add(new Message());
+        lore.add(clickMessage);
+        
+        setCustomItemData(is, colorTheme, title, lore);
+        
+        addCommand(is, LEFT, "tport features " + feature.name() + " state " + newState);
+        addFunction(is, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openFeaturesGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory)));
+        addCommand(is, RIGHT, "tport features");
+        
+        return is;
+    }
+    private static void openFeaturesGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        ArrayList<ItemStack> items = new ArrayList<>();
+        
+        for (Features.Feature feature : Features.Feature.values()) {
+            items.add(getFeaturesItem(feature, player, colorTheme, playerLang));
+        }
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openFeaturesGUI, "tport.settingsInventories.openTPortFeaturesGUI.title", items, createBack(player, SETTINGS, OWN, MAIN));
+        
+        inv.open(player);
+    }
+    
+    private static void openRedirectsGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        ArrayList<ItemStack> items = new ArrayList<>();
+        
+        for (Redirect.Redirects redirect : Redirect.Redirects.values()) {
+            ItemStack is = redirect.getModel().getItem(player);
+            
+            Message title = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortRedirectsGUI.redirect.title", redirect.name());
+            Message stateMessage;
+            Message nextStateMessage;
+            String newState;
+            if (redirect.isEnabled()) {
+                stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortRedirectsGUI.redirect.enabled");
+                nextStateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortRedirectsGUI.redirect.disable");
+                newState = "false";
+            } else {
+                stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortRedirectsGUI.redirect.disabled");
+                nextStateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortRedirectsGUI.redirect.enable");
+                newState = "true";
+            }
+            Message currentStateMessage = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortRedirectsGUI.redirect.state", stateMessage);
+            Message clickMessage = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortRedirectsGUI.redirect.nextState", LEFT, nextStateMessage);
+            
+            ArrayList<Message> lore = new ArrayList<>();
+            lore.add(new Message());
+            lore.add(currentStateMessage);
+            lore.add(formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortRedirectsGUI.redirect.moreInfo", RIGHT));
+            lore.add(new Message());
+            lore.add(clickMessage);
+            
+            setCustomItemData(is, colorTheme, title, lore);
+            
+            addCommand(is, LEFT, "tport redirect " + redirect.name() + " " + newState);
+            addFunction(is, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openRedirectsGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory)));
+            addCommand(is, RIGHT, "tport redirect");
+            
+            items.add(is);
+        }
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openRedirectsGUI, "tport.settingsInventories.openTPortRedirectsGUI.title", items, createBack(player, SETTINGS, OWN, MAIN));
+        
+        inv.open(player);
+    }
+    
+    private static void openSafetyCheckGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        ArrayList<ItemStack> items = new ArrayList<>();
+        
+        for (SafetyCheck.SafetyCheckSource source : SafetyCheck.SafetyCheckSource.values()) {
+            ItemStack is = source.getModel(player).getItem(player);
+            
+            Message title = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortSafetyCheckGUI.source.title", source.name());
+            Message stateMessage;
+            Message nextStateMessage;
+            String newState;
+            if (source.getState(player)) {
+                stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortSafetyCheckGUI.source.enabled");
+                nextStateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortSafetyCheckGUI.source.disable");
+                newState = "false";
+            } else {
+                stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortSafetyCheckGUI.source.disabled");
+                nextStateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortSafetyCheckGUI.source.enable");
+                newState = "true";
+            }
+            Message currentStateMessage = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortSafetyCheckGUI.source.state", stateMessage);
+            Message clickMessage = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortSafetyCheckGUI.source.nextState", LEFT, nextStateMessage);
+            
+            ArrayList<Message> lore = new ArrayList<>();
+            lore.add(new Message());
+            lore.add(currentStateMessage);
+            lore.add(source.getDescription().translateMessage(playerLang));
+            lore.add(new Message());
+            lore.add(clickMessage);
+            
+            setCustomItemData(is, colorTheme, title, lore);
+            
+            addCommand(is, LEFT, "tport safetyCheck " + source.name() + " " + newState);
+            addFunction(is, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openSafetyCheckGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory)));
+            
+            items.add(is);
+        }
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openSafetyCheckGUI, "tport.settingsInventories.openTPortSafetyCheckGUI.title", items, createBack(player, SETTINGS, OWN, MAIN));
+        
+        inv.open(player);
+    }
+    
+    private static void openTagGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
+        ColorTheme colorTheme = getTheme(player);
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        ArrayList<ItemStack> items = new ArrayList<>();
+        
+        for (String tag : Tag.getTags()) {
+            ItemStack item = settings_tag_selection_model.getItem(player);
+            
+            Message tagTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortTagGUI.tag.title", tag);
+            Message tagLore = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortTagGUI.tag.delete", LEFT);
+            setCustomItemData(item, colorTheme, tagTitle, List.of(new Message(), tagLore));
+            addCommand(item, LEFT, "tport tag delete " + tag);
+            addFunction(item, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                int p = fancyInventory.getData(pageDataName);
+                openTagGUI(whoClicked, p, null);
+            }));
+            
+            items.add(item);
+        }
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openTagGUI,
+                "tport.settingsInventories.openTPortTagGUI.title",
+                items, createBack(player, SETTINGS, OWN, MAIN));
+        
+        ItemStack createTag = settings_tag_create_model.getItem(player);
+        setCustomItemData(createTag, colorTheme, formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortTagGUI.tag.create", LEFT), null);
+        addFunction(createTag, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            FancyClickEvent.FancyClickRunnable onAccept = ((whoClicked1, clickType1, pdc1, keyboardInventory) -> {
+                String tagName = getKeyboardOutput(keyboardInventory);
+                TPortCommand.executeTPortCommand(whoClicked1, new String[] {"tag", "create", tagName});
+                openTagGUI(whoClicked1, 0, null);
+            });
+            FancyClickEvent.FancyClickRunnable onReject = ((whoClicked1, clickType1, pdc1, keyboardInventory) -> openTagGUI(whoClicked1, 0, null));
+            KeyboardGUI.openKeyboard(whoClicked, onAccept, onReject, KeyboardGUI.TEXT_ONLY);
+        }));
+        inv.setItem(inv.getSize() - 6, createTag);
+        
+        ItemStack resetTags = settings_tag_reset_model.getItem(player);
+        setCustomItemData(resetTags, colorTheme, formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortTagGUI.reset", SHIFT_LEFT), null);
+        addCommand(resetTags, SHIFT_LEFT, "tport tag reset");
+        addFunction(resetTags, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            openTagGUI(whoClicked, 0, null);
+        }));
+        inv.setItem(inv.getSize() - 4, resetTags);
+        
+        inv.open(player);
+    }
+    
+    static void openPLTPGUI(Player player) {
+        ColorTheme colorTheme = getTheme(player);
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        boolean pltpEnabled = Features.Feature.PLTP.isEnabled();
+        
+        FancyInventory inv = new FancyInventory(27, formatInfoTranslation("tport.settingsInventories.openTPortPLTPGUI.title"));
+        
+        boolean pltpState = State.getPLTPState(player);
+        boolean pltpConsent = Consent.shouldAskConsent(player);
+        Offset.PLTPOffset pltpOffset = Offset.getPLTPOffset(player);
+        Preview.PreviewState previewState = Preview.getPreviewState(player.getUniqueId());
+        
+        ItemStack stateItem = pltpEnabled ?
+                (pltpState ?
+                        settings_pltp_state_on_model.getItem(player) :
+                        settings_pltp_state_off_model.getItem(player)) :
+                settings_pltp_state_grayed_model.getItem(player);
+        if (pltpEnabled) {
+            addCommand(stateItem, LEFT, "tport PLTP state " + !pltpState);
+            addFunction(stateItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openPLTPGUI(whoClicked)));
+            Message stateTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.state.title", pltpState);
+            Message stateLore = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.state.click", LEFT, !pltpState);
+            setCustomItemData(stateItem, colorTheme, stateTitle, List.of(new Message(), stateLore));
+        } else {
+            Message stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortPLTPGUI.disabled");
+            Message stateTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.pltpDisabled", stateMessage);
+            setCustomItemData(stateItem, colorTheme, stateTitle, null);
+        }
+        inv.setItem(10, stateItem);
+        
+        ItemStack consentItem = pltpEnabled ?
+                (pltpConsent ?
+                        settings_pltp_consent_on_model.getItem(player) :
+                        settings_pltp_consent_off_model.getItem(player)) :
+                settings_pltp_consent_grayed_model.getItem(player);
+        if (pltpEnabled) {
+            addCommand(consentItem, LEFT, "tport PLTP consent " + !pltpConsent);
+            addFunction(consentItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openPLTPGUI(whoClicked)));
+            Message consentTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.consent.title", pltpConsent);
+            Message consentLore = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.consent.click", LEFT, !pltpConsent);
+            setCustomItemData(consentItem, colorTheme, consentTitle, List.of(new Message(), consentLore));
+        } else {
+            Message stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortPLTPGUI.disabled");
+            Message stateTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.pltpDisabled", stateMessage);
+            setCustomItemData(consentItem, colorTheme, stateTitle, null);
+        }
+        inv.setItem(11, consentItem);
+        
+        ItemStack offsetItem = pltpOffset.getModel().getItem(player);
+        if (pltpEnabled) {
+            addCommand(offsetItem, LEFT, "tport PLTP offset " + pltpOffset.getNext());
+            addFunction(offsetItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openPLTPGUI(whoClicked)));
+            Message offsetTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.offset.title", pltpOffset);
+            Message offsetLore = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.offset.click", LEFT, pltpOffset.getNext());
+            setCustomItemData(offsetItem, colorTheme, offsetTitle, List.of(new Message(), offsetLore));
+        } else {
+            Message stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortPLTPGUI.disabled");
+            Message stateTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.pltpDisabled", stateMessage);
+            setCustomItemData(offsetItem, colorTheme, stateTitle, null);
+        }
+        inv.setItem(12, offsetItem);
+        
+        ItemStack previewItem = previewState.getModel().getItem(player);
+        if (pltpEnabled && Features.Feature.Preview.isEnabled()) {
+            addCommand(previewItem, LEFT, "tport PLTP preview " + previewState.getNext());
+            addFunction(previewItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openPLTPGUI(whoClicked)));
+            Message previewTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.preview.title", previewState);
+            Message previewLore = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.preview.click", LEFT, previewState.getNext());
+            setCustomItemData(previewItem, colorTheme, previewTitle, List.of(new Message(), previewLore));
+        } else {
+            if (!pltpEnabled && Features.Feature.Preview.isEnabled()) {
+                Message stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortPLTPGUI.disabled");
+                Message stateTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.pltpDisabled", stateMessage);
+                setCustomItemData(previewItem, colorTheme, stateTitle, null);
+            } else if (Features.Feature.Preview.isDisabled() && pltpEnabled) {
+                Message stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortPLTPGUI.disabled");
+                Message stateTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.previewDisabled", stateMessage);
+                setCustomItemData(previewItem, colorTheme, stateTitle, null);
+            } else {
+                Message stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortPLTPGUI.disabled");
+                Message stateTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.bothDisabled", stateMessage);
+                setCustomItemData(previewItem, colorTheme, stateTitle, null);
+            }
+        }
+        inv.setItem(13, previewItem);
+        
+        ItemStack whitelistItem = (pltpEnabled ? settings_pltp_whitelist_model : settings_pltp_whitelist_grayed_model).getItem(player);
+        if (pltpEnabled) {
+            addFunction(whitelistItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openPLTPWhitelistSelectorGUI(whoClicked, true)));
+            Message whitelistTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.whitelist.title", previewState);
+            Message whitelistLore = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.whitelist.click", LEFT);
+            setCustomItemData(whitelistItem, colorTheme, whitelistTitle, List.of(new Message(), whitelistLore));
+        } else {
+            Message stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortPLTPGUI.disabled");
+            Message stateTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.pltpDisabled", stateMessage);
+            setCustomItemData(whitelistItem, colorTheme, stateTitle, null);
+        }
+        inv.setItem(14, whitelistItem);
+        
+        ItemStack pltpFeatureStateItem;
+        Message stateMessage;
+        if (pltpEnabled) {
+            pltpFeatureStateItem = settings_features_pltp_model.getItem(player);
+            addCommand(pltpFeatureStateItem, LEFT, "tport features PLTP state false");
+            stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortPLTPGUI.changeState.disable");
+        } else {
+            pltpFeatureStateItem = settings_features_pltp_grayed_model.getItem(player);
+            addCommand(pltpFeatureStateItem, LEFT, "tport features PLTP state true");
+            stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openTPortPLTPGUI.changeState.enable");
+        }
+        Message pltpChangeState = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortPLTPGUI.changeState", LEFT, stateMessage);
+        setCustomItemData(pltpFeatureStateItem, colorTheme, pltpChangeState, null);
+        addFunction(pltpFeatureStateItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openPLTPGUI(whoClicked)));
+        inv.setItem(16, pltpFeatureStateItem);
+        
+        inv.setItem(17, createBack(player, SETTINGS, OWN, MAIN));
+        
+        inv.open(player);
+    }
+    private static void openPLTPWhitelistSelectorGUI(Player player, boolean fromSettings, int page) {
+        List<ItemStack> headItems = ItemFactory.getPlayerList(player, false, true, List.of(PLTP_WHITELIST), List.of(), null);
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player.getUniqueId());
+        
+        ItemStack backItem = fromSettings ? createBack(player, PLTP, OWN, MAIN) : createBack(player, MAIN, OWN, null);
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openPLTPWhitelistSelectorGUI,
+                "tport.tportInventories.openPLTPWhitelistSelectionGUI.title", headItems, backItem);
+        
+        inv.setData("content", headItems);
+        inv.setItem(inv.getSize() / 18 * 9,
+                ItemFactory.getSortingItem(player, playerLang, colorTheme,
+                        ((whoClicked, clickType, pdc, fancyInventory) -> openPLTPWhitelistSelectorGUI(whoClicked, fancyInventory.getData("fromSettings", Boolean.class, true), 0))));
+        inv.setData("fromSettings", fromSettings);
+        
+        inv.open(player);
+    }
+    public static void openPLTPWhitelistSelectorGUI(Player player, boolean fromSettings) {
+        openPLTPWhitelistSelectorGUI(player, fromSettings, 0);
+    }
+    public static void openPLTPWhitelistSelectorGUI(Player player, int page, FancyInventory prevWindow) {
+        openPLTPWhitelistSelectorGUI(player, prevWindow.getData("fromSettings", Boolean.class, true), page);
+    }
+    
+    private static void openBiomeTPSettingsGUI(Player player) {
+        openBiomeTPSettingsGUI(player, 0, null);
+    }
+    private static void openBiomeTPSettingsGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player.getUniqueId());
+        
+        ArrayList<ItemStack> items = new ArrayList<>();
+        
+        ArrayList<String> biomeSelection = new ArrayList<>();
+        
+        for (String biome : BiomeTP.availableBiomes()) {
+            if (biome.equals("custom")) continue;
+            Material material = BiomeTP.getMaterial(biome);
+            
+            boolean selected = false;
+            Message selectedMessage;
+            if (biomeSelection.contains(biome)) {
+                selected = true;
+                selectedMessage = formatTranslation(varInfoColor, varInfoColor, "tport.tportInventories.openBiomeTP.biome.unselect");
+            } else {
+                selectedMessage = formatTranslation(varInfoColor, varInfoColor, "tport.tportInventories.openBiomeTP.biome.select");
+            }
+            
+            ItemStack item = new ItemStack(material);
+            Message biomeTitle = formatTranslation(varInfoColor, varInfoColor, "%s", new BiomeEncapsulation(biome));
+            biomeTitle.translateMessage(playerLang);
+            Message biomeLClick = formatInfoTranslation(playerLang, "tport.tportInventories.openBiomeTP.biome.LClick", LEFT, selectedMessage);
+            MessageUtils.setCustomItemData(item, colorTheme, biomeTitle, List.of(biomeLClick));
+            
+            ItemMeta im = item.getItemMeta();
+            im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "biome"), PersistentDataType.STRING, biome);
+            if (selected) Glow.addGlow(im);
+            
+            FancyClickEvent.addFunction(im, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            
+            }));
+            
+            item.setItemMeta(im);
+            
+            items.add(item);
+        }
+        
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openBiomeTPSettingsGUI,
+                "", items, createBack(player, SETTINGS, OWN, MAIN));
+        
+        inv.open(player);
+    }
+    
+    private static void openResourcePackGUI(Player player) {
+        openResourcePackGUI(player, 0, null);
+    }
+    private static void openResourcePackGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        boolean packState = ResourcePack.getResourcePackState(player.getUniqueId());
+        
+        ArrayList<ItemStack> items = new ArrayList<>();
+        for (ResolutionCommand.Resolution resolution : ResolutionCommand.Resolution.getResolutions()) {
+            ItemStack resItem = (packState ? settings_resource_pack_resolution_model : settings_resource_pack_resolution_grayed_model).getItem(player);
+            Message resTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openResourcePackGUI.resolution.title", resolution.getName());
+            Message resDes = formatInfoTranslation(playerLang, "tport.settingsInventories.openResourcePackGUI.resolution.description", resolution.getDescription());
+            Message urlSpacer = null;
+            Message resURL = null;
+            Message resURLValue = null;
+            
+            if (resolution.getUrl() != null) {
+                urlSpacer = new Message();
+                resURL = formatInfoTranslation(playerLang, "tport.settingsInventories.openResourcePackGUI.resolution.url", RIGHT, resolution.getUrl());
+                resURLValue = formatInfoTranslation(playerLang, "tport.settingsInventories.openResourcePackGUI.resolution.url.value", resolution.getUrl());
+            }
+            
+            setCustomItemData(resItem, colorTheme, resTitle, Arrays.asList(resDes, urlSpacer, resURL, resURLValue));
+            if (packState) {
+                if (ResourcePack.getResourcePackResolution(player.getUniqueId()).equals(resolution)) {
+                    Glow.addGlow(resItem);
+                }
+                
+                addCommand(resItem, LEFT, "tport resourcePack resolution " + resolution.getName());
+                addFunction(resItem, LEFT,
+                        ((whoClicked, clickType, pdc, fancyInventory) -> openResourcePackGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory)));
+            }
+            if (resolution.getUrl() != null) {
+                setStringData(resItem, new NamespacedKey(Main.getInstance(), "packName"), resolution.getName());
+                addFunction(resItem, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                    String packName = pdc.get(new NamespacedKey(Main.getInstance(), "packName"), STRING);
+                    ResolutionCommand.Resolution res = ResolutionCommand.Resolution.getResolution(packName);
+                    if (res == null) return;
+                    
+                    String packURL = res.getUrl();
+                    Message hereMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openResourcePackGUI.resolution.openURLMessage.here");
+                    hereMessage.getText().forEach(t -> t
+                            .setInsertion(packURL)
+                            .addTextEvent(hoverEvent(packURL, infoColor))
+                            .addTextEvent(openUrl(packURL)));
+                    sendInfoTranslation(whoClicked, "tport.settingsInventories.openResourcePackGUI.resolution.openURLMessage", hereMessage, res);
+            }));
+            }
+            items.add(resItem);
+        }
+        
+        Message invTitle = formatInfoTranslation("tport.settingsInventories.openResourcePackGUI.title");
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openResourcePackGUI, invTitle, items, createBack(player, SETTINGS, OWN, MAIN));
+        
+        ItemStack changeStateButton = (packState ? settings_resource_pack_state_enabled_model : settings_resource_pack_state_disabled_model).getItem(player);
+        addCommand(changeStateButton, LEFT, "tport resourcePack state " + !packState);
+        addFunction(changeStateButton, LEFT,
+                ((whoClicked, clickType, pdc, fancyInventory) -> openResourcePackGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory)));
+        Message stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openResourcePackGUI.state." + (packState ? "enabled" : "disabled"));
+        stateMessage.translateMessage(playerLang);
+        Message changeStateTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openResourcePackGUI.state.title", stateMessage);
+        
+        Message newStateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openResourcePackGUI.state." + (!packState ? "enable" : "disable"));
+        stateMessage.translateMessage(playerLang);
+        Message changeStateClickTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openResourcePackGUI.state.change", LEFT, newStateMessage);
+        setCustomItemData(changeStateButton, colorTheme, changeStateTitle, List.of(new Message(), changeStateClickTitle));
+        inv.setItem(inv.getSize() - 9, changeStateButton);
+        
+        inv.open(player);
+    }
+    
+    static void openPublicTPTPortsSettings(Player player, int page, @Nullable FancyInventory prevWindow) {
+        //public.tports.<publicTPortSlot>.<TPortID>
+        
+        List<ItemStack> list = new ArrayList<>();
+        
+        for (String publicTPortSlot : tportData.getKeys("public.tports")) {
+            String tportID = tportData.getConfig().getString("public.tports." + publicTPortSlot, TPortManager.defUUID.toString());
+            
+            TPort tport = getTPort(UUID.fromString(tportID));
+            if (tport != null) {
+                list.add(toTPortItem(tport, player, List.of(ADD_OWNER, PUBLIC_MOVE_DELETE), prevWindow));
+                if (tport.setPublicTPort(true)) {
+                    tport.save();
+                }
+            } else {
+                int publicSlotTmp = Integer.parseInt(publicTPortSlot) + 1;
+                String tportID2 = tportData.getConfig().getString("public.tports." + publicSlotTmp, TPortManager.defUUID.toString());
+                
+                TPort tport2 = getTPort(UUID.fromString(tportID2));
+                if (tport2 != null) {
+                    list.add(toTPortItem(tport2, player, List.of(ADD_OWNER, PUBLIC_MOVE_DELETE), prevWindow));
+                    if (tport2.setPublicTPort(true)) {
+                        tport2.save();
+                    }
+                }
+                
+                while (true) {
+                    if (tportData.getConfig().contains("public.tports." + publicSlotTmp)) {
+                        String publicTPort = tportData.getConfig().getString("public.tports." + publicSlotTmp, TPortManager.defUUID.toString());
+                        tportData.getConfig().set("public.tports." + (publicSlotTmp - 1), publicTPort);
+                        tportData.getConfig().set("public.tports." + (publicSlotTmp), null);
+                        publicSlotTmp++;
+                    } else {
+                        break;
+                    }
+                }
+                tportData.saveConfig();
+            }
+        }
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openPublicTPTPortsSettings, "tport.settingsInventories.openPublicTPTPortsSettings.title", list, createBack(player, PUBLIC_TP_SETTINGS, OWN, MAIN));
+        if (prevWindow != null) inv.setData("TPortToMove", prevWindow.getData("TPortToMove", UUID.class));
+        inv.open(player);
+    }
+    private static void openPublicTPSettings(Player player) {
+        ColorTheme colorTheme = getTheme(player);
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        
+        FancyInventory inv = new FancyInventory(3, formatInfoTranslation(playerLang, "tport.settingsInventories.openPublicTPSettings.title"));
+        
+        int listSize = ListSize.getPublicTPortSize();
+        ItemStack listSize_resize = settings_public_size_model.getItem(player);
+        Message listSizeTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openPublicTPSettings.listSize.title", listSize);
+        Message listSizeAdd = formatInfoTranslation(playerLang, "tport.settingsInventories.openPublicTPSettings.listSize.left", LEFT, 1);
+        Message listSizeRem = null;
+        if (listSize > 0) listSizeRem = formatInfoTranslation(playerLang, "tport.settingsInventories.openPublicTPSettings.listSize.right", RIGHT, 1);
+        setCustomItemData(listSize_resize, colorTheme, listSizeTitle, Arrays.asList(new Message(), listSizeAdd, listSizeRem));
+        addFunction(listSize_resize, LEFT,  ((whoClicked, clickType, pdc, fancyInventory) -> {
+            TPortCommand.executeTPortCommand(whoClicked, new String[]{"public", "listSize", String.valueOf(ListSize.getPublicTPortSize() + 1)});
+            openPublicTPSettings(whoClicked);
+        }));
+        if (listSize > 0) addFunction(listSize_resize, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            TPortCommand.executeTPortCommand(whoClicked, new String[]{"public", "listSize", String.valueOf(ListSize.getPublicTPortSize() - 1)});
+            openPublicTPSettings(whoClicked);
+        }));
+        inv.setItem(10, listSize_resize);
+        
+        ItemStack listSize_fit = settings_public_fit_model.getItem(player);
+        Message listSizeFit_title = formatInfoTranslation(playerLang, "tport.settingsInventories.openPublicTPSettings.listSize.amount", ListSize.getTPortAmount());
+        Message listSizeFit_fit = formatInfoTranslation(playerLang, "tport.settingsInventories.openPublicTPSettings.listSize.fit", LEFT);
+        setCustomItemData(listSize_fit, colorTheme, listSizeFit_title, List.of(new Message(), listSizeFit_fit));
+        addFunction(listSize_fit, LEFT,  ((whoClicked, clickType, pdc, fancyInventory) -> {
+            TPortCommand.executeTPortCommand(whoClicked, new String[]{"public", "listSize", String.valueOf(ListSize.getTPortAmount())});
+            openPublicTPSettings(whoClicked);
+        }));
+        inv.setItem(11, listSize_fit);
+        
+        ItemStack resetButton = settings_public_reset_model.getItem(player);
+        Message resetTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openPublicTPSettings.reset", SHIFT_LEFT);
+        setCustomItemData(resetButton, colorTheme, resetTitle, null);
+        addFunction(resetButton, SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            TPortCommand.executeTPortCommand(whoClicked, new String[]{"public", "reset"});
+            openPublicTPSettings(whoClicked);
+        }));
+        inv.setItem(13, resetButton);
+        
+        ItemStack moveRemoveButton = settings_public_tports_model.getItem(player);
+        Message moveRemoveTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openPublicTPSettings.tports", LEFT);
+        setCustomItemData(moveRemoveButton, colorTheme, moveRemoveTitle, null);
+        addFunction(moveRemoveButton, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openPublicTPTPortsSettings(whoClicked, 0, null)));
+        inv.setItem(15, moveRemoveButton);
+        
+        ItemStack featureSwitch = getFeaturesItem(Features.Feature.PublicTP, player, null, null);
+        addFunction(featureSwitch, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openPublicTPSettings(whoClicked)));
+        inv.setItem(16, featureSwitch);
+        
+        inv.setItem(17, createBack(player, SETTINGS, OWN, MAIN));
         
         inv.open(player);
     }
@@ -597,27 +1322,21 @@ public class SettingsInventories {
         ColorTheme colorTheme = getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
-        ArrayList<ItemStack> items = new ArrayList<>();
-        
         ItemStack versionItem = settings_version_model.getItem(player);
         addCommand(versionItem, LEFT, "tport version");
-        Message versionTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.version.title");
-        versionTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(versionItem, colorTheme, versionTitle, null);
-        items.add(versionItem);
+        Message versionTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.version.title");
+        Message versionLore = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.version.currentVersion", Version.getCurrentVersion());
+        Message infoLore = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.version.moreInfo", LEFT);
+        setCustomItemData(versionItem, colorTheme, versionTitle, List.of(new Message(), versionLore, infoLore));
         
         ItemStack reloadItem = settings_reload_model.getItem(player);
         addCommand(reloadItem, LEFT, "tport reload");
-        Message reloadTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.reload.title");
-        reloadTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(reloadItem, colorTheme, reloadTitle, null);
-        items.add(reloadItem);
+        Message reloadTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.reload.title");
+        setCustomItemData(reloadItem, colorTheme, reloadTitle, null);
         
         ItemStack logItem = settings_log_model.getItem(player);
-        Message logTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.log.title");
-        logTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(logItem, colorTheme, logTitle, null);
-        items.add(logItem);
+        Message logTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.log.title");
+        setCustomItemData(logItem, colorTheme, logTitle, null);
         //todo create log setting
         /*
         * /tport log timeZone [timeZone]
@@ -628,17 +1347,14 @@ public class SettingsInventories {
         * */
         
         ItemStack backupItem = settings_backup_model.getItem(player);
-        addFunction(backupItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openTPortBackupGUI(whoClicked));
-        Message backupTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.backup.title");
-        backupTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(backupItem, colorTheme, backupTitle, null);
-        items.add(backupItem);
+        addFunction(backupItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openBackupGUI(whoClicked));
+        Message backupTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.backup.title");
+        setCustomItemData(backupItem, colorTheme, backupTitle, null);
         
         ItemStack biomeTPItem = settings_biome_tp_model.getItem(player);
-        Message biomeTPTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.biomeTP.title");
-        biomeTPTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(biomeTPItem, colorTheme, biomeTPTitle, null);
-        items.add(biomeTPItem);
+        Message biomeTPTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.biomeTP.title");
+        setCustomItemData(biomeTPItem, colorTheme, biomeTPTitle, null);
+//        addFunction(biomeTPItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openBiomeTPSettingsGUI(whoClicked));
         //todo create biomeTP setting
         /*
         * /tport biomeTP accuracy [size] //todo maybe set per player
@@ -647,33 +1363,34 @@ public class SettingsInventories {
         * */
         
         ItemStack delayItem = settings_delay_model.getItem(player);
-        Message delayTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.delay.title");
-        delayTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(delayItem, colorTheme, delayTitle, null);
-        items.add(delayItem);
+        Message delayTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.delay.title");
+        setCustomItemData(delayItem, colorTheme, delayTitle, null);
         //todo create delay setting
         /*
         * /tport delay handler [state]
         * /tport delay set <player> <delay>
         * /tport delay get [player]
+        *
+        * dynamic scroll with players
+        * add toggle button for permissions <-> commands
         * */
         
         ItemStack restrictionItem = settings_restriction_model.getItem(player);
-        Message restrictionTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.restriction.title");
-        restrictionTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(restrictionItem, colorTheme, restrictionTitle, null);
-        items.add(restrictionItem);
+        Message restrictionTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.restriction.title");
+        setCustomItemData(restrictionItem, colorTheme, restrictionTitle, null);
+        //todo create restriction setting
         /*
          * /tport restriction handler [state]
          * /tport restriction set <player> <delay>
          * /tport restriction get [player]
+         *
+         * dynamic scroll with players
+         * add toggle button for permissions <-> commands
          * */
         
         ItemStack dynmapItem = settings_dynmap_model.getItem(player);
-        Message dynmapTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.dynmap.title");
-        dynmapTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(dynmapItem, colorTheme, dynmapTitle, null);
-        items.add(dynmapItem);
+        Message dynmapTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.dynmap.title");
+        setCustomItemData(dynmapItem, colorTheme, dynmapTitle, null);
         //todo create dynmap setting
         /*
         * /tport dynmap [IP]
@@ -682,10 +1399,8 @@ public class SettingsInventories {
         * */
         
         ItemStack particleAnimationItem = settings_particle_animation_model.getItem(player);
-        Message particleAnimationTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.particleAnimation.title");
-        particleAnimationTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(particleAnimationItem, colorTheme, particleAnimationTitle, null);
-        items.add(particleAnimationItem);
+        Message particleAnimationTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.particleAnimation.title");
+        setCustomItemData(particleAnimationItem, colorTheme, particleAnimationTitle, null);
         //todo create particle animation setting
         /*
         * /tport particleAnimation new set <particleAnimation> [data...]
@@ -702,134 +1417,74 @@ public class SettingsInventories {
         * */
         
         ItemStack pltpItem = settings_pltp_model.getItem(player);
-        Message pltpTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.PLTP.title");
-        pltpTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(pltpItem, colorTheme, pltpTitle, null);
-        items.add(pltpItem);
-        //todo create PLTP setting
-        /*
-        * /tport PLTP state [state]
-        * /tport PLTP consent [state]
-        * /tport PLTP whitelist add <player...>
-        * /tport PLTP whitelist remove <player...>
-        * /tport PLTP whitelist list
-        * /tport PLTP offset <offset>
-        * /tport PLTP preview <state>
-        *
-        * /tport features PLTP state [state]
-        * */
+        Message pltpTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.PLTP.title");
+        setCustomItemData(pltpItem, colorTheme, pltpTitle, null);
+        addFunction(pltpItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openPLTPGUI(whoClicked));
         
         ItemStack publicItem = settings_public_model.getItem(player);
-        Message publicTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.public.title");
-        publicTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(publicItem, colorTheme, publicTitle, null);
-        items.add(publicItem);
-        //todo create publicTP setting
-        /*
-        * /tport public listSize [size]
-        * /tport public reset
-        * /tport public move -> open publicTP GUI with added message on how to move TPorts
-        *
-        * /tport features PublicTP state [state]
-        * */
+        Message publicTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.public.title");
+        setCustomItemData(publicItem, colorTheme, publicTitle, null);
+        addFunction(publicItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openPublicTPSettings(whoClicked)));
         
         ItemStack resourcePackItem = settings_resource_pack_model.getItem(player);
-        Message resourcePackTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.resourcePack.title");
-        resourcePackTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(resourcePackItem, colorTheme, resourcePackTitle, null);
-        items.add(resourcePackItem);
-        //todo create resource pack setting
-        /*
-        * /tport resourcePack state [state]
-        * /tport resourcePack resolution [resolution]
-        * */
+        Message resourcePackTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.resourcePack.title");
+        setCustomItemData(resourcePackItem, colorTheme, resourcePackTitle, null);
+        addFunction(resourcePackItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openResourcePackGUI(whoClicked));
         
         ItemStack tagItem = settings_tag_model.getItem(player);
-        Message tagTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.tag.title");
-        tagTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(tagItem, colorTheme, tagTitle, null);
-        items.add(tagItem);
-        //todo create tag setting
-        /*
-        * /tport tag create <tag>
-        * /tport tag delete <tag>
-        * /tport tag list
-        * /tport tag reset
-        * */
+        Message tagTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.tag.title");
+        setCustomItemData(tagItem, colorTheme, tagTitle, null);
+        addFunction(tagItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openTagGUI(whoClicked, 0, null));
         
         ItemStack transferItem = settings_transfer_model.getItem(player);
-        Message transferTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.transfer.title");
-        transferTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(transferItem, colorTheme, transferTitle, null);
-        items.add(transferItem);
-        //todo create transfer setting
-        /*
-         * /tport transfer offer -> open Own TPort GUI with added message on how to do (add in QuickEdit)
-         * /tport transfer accept
-         * /tport transfer reject
-         * /tport transfer revoke
-         * /tport transfer list
-         * */
+        Message transferTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.transfer.title");
+        setCustomItemData(transferItem, colorTheme, transferTitle, null);
+        addFunction(transferItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openTransferGUI(whoClicked, 0, null));
         
         ItemStack featuresItem = settings_features_model.getItem(player);
-        Message featuresTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.features.title");
-        featuresTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(featuresItem, colorTheme, featuresTitle, null);
-        items.add(featuresItem);
-        //todo create features setting
-        /*
-        * /tport features
-        * */
+        Message featuresTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.features.title");
+        setCustomItemData(featuresItem, colorTheme, featuresTitle, null);
+        addFunction(featuresItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openFeaturesGUI(whoClicked, 0, null));
         
-        ItemStack metricsItem = settings_metrics_model.getItem(player);
-        Message metricsTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.metrics.title");
-        metricsTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(metricsItem, colorTheme, metricsTitle, null);
-        items.add(metricsItem);
-        //todo create metrics setting
-        /*
-        * /tport metrics viewStats
-        * /tport features metrics state [state]
-        * */
+        ItemStack metricsItem;
+        Message metricsViewStats = null;
+        Message stateMessage;
+        if (Features.Feature.Metrics.isEnabled()) {
+            metricsItem = settings_features_metrics_model.getItem(player);
+            addCommand(metricsItem, LEFT, "tport features metrics state false");
+            addCommand(metricsItem, RIGHT, "tport metrics viewStats");
+            addFunction(metricsItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openSettingsGUI(whoClicked, fancyInventory.getData(pageDataName), null)));
+            stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openSettingsGUI.metrics.changeState.disable");
+            metricsViewStats = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.metrics.viewStats", RIGHT);
+        } else {
+            metricsItem = settings_features_metrics_grayed_model.getItem(player);
+            addCommand(metricsItem, LEFT, "tport features metrics state true");
+            addFunction(metricsItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openSettingsGUI(whoClicked, fancyInventory.getData(pageDataName), null)));
+            
+            stateMessage = formatTranslation(varInfoColor, varInfoColor, "tport.settingsInventories.openSettingsGUI.metrics.changeState.enable");
+        }
+        Message metricsChangeState = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.metrics.changeState", LEFT, stateMessage);
+        Message metricsTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.metrics.title");
+        setCustomItemData(metricsItem, colorTheme, metricsTitle, Arrays.asList(new Message(), metricsChangeState, metricsViewStats));
         
         ItemStack redirectItem = settings_redirect_model.getItem(player);
-        Message redirectTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.redirect.title");
-        redirectTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(redirectItem, colorTheme, redirectTitle, null);
-        items.add(redirectItem);
-        //todo create redirect setting
-        /*
-        * /tport redirect (use dynamic scroll GUI with all options)
-        * /tport features metrics state [state]
-        * */
+        Message redirectTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.redirect.title");
+        setCustomItemData(redirectItem, colorTheme, redirectTitle, null);
+        addFunction(redirectItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openRedirectsGUI(whoClicked, 0, null));
         
         ItemStack removePlayerItem = settings_remove_player_model.getItem(player);
-        Message removePlayerTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.removePlayer.title");
-        removePlayerTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(removePlayerItem, colorTheme, removePlayerTitle, null);
+        Message removePlayerTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.removePlayer.title");
+        setCustomItemData(removePlayerItem, colorTheme, removePlayerTitle, null);
         addFunction(removePlayerItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openRemovePlayerGUI(whoClicked, 0, null));
-        items.add(removePlayerItem);
-        //todo create remove player setting
-        /*
-        * /tport removePlayer <player>
-        * */
         
         ItemStack safetyCheckItem = settings_safety_check_model.getItem(player);
-        Message safetyCheckTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.safetyCheck.title");
-        safetyCheckTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(safetyCheckItem, colorTheme, safetyCheckTitle, null);
-        items.add(safetyCheckItem);
-        //todo create safety check setting
-        /*
-        * /tport safetyCheck check
-        * use dynamic scroll GUI with all sources
-        * */
+        Message safetyCheckTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.safetyCheck.title");
+        setCustomItemData(safetyCheckItem, colorTheme, safetyCheckTitle, null);
+        addFunction(safetyCheckItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openSafetyCheckGUI(whoClicked, 0, null));
         
         ItemStack languageItem = settings_language_model.getItem(player);
-        Message languageTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.language.title");
-        languageTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(languageItem, colorTheme, languageTitle, null);
-        items.add(languageItem);
+        Message languageTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.language.title");
+        setCustomItemData(languageItem, colorTheme, languageTitle, null);
         //todo create language setting
         /*
         * /tport language server [server]
@@ -839,21 +1494,76 @@ public class SettingsInventories {
         * */
         
         ItemStack colorThemeItem = settings_color_theme_model.getItem(player);
-        Message colorThemeTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.colorTheme.title");
+        Message colorThemeTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.colorTheme.title");
         addFunction(colorThemeItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openTPortColorThemeGUI(whoClicked));
-        colorThemeTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(colorThemeItem, colorTheme, colorThemeTitle, null);
-        items.add(colorThemeItem);
+        setCustomItemData(colorThemeItem, colorTheme, colorThemeTitle, null);
         
         ItemStack cooldownItem = settings_cooldown_model.getItem(player);
-        Message cooldownTitle = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.cooldown.title");
-        cooldownTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(cooldownItem, colorTheme, cooldownTitle, null);
-        items.add(cooldownItem);
+        Message cooldownTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.cooldown.title");
+        setCustomItemData(cooldownItem, colorTheme, cooldownTitle, null);
         //todo create cooldown setting
         /*
         * use dynamic scroll GUI with cooldown
         * */
+        
+        ItemStack restoreItem = settings_restore_model.getItem(player);
+        Message restoreTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.restore.title");
+        TPort restoreTPort = Restore.getRestoreTPort(player.getUniqueId());
+        Message restoreLore;
+        Message displayItemMessage = null;
+        if (restoreTPort == null) {
+            restoreLore = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.restore.hasNoRestore");
+        } else {
+            restoreLore = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.restore.clickToRestore", LEFT, asTPort(restoreTPort));
+            displayItemMessage = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.restore.displayItemMessage");
+            addCommand(restoreItem, LEFT, "tport restore");
+        }
+        setCustomItemData(restoreItem, colorTheme, restoreTitle, Arrays.asList(new Message(), restoreLore, displayItemMessage));
+        
+        ItemStack homeItem = settings_home_model.getItem(player);
+        Message homeTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.home.title");
+        addFunction(homeItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openHomeEditGUI(whoClicked));
+        TPort homeTPortObject = Home.getHome(player);
+        List<Message> homeLore = new ArrayList<>();
+        if (homeTPortObject == null) {
+            homeLore.add(formatTranslation(varInfoColor, varInfo2Color, "tport.settingsInventories.openSettingsGUI.home.unknown"));
+        } else {
+            homeLore.add(formatInfoTranslation("tport.settingsInventories.openSettingsGUI.home.tportName", homeTPortObject.getName()));
+            homeLore.addAll(homeTPortObject.getHoverData(true));
+        }
+        homeLore.add(new Message());
+        homeLore.add(formatInfoTranslation("tport.settingsInventories.openSettingsGUI.home.setHome", LEFT));
+        homeLore = MessageUtils.translateMessage(homeLore, playerLang);
+        setCustomItemData(homeItem, colorTheme, homeTitle, homeLore);
+        
+        ArrayList<ItemStack> items = new ArrayList<>();
+        //useful for users
+        items.add(versionItem);         //DONE
+        items.add(restoreItem);         //DONE
+        items.add(resourcePackItem);    //DONE
+        items.add(colorThemeItem);      //DONE
+        items.add(transferItem);        //DONE (todo test)
+        items.add(pltpItem);            //DONE
+        items.add(logItem);
+        items.add(particleAnimationItem);
+        items.add(safetyCheckItem);     //DONE
+        items.add(homeItem);            //DONE
+        items.add(languageItem);
+        
+        //useful for admins
+        items.add(reloadItem);          //DONE
+        items.add(featuresItem);        //DONE
+        items.add(biomeTPItem);
+        items.add(tagItem);             //DONE
+        items.add(backupItem);          //DONE
+        items.add(removePlayerItem);    //DONE
+        items.add(redirectItem);        //DONE
+        items.add(metricsItem);         //DONE
+        items.add(dynmapItem);
+        items.add(cooldownItem);
+        items.add(publicItem);          //DONE
+        items.add(delayItem);
+        items.add(restrictionItem);
         
         FancyInventory inv = getDynamicScrollableInventory(player, page,
                 SettingsInventories::openSettingsGUI,
@@ -862,60 +1572,9 @@ public class SettingsInventories {
         
         inv.open(player);
         
-        //tport version                                                     DONE
-        //tport reload                                                      DONE
-        //tport log timeZone
-        //tport log timeFormat
-        //tport log logSize
-        //tport backup
-        //tport biomeTP accuracy [accuracy]
-        //tport delay
-        //tport restriction
-        //tport dynmap ip
-        //tport particleAnimation
-        //tport PLTP consent
-        //tport PLTP offset
-        //tport PLTP preview
-        //tport PLTP state
-        //tport PLTP whitelist
-        //tport public listSize
-        //tport resourcePack resolution
-        //tport resourcePack state
-        //tport tag create
-        //tport tag delete
-        //tport tag reset
-        //tport transfer accept
-        //tport transfer offer
-        //tport transfer reject
-        //tport transfer revoke
-        //tport features
-        //tport metrics
-        //tport redirect
-        //tport removePlayer
-        //tport safetyCheck
-        //tport language
-        //tport colorTheme                                                  DONE
-        //tport cooldown
-        
-        
-        //tport dynmap search <player>              - add to PLTP                                           DONE
-        //tport dynmap search <player> <TPort>      - add ???                                               DONE
-        //tport public                              - add quickEdit (add, remove toggle)                    DONE
-        //tport requests accept
-        //tport requests reject
-        //tport requests revoke
-        //tport teleporter                          - add ???
+        //tport teleporter                          - add in settings, configuration now with inventories
         //tport cancel
-        //tport restore
-        //tport search
-        
-        //quick edit:
-        // - when typing is available:
-        //    tport edit <TPort> description           - add to quick edit                              DONE
-        //    tport edit <TPort> name                  - add to quick edit                              DONE
-        // - tport edit <TPort> item                   - add to quick edit with player inv to select
-        // - tport log                                 - add with new GUI to quick edit
-        // - tport edit <TPort> dynmap icon            - add GUI with icon selection                    DONE
+        //tport search                              - add in settings, configuration with inventories
         
         inv.open(player);
     }

@@ -43,6 +43,11 @@ public class InventoryModel {
         return item;
     }
     
+    public ItemStack setItem(Player player, ItemStack is) {
+        applyModelData(is, this, player);
+        return is;
+    }
+    
     public Material getMaterial() {
         return material;
     }
@@ -58,10 +63,10 @@ public class InventoryModel {
         return subDir;
     }
     
-    private static ItemStack applyModelData(ItemStack is, InventoryModel modelData, Player player) {
+    private ItemStack applyModelData(ItemStack is, InventoryModel modelData, Player player) {
         return applyModelData(is, modelData, player.getUniqueId());
     }
-    private static ItemStack applyModelData(ItemStack is, InventoryModel modelData, UUID uuid) {
+    private ItemStack applyModelData(ItemStack is, InventoryModel modelData, UUID uuid) {
         if (!getResourcePackState(uuid)) return is;
         
         if (!is.getType().equals(modelData.getMaterial())) {

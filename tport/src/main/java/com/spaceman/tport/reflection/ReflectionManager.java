@@ -5,6 +5,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.IRegistry;
 import net.minecraft.core.IRegistryCustom;
+import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.resources.ResourceKey;
@@ -12,6 +13,7 @@ import net.minecraft.server.level.ChunkProviderServer;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.server.level.WorldServer;
 import net.minecraft.server.network.PlayerConnection;
+import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.BiomeBase;
 import net.minecraft.world.level.biome.Climate;
@@ -51,6 +53,15 @@ public class ReflectionManager {
     public static void sendPlayerPacket(Player player, Packet<?> packet) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException {
         PlayerConnection pc = getPlayerConnection(getEntityPlayer(player));
         
+        for (Method m : pc.getClass().getMethods()) {
+            if (m.getParameterCount() != 2) continue;
+            Parameter parameter1 = m.getParameters()[0];
+            if (!parameter1.getType().equals(Packet.class)) continue;
+            Parameter parameter2 = m.getParameters()[1];
+            if (!parameter2.getType().equals(PacketSendListener.class)) continue;
+            m.invoke(pc, packet, null);
+            break;
+        }
         for (Method m : pc.getClass().getMethods()) {
             if (m.getParameterCount() != 1) continue;
             Parameter parameter = m.getParameters()[0];

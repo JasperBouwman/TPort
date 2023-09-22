@@ -11,7 +11,7 @@
     <properties>
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <supportedVersions>'1.20.1','1.20','1.19.4','1.18.2'</supportedVersions>
+        <supportedVersions>'1.20.2','1.20.1','1.20','1.19.4','1.18.2'</supportedVersions>
     </properties>
 
     <parent>
@@ -21,6 +21,7 @@
     </parent>
 
     <build>
+        <finalName>${artifactId}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -82,8 +83,8 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.20.1-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
+            <version>1.20.2-R0.1-SNAPSHOT</version>
+<!--            <scope>provided</scope>-->
         </dependency>
 
         <dependency>

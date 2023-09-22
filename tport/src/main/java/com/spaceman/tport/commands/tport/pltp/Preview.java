@@ -3,9 +3,11 @@ package com.spaceman.tport.commands.tport.pltp;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.Files.tportData;
+import static com.spaceman.tport.inventories.SettingsInventories.*;
 
 public class Preview extends SubCommand {
     
@@ -55,6 +58,11 @@ public class Preview extends SubCommand {
     public void run(String[] args, Player player) {
         // tport PLTP preview [state]
         
+        if (Features.Feature.Preview.isDisabled())  {
+            Features.Feature.Preview.sendDisabledMessage(player);
+            return;
+        }
+        
         if (args.length == 2) {
             sendInfoTranslation(player, "tport.command.pltp.preview.succeeded", getPreviewState(player.getUniqueId()));
         } else if (args.length == 3) {
@@ -76,14 +84,23 @@ public class Preview extends SubCommand {
     }
     
     public enum PreviewState implements MessageUtils.MessageDescription {
-        ON(ChatColor.RED + "on"),
-        OFF(ChatColor.GREEN + "off"),
-        NOTIFIED(ChatColor.YELLOW + "notified");
+        ON(ChatColor.GREEN + "on", settings_pltp_preview_on_model),
+        OFF(ChatColor.RED + "off", settings_pltp_preview_off_model),
+        NOTIFIED(ChatColor.YELLOW + "notified", settings_pltp_preview_notified_model);
         
         private final String displayName;
+        private final InventoryModel model;
         
-        PreviewState(String displayName) {
+        PreviewState(String displayName, InventoryModel model) {
             this.displayName = displayName;
+            this.model = model;
+        }
+        
+        public InventoryModel getModel() {
+            if (Features.Feature.PLTP.isDisabled() || Features.Feature.Preview.isDisabled()) {
+                return settings_pltp_preview_grayed_model;
+            }
+            return model;
         }
         
         @Nullable

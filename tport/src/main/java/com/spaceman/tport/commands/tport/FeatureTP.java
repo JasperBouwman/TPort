@@ -13,6 +13,7 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
+import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.IRegistry;
@@ -40,6 +41,7 @@ import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.pageDataName;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 import static com.spaceman.tport.inventories.TPortInventories.openFeatureTP;
 import static com.spaceman.tport.reflection.ReflectionManager.*;
@@ -219,7 +221,7 @@ public class FeatureTP extends SubCommand {
                         innerFeatureSelection.add(innerFeature);
                     }
                     fancyInventory.setData("featureSelection", innerFeatureSelection);
-                    openFeatureTP(whoClicked, fancyInventory.getData("page", Integer.class, 0), fancyInventory);
+                    openFeatureTP(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
                 }
             }));
             FancyClickEvent.addCommand(im, ClickType.RIGHT, "tport featureTP search " + feature);
@@ -294,7 +296,7 @@ public class FeatureTP extends SubCommand {
                     ArrayList<String> innerFeatureSelection = fancyInventory.getData("featureSelection", ArrayList.class, new ArrayList<String>());
                     Arrays.stream(featureArray).filter(s -> !innerFeatureSelection.contains(s)).forEach(innerFeatureSelection::add);
                     fancyInventory.setData("featureSelection", innerFeatureSelection);
-                    openFeatureTP(whoClicked, fancyInventory.getData("page", Integer.class, 0), fancyInventory);
+                    openFeatureTP(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
                 }
             }));
             FancyClickEvent.addFunction(im, ClickType.SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
@@ -304,7 +306,7 @@ public class FeatureTP extends SubCommand {
                     String[] featureArray = innerFeatures.split("\\|");
                     ArrayList<String> innerFeatureSelection = Arrays.stream(featureArray).collect(Collectors.toCollection(ArrayList::new));
                     fancyInventory.setData("featureSelection", innerFeatureSelection);
-                    openFeatureTP(whoClicked, fancyInventory.getData("page", Integer.class, 0), fancyInventory);
+                    openFeatureTP(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
                 }
             }));
             FancyClickEvent.addCommand(im, ClickType.RIGHT, "tport featureTP search " + pair.getLeft());
@@ -322,6 +324,7 @@ public class FeatureTP extends SubCommand {
             int originalZ = z;
             int searches = 0;
             Random random = new Random();
+            int spread = 10;
             
             for (int y = 1; y < world.getMaxHeight(); y++) {
                 Location tempFeet = new Location(world, x, y, z);
@@ -333,9 +336,8 @@ public class FeatureTP extends SubCommand {
                     if (searches == 20) {
                         return null;
                     }
-                    int spread = 10;
-                    x += random.nextInt(spread) - spread * 0.5;
-                    z += random.nextInt(spread) - spread * 0.5;
+                    x += (int) (random.nextInt(spread) - spread * 0.5);
+                    z += (int) (random.nextInt(spread) - spread * 0.5);
                     y = 1;
                     searches++;
                 }
@@ -352,8 +354,8 @@ public class FeatureTP extends SubCommand {
                 if (searches == 20) {
                     return null;
                 }
-                x += random.nextInt(spread) - spread * 0.5;
-                z += random.nextInt(spread) - spread * 0.5;
+                x += (int) (random.nextInt(spread) - spread * 0.5);
+                z += (int) (random.nextInt(spread) - spread * 0.5);
                 y = world.getHighestBlockYAt(x, z);
                 l = new Location(world, x, y + 1, z);
                 searches++;

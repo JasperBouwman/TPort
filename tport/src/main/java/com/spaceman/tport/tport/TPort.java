@@ -12,6 +12,7 @@ import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
+import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.TPRequest;
@@ -41,6 +42,10 @@ import static com.spaceman.tport.tpEvents.TPEManager.tpPlayerToTPort;
 
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "FieldMayBeFinal"})
 public class TPort implements ConfigurationSerializable {
+    
+    public static final FancyInventory.DataName<String> tportNameDataName = new FancyInventory.DataName<>("tportName", String.class, "");
+    public static final FancyInventory.DataName<TPort> tportDataName = new FancyInventory.DataName<>("tport", TPort.class);
+    public static final FancyInventory.DataName<UUID> tportUUIDDataName = new FancyInventory.DataName<>("tportUUID", UUID.class);
     
     private UUID tportID = null;
     private UUID owner;

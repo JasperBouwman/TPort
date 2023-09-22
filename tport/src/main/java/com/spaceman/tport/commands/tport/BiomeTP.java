@@ -78,6 +78,8 @@ public class BiomeTP extends SubCommand {
         addAction(com.spaceman.tport.commands.tport.biomeTP.Random.getInstance());
         addAction(new Accuracy());
         addAction(new Mode());
+        
+        registerBiomeTPPresets();
     }
     
     public static List<String> availableBiomes() {
@@ -361,6 +363,85 @@ public class BiomeTP extends SubCommand {
         return biomeList;
     }
     
+    @SuppressWarnings("CommentedOutCode")
+    private void registerBiomeTPPresets() {
+        BiomeTP.BiomeTPPresets.registerPreset("Land", Arrays.asList(
+                "OCEAN", "WARM_OCEAN", "LUKEWARM_OCEAN",
+                "COLD_OCEAN", "FROZEN_OCEAN", "DEEP_OCEAN",
+                "DEEP_LUKEWARM_OCEAN",
+                "DEEP_COLD_OCEAN", "DEEP_FROZEN_OCEAN",
+                "RIVER", "FROZEN_RIVER"
+        ), false, Material.GRASS_BLOCK);
+        
+        BiomeTP.BiomeTPPresets.registerPreset("Water", Arrays.asList(
+                "OCEAN", "WARM_OCEAN", "LUKEWARM_OCEAN",
+                "COLD_OCEAN", "FROZEN_OCEAN", "DEEP_OCEAN",
+                "DEEP_LUKEWARM_OCEAN",
+                "DEEP_COLD_OCEAN", "DEEP_FROZEN_OCEAN",
+                "RIVER", "FROZEN_RIVER"
+        ), true, Material.WATER_BUCKET);
+        
+        BiomeTP.BiomeTPPresets.registerPreset("The_End", Arrays.asList(
+                        "END_BARRENS", "END_HIGHLANDS", "END_MIDLANDS", "THE_END", "SMALL_END_ISLANDS"),
+                true, Material.END_STONE);
+        
+        BiomeTP.BiomeTPPresets.registerPreset("Nether", Arrays.asList(
+                        "NETHER_WASTES", "BASALT_DELTAS",
+                        "CRIMSON_FOREST", "WARPED_FOREST", "SOUL_SAND_VALLEY"),
+                true, Material.NETHERRACK);
+        
+        BiomeTP.BiomeTPPresets.registerPreset("Trees", Arrays.asList(
+                        "FOREST", "CHERRY_GROVE", "WINDSWEPT_FOREST", "DARK_FOREST", "SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA", "JUNGLE", "SPARSE_JUNGLE", "BIRCH_FOREST", "OLD_GROWTH_BIRCH_FOREST", "TAIGA", "OLD_GROWTH_SPRUCE_TAIGA", "OLD_GROWTH_PINE_TAIGA"),
+                true, Material.OAK_WOOD);
+
+//        BiomeTP.BiomeTPPresets.registerPreset("name", Arrays.asList(
+//                "biome names"),
+//                true, Material.STONE);
+    }
+    
+    public static Material getMaterial(String biome) {
+        String materialName = switch (biome.toUpperCase()) {
+            case "OCEAN", "RIVER", "DEEP_OCEAN", "LUKEWARM_OCEAN", "COLD_OCEAN", "DEEP_LUKEWARM_OCEAN", "DEEP_COLD_OCEAN" -> "WATER_BUCKET";
+            case "PLAINS", "WINDSWEPT_HILLS", "MEADOW" -> "GRASS_BLOCK";
+            case "DESERT", "BEACH" -> "SAND";
+            case "FOREST", "WINDSWEPT_FOREST" -> "OAK_LOG";
+            case "TAIGA", "OLD_GROWTH_PINE_TAIGA", "OLD_GROWTH_SPRUCE_TAIGA" -> "SPRUCE_LOG";
+            case "SWAMP" -> "LILY_PAD";
+            case "NETHER_WASTES" -> "NETHERRACK";
+            case "THE_END", "SMALL_END_ISLANDS", "END_MIDLANDS", "END_HIGHLANDS", "END_BARRENS" -> "END_STONE";
+            case "FROZEN_OCEAN", "FROZEN_RIVER", "DEEP_FROZEN_OCEAN" -> "ICE";
+            case "ICE_SPIKES", "FROZEN_PEAKS" -> "PACKED_ICE";
+            case "SNOWY_PLAINS", "SNOWY_BEACH", "SNOWY_TAIGA" -> "SNOW";
+            case "MUSHROOM_FIELDS" -> "RED_MUSHROOM_BLOCK";
+            case "JUNGLE", "SPARSE_JUNGLE" -> "JUNGLE_LOG";
+            case "BAMBOO_JUNGLE" -> "BAMBOO";
+            case "STONY_SHORE", "STONY_PEAKS" -> "STONE";
+            case "BIRCH_FOREST", "OLD_GROWTH_BIRCH_FOREST" -> "BIRCH_LOG";
+            case "DARK_FOREST" -> "DARK_OAK_LOG";
+            case "SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA" -> "ACACIA_LOG";
+            case "BADLANDS", "WOODED_BADLANDS", "ERODED_BADLANDS" -> "TERRACOTTA";
+            case "WARM_OCEAN" -> "BRAIN_CORAL_BLOCK";
+            case "THE_VOID" -> "BARRIER";
+            case "SUNFLOWER_PLAINS" -> "SUNFLOWER";
+            case "WINDSWEPT_GRAVELLY_HILLS" -> "GRAVEL";
+            case "FLOWER_FOREST" -> "ROSE_BUSH";
+            case "SOUL_SAND_VALLEY" -> "SOUL_SAND";
+            case "CRIMSON_FOREST" -> "CRIMSON_NYLIUM";
+            case "WARPED_FOREST" -> "WARPED_NYLIUM";
+            case "BASALT_DELTAS" -> "BASALT";
+            case "DRIPSTONE_CAVES" -> "POINTED_DRIPSTONE";
+            case "LUSH_CAVES" -> "GLOW_BERRIES";
+            case "GROVE", "JAGGED_PEAKS" -> "SNOW_BLOCK";
+            case "SNOWY_SLOPES" -> "POWDER_SNOW_BUCKET";
+            case "MANGROVE_SWAMP" -> "MANGROVE_LOG";
+            case "DEEP_DARK" -> "SCULK";
+            case "CHERRY_GROVE" -> "CHERRY_LOG";
+            
+            default -> "DIAMOND_BLOCK";
+        };
+        return Main.getOrDefault(Material.getMaterial(materialName), Material.DIAMOND_BLOCK);
+    }
+    
     @Override
     public void run(String[] args, Player player) {
         // tport biomeTP
@@ -394,7 +475,7 @@ public class BiomeTP extends SubCommand {
         private static final HashMap<String, ArrayList<BiomePreset>> tagPresets = new HashMap<>();
         
         /**
-         * @return {@link Pair} with {@link Boolean} (true when registered, false when not registered), and a {@link List<String>} will all unregistered biomes
+         * @return {@link Pair} with {@link Boolean} (true when registered, false when not registered), and a {@link List<String>} with all unregistered biomes
          */
         @SuppressWarnings("UnusedReturnValue")
         public static Pair<Boolean, List<String>> registerPreset(String name, List<String> biomes, boolean whitelist, Material material) {

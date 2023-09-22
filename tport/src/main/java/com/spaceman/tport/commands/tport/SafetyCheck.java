@@ -7,6 +7,7 @@ import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import com.spaceman.tport.permissions.PermissionHandler;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -22,6 +23,7 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.events.ClickEvent.runCommand;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 import static com.spaceman.tport.fileHander.Files.tportData;
+import static com.spaceman.tport.inventories.SettingsInventories.*;
 
 public class SafetyCheck extends SubCommand {
     
@@ -156,11 +158,23 @@ public class SafetyCheck extends SubCommand {
     }
     
     public enum SafetyCheckSource implements MessageUtils.MessageDescription {
-        TPORT_OPEN,
-        TPORT_OWN,
-        TPORT_HOME,
-        TPORT_BACK,
-        TPORT_PUBLIC;
+        TPORT_OPEN(settings_safety_check_tport_open_model, settings_safety_check_tport_open_grayed_model),
+        TPORT_OWN(settings_safety_check_tport_own_model, settings_safety_check_tport_own_grayed_model),
+        TPORT_HOME(settings_safety_check_tport_home_model, settings_safety_check_tport_home_grayed_model),
+        TPORT_BACK(settings_safety_check_tport_back_model, settings_safety_check_tport_back_grayed_model),
+        TPORT_PUBLIC(settings_safety_check_tport_public_model, settings_safety_check_tport_public_grayed_model);
+        
+        private final InventoryModel enabledModel;
+        private final InventoryModel disabledModel;
+        
+        SafetyCheckSource(InventoryModel enabledModel, InventoryModel disabledModel) {
+            this.enabledModel = enabledModel;
+            this.disabledModel = disabledModel;
+        }
+        
+        public InventoryModel getModel(Player player) {
+            return this.getState(player) ? enabledModel : disabledModel;
+        }
         
         public String getPermission() {
             return "TPort.safetyCheck." + this.name();

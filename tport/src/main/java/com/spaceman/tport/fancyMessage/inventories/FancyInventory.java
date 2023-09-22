@@ -1,11 +1,13 @@
 package com.spaceman.tport.fancyMessage.inventories;
 
 import com.google.gson.JsonObject;
+import com.spaceman.tport.Main;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.language.Language;
+import com.spaceman.tport.reflection.ReflectionManager;
 import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.chat.IChatMutableComponent;
 import net.minecraft.network.protocol.game.PacketPlayOutOpenWindow;
@@ -40,13 +42,20 @@ public class FancyInventory implements InventoryHolder {
     public static final InventoryModel next_model = new InventoryModel(Material.HOPPER, 5145462, "navigation");
     public static final InventoryModel previous_model = new InventoryModel(Material.FERN, 5145463, "navigation");
     
+    public static final DataName<Integer> pageDataName = new DataName<>("page", Integer.class, 0);
+    public static final DataName<Integer> totalPagesDataName = new DataName<>("totalPages", Integer.class, 0);
+    public static final DataName<Integer> rowsDataName = new DataName<>("rows", Integer.class, 3);
+    public static final DataName<InventoryCreator> invCreatorDataName = new DataName<>("invCreator", InventoryCreator.class);
+    
     private final HashMap<String, Object> holderData;
     
     private Inventory inventory;
     private Message title;
     
     public FancyInventory(int size, Message title) {
-        if (9 > size || size > 54 || size % 9 != 0) {
+        if (size > 0 && size < 7) {
+            size *= 9;
+        } else if (9 > size || size > 54 || size % 9 != 0) {
             size = 54;
         }
         this.inventory = Bukkit.createInventory(this, size, title.toString());
@@ -81,6 +90,51 @@ public class FancyInventory implements InventoryHolder {
         return holderData.get(dataName);
     }
     
+    public <C> void setData(DataName<C> dataName, C data) {
+        if (dataName.getClazz().isInstance(data)) {
+            setData(dataName.getDataName(), data);
+        }
+    }
+    public <C> C getData(DataName<C> dataName) {
+        return getData(dataName, dataName.getDefault());
+    }
+    public <C> C getData(DataName<C> dataName, C def) {
+        return getData(dataName.getDataName(), dataName.getClazz(), def);
+    }
+    public <C> boolean hasData(DataName<C> dataName) {
+        Object o = holderData.getOrDefault(dataName.getDataName(), null);
+        return dataName.getClazz().isInstance(o);
+    }
+    
+    public static class DataName<C> {
+        private final String dataName;
+        private final Class<C> clazz;
+        private final C def;
+        
+        public DataName(String dataName, Class<C> clazz) {
+            this.dataName = dataName;
+            this.clazz = clazz;
+            this.def = null;
+        }
+        public DataName(String dataName, Class<C> clazz, @Nullable C def) {
+            this.dataName = dataName;
+            this.clazz = clazz;
+            this.def = def;
+        }
+        
+        public String getDataName() {
+            return dataName;
+        }
+        
+        public Class<C> getClazz() {
+            return clazz;
+        }
+        
+        public C getDefault() {
+            return def;
+        }
+    }
+    
     public void transferData(FancyInventory prevWindow) {
         this.holderData.putAll(prevWindow.holderData);
     }
@@ -99,12 +153,26 @@ public class FancyInventory implements InventoryHolder {
         return this.inventory.addItem(itemStack);
     }
     
-    public void ensureOriginalContent() {
+    public void setOriginalContent() {
         this.setData("originalContent", inventory.getContents());
+    }
+    public static void ensureOriginalContent(Player player) {
+        Inventory inv = player.getOpenInventory().getTopInventory();
+        
+        if (inv.getHolder() instanceof FancyInventory fancyInventory) {
+            List<ItemStack> originalContent = Arrays.asList(fancyInventory.getData("originalContent", ItemStack[].class, new ItemStack[0]));
+            for (ItemStack item : inv.getContents()) {
+                if (!originalContent.contains(item)) {
+                    Main.giveItems(player, item);
+                }
+            }
+            
+        }
     }
     
     public void open(Player player) {
-        ensureOriginalContent();
+        setOriginalContent();
+        ensureOriginalContent(player);
         ColorTheme theme = ColorTheme.getTheme(player);
         try {
             title = MessageUtils.translateMessage(title, getPlayerLang(player.getUniqueId()));
@@ -121,7 +189,8 @@ public class FancyInventory implements InventoryHolder {
             
 //            Containers<?> windowType = CraftContainer.getNotchInventoryType(inventory);
             Containers<?> windowType = (Containers<?>) craftContainer.getMethod("getNotchInventoryType", Inventory.class).invoke(null, inventory);
-            getPlayerConnection(entityPlayer).a(new PacketPlayOutOpenWindow(container.j, windowType, chatSerializer));
+//            getPlayerConnection(entityPlayer).a(new PacketPlayOutOpenWindow(container.j, windowType, chatSerializer));
+            ReflectionManager.sendPlayerPacket(player, new PacketPlayOutOpenWindow(container.j, windowType, chatSerializer));
             
 //            entityPlayer.bR = container;
             for (Field f : EntityHuman.class.getFields()) {
@@ -212,11 +281,12 @@ public class FancyInventory implements InventoryHolder {
         if (maxPages != 1) {
             title.addMessage(formatInfoTranslation("tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.page", page + 1, maxPages));
         }
+        
         FancyInventory inv = new FancyInventory(size, title);
-        inv.setData("page", page);
-        inv.setData("totalPages", items.size() / width - rows + (items.size() % width == 0 ? 0 : 1));
-        inv.setData("rows", rows);
-        inv.setData("invCreator", invCreator);
+        inv.setData(pageDataName, page);
+        inv.setData(totalPagesDataName, items.size() / width - rows + (items.size() % width == 0 ? 0 : 1));
+        inv.setData(rowsDataName, rows);
+        inv.setData(invCreatorDataName, invCreator);
         
         int startIndex = page * skipPerPage; //amount to skip
         
@@ -257,9 +327,9 @@ public class FancyInventory implements InventoryHolder {
             MessageUtils.setCustomItemData(is, theme, nextTitle, Arrays.asList(next1, nextRow, nextEnd));
             
             ItemMeta im = is.getItemMeta();
-            FancyClickEvent.addFunction(im, ClickType.LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> fancyInventory.getData("invCreator", InventoryCreator.class).openInventory(whoClicked, fancyInventory.getData("page", Integer.class, 0) +1, fancyInventory)));
-            FancyClickEvent.addFunction(im, ClickType.RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> fancyInventory.getData("invCreator", InventoryCreator.class).openInventory(whoClicked, fancyInventory.getData("page", Integer.class, 0) + fancyInventory.getData("rows", Integer.class, 3), fancyInventory)));
-            FancyClickEvent.addFunction(im, ClickType.SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> fancyInventory.getData("invCreator", InventoryCreator.class).openInventory(whoClicked, fancyInventory.getData("totalPages", Integer.class, 0), fancyInventory)));
+            FancyClickEvent.addFunction(im, ClickType.LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> fancyInventory.getData(invCreatorDataName).openInventory(whoClicked, fancyInventory.getData(pageDataName) +1, fancyInventory)));
+            FancyClickEvent.addFunction(im, ClickType.RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> fancyInventory.getData(invCreatorDataName).openInventory(whoClicked, fancyInventory.getData(pageDataName) + fancyInventory.getData(rowsDataName), fancyInventory)));
+            FancyClickEvent.addFunction(im, ClickType.SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> fancyInventory.getData(invCreatorDataName).openInventory(whoClicked, fancyInventory.getData(totalPagesDataName), fancyInventory)));
             is.setItemMeta(im);
             
             inv.setItem(size - 1, is);
@@ -282,9 +352,9 @@ public class FancyInventory implements InventoryHolder {
             MessageUtils.setCustomItemData(is, theme, previousTitle, Arrays.asList(previous1, previousRow, previousBegin));
             
             ItemMeta im = is.getItemMeta();
-            FancyClickEvent.addFunction(im, ClickType.LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> fancyInventory.getData("invCreator", InventoryCreator.class).openInventory(whoClicked, fancyInventory.getData("page", Integer.class, 1) -1, fancyInventory)));
-            FancyClickEvent.addFunction(im, ClickType.RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> fancyInventory.getData("invCreator", InventoryCreator.class).openInventory(whoClicked, fancyInventory.getData("page", Integer.class, 1) - fancyInventory.getData("rows", Integer.class, 3), fancyInventory)));
-            FancyClickEvent.addFunction(im, ClickType.SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> fancyInventory.getData("invCreator", InventoryCreator.class).openInventory(whoClicked, 0, fancyInventory)));
+            FancyClickEvent.addFunction(im, ClickType.LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> fancyInventory.getData(invCreatorDataName).openInventory(whoClicked, fancyInventory.getData(pageDataName) -1, fancyInventory)));
+            FancyClickEvent.addFunction(im, ClickType.RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> fancyInventory.getData(invCreatorDataName).openInventory(whoClicked, fancyInventory.getData(pageDataName) - fancyInventory.getData(rowsDataName), fancyInventory)));
+            FancyClickEvent.addFunction(im, ClickType.SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> fancyInventory.getData(invCreatorDataName).openInventory(whoClicked, 0, fancyInventory)));
             is.setItemMeta(im);
             
             inv.setItem(8, is);

@@ -7,9 +7,8 @@ import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.events.ClickEvent.openUrl;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 
@@ -50,14 +49,14 @@ public class MetricsCommand extends SubCommand {
             Message hereMessage = formatTranslation(varInfoColor, varInfo2Color, "tport.command.metricsCommand.here");
             hereMessage.getText().forEach(t -> t
                     .setInsertion("https://bstats.org/plugin/bukkit/TPort/8061")
-                    .addTextEvent(hoverEvent("https://bstats.org/plugin/bukkit/TPort/8061"))
+                    .addTextEvent(hoverEvent("https://bstats.org/plugin/bukkit/TPort/8061", infoColor))
                     .addTextEvent(openUrl("https://bstats.org/plugin/bukkit/TPort/8061")));
     
             sendInfoTranslation(player, "tport.command.metricsCommand.viewStats.succeeded",
                     hereMessage,
                     textComponent("bStats", varInfoColor)
                             .setInsertion("https://bstats.org/")
-                            .addTextEvent(hoverEvent("https://bstats.org/"))
+                            .addTextEvent(hoverEvent("https://bstats.org/", infoColor))
                             .addTextEvent(openUrl("https://bstats.org/")));
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport metrics viewStats");

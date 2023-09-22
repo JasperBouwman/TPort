@@ -3,10 +3,12 @@ package com.spaceman.tport.commands.tport.pltp;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.SafetyCheck;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.Files.tportData;
+import static com.spaceman.tport.inventories.SettingsInventories.*;
 
 public class Offset extends SubCommand {
     
@@ -62,19 +65,21 @@ public class Offset extends SubCommand {
     }
     
     public enum PLTPOffset implements MessageUtils.MessageDescription {
-        IN(origin -> origin),
+        IN(origin -> origin, settings_pltp_offset_in_model),
         BEHIND(origin -> {
             Location l = origin.clone();
             l.setPitch(0);
             l = l.add(l.getDirection().multiply(-1));
             l.setPitch(origin.getPitch());
             return SafetyCheck.isSafe(l) ? l : origin;
-        });
+        }, settings_pltp_offset_behind_model);
         
         private final OffsetApplier offsetApplier;
+        private final InventoryModel model;
         
-        PLTPOffset(OffsetApplier offsetApplier) {
+        PLTPOffset(OffsetApplier offsetApplier, InventoryModel model) {
             this.offsetApplier = offsetApplier;
+            this.model = model;
         }
         
         public Location applyOffset(Location origin) {
@@ -115,6 +120,13 @@ public class Offset extends SubCommand {
         @Override
         public String getInsertion() {
             return name();
+        }
+        
+        public InventoryModel getModel() {
+            if (Features.Feature.PLTP.isDisabled()) {
+                return settings_pltp_offset_grayed_model;
+            }
+            return model;
         }
         
         @FunctionalInterface

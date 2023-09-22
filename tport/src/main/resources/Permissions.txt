@@ -125,6 +125,7 @@ Permissions can work with trees.
 /tport transfer accept <player> <TPort name>                                                                  TPort.transfer.accept                       OR TPort.basic
 /tport transfer reject <player> <TPort name>
 /tport transfer list
+/tport transfer
 /tport version
 /tport log read <TPort name>
 /tport log TimeZone [TimeZone]
@@ -223,3 +224,5 @@ Permissions can work with trees.
 /tport resourcePack resolution [resolution]
 /tport restore
 /tport settings
+/tport look                                                                                                   TPort.look
+/tport look <type>                                                                                            TPort.look

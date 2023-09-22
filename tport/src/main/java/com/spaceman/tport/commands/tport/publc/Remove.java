@@ -25,7 +25,7 @@ public class Remove extends SubCommand {
         return instance;
     }
     
-    private final EmptyCommand emptyAll;
+    public final EmptyCommand emptyAll;
     
     private Remove() {
         EmptyCommand emptyOwn = new EmptyCommand();

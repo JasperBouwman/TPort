@@ -24,7 +24,8 @@ public enum CooldownManager {
     FeatureTP("3000"),
     BiomeTP("3000"),
     Search("10000"),
-    Back("TPortTP");
+    Back("TPortTP"),
+    LookTP("3000");
     
     public static boolean loopCooldown = false;
     private static String errorOccurredWith = "null";

@@ -9,7 +9,6 @@ import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.cooldown.CooldownCommand;
 import com.spaceman.tport.events.PreviewEvents;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorThemeCommand;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
@@ -45,7 +44,7 @@ public class TPortCommand extends CommandTemplate {
     public static List<Message> getPlayerData(UUID uuid) {
         List<Message> hoverData = new ArrayList<>();
         
-        hoverData.add(formatInfoTranslation("tport.command.headDisplay.tportAmount", TPortManager.getTPortList(uuid).size()));
+        hoverData.add(formatInfoTranslation("tport.command.getPlayerData.tportAmount", TPortManager.getTPortList(uuid).size()));
         
         return hoverData;
     }
@@ -125,7 +124,7 @@ public class TPortCommand extends CommandTemplate {
         addAction(new ResourcePack());
         addAction(new Restore());
         addAction(new Settings());
-//        addAction(new Look());
+        addAction(new Look());
         
         TextComponent discordServer = new TextComponent("Discord Server", varInfoColor)
                 .addTextEvent(new HoverEvent(new TextComponent(Main.discordLink, infoColor)))

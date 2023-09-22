@@ -7,6 +7,7 @@ import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.playerUUID.PlayerUUID;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -23,6 +24,10 @@ public class PlayerEncapsulation extends Encapsulation {
     
     public static PlayerEncapsulation asPlayer(@Nonnull UUID uuid) {
         return new PlayerEncapsulation(uuid);
+    }
+    
+    public static PlayerEncapsulation asPlayer(@Nonnull OfflinePlayer op) {
+        return new PlayerEncapsulation(op.getUniqueId(), op.getName());
     }
     
     public static PlayerEncapsulation asPlayer(@Nonnull Player player) {

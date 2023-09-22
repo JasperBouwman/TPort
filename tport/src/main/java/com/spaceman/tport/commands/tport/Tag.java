@@ -54,7 +54,7 @@ public class Tag extends SubCommand {
                 saveTags();
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        tport.removeTag(t);
+                        if (tport.removeTag(t)) tport.save();
                     }
                 }
                 return true;

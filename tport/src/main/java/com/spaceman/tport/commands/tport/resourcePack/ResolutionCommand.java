@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.commands.tport.ResourcePack.setResourcePackResolution;
@@ -103,6 +104,19 @@ public class ResolutionCommand extends SubCommand {
         
         public String getUrl() {
             return url;
+        }
+        
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Resolution that = (Resolution) o;
+            return name.equalsIgnoreCase(that.name);
+        }
+        
+        @Override
+        public int hashCode() {
+            return Objects.hash(name);
         }
         
         public Message getDescription() {

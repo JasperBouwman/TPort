@@ -9,6 +9,7 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.TextType;
+import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -24,6 +25,7 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.events.ClickEvent.runCommand;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 import static com.spaceman.tport.fileHander.Files.tportConfig;
+import static com.spaceman.tport.inventories.SettingsInventories.*;
 
 public class Features extends SubCommand {
     
@@ -207,30 +209,34 @@ public class Features extends SubCommand {
     }
     
     public enum Feature implements MessageUtils.MessageDescription {
-        BiomeTP(true, true),
-        FeatureTP(true, true),
-        BackTP(true, true),
-        PublicTP(true, true),
-        PLTP(true, true),
-        Dynmap(true, true),
-        Metrics(true, true),
-        Permissions(false, false),
-        ParticleAnimation(true, true),
-        Redirects(true, true),
-        Preview(true, true),
-        WorldTP(true, true),
-        TPortTakesItem(false, true),
-        InterdimensionalTeleporting(false, true),
-        DeathTP(false, true),
-        PrintErrorsInConsole(false, false),
-        FeatureSettings(false, true);
+        BiomeTP(true, true, settings_features_biome_tp_model, settings_features_biome_tp_grayed_model),
+        FeatureTP(true, true, settings_features_feature_tp_model, settings_features_feature_tp_grayed_model),
+        BackTP(true, true, settings_features_back_tp_model, settings_features_back_tp_grayed_model),
+        PublicTP(true, true, settings_features_public_tp_model, settings_features_public_tp_grayed_model),
+        PLTP(true, true, settings_features_pltp_model, settings_features_pltp_grayed_model),
+        Dynmap(true, true, settings_features_dynmap_model, settings_features_dynmap_grayed_model),
+        Metrics(true, true, settings_features_metrics_model, settings_features_metrics_grayed_model),
+        Permissions(false, false, settings_features_permissions_model, settings_features_permissions_grayed_model),
+        ParticleAnimation(true, true, settings_features_particle_animation_model, settings_features_particle_animation_grayed_model),
+        Redirects(true, true, settings_features_redirects_model, settings_features_redirects_grayed_model),
+        Preview(true, true, settings_features_preview_model, settings_features_preview_grayed_model),
+        WorldTP(true, true, settings_features_world_tp_model, settings_features_world_tp_grayed_model),
+        TPortTakesItem(false, true, settings_features_tport_takes_item_model, settings_features_tport_takes_item_grayed_model),
+        InterdimensionalTeleporting(false, true, settings_features_interdimensional_teleporting_model, settings_features_interdimensional_teleporting_grayed_model),
+        DeathTP(false, true, settings_features_death_tp_model, settings_features_death_tp_grayed_model),
+        PrintErrorsInConsole(false, false, settings_features_print_errors_in_console_model, settings_features_print_errors_in_console_grayed_model),
+        FeatureSettings(false, true, settings_features_feature_settings_model, settings_features_feature_settings_grayed_model);
         
         private final boolean reloadCommands;
         private final boolean defaultValue;
+        private final InventoryModel enabledModel;
+        private final InventoryModel disabledModel;
         
-        Feature(boolean reloadCommands, boolean defaultValue) {
+        Feature(boolean reloadCommands, boolean defaultValue, InventoryModel enabledModel, InventoryModel disabledModel) {
             this.reloadCommands = reloadCommands;
             this.defaultValue = defaultValue;
+            this.enabledModel = enabledModel;
+            this.disabledModel = disabledModel;
         }
         
         public static List<String> getStringValues() {
@@ -273,9 +279,13 @@ public class Features extends SubCommand {
         }
         
         public static void printSmallNMSErrorInConsole(String nmsError, boolean usedBackup) {
-            String message = "NMS Error in :" + nmsError;
+            String message = "NMS Error in: " + nmsError;
             if (usedBackup) message += ", used built-in backup. Some features may not keep their full functionality when their backup is used";
             Main.getInstance().getLogger().log(Level.WARNING, message);
+        }
+        
+        public InventoryModel getModel() {
+            return this.isEnabled() ? enabledModel : disabledModel;
         }
         
         @Override

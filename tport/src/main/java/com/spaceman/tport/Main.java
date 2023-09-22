@@ -1,12 +1,8 @@
 package com.spaceman.tport;
 
-import com.spaceman.tport.commandHandler.ArgumentType;
-import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.*;
-import com.spaceman.tport.commands.tport.Tag;
 import com.spaceman.tport.commands.tport.backup.Auto;
-import com.spaceman.tport.commands.tport.biomeTP.Accuracy;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
 import com.spaceman.tport.dynmap.DynmapHandler;
 import com.spaceman.tport.events.*;
@@ -14,14 +10,12 @@ import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
-import com.spaceman.tport.inventories.ItemFactory;
-import com.spaceman.tport.inventories.TPortInventories;
+import com.spaceman.tport.fancyMessage.inventories.keyboard.QuickType;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
 import com.spaceman.tport.metrics.CommandCounter;
 import com.spaceman.tport.metrics.FeatureSearchCounter;
 import com.spaceman.tport.metrics.Metrics;
 import com.spaceman.tport.permissions.PermissionHandler;
-import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
 import com.spaceman.tport.tpEvents.TPEManager;
 import com.spaceman.tport.tpEvents.TPRestriction;
@@ -32,38 +26,31 @@ import com.spaceman.tport.tpEvents.restrictions.InteractRestriction;
 import com.spaceman.tport.tpEvents.restrictions.NoneRestriction;
 import com.spaceman.tport.tpEvents.restrictions.WalkRestriction;
 import com.spaceman.tport.tport.TPort;
-import com.spaceman.tport.tport.TPortManager;
-import org.apache.commons.lang.StringUtils;
-import org.bukkit.*;
-import org.bukkit.block.Biome;
-import org.bukkit.block.Block;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.RayTraceResult;
 
 import javax.annotation.Nullable;
 import java.awt.*;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.List;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTranslation;
 import static com.spaceman.tport.fileHander.Files.tportConfig;
-import static com.spaceman.tport.fileHander.Files.tportData;
-import static com.spaceman.tport.inventories.ItemFactory.HeadAttributes.CLICK_EVENTS;
-import static com.spaceman.tport.inventories.ItemFactory.HeadAttributes.TPORT_AMOUNT;
-import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.ADD_OWNER;
-import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.CLICK_TO_OPEN;
-import static com.spaceman.tport.inventories.ItemFactory.getHead;
 
 public class Main extends JavaPlugin {
     
@@ -172,31 +159,78 @@ public class Main extends JavaPlugin {
     }
     
     public static final String discordLink = "https://discord.gg/tq5RTmSbHU";
-    public static final String[] supportedVersions = new String[]{"1.20.1", "1.20", "1.19.4", "1.18.2"}; //todo update compatible version
+    public static String[] supportedVersions = new String[]{};
+    private void setSupportedVersions() {
+        InputStream is = this.getClassLoader().getResourceAsStream("plugin.yml");
+        if (is == null) {
+            this.getLogger().log(Level.INFO, "Could not update the supported versions list");
+            return;
+        }
+        Reader r = new InputStreamReader(is);
+
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(r);
+        supportedVersions = yaml.getStringList("supportedVersions").toArray(new String[]{});
+    }
+    
     public void onEnable() {
         
         /*
-         * changelog 1.20.1 update:
+         * changelog 1.20.2 update:
          *
-         * Fixed Unsupported API version
-         * Added Cherry Log to the biome Cherry Grove in BiomeTP
-         * Added Suspicious Gravel to the feature in FeatureTP
-         * Added icons for the new tag lists in BiomeTP - Presets
-         * TPort Keyboard has now a dynamic title length. Inputted colors work better in the title
-         * Added new line button icon 'char_newline.png'
+         * added /tport look [type]
+         * With this command players can teleport the block/entity/fluid that they are looking at.
+         * For this a new cooldown type is created: LookTP
          *
-         * TPort should now work on multiple versions (1.20.1, 1.20, 1.19.4, 1.18.2).
+         * The TPort Keyboard got updated:
+         * added:
+         *  - Quick Type. This opens a sign where players can type with their own keyboard and paste from their clipboard
+         *  - Title formatting. This is a toggle where players can preview their typed text with colors or as plain text
+         *      - example formatting on (imagine with colors): GREEN BLUE, example formatting off: &aGREEN &9BLUE
+         *      - note that typing colors in this example is not possible, but when formatting is off you see the color codes
+         *  - Cursor. The keyboard now has a cursor for easy typing in between text. It is shown as a red |
+         *      - when formatting is on the cursor jumps over the color
+         *  - Color edit. When clicking (left/right) on the color button you can now choose if you want to insert a color, or edit the current color
+         *      - when the cursor is on a color, it edits this color
+         *      - when the cursor is on text, it edits the previous color (since this color is used for the selected text)
+         *  - added 'delete' to the backspace button
+         *
+         * added to the Quick Edit menu:
+         *  - Offer/Revoke. This is from the transfer function set. Accepting/Rejecting is in the settings menu
+         * added to the settings menu:
+         *  - Restore
+         *  - Home
+         *  - Transfer
+         *  - Features
+         *  - Redirects
+         *  - Tags
+         *  - PLTP
+         *  - Resource Pack
+         *  - PublicTP
          */
         
         /*
          * //todo
+         *
+         * edit settings/transfer/switch     icon
+         *
+         * Texture 'settings_features_permissions.png' does not exist
+         * Texture 'settings_features_permissions_grayed.png' does not exist
+         * Texture 'settings_features_tport_takes_item.png' does not exist
+         * Texture 'settings_features_tport_takes_item_grayed.png' does not exist
+         * Texture 'settings_features_death_tp.png' does not exist
+         * Texture 'settings_features_death_tp_grayed.png' does not exist
+         * Texture 'settings_features_print_errors_in_console.png' does not exist
+         * Texture 'settings_features_print_errors_in_console_grayed.png' does not exist
+         * Texture 'settings_features_feature_settings.png' does not exist
+         * Texture 'settings_features_feature_settings_grayed.png' does not exist
+         *
+         * add filter (own/all) to the PublicTP GUI
          *
          * unify EmptyCommand names
          *
          * add POI
          *
          * /tport bed
-         * /tport look [type]
          *
          * /tport history
          * /tport history back
@@ -220,6 +254,7 @@ public class Main extends JavaPlugin {
          * */
         
         this.getLogger().log(Level.INFO, "TPort has a Discord server, for any questions/more go to: " + discordLink);
+        setSupportedVersions();
         Version.checkForLatestVersion();
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
@@ -252,8 +287,6 @@ public class Main extends JavaPlugin {
                     !damageableMaterials.contains(ground.getBlock().getType());
         });
         
-        registerBiomeTPPresets();
-        
         Glow.registerGlow();
         
         Features.convert();
@@ -272,16 +305,11 @@ public class Main extends JavaPlugin {
         pm.registerEvents(new RespawnEvent(), this);
         pm.registerEvents(new CommandEvent(), this);
         pm.registerEvents(new FancyClickEvent(), this);
-        pm.registerEvents(new Sign(), this);
+        pm.registerEvents(new QuickType(), this);
         
         for (Player player : Bukkit.getOnlinePlayers()) {
             JoinEvent.setData(player);
         }
-        
-        registerSearchers();
-        registerSorters();
-        registerBiomeTPAccuracies();
-//        registerLookTypes();
         
         if (Features.Feature.Metrics.isEnabled()) {
             Main.getInstance().getLogger().log(Level.INFO, "Enabling metrics. Thank you for enabling metrics, powered by bStats. To view stats use '/tport metrics viewStats'");
@@ -307,412 +335,12 @@ public class Main extends JavaPlugin {
         PreviewEvents.cancelAllPreviews();
         
         for (Player player : Bukkit.getOnlinePlayers()) {
+            QuickType.removeQuickTypeSignHandler(player);
+            
             if (player.getOpenInventory().getTopInventory().getHolder() instanceof FancyInventory) {
                 player.closeInventory();
                 sendInfoTranslation(player, "tport.Main.inventoryCloseByReload");
             }
         }
     }
-    
-    @SuppressWarnings("CommentedOutCode")
-    private void registerBiomeTPPresets() {
-        BiomeTP.BiomeTPPresets.registerPreset("Land", Arrays.asList(
-                "OCEAN", "WARM_OCEAN", "LUKEWARM_OCEAN",
-                "COLD_OCEAN", "FROZEN_OCEAN", "DEEP_OCEAN",
-                "DEEP_LUKEWARM_OCEAN",
-                "DEEP_COLD_OCEAN", "DEEP_FROZEN_OCEAN",
-                "RIVER", "FROZEN_RIVER"
-        ), false, Material.GRASS_BLOCK);
-
-        BiomeTP.BiomeTPPresets.registerPreset("Water", Arrays.asList(
-                "OCEAN", "WARM_OCEAN", "LUKEWARM_OCEAN",
-                "COLD_OCEAN", "FROZEN_OCEAN", "DEEP_OCEAN",
-                "DEEP_LUKEWARM_OCEAN",
-                "DEEP_COLD_OCEAN", "DEEP_FROZEN_OCEAN",
-                "RIVER", "FROZEN_RIVER"
-        ), true, Material.WATER_BUCKET);
-
-        BiomeTP.BiomeTPPresets.registerPreset("The_End", Arrays.asList(
-                "END_BARRENS", "END_HIGHLANDS", "END_MIDLANDS", "THE_END", "SMALL_END_ISLANDS"),
-                true, Material.END_STONE);
-
-        BiomeTP.BiomeTPPresets.registerPreset("Nether", Arrays.asList(
-                        "NETHER_WASTES", "BASALT_DELTAS",
-                        "CRIMSON_FOREST", "WARPED_FOREST", "SOUL_SAND_VALLEY"),
-                true, Material.NETHERRACK);
-
-        BiomeTP.BiomeTPPresets.registerPreset("Trees", Arrays.asList(
-                "FOREST", "CHERRY_GROVE", "WINDSWEPT_FOREST", "DARK_FOREST", "SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA", "JUNGLE", "SPARSE_JUNGLE", "BIRCH_FOREST", "OLD_GROWTH_BIRCH_FOREST", "TAIGA", "OLD_GROWTH_SPRUCE_TAIGA", "OLD_GROWTH_PINE_TAIGA"),
-                true, Material.OAK_WOOD);
-        
-//        BiomeTP.BiomeTPPresets.registerPreset("name", Arrays.asList(
-//                "biome names"),
-//                true, Material.STONE);
-    }
-    
-    private void registerSearchers() {
-        {
-            EmptyCommand emptyTPortModeQuery = new EmptyCommand();
-            emptyTPortModeQuery.setCommandName("query", ArgumentType.REQUIRED);
-            emptyTPortModeQuery.setCommandDescription(formatInfoTranslation("tport.command.search.tport.commandDescription"));
-            
-            EmptyCommand emptyTPortMode = new EmptyCommand();
-            emptyTPortMode.setCommandName("mode", ArgumentType.REQUIRED);
-            emptyTPortMode.addAction(emptyTPortModeQuery);
-            
-            EmptyCommand emptyTPort = new EmptyCommand() {
-                @Override
-                public String getName(String argument) {
-                    return getCommandName();
-                }
-            };
-            emptyTPort.setCommandName("TPort", ArgumentType.FIXED);
-            emptyTPort.setTabRunnable(((args, player) -> Arrays.stream(Search.SearchMode.values()).map(Enum::name).collect(Collectors.toList())));
-            emptyTPort.setRunnable(((args, player) -> {
-                if (args.length == 4) {
-                    Search.SearchMode searchMode = Search.SearchMode.get(args[2]);
-                    if (searchMode == null) {
-                        sendErrorTranslation(player, "tport.command.search.tport.modeNotExist", args[2]);
-                        return;
-                    }
-                    TPortInventories.openSearchGUI(player, 0, searchMode, "TPort", args[3]);
-                } else {
-                    sendErrorTranslation(player, "tport.command.wrongUsage","/tport search TPort <mode> <TPort name>");
-                }
-            }));
-            emptyTPort.addAction(emptyTPortMode);
-            
-            Search.Searchers.addSearcher((searchMode, query, player) -> {
-                ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : tportData.getKeys("tport")) {
-                    for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        if (searchMode.fits(tport.getName(), query)) {
-                            list.add(ItemFactory.toTPortItem(tport, player,ADD_OWNER, CLICK_TO_OPEN));
-                        }
-                    }
-                }
-                return list;
-            }, emptyTPort);
-        } //TPort
-        
-        {
-            EmptyCommand emptyDescriptionModeQuery = new EmptyCommand();
-            emptyDescriptionModeQuery.setCommandName("query", ArgumentType.REQUIRED);
-            emptyDescriptionModeQuery.setCommandDescription(formatInfoTranslation("tport.command.search.description.commandDescription"));
-            emptyDescriptionModeQuery.setLooped(true);
-            
-            EmptyCommand emptyDescriptionMode = new EmptyCommand();
-            emptyDescriptionMode.setCommandName("mode", ArgumentType.REQUIRED);
-            emptyDescriptionMode.addAction(emptyDescriptionModeQuery);
-            
-            EmptyCommand emptyDescription = new EmptyCommand() {
-                @Override
-                public String getName(String argument) {
-                    return getCommandName();
-                }
-            };
-            emptyDescription.setCommandName("description", ArgumentType.FIXED);
-            emptyDescription.setTabRunnable(((args, player) -> Arrays.stream(Search.SearchMode.values()).map(Enum::name).collect(Collectors.toList())));
-            emptyDescription.setRunnable(((args, player) -> {
-                if (args.length >= 4) {
-                    Search.SearchMode searchMode = Search.SearchMode.get(args[2]);
-                    if (searchMode == null) {
-                        sendErrorTranslation(player, "tport.command.search.description.modeNotExist", args[2]);
-                        return;
-                    }
-                    TPortInventories.openSearchGUI(player, 0, searchMode, "description", StringUtils.join(args, " ", 3, args.length));
-                } else {
-                    sendErrorTranslation(player, "tport.command.wrongUsage","/tport search description <mode> <TPort description...>");
-                }
-            }));
-            emptyDescription.addAction(emptyDescriptionMode);
-            
-            Search.Searchers.addSearcher((searchMode, query, player) -> {
-                ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : tportData.getKeys("tport")) {
-                    for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        if (searchMode.fits(tport.getTextDescription().replace("\n", ""), query)) {
-                            list.add(ItemFactory.toTPortItem(tport, player, ADD_OWNER, CLICK_TO_OPEN));
-                        }
-                    }
-                }
-                return list;
-            }, emptyDescription);
-        } //description
-        
-        {
-            EmptyCommand emptyPlayerModeQuery = new EmptyCommand();
-            emptyPlayerModeQuery.setCommandName("query", ArgumentType.REQUIRED);
-            emptyPlayerModeQuery.setCommandDescription(formatInfoTranslation("tport.command.search.player.commandDescription"));
-            emptyPlayerModeQuery.setLooped(true);
-            
-            EmptyCommand emptyPlayerMode = new EmptyCommand();
-            emptyPlayerMode.setCommandName("mode", ArgumentType.REQUIRED);
-            emptyPlayerMode.addAction(emptyPlayerModeQuery);
-            
-            EmptyCommand emptyPlayer = new EmptyCommand() {
-                @Override
-                public String getName(String argument) {
-                    return getCommandName();
-                }
-            };
-            emptyPlayer.setCommandName("player", ArgumentType.FIXED);
-            emptyPlayer.setTabRunnable(((args, player) -> Arrays.stream(Search.SearchMode.values()).map(Enum::name).collect(Collectors.toList())));
-            emptyPlayer.setRunnable(((args, player) -> {
-                if (args.length == 4) {
-                    Search.SearchMode searchMode = Search.SearchMode.get(args[2]);
-                    if (searchMode == null) {
-                        sendErrorTranslation(player, "tport.command.search.player.modeNotExist", args[2]);
-                        return;
-                    }
-                    TPortInventories.openSearchGUI(player, 0, searchMode, "player", args[3]);
-                } else {
-                    sendErrorTranslation(player, "tport.command.wrongUsage","/tport search player <mode> <player>");
-                }
-            }));
-            emptyPlayer.addAction(emptyPlayerMode);
-            
-            Search.Searchers.addSearcher((searchMode, query, player) -> {
-                ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : tportData.getKeys("tport")) {
-                    if (searchMode.fits(PlayerUUID.getPlayerName(uuid), query)) {
-                        list.add(getOrDefault(getHead(UUID.fromString(uuid), player, TPORT_AMOUNT, CLICK_EVENTS), new ItemStack(Material.AIR)));
-                    }
-                }
-                return list;
-            }, emptyPlayer);
-        } //player
-        
-        {
-            EmptyCommand emptyCanTP = new EmptyCommand() {
-                @Override
-                public String getName(String argument) {
-                    return getCommandName();
-                }
-            };
-            emptyCanTP.setCommandName("canTP", ArgumentType.FIXED);
-            emptyCanTP.setCommandDescription(formatInfoTranslation("tport.command.search.canTP.commandDescription"));
-            emptyCanTP.setRunnable(((args, player) -> {
-                if (args.length == 2) {
-                    TPortInventories.openSearchGUI(player, 0, null, "canTP", "");
-                } else {
-                    sendErrorTranslation(player, "tport.command.wrongUsage","/tport search canTP");
-                }
-            }));
-            
-            Search.Searchers.addSearcher((searchMode, query, player) -> {
-                ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : tportData.getKeys("tport")) {
-                    for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        if (tport.canTeleport(player, false, false, false)) {
-                            list.add(ItemFactory.toTPortItem(tport, player, ADD_OWNER, CLICK_TO_OPEN));
-                        }
-                    }
-                }
-                return list;
-            }, emptyCanTP);
-        } //canTP
-        
-        {
-            EmptyCommand emptyBiomeBiome = new EmptyCommand();
-            emptyBiomeBiome.setCommandName("biome", ArgumentType.REQUIRED);
-            emptyBiomeBiome.setCommandDescription(formatInfoTranslation("tport.command.search.biome.commandDescription"));
-            emptyBiomeBiome.setTabRunnable(((args, player) -> {
-                List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toUpperCase).toList();
-                return Arrays.stream(Biome.values()).map(Enum::name).filter(name -> !biomeList.contains(name)).collect(Collectors.toList());
-            }));
-            emptyBiomeBiome.setLooped(true);
-            
-            EmptyCommand emptyBiome = new EmptyCommand() {
-                @Override
-                public String getName(String argument) {
-                    return getCommandName();
-                }
-            };
-            emptyBiome.setCommandName("biome", ArgumentType.FIXED);
-            emptyBiome.setTabRunnable(((args, player) -> emptyBiomeBiome.tabList(player, args)));
-            emptyBiome.setRunnable(((args, player) -> {
-                if (args.length >= 3) {
-                    StringBuilder str = new StringBuilder();
-                    for (int i = 2; i < args.length; i++) {
-                        try {
-                            Biome.valueOf(args[i].toUpperCase());
-                            str.append(args[i]).append(" ");
-                        } catch (IllegalArgumentException iae) {
-                            sendErrorTranslation(player, "tport.command.search.biome.biomeNotExist", args[i].toUpperCase());
-                            return;
-                        }
-                    }
-                    TPortInventories.openSearchGUI(player, 0, null, "biome", str.toString().trim());
-                } else {
-                    sendErrorTranslation(player, "tport.command.wrongUsage","/tport search biome <biome...>");
-                }
-            }));
-            emptyBiome.addAction(emptyBiomeBiome);
-            
-            Search.Searchers.addSearcher((searchMode, query, player) -> {
-                ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : tportData.getKeys("tport")) {
-                    for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        if (Arrays.stream(query.split(" ")).anyMatch(s -> s.equalsIgnoreCase(tport.getBiome().name()))) {
-                            list.add(ItemFactory.toTPortItem(tport, player, ADD_OWNER, CLICK_TO_OPEN));
-                        }
-                    }
-                }
-                return list;
-            }, emptyBiome);
-        } //biome
-        
-        {
-            EmptyCommand emptyPresetPreset = new EmptyCommand();
-            emptyPresetPreset.setCommandName("preset", ArgumentType.REQUIRED);
-            emptyPresetPreset.setCommandDescription(formatInfoTranslation("tport.command.search.biomePreset.commandDescription"));
-            
-            EmptyCommand emptyPreset = new EmptyCommand() {
-                @Override
-                public String getName(String argument) {
-                    return getCommandName();
-                }
-            };
-            emptyPreset.setCommandName("biomePreset", ArgumentType.FIXED);
-            emptyPreset.setTabRunnable(((args, player) -> BiomeTP.BiomeTPPresets.getNames()));
-            emptyPreset.setRunnable(((args, player) -> {
-                if (args.length == 3) {
-                    BiomeTP.BiomeTPPresets.BiomePreset preset = BiomeTP.BiomeTPPresets.getPreset(args[2], player.getWorld());
-                    if (preset != null) {
-                        TPortInventories.openSearchGUI(player, 0, null, "biomePreset", args[2]);
-                    } else {
-                        sendErrorTranslation(player, "tport.command.search.biomePreset.presetNotExist", args[2]);
-                    }
-                } else {
-                    sendErrorTranslation(player, "tport.command.wrongUsage","/tport search biomePreset <preset>");
-                }
-            }));
-            emptyPreset.addAction(emptyPresetPreset);
-            
-            Search.Searchers.addSearcher((searchMode, query, player) -> {
-                ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : tportData.getKeys("tport")) {
-                    for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        //noinspection ConstantConditions, command checks if available
-                        if (BiomeTP.BiomeTPPresets.getPreset(query, tport.getLocation().getWorld()).biomes().stream().anyMatch(b -> b.equalsIgnoreCase(tport.getBiome().name()))) {
-                            list.add(ItemFactory.toTPortItem(tport, player, ADD_OWNER, CLICK_TO_OPEN));
-                        }
-                    }
-                }
-                return list;
-            }, emptyPreset);
-        } //biomePreset
-        
-        {
-            EmptyCommand emptyDimensionDimension = new EmptyCommand();
-            emptyDimensionDimension.setCommandName("dimension", ArgumentType.REQUIRED);
-            emptyDimensionDimension.setCommandDescription(formatInfoTranslation("tport.command.search.dimension.commandDescription"));
-            
-            EmptyCommand emptyDimension = new EmptyCommand() {
-                @Override
-                public String getName(String argument) {
-                    return getCommandName();
-                }
-            };
-            emptyDimension.setCommandName("dimension", ArgumentType.FIXED);
-            emptyDimension.setTabRunnable(((args, player) -> Arrays.stream(World.Environment.values()).map(Enum::name).collect(Collectors.toList())));
-            emptyDimension.setRunnable(((args, player) -> {
-                if (args.length == 3) {
-                    try {
-                        World.Environment.valueOf(args[2].toUpperCase());
-                        TPortInventories.openSearchGUI(player, 0, null, "dimension", args[2]);
-                    } catch (IllegalArgumentException iae) {
-                        sendErrorTranslation(player, "tport.command.search.dimension.dimensionNotExist", args[2].toUpperCase());
-                    }
-                } else {
-                    sendErrorTranslation(player, "tport.command.wrongUsage","/tport search dimension <dimension>");
-                }
-            }));
-            emptyDimension.addAction(emptyDimensionDimension);
-            
-            Search.Searchers.addSearcher((searchMode, query, player) -> {
-                ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : tportData.getKeys("tport")) {
-                    for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        if (tport.getDimension().name().equalsIgnoreCase(query)) {
-                            list.add(ItemFactory.toTPortItem(tport, player, ADD_OWNER, CLICK_TO_OPEN));
-                        }
-                    }
-                }
-                return list;
-            }, emptyDimension);
-        } //dimension
-        
-        {
-            EmptyCommand emptyTagTag = new EmptyCommand();
-            emptyTagTag.setCommandName("tag", ArgumentType.REQUIRED);
-            emptyTagTag.setCommandDescription(formatInfoTranslation("tport.command.search.tag.commandDescription"));
-            
-            EmptyCommand emptyTag = new EmptyCommand() {
-                @Override
-                public String getName(String argument) {
-                    return getCommandName();
-                }
-            };
-            emptyTag.setCommandName("tag", ArgumentType.FIXED);
-            emptyTag.setTabRunnable(((args, player) -> Tag.getTags()));
-            emptyTag.setRunnable(((args, player) -> {
-                if (args.length == 3) {
-                    String tag = Tag.getTag(args[2]);
-                    
-                    if (tag == null) {
-                        sendErrorTranslation(player, "tport.command.search.tag.tagNotExist", args[2]);
-                        return;
-                    }
-                    
-                    TPortInventories.openSearchGUI(player, 0, null, emptyTag.getCommandName(), tag);
-                } else {
-                    sendErrorTranslation(player, "tport.command.wrongUsage", "/tport search tag <tag>");
-                }
-            }));
-            emptyTag.addAction(emptyTagTag);
-            
-            Search.Searchers.addSearcher((searchMode, query, player) -> {
-                ArrayList<ItemStack> list = new ArrayList<>();
-                for (String uuid : tportData.getKeys("tport")) {
-                    for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        if (tport.getTags().contains(query)) {
-                            list.add(ItemFactory.toTPortItem(tport, player, ADD_OWNER, CLICK_TO_OPEN));
-                        }
-                    }
-                }
-                return list;
-            }, emptyTag);
-        } //tag
-    }
-    
-    private void registerSorters() {
-        Sort.addSorter("alphabet", (player, attributes) -> {
-            ArrayList<String> playerList = new ArrayList<>(tportData.getKeys("tport"));
-            return playerList.stream().map(playerUUID -> getOrDefault(getHead(UUID.fromString(playerUUID), player, attributes), new ItemStack(Material.AIR))).sorted((item1, item2) -> {
-                //noinspection ConstantConditions
-                return item1.getItemMeta().getDisplayName().compareToIgnoreCase(item2.getItemMeta().getDisplayName());
-            }).collect(Collectors.toList());
-            
-        }, formatInfoTranslation("tport.main.sorter.alphabet.description"));
-        
-        Sort.addSorter("oldest", (player, attributes) -> {
-            ArrayList<String> playerList = new ArrayList<>(tportData.getKeys("tport"));
-            return playerList.stream().map(playerUUID -> getOrDefault(getHead(UUID.fromString(playerUUID), player, attributes), new ItemStack(Material.AIR))).collect(Collectors.toList());
-        }, formatInfoTranslation("tport.main.sorter.oldest.description"));
-        
-        Sort.addSorter("newest", (player, attributes) -> {
-            ArrayList<String> playerList = new ArrayList<>(tportData.getKeys("tport"));
-            Collections.reverse(playerList);
-            return playerList.stream().map(playerUUID -> getOrDefault(getHead(UUID.fromString(playerUUID), player, attributes), new ItemStack(Material.AIR))).collect(Collectors.toList());
-        }, formatInfoTranslation("tport.main.sorter.newest.description"));
-    }
-    
-    private void registerBiomeTPAccuracies() {
-        Accuracy.createAccuracy("default", 6400, 8, Arrays.asList(200, 0));
-        Accuracy.createAccuracy("fine", 4800, 6, Arrays.asList(200, 100, 0, -30));
-        Accuracy.createAccuracy("fast", 6400, 8, List.of(100));
-    }
-    
 }

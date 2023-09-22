@@ -26,6 +26,14 @@ public class Accuracy extends SubCommand {
         addAction(emptySize);
         
         setCommandDescription(formatInfoTranslation("tport.command.biomeTP.accuracy.commandDescription"));
+        
+        registerBiomeTPAccuracies();
+    }
+    
+    private void registerBiomeTPAccuracies() {
+        Accuracy.createAccuracy("default", 6400, 8, Arrays.asList(200, 0));
+        Accuracy.createAccuracy("fine", 4800, 6, Arrays.asList(200, 100, 0, -30));
+        Accuracy.createAccuracy("fast", 6400, 8, List.of(100));
     }
     
     @Override

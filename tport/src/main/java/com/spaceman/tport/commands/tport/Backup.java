@@ -40,7 +40,7 @@ public class Backup extends SubCommand {
         // tport backup auto [state|count]
         
         if (args.length == 1) {
-            SettingsInventories.openTPortBackupGUI(player);
+            SettingsInventories.openBackupGUI(player);
         } else {
             if (!runCommands(getActions(), args[1], args, player)) {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport backup <save|load|auto> <name>|[state|count]");

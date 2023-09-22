@@ -20,7 +20,7 @@ import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
-import com.spaceman.tport.fancyMessage.inventories.KeyboardGUI;
+import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -34,24 +34,22 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static com.spaceman.tport.commands.TPortCommand.executeTPortCommand;
 import static com.spaceman.tport.commands.tport.Back.getPrevLocName;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_BACK;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_HOME;
-import static com.spaceman.tport.commands.tport.Sort.getSorter;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.addCommand;
 import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.addFunction;
 import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.getDynamicScrollableInventory;
+import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.pageDataName;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 import static com.spaceman.tport.fileHander.Files.tportData;
 import static com.spaceman.tport.inventories.ItemFactory.BackType.*;
@@ -60,6 +58,7 @@ import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.*;
 import static com.spaceman.tport.inventories.ItemFactory.createBack;
 import static com.spaceman.tport.inventories.ItemFactory.toTPortItem;
 import static com.spaceman.tport.inventories.QuickEditInventories.quick_edit_move_empty_slot_model;
+import static com.spaceman.tport.inventories.SettingsInventories.openPLTPWhitelistSelectorGUI;
 import static com.spaceman.tport.inventories.SettingsInventories.settings_model;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 import static org.bukkit.event.inventory.ClickType.*;
@@ -113,7 +112,7 @@ public class TPortInventories {
         
         List<ItemStack> list;
         if (prevWindow == null) {
-            list = ItemFactory.getPlayerList(player, true, false, List.of(TPORT_AMOUNT, CLICK_EVENTS), List.of(ADD_OWNER, CLICK_TO_OPEN));
+            list = ItemFactory.getPlayerList(player, true, false, List.of(TPORT_AMOUNT, CLICK_EVENTS), List.of(ADD_OWNER, CLICK_TO_OPEN), null);
         } else {
             list = prevWindow.getData("content", List.class);
         }
@@ -192,6 +191,7 @@ public class TPortInventories {
         List<Message> homeLore = new ArrayList<>();
         if (homeTPortObject == null) {
             homeLore.add(formatTranslation(varInfoColor, varInfo2Color, "tport.tportInventories.openMainGUI.home.unknown"));
+            homeLore.add(new Message());
         } else {
             homeLore.add(formatInfoTranslation("tport.tportInventories.openMainGUI.home.tportName", homeTPortObject.getName()));
             homeLore.addAll(homeTPortObject.getHoverData(true));
@@ -336,7 +336,7 @@ public class TPortInventories {
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.PLTPState", pltpState));
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.PLTPConsent", pltpConsent));
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.PLTPPreview", previewState));
-            warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.PLTPOffset", pltpOffset.name()));
+            warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.PLTPOffset", pltpOffset));
             warpLore.add(new Message());
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.whenLeftClick",
                     LEFT, !pltpState));
@@ -358,7 +358,7 @@ public class TPortInventories {
             addCommand(warp, ClickType.SHIFT_LEFT, "tport PLTP preview " + previewState.getNext(), "tport own");
             addCommand(warp, ClickType.SHIFT_RIGHT, "tport PLTP offset " + pltpOffset.getNext(), "tport own");
             FancyClickEvent.addFunction(warp, ClickType.DROP,
-                    (whoClicked, clickType, innerPDC, fancyInventory) -> openPLTPWhitelistSelectorGUI(whoClicked));
+                    (whoClicked, clickType, innerPDC, fancyInventory) -> openPLTPWhitelistSelectorGUI(whoClicked, false));
             
             SkullMeta skin = (SkullMeta) warp.getItemMeta();
             if (skin != null) {
@@ -420,7 +420,7 @@ public class TPortInventories {
             
             TPort tport = sortedTPortList.get(i);
             if (tport != null) {
-                inv.setItem(i + slotOffset, toTPortItem(tport, player, prevWindow, QUICK_EDITOR, CLICK_TO_OPEN));
+                inv.setItem(i + slotOffset, toTPortItem(tport, player, List.of(QUICK_EDITOR, CLICK_TO_OPEN), prevWindow));
             } else {
                 if (ownerUUID.equals(player.getUniqueId())) {
                     UUID toMoveUUID = null;
@@ -474,45 +474,7 @@ public class TPortInventories {
         
         for (String biome : BiomeTP.availableBiomes(player.getWorld())) {
             if (biome.equals("custom")) continue;
-            String materialName = switch (biome.toUpperCase()) {
-                case "OCEAN", "RIVER", "DEEP_OCEAN", "LUKEWARM_OCEAN", "COLD_OCEAN", "DEEP_LUKEWARM_OCEAN", "DEEP_COLD_OCEAN" -> "WATER_BUCKET";
-                case "PLAINS", "WINDSWEPT_HILLS", "MEADOW" -> "GRASS_BLOCK";
-                case "DESERT", "BEACH" -> "SAND";
-                case "FOREST", "WINDSWEPT_FOREST" -> "OAK_LOG";
-                case "TAIGA", "OLD_GROWTH_PINE_TAIGA", "OLD_GROWTH_SPRUCE_TAIGA" -> "SPRUCE_LOG";
-                case "SWAMP" -> "LILY_PAD";
-                case "NETHER_WASTES" -> "NETHERRACK";
-                case "THE_END", "SMALL_END_ISLANDS", "END_MIDLANDS", "END_HIGHLANDS", "END_BARRENS" -> "END_STONE";
-                case "FROZEN_OCEAN", "FROZEN_RIVER", "DEEP_FROZEN_OCEAN" -> "ICE";
-                case "ICE_SPIKES", "FROZEN_PEAKS" -> "PACKED_ICE";
-                case "SNOWY_PLAINS", "SNOWY_BEACH", "SNOWY_TAIGA" -> "SNOW";
-                case "MUSHROOM_FIELDS" -> "RED_MUSHROOM_BLOCK";
-                case "JUNGLE", "SPARSE_JUNGLE" -> "JUNGLE_LOG";
-                case "BAMBOO_JUNGLE" -> "BAMBOO";
-                case "STONY_SHORE", "STONY_PEAKS" -> "STONE";
-                case "BIRCH_FOREST", "OLD_GROWTH_BIRCH_FOREST" -> "BIRCH_LOG";
-                case "DARK_FOREST" -> "DARK_OAK_LOG";
-                case "SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA" -> "ACACIA_LOG";
-                case "BADLANDS", "WOODED_BADLANDS", "ERODED_BADLANDS" -> "TERRACOTTA";
-                case "WARM_OCEAN" -> "BRAIN_CORAL_BLOCK";
-                case "THE_VOID" -> "BARRIER";
-                case "SUNFLOWER_PLAINS" -> "SUNFLOWER";
-                case "WINDSWEPT_GRAVELLY_HILLS" -> "GRAVEL";
-                case "FLOWER_FOREST" -> "ROSE_BUSH";
-                case "SOUL_SAND_VALLEY" -> "SOUL_SAND";
-                case "CRIMSON_FOREST" -> "CRIMSON_NYLIUM";
-                case "WARPED_FOREST" -> "WARPED_NYLIUM";
-                case "BASALT_DELTAS" -> "BASALT";
-                case "DRIPSTONE_CAVES" -> "POINTED_DRIPSTONE";
-                case "LUSH_CAVES" -> "GLOW_BERRIES";
-                case "GROVE", "JAGGED_PEAKS" -> "SNOW_BLOCK";
-                case "SNOWY_SLOPES" -> "POWDER_SNOW_BUCKET";
-                case "MANGROVE_SWAMP" -> "MANGROVE_LOG";
-                case "DEEP_DARK" -> "SCULK";
-                case "CHERRY_GROVE" -> "CHERRY_LOG";
-                default -> "DIAMOND_BLOCK";
-            };
-            Material material = Main.getOrDefault(Material.getMaterial(materialName), Material.DIAMOND_BLOCK);
+            Material material = BiomeTP.getMaterial(biome);
             
             boolean selected = false;
             Message selectedMessage;
@@ -526,12 +488,9 @@ public class TPortInventories {
             ItemStack item = new ItemStack(material);
             Message biomeTitle = formatTranslation(varInfoColor, varInfoColor, "%s", new BiomeEncapsulation(biome));
             biomeTitle.translateMessage(playerLang);
-            Message biomeLClick = formatInfoTranslation("tport.tportInventories.openBiomeTP.biome.LClick", LEFT, selectedMessage);
-            biomeLClick.translateMessage(playerLang);
-            Message biomeRClick = formatInfoTranslation("tport.tportInventories.openBiomeTP.biome.RClick", ClickType.RIGHT);
-            biomeRClick.translateMessage(playerLang);
-            Message biomeSRClick = formatInfoTranslation("tport.tportInventories.openBiomeTP.biome.shift_RClick", ClickType.SHIFT_RIGHT);
-            biomeSRClick.translateMessage(playerLang);
+            Message biomeLClick = formatInfoTranslation(playerLang, "tport.tportInventories.openBiomeTP.biome.LClick", LEFT, selectedMessage);
+            Message biomeRClick = formatInfoTranslation(playerLang, "tport.tportInventories.openBiomeTP.biome.RClick", ClickType.RIGHT);
+            Message biomeSRClick = formatInfoTranslation(playerLang, "tport.tportInventories.openBiomeTP.biome.shift_RClick", ClickType.SHIFT_RIGHT);
             MessageUtils.setCustomItemData(item, theme, biomeTitle, Arrays.asList(biomeLClick, biomeRClick, biomeSRClick));
             
             ItemMeta im = item.getItemMeta();
@@ -549,7 +508,7 @@ public class TPortInventories {
                         innerBiomeSelection.add(innerBiome);
                     }
                     fancyInventory.setData("biomeSelection", innerBiomeSelection);
-                    openBiomeTP(whoClicked, fancyInventory.getData("page", Integer.class, 0), fancyInventory);
+                    openBiomeTP(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
                 }
             }));
             addCommand(im, ClickType.RIGHT, "tport biomeTP whitelist " + biome);
@@ -587,7 +546,7 @@ public class TPortInventories {
             } else {
                 sendSuccessTranslation(whoClicked, "tport.tportInventories.openBiomeTP.clearSelected.succeeded");
             }
-            openBiomeTP(whoClicked, fancyInventory.getData("page", Integer.class, 0), null);
+            openBiomeTP(whoClicked, fancyInventory.getData(pageDataName), null);
         });
         
         ItemStack run = (biomeSelection.isEmpty() ? biome_tp_run_grayed_model : biome_tp_run_model).getItem(player);
@@ -672,7 +631,7 @@ public class TPortInventories {
             } else {
                 sendSuccessTranslation(whoClicked, "tport.tportInventories.openFeatureTP.clearSelected.succeeded");
             }
-            openFeatureTP(whoClicked, fancyInventory.getData("page", Integer.class, 0), null);
+            openFeatureTP(whoClicked, fancyInventory.getData(pageDataName), null);
         }));
         
         inv.setItem(9, clearSelected);
@@ -734,7 +693,7 @@ public class TPortInventories {
             
             TPort tport = getTPort(UUID.fromString(tportID));
             if (tport != null) {
-                list.add(toTPortItem(tport, player, prevWindow, ADD_OWNER, CLICK_TO_OPEN_PUBLIC));
+                list.add(toTPortItem(tport, player, List.of(ADD_OWNER, CLICK_TO_OPEN_PUBLIC), prevWindow));
                 if (tport.setPublicTPort(true)) {
                     tport.save();
                 }
@@ -744,7 +703,7 @@ public class TPortInventories {
                 
                 TPort tport2 = getTPort(UUID.fromString(tportID2));
                 if (tport2 != null) {
-                    list.add(toTPortItem(tport2, player, prevWindow, ADD_OWNER, CLICK_TO_OPEN_PUBLIC));
+                    list.add(toTPortItem(tport2, player, List.of(ADD_OWNER, CLICK_TO_OPEN_PUBLIC), prevWindow));
                     if (tport2.setPublicTPort(true)) {
                         tport2.save();
                     }
@@ -814,108 +773,14 @@ public class TPortInventories {
         if (updateCooldown) CooldownManager.Search.update(player);
     }
     
-    public static void openPLTPWhitelistSelectorGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
-        List<ItemStack> rawHeadItems;
-        if (prevWindow == null) {
-            List<ItemStack> newList = getSorter(player).sort(player);
-            rawHeadItems = new ArrayList<>();
-            
-            for (ItemStack is : newList) { //remove own player
-                if (is.getItemMeta() instanceof SkullMeta skullMeta) {
-                    if (skullMeta.getOwningPlayer() != null) {
-                        if (skullMeta.getOwningPlayer().getUniqueId().equals(player.getUniqueId())) {
-                            continue;
-                        }
-                        ItemStack playerHead = new ItemStack(Material.PLAYER_HEAD);
-                        SkullMeta skin = (SkullMeta) playerHead.getItemMeta();
-                        if (skin != null) {
-                            skin.setOwningPlayer(skullMeta.getOwningPlayer());
-                            skin.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "playerName"), PersistentDataType.STRING, skin.getOwningPlayer().getName());
-                            skin.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "playerUUID"), PersistentDataType.STRING, skin.getOwningPlayer().getUniqueId().toString());
-                            playerHead.setItemMeta(skin);
-                        }
-                        rawHeadItems.add(playerHead);
-                    }
-                }
-            }
-            
-        } else {
-            rawHeadItems = prevWindow.getData("content", List.class);
-        }
-        
-        ArrayList<ItemStack> headItems = new ArrayList<>();
-        ColorTheme colorTheme = ColorTheme.getTheme(player);
-        JsonObject playerLang = getPlayerLang(player.getUniqueId());
-        ArrayList<String> pltpWhitelist = Whitelist.getPLTPWhitelist(player);
-        
-        for (ItemStack playerHead : rawHeadItems) {
-            ItemMeta im = playerHead.getItemMeta();
-            String uuid = null;
-            String playerName = "";
-            
-            PersistentDataContainer pdc = im.getPersistentDataContainer();
-            NamespacedKey playerNameKey = new NamespacedKey(Main.getInstance(), "playerName");
-            NamespacedKey playerUUIDKey = new NamespacedKey(Main.getInstance(), "playerUUID");
-            if (pdc.has(playerNameKey, PersistentDataType.STRING)) {
-                playerName = pdc.get(playerNameKey, PersistentDataType.STRING);
-            }
-            if (pdc.has(playerUUIDKey, PersistentDataType.STRING)) {
-                uuid = pdc.get(playerUUIDKey, PersistentDataType.STRING);
-            }
-            
-            Message lore;
-            im.setLore(new ArrayList<>());
-            
-            if (pltpWhitelist.contains(uuid)) {
-                FancyClickEvent.addFunction(im, LEFT, (whoClicked, clickType, innerPDC, fancyInventory) -> {
-                    NamespacedKey innerPlayerNameKey = new NamespacedKey(Main.getInstance(), "playerName");
-                    if (innerPDC.has(innerPlayerNameKey, PersistentDataType.STRING) ) {
-                        String innerPlayerName = innerPDC.get(innerPlayerNameKey, PersistentDataType.STRING);
-                        executeTPortCommand(whoClicked, "pltp whitelist remove " + innerPlayerName);
-                        openPLTPWhitelistSelectorGUI(whoClicked, fancyInventory.getData("page", Integer.class, 0), fancyInventory);
-                    }
-                });
-                lore = formatInfoTranslation("tport.tportInventories.openPLTPWhitelistSelectionGUI.player.unselect", LEFT, playerName);
-            } else {
-                FancyClickEvent.addFunction(im, LEFT, (whoClicked, clickType, innerPDC, fancyInventory) -> {
-                    NamespacedKey innerPlayerNameKey = new NamespacedKey(Main.getInstance(), "playerName");
-                    if (innerPDC.has(innerPlayerNameKey, PersistentDataType.STRING) ) {
-                        String innerPlayerName = innerPDC.get(innerPlayerNameKey, PersistentDataType.STRING);
-                        executeTPortCommand(whoClicked, "pltp whitelist add " + innerPlayerName);
-                        openPLTPWhitelistSelectorGUI(whoClicked, fancyInventory.getData("page", Integer.class, 0), fancyInventory);
-                    }
-                });
-                lore = formatInfoTranslation("tport.tportInventories.openPLTPWhitelistSelectionGUI.player.select", LEFT, playerName);
-            }
-            
-            playerHead.setItemMeta(im);
-            
-            Message title = formatInfoTranslation("tport.tportInventories.openPLTPWhitelistSelectionGUI.player.name", playerName);
-            title.translateMessage(playerLang);
-            lore.translateMessage(playerLang);
-            MessageUtils.setCustomItemData(playerHead, colorTheme, title, Collections.singletonList(lore));
-            
-            headItems.add(playerHead);
-        }
-        
-        FancyInventory inv = getDynamicScrollableInventory(player, page, TPortInventories::openPLTPWhitelistSelectorGUI,
-                "tport.tportInventories.openPLTPWhitelistSelectionGUI.title", headItems, createBack(player, MAIN, OWN, null));
-        inv.setData("content", headItems);
-        
-        inv.open(player);
-    }
-    private static void openPLTPWhitelistSelectorGUI(Player player) {
-        openPLTPWhitelistSelectorGUI(player, 0, null);
-    }
-    
     public static void openHomeEditGUI(Player player) {
         openHomeEditGUI(player, 0, null);
     }
-    public static void openHomeEditGUI(Player player, int page, FancyInventory prevWindow) {
+    public static void openHomeEditGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
         List<ItemStack> list;
         
         if (prevWindow == null) {
-            list = ItemFactory.getPlayerList(player, true, false, List.of(TPORT_AMOUNT, SELECT_TPORT), List.of(ADD_OWNER));
+            list = ItemFactory.getPlayerList(player, true, false, List.of(TPORT_AMOUNT, HOME_PLAYER_SELECTION), List.of(ADD_OWNER), null);
         } else {
             list = prevWindow.getData("content", List.class);
         }
@@ -940,7 +805,7 @@ public class TPortInventories {
             
             TPort tport = sortedTPortList.get(i);
             if (tport != null) {
-                inv.setItem(i + slotOffset, toTPortItem(tport, player, SELECT_HOME));
+                inv.setItem(i + slotOffset, toTPortItem(tport, player, List.of(SELECT_HOME)));
             }
         }
         

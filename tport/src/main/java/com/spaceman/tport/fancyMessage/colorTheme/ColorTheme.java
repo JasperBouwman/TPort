@@ -248,10 +248,12 @@ public class ColorTheme implements ConfigurationSerializable {
         return getTheme(player.getUniqueId());
     }
     public static ColorTheme getTheme(UUID uuid) {
-        if (!colorThemeMap.containsKey(uuid)) {
-            setTheme(uuid, new ColorTheme());
+        ColorTheme theme = colorThemeMap.getOrDefault(uuid, null);
+        if (theme == null) {
+            theme = new ColorTheme();
+            setTheme(uuid, theme);
         }
-        return colorThemeMap.get(uuid);
+        return theme;
     }
     public static void setTheme(Player player, ColorTheme theme) {
         setTheme(player.getUniqueId(), theme);

@@ -894,7 +894,7 @@ public class MessageUtils {
                 if (c == '#') { //look for # (start of hex notation)
                     if (i + 6 < charArray.length) { //check if notation fits after index i
                         String possibleHexNotation = line.substring(i, i + 7); //extract notation
-                        if (possibleHexNotation.matches("#[0-9a-fA-F]{6}")) { //check notation
+                        if (MultiColor.isHexColor(possibleHexNotation)) { //check notation
                             //color found
                             TextComponent t = new TextComponent(singleColorLine.toString(), lastHexColor);
                             lineMessage.addText(t);
@@ -910,13 +910,13 @@ public class MessageUtils {
                 else if (c == '&') {
                     if (i + 1 < charArray.length) { //check if notation fits after index i
                         String possibleChatColor = line.substring(i, i + 2); //extract notation
-                        if (possibleChatColor.matches("&[0-9a-fA-Fk-oK-OR]")) { //check notation
+                        if (MultiColor.isColorCode(possibleChatColor)) { //check notation k-oK-OR
                             //color found
                             TextComponent t = new TextComponent(singleColorLine.toString(), lastHexColor);
                             lineMessage.addText(t);
                             singleColorLine = new StringBuilder();
                             
-                            lastHexColor = new MultiColor(ChatColor.getByChar(possibleChatColor.charAt(1))).getColorAsValue();
+                            lastHexColor = new MultiColor(ChatColor.getByChar(Character.toLowerCase(possibleChatColor.charAt(1)))).getColorAsValue();
                             i += 1;
                             continue charLoop;
                         }
@@ -949,7 +949,10 @@ public class MessageUtils {
                         }
                         if (blueIndex == -1) throw new IllegalArgumentException();
                         for (int j = 1; j < 5; j++) {                   //find end of blue
-                            if (blueIndex + j >= charArray.length) break;
+                            if (blueIndex + j >= charArray.length) {
+                                endIndex = blueIndex + j;
+                                break;
+                            }
                             char end = charArray[blueIndex + j];
                             if (!String.valueOf(end).matches("\\d")) {
                                 endIndex = blueIndex + j;
@@ -996,6 +999,124 @@ public class MessageUtils {
         }
         
         return messages;
+    }
+    public static ArrayList<String> transformColoredTextToArray(String coloredText) {
+        //valid color inputs:
+        // #123456
+        // &3
+        // $1$39$255
+        
+        ArrayList<String> textElements = new ArrayList<>();
+        
+        StringBuilder singleColorLine = new StringBuilder();
+        String lastColor = "";
+        
+        char[] charArray = coloredText.toCharArray();
+        charLoop:
+        for (int i = 0; i < charArray.length; i++) {
+            char c = charArray[i];
+            if (c == '#') { //look for # (start of hex notation)
+                if (i + 6 < charArray.length) { //check if notation fits after index i
+                    String possibleHexNotation = coloredText.substring(i, i + 7); //extract notation
+                    if (MultiColor.isHexColor(possibleHexNotation)) { //check notation
+                        //color found
+                        if (!lastColor.isBlank()) textElements.add(lastColor);
+                        if (!singleColorLine.isEmpty()) textElements.add(singleColorLine.toString());
+                        singleColorLine = new StringBuilder();
+                        
+                        lastColor = possibleHexNotation;
+                        i += 6;
+                        continue charLoop;
+                    }
+                }
+            }
+            else if (c == '&') {
+                if (i + 1 < charArray.length) { //check if notation fits after index i
+                    String possibleChatColor = coloredText.substring(i, i + 2); //extract notation
+                    if (MultiColor.isColorCode(possibleChatColor)) { //check notation
+                        //color found
+                        if (!lastColor.isBlank()) textElements.add(lastColor);
+                        if (!singleColorLine.isEmpty()) textElements.add(singleColorLine.toString());
+                        singleColorLine = new StringBuilder();
+                        
+                        lastColor = possibleChatColor;
+                        i += 1;
+                        continue charLoop;
+                    }
+                }
+            }
+            else if (c == '$') { //find first dollar
+                try {
+                    int redIndex = i;                              //red dollar found
+                    int greenIndex = -1;
+                    int blueIndex = -1;
+                    int endIndex = -1;
+                    
+                    for (int j = 1; j < 5; j++) {                   //find green dollar
+                        if (redIndex + j >= charArray.length) break;
+                        char greenDollar = charArray[redIndex + j];
+                        if (greenDollar == '$') {
+                            greenIndex = redIndex + j;
+                            break;
+                        }
+                    }
+                    if (greenIndex == -1) throw new IllegalArgumentException();
+                    for (int j = 1; j < 5; j++) {                   //find blue dollar
+                        if (greenIndex + j >= charArray.length) break;
+                        char blueDollar = charArray[greenIndex + j];
+                        if (blueDollar == '$') {
+                            blueIndex = greenIndex + j;
+                            break;
+                        }
+                    }
+                    if (blueIndex == -1) throw new IllegalArgumentException();
+                    for (int j = 1; j < 5; j++) {                   //find end of blue
+                        if (blueIndex + j >= charArray.length) {
+                            endIndex = blueIndex + j;
+                            break;
+                        }
+                        char end = charArray[blueIndex + j];
+                        if (!String.valueOf(end).matches("\\d")) {
+                            endIndex = blueIndex + j;
+                            break;
+                        }
+                    }
+                    if (endIndex == -1) throw new IllegalArgumentException();
+                    
+                    String redString = coloredText.substring(redIndex, greenIndex);
+                    String greenString = coloredText.substring(greenIndex, blueIndex);
+                    String blueString = coloredText.substring(blueIndex, endIndex);
+                    for (String colorString : List.of(redString, greenString, blueString)) {
+                        try {
+                            int color = Integer.parseInt(colorString.substring(1));
+                            if (color > 255) {
+                                throw new IllegalArgumentException();
+                            }
+                        } catch (NumberFormatException nfe) {
+                            throw new IllegalArgumentException();
+                        }
+                    }
+                    
+                    if (!lastColor.isBlank()) textElements.add(lastColor);
+                    if (!singleColorLine.isEmpty()) textElements.add(singleColorLine.toString());
+                    singleColorLine = new StringBuilder();
+                    
+                    lastColor = redString + greenString + blueString;
+                    
+                    i = endIndex - 1;
+                    continue charLoop;
+                }
+                catch (IllegalArgumentException ignore) {
+                }
+            }
+            
+            singleColorLine.append(c);
+        }
+        
+        if (!lastColor.isBlank()) textElements.add(lastColor);
+        if (!singleColorLine.isEmpty()) textElements.add(singleColorLine.toString());
+        
+        return textElements;
     }
     
     public interface MessageDescription {
