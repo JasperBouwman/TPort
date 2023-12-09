@@ -88,7 +88,7 @@ public class ResolutionCommand extends SubCommand {
     }
     
     public static class Resolution {
-        private static ArrayList<Resolution> resolutions = new ArrayList<>();
+        private static final ArrayList<Resolution> resolutions = new ArrayList<>();
         
         private final String name;
         private final String url;

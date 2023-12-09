@@ -329,7 +329,7 @@ public class TPort implements ConfigurationSerializable {
         if (description == null) {
             description = "";
         }
-        this.description = description;
+        this.description = description.replace("\n", "\\n");
     }
     
     public String getName() {

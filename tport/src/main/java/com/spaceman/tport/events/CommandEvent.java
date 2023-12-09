@@ -22,27 +22,37 @@ public class CommandEvent implements Listener {
             }
         }
         
-        if (Redirect.Redirects.Locate_FeatureTP.isEnabled() && e.getMessage().matches("/locate structure .+")) {
-            e.setCancelled(true);
-            String structureQuery = e.getMessage().substring(18);
-            TPortCommand.executeTPortCommand(e.getPlayer(), "FeatureTP search " + structureQuery);
-            if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
-                Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "FeatureTP search " + structureQuery + "'");
+        //todo make version dependant
+//        if (e.getMessage().toLowerCase().startsWith("/locate ")) {
+//            String query = e.getMessage().substring(18);
+//            FeatureTP.
+//        }
+        
+        if (Redirect.Redirects.Locate_FeatureTP.isEnabled()) {
+            if (e.getMessage().matches("/locate structure .+")) {
+                e.setCancelled(true);
+                String structureQuery = e.getMessage().substring(18);
+                TPortCommand.executeTPortCommand(e.getPlayer(), "FeatureTP search " + structureQuery);
+                if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
+                    Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "FeatureTP search " + structureQuery + "'");
+                }
             }
         }
         
-        if (Redirect.Redirects.LocateBiome_BiomeTP.isEnabled() && e.getMessage().matches("/locate biome .+")) {
-            e.setCancelled(true);
-            String biomeQuery = e.getMessage().substring(14);
-            if (biomeQuery.startsWith("#")) {
-                TPortCommand.executeTPortCommand(e.getPlayer(), "BiomeTP preset " + biomeQuery);
-                if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
-                    Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "BiomeTP preset " + biomeQuery + "'");
-                }
-            } else {
-                TPortCommand.executeTPortCommand(e.getPlayer(), "BiomeTP whitelist " + biomeQuery);
-                if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
-                    Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "BiomeTP whitelist " + biomeQuery + "'");
+        if (Redirect.Redirects.LocateBiome_BiomeTP.isEnabled()) {
+            if (e.getMessage().matches("/locate biome .+") || e.getMessage().matches("/locatebiome .+")) {
+                e.setCancelled(true);
+                String biomeQuery = e.getMessage().substring(14);
+                if (biomeQuery.startsWith("#")) {
+                    TPortCommand.executeTPortCommand(e.getPlayer(), "BiomeTP preset " + biomeQuery);
+                    if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
+                        Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "BiomeTP preset " + biomeQuery + "'");
+                    }
+                } else {
+                    TPortCommand.executeTPortCommand(e.getPlayer(), "BiomeTP whitelist " + biomeQuery);
+                    if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
+                        Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "BiomeTP whitelist " + biomeQuery + "'");
+                    }
                 }
             }
         }

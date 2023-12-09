@@ -80,7 +80,7 @@ public class CooldownCommand extends SubCommand {
                 } catch (NumberFormatException nfe) {
                     if (!args[2].equalsIgnoreCase("permission")) {
                         if (!CooldownManager.contains(args[2])) {
-                            sendErrorTranslation(player, "tport.cooldown.cooldownCommand.set.invalidEntry", args[2], "permissions");
+                            sendErrorTranslation(player, "tport.cooldown.cooldownCommand.set.invalidEntry", args[2], "permission");
                             return;
                         } else if (args[1].equalsIgnoreCase(args[2])) {
                             sendErrorTranslation(player, "tport.cooldown.cooldownCommand.set.setToSelf");

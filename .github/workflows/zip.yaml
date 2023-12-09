@@ -9,13 +9,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: |
-          cd 'resource pack/src (16x)'
-          zip -r resource_pack_16x.zip .
-          cd '../src (32x)'
-          zip -r resource_pack_32x.zip .
+          cd 'resource pack/src (16x)_dark'
+          zip -r TPort_16x_dark.zip .
+          cd '../src (32x)_dark'
+          zip -r TPort_32x_dark.zip .
+          cd '../src (16x)_light'
+          zip -r TPort_16x_light.zip .
+          cd '../src (32x)_light'
+          zip -r TPort_32x_light.zip .
           cd '../../'
       - uses: softprops/action-gh-release@v1
         with:
           files: | 
-            resource pack/src (16x)/resource_pack_16x.zip
-            resource pack/src (32x)/resource_pack_32x.zip
+            resource pack/src (16x)_dark/TPort_16x_dark.zip
+            resource pack/src (32x)_dark/TPort_32x_dark.zip
+            resource pack/src (16x)_light/TPort_16x_light.zip
+            resource pack/src (32x)_light/TPort_32x_light.zip

@@ -4,6 +4,7 @@ import com.google.common.base.CharMatcher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
+import com.spaceman.tport.adapters.TPortAdapter;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
@@ -12,13 +13,9 @@ import com.spaceman.tport.fancyMessage.encapsulation.Encapsulation;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fancyMessage.language.Language;
-import com.spaceman.tport.reflection.ReflectionManager;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
 import com.spaceman.tport.tpEvents.TPRestriction;
 import com.spaceman.tport.tport.TPort;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -56,7 +53,6 @@ import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
-import static com.spaceman.tport.reflection.ReflectionManager.getServerVersion;
 
 public class MessageUtils {
     
@@ -649,29 +645,29 @@ public class MessageUtils {
     public static ItemStack getSign(@Nullable ItemStack signItem, ColorTheme theme, List<Message> lines, @Nullable DyeColor glow) {
         ItemStack itemStack = Main.getOrDefault(signItem, new ItemStack(Material.OAK_SIGN));
         try {
-            String version = getServerVersion();
+            TPortAdapter adapter = Main.getInstance().adapter;
+            String version = adapter.getServerVersion();
             Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
             
             Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
-            net.minecraft.world.item.ItemStack item = (net.minecraft.world.item.ItemStack) craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, itemStack);
+            Object nmsStack = craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, itemStack);
             
-//            NBTTagCompound nbt = item.u();
-            NBTTagCompound nbt = item.v();
-            NBTTagCompound blockTag = nbt.p("BlockEntityTag");
-            blockTag.a("id", "minecraft:sign");
+            Object tag = adapter.getNBTTag(nmsStack);
+            Object blockTag = adapter.getCompound(tag, "BlockEntityTag");
+            adapter.putString(blockTag, "id", "minecraft:sign");
             for (int i = 0; i < 4 && i < lines.size(); i++) {
                 Message line = lines.get(i);
                 if (line != null) {
-                    blockTag.a("Text" + (i + 1), line.translateJSON(theme));
+                    adapter.putString(blockTag, "Text" + (i + 1), line.translateJSON(theme));
                 }
             }
             if (glow != null) {
-                blockTag.a("GlowingText", true);
-                blockTag.a("Color", glow.name().toLowerCase());
+                adapter.putBoolean(blockTag, "GlowingText", true);
+                adapter.putString(blockTag, "Color", glow.name().toLowerCase());
             }
-            nbt.a("BlockEntityTag", blockTag);
+            adapter.put(tag, "BlockEntityTag", blockTag);
             
-            itemStack = (ItemStack) craftItemStack.getMethod("asCraftMirror", item.getClass()).invoke(null, item);
+            itemStack = (ItemStack) craftItemStack.getMethod("asCraftMirror", nmsStack.getClass()).invoke(null, nmsStack);
 //            itemStack = CraftItemStack.asCraftMirror(item);
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             e.printStackTrace();
@@ -822,35 +818,37 @@ public class MessageUtils {
     }
     public static ItemStack setCustomItemData(ItemStack is, ColorTheme theme, @Nullable Message displayName, @Nullable Collection<Message> lore) {
         try {
-            String version = getServerVersion();
+            TPortAdapter adapter = Main.getInstance().adapter;
+            
+            String version = adapter.getServerVersion();
             Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
             
             Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
-            net.minecraft.world.item.ItemStack nmsStack = (net.minecraft.world.item.ItemStack) craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, is);
+            Object nmsStack = craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, is);
             Class<?> itemStackClass = nmsStack.getClass();
             
-            NBTTagCompound tag = ReflectionManager.get(NBTTagCompound.class, nmsStack, null); //search for not @Nullable
+            Object tag = adapter.getNBTTag(nmsStack);
             
-            NBTTagCompound display = tag.p("display");
-            if (displayName != null) display.a("Name", displayName.translateJSON(theme));
+            Object display = adapter.getCompound(tag, "display");
+            if (displayName != null) adapter.putString(display, "Name", displayName.translateJSON(theme));
             
             if (lore != null) {
-                NBTTagList loreT = new NBTTagList();
+                Object loreT = adapter.new_NBTTagList();
                 int id = 0;
                 for (Message line : lore) {
                     if (line != null) {
-                        loreT.b(id++, NBTTagString.a(line.translateJSON(theme)));
+                        adapter.listTag_addTag(loreT, id++, adapter.stringTag_valueOf(line.translateJSON(theme)));
                     }
                 }
-                display.a("Lore", loreT);
+                adapter.put(display, "Lore", loreT);
             }
             
-            tag.a("display", display);
+            adapter.put(tag, "display", display);
             
             ItemMeta im = (ItemMeta) craftItemStack.getMethod("getItemMeta", itemStackClass).invoke(craftItemStack, nmsStack);
             is.setItemMeta(im);
             return is;
-        } catch (Exception | Error ex) {
+        } catch (Throwable ex) {
             Features.Feature.printSmallNMSErrorInConsole("Fancy item stacks", true);
             if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
             ItemMeta im = is.getItemMeta();
@@ -882,120 +880,22 @@ public class MessageUtils {
         
         ArrayList<Message> messages = new ArrayList<>();
         
-        for (String line : coloredText.split("\\\\n|\n")) {
-            StringBuilder singleColorLine = new StringBuilder();
-            String lastHexColor = Main.getOrDefault(defaultColor, "");
-            Message lineMessage = new Message();
-            
-            char[] charArray = line.toCharArray();
-            charLoop:
-            for (int i = 0; i < charArray.length; i++) {
-                char c = charArray[i];
-                if (c == '#') { //look for # (start of hex notation)
-                    if (i + 6 < charArray.length) { //check if notation fits after index i
-                        String possibleHexNotation = line.substring(i, i + 7); //extract notation
-                        if (MultiColor.isHexColor(possibleHexNotation)) { //check notation
-                            //color found
-                            TextComponent t = new TextComponent(singleColorLine.toString(), lastHexColor);
-                            lineMessage.addText(t);
-                            singleColorLine = new StringBuilder();
-                            
-                            lastHexColor = possibleHexNotation;
-                            i += 6;
-                            continue charLoop;
-                        }
-                    }
-                }
-                
-                else if (c == '&') {
-                    if (i + 1 < charArray.length) { //check if notation fits after index i
-                        String possibleChatColor = line.substring(i, i + 2); //extract notation
-                        if (MultiColor.isColorCode(possibleChatColor)) { //check notation k-oK-OR
-                            //color found
-                            TextComponent t = new TextComponent(singleColorLine.toString(), lastHexColor);
-                            lineMessage.addText(t);
-                            singleColorLine = new StringBuilder();
-                            
-                            lastHexColor = new MultiColor(ChatColor.getByChar(Character.toLowerCase(possibleChatColor.charAt(1)))).getColorAsValue();
-                            i += 1;
-                            continue charLoop;
-                        }
-                    }
-                }
-                
-                else if (c == '$') { //find first dollar
-                    try {
-                        int   redIndex = i;                              //red dollar found
-                        int greenIndex = -1;
-                        int  blueIndex = -1;
-                        int   endIndex = -1;
-                        
-                        for (int j = 1; j < 5; j++) {                   //find green dollar
-                            if (redIndex + j >= charArray.length) break;
-                            char greenDollar = charArray[redIndex + j];
-                            if (greenDollar == '$') {
-                                greenIndex = redIndex + j;
-                                break;
-                            }
-                        }
-                        if (greenIndex == -1) throw new IllegalArgumentException();
-                        for (int j = 1; j < 5; j++) {                   //find blue dollar
-                            if (greenIndex + j >= charArray.length) break;
-                            char blueDollar = charArray[greenIndex + j];
-                            if (blueDollar == '$') {
-                                blueIndex = greenIndex + j;
-                                break;
-                            }
-                        }
-                        if (blueIndex == -1) throw new IllegalArgumentException();
-                        for (int j = 1; j < 5; j++) {                   //find end of blue
-                            if (blueIndex + j >= charArray.length) {
-                                endIndex = blueIndex + j;
-                                break;
-                            }
-                            char end = charArray[blueIndex + j];
-                            if (!String.valueOf(end).matches("\\d")) {
-                                endIndex = blueIndex + j;
-                                break;
-                            }
-                        }
-                        if (endIndex == -1) throw new IllegalArgumentException();
-                        
-                        String   redString = line.substring(  redIndex, greenIndex);
-                        String greenString = line.substring(greenIndex, blueIndex);
-                        String  blueString = line.substring( blueIndex, endIndex);
-                        for (String colorString : List.of(redString, greenString, blueString)) {
-                            try {
-                                int color = Integer.parseInt(colorString.substring(1));
-                                if (color > 255) {
-                                    throw new IllegalArgumentException();
-                                }
-                            } catch (NumberFormatException nfe) {
-                                throw new IllegalArgumentException();
-                            }
-                        }
-                        
-                        TextComponent t = new TextComponent(singleColorLine.toString(), lastHexColor);
-                        lineMessage.addText(t);
-                        singleColorLine = new StringBuilder();
-                        
-                        int red = Integer.parseInt(redString.substring(1));
-                        int green = Integer.parseInt(greenString.substring(1));
-                        int blue = Integer.parseInt(blueString.substring(1));
-                        
-                        lastHexColor = new MultiColor(new Color(red, green, blue)).getColorAsValue();
-                        
-                        i = endIndex - 1;
-                        continue charLoop;
-                    } catch (IllegalArgumentException ignore) { }
-                }
-                
-                singleColorLine.append(c);
+        String lastHexColor = Main.getOrDefault(defaultColor, "");
+        Message lastMessage = new Message();
+        
+        for (String element : transformColoredTextToArray(coloredText)) {
+            if (MultiColor.isColor(element)) {
+                lastHexColor = new MultiColor(element).getColorAsValue();
+            } else if (element.equals("\n") || element.equals("\\n")) {
+                messages.add(lastMessage);
+                lastMessage = new Message();
+                lastHexColor = Main.getOrDefault(defaultColor, "");
+            } else {
+                lastMessage.addText(new TextComponent(element, lastHexColor));
             }
-            
-            TextComponent t = new TextComponent(singleColorLine.toString(), lastHexColor);
-            lineMessage.addText(t);
-            messages.add(lineMessage);
+        }
+        if (!lastMessage.isEmpty()) {
+            messages.add(lastMessage);
         }
         
         return messages;
@@ -1007,24 +907,48 @@ public class MessageUtils {
         // $1$39$255
         
         ArrayList<String> textElements = new ArrayList<>();
-        
-        StringBuilder singleColorLine = new StringBuilder();
-        String lastColor = "";
+        textElements.add("");
         
         char[] charArray = coloredText.toCharArray();
         charLoop:
         for (int i = 0; i < charArray.length; i++) {
             char c = charArray[i];
+            String lastElement = textElements.get(textElements.size()-1);
+            
+            if (c == '\n') {
+                if (lastElement.isEmpty()) {
+                    textElements.remove(textElements.size() -1);
+                }
+                textElements.add("\n");
+                textElements.add("");
+                continue charLoop;
+            }
+            else if (c == '\\') {
+                if (i + 1 < charArray.length) { //check if notation fits after index i
+                    if (coloredText.startsWith("\\n", i)) { //check notation
+                        
+                        if (lastElement.isEmpty()) {
+                            textElements.remove(textElements.size() -1);
+                        }
+                        textElements.add("\\n");
+                        textElements.add("");
+                        
+                        i += 1;
+                        continue charLoop;
+                    }
+                }
+            }
             if (c == '#') { //look for # (start of hex notation)
                 if (i + 6 < charArray.length) { //check if notation fits after index i
                     String possibleHexNotation = coloredText.substring(i, i + 7); //extract notation
                     if (MultiColor.isHexColor(possibleHexNotation)) { //check notation
                         //color found
-                        if (!lastColor.isBlank()) textElements.add(lastColor);
-                        if (!singleColorLine.isEmpty()) textElements.add(singleColorLine.toString());
-                        singleColorLine = new StringBuilder();
+                        if (lastElement.isEmpty()) {
+                            textElements.remove(textElements.size() -1);
+                        }
+                        textElements.add(possibleHexNotation);
+                        textElements.add("");
                         
-                        lastColor = possibleHexNotation;
                         i += 6;
                         continue charLoop;
                     }
@@ -1035,11 +959,12 @@ public class MessageUtils {
                     String possibleChatColor = coloredText.substring(i, i + 2); //extract notation
                     if (MultiColor.isColorCode(possibleChatColor)) { //check notation
                         //color found
-                        if (!lastColor.isBlank()) textElements.add(lastColor);
-                        if (!singleColorLine.isEmpty()) textElements.add(singleColorLine.toString());
-                        singleColorLine = new StringBuilder();
+                        if (lastElement.isEmpty()) {
+                            textElements.remove(textElements.size() -1);
+                        }
+                        textElements.add(possibleChatColor);
+                        textElements.add("");
                         
-                        lastColor = possibleChatColor;
                         i += 1;
                         continue charLoop;
                     }
@@ -1097,11 +1022,11 @@ public class MessageUtils {
                         }
                     }
                     
-                    if (!lastColor.isBlank()) textElements.add(lastColor);
-                    if (!singleColorLine.isEmpty()) textElements.add(singleColorLine.toString());
-                    singleColorLine = new StringBuilder();
-                    
-                    lastColor = redString + greenString + blueString;
+                    if (lastElement.isEmpty()) {
+                        textElements.remove(textElements.size() -1);
+                    }
+                    textElements.add(redString + greenString + blueString);
+                    textElements.add("");
                     
                     i = endIndex - 1;
                     continue charLoop;
@@ -1110,11 +1035,12 @@ public class MessageUtils {
                 }
             }
             
-            singleColorLine.append(c);
+            textElements.set(textElements.size() -1, lastElement + c);
+//            singleColorLine.append(c);
         }
-        
-        if (!lastColor.isBlank()) textElements.add(lastColor);
-        if (!singleColorLine.isEmpty()) textElements.add(singleColorLine.toString());
+
+//        if (!lastColor.isBlank()) textElements.add(lastColor);
+//        if (!singleColorLine.isEmpty()) textElements.add(singleColorLine.toString());
         
         return textElements;
     }

@@ -2,6 +2,8 @@ package com.spaceman.tport.fancyMessage;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.spaceman.tport.Main;
+import com.spaceman.tport.adapters.TPortAdapter;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.fancyMessage.book.Book;
 import com.spaceman.tport.fancyMessage.book.BookPage;
@@ -14,12 +16,10 @@ import net.minecraft.network.chat.IChatBaseComponent;
 import net.minecraft.network.chat.IChatMutableComponent;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
-import net.minecraft.server.level.EntityPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -37,8 +37,6 @@ import java.util.stream.Collectors;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
-import static com.spaceman.tport.reflection.ReflectionManager.getPlayerConnection;
-import static com.spaceman.tport.reflection.ReflectionManager.sendPlayerPacket;
 
 public class Message implements Cloneable {
     
@@ -344,8 +342,7 @@ public class Message implements Cloneable {
     public void sendTitle(Player player, TitleTypes titleType, int fadeIn, int displayTime, int fadeOut) {
         
         try {
-            EntityPlayer entityPlayer = (EntityPlayer) player.getClass().getMethod("getHandle").invoke(player);
-            
+            TPortAdapter adapter = Main.getInstance().adapter;
             IChatMutableComponent text = IChatBaseComponent.ChatSerializer.a(this.translateJSON(player));
             
             Class<?> packetClass = Class.forName("net.minecraft.network.protocol.game." + titleType.mcClass);
@@ -354,9 +351,9 @@ public class Message implements Cloneable {
             
             if (fadeIn != -1 || displayTime != -1 || fadeOut != -1) {
                 ClientboundSetTitlesAnimationPacket clientboundSetTitlesAnimationPacket = new ClientboundSetTitlesAnimationPacket(fadeIn, displayTime, fadeOut);
-                sendPlayerPacket(player, clientboundSetTitlesAnimationPacket);
+                adapter.sendPlayerPacket(player, clientboundSetTitlesAnimationPacket);
             }
-            getPlayerConnection(entityPlayer).a(packetObject, null);
+            adapter.sendPlayerPacket(player, packetObject);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -369,7 +366,6 @@ public class Message implements Cloneable {
         } else {
             this.translateMessage(playerLang);
             this.sendMessage(player);
-//            MessageUtils.translateMessage(this, playerLang).sendMessage(player);
         }
     }
     
@@ -379,19 +375,8 @@ public class Message implements Cloneable {
         }
         String message = translateJSON(ColorTheme.getTheme(player));
         try {
-            try {
-                Class<?> packetClass = Class.forName("net.minecraft.network.protocol.game.ClientboundSystemChatPacket", false, this.getClass().getClassLoader());
-                @Nullable IChatMutableComponent chatComponent = IChatBaseComponent.ChatSerializer.a(message);
-                Packet<?> packet = (Packet<?>) packetClass.getConstructor(IChatBaseComponent.class, boolean.class).newInstance(chatComponent, false);
-                sendPlayerPacket(player, packet);
-            } catch (ClassNotFoundException cnfe) { //1.18 versions
-                Class<?> packetClass = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutChat");
-                Object messageType = Class.forName("net.minecraft.network.chat.ChatMessageType").getDeclaredField("a").get(null);
-                @Nullable IChatMutableComponent chatComponent = IChatBaseComponent.ChatSerializer.a(message);
-                Packet<?> packet = (Packet<?>) packetClass.getConstructor(IChatBaseComponent.class, messageType.getClass(), UUID.class).newInstance(chatComponent, messageType, player.getUniqueId());
-                sendPlayerPacket(player, packet);
-            }
-        } catch (Exception | Error ex) {
+            Main.getInstance().adapter.sendMessage(player, message);
+        } catch (Throwable ex) {
             Features.Feature.printSmallNMSErrorInConsole("Messaging", true);
             if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + player.getName() + " " + message);

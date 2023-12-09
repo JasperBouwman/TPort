@@ -21,6 +21,7 @@ import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
+import com.spaceman.tport.fancyMessage.language.Language;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -43,6 +44,7 @@ import java.util.*;
 import static com.spaceman.tport.commands.tport.Back.getPrevLocName;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_BACK;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_HOME;
+import static com.spaceman.tport.fancyMessage.MessageUtils.setCustomItemData;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -90,7 +92,9 @@ public class TPortInventories {
     public static final InventoryModel back_tp_grayed_model                    = new InventoryModel(Material.OAK_BUTTON, back_tp_model, "back_tp");
     public static final InventoryModel public_tp_model                         = new InventoryModel(Material.OAK_BUTTON, back_tp_grayed_model, "public_tp");
     public static final InventoryModel public_tp_grayed_model                  = new InventoryModel(Material.OAK_BUTTON, public_tp_model, "public_tp");
-    public static final InventoryModel sorting_model                           = new InventoryModel(Material.OAK_BUTTON, public_tp_grayed_model, "sorting");
+    public static final InventoryModel public_tp_filter_own_model              = new InventoryModel(Material.OAK_BUTTON, public_tp_grayed_model, "public_tp");
+    public static final InventoryModel public_tp_filter_all_model              = new InventoryModel(Material.OAK_BUTTON, public_tp_filter_own_model, "public_tp");
+    public static final InventoryModel sorting_model                           = new InventoryModel(Material.OAK_BUTTON, public_tp_filter_all_model, "sorting");
     public static final InventoryModel sorting_grayed_model                    = new InventoryModel(Material.OAK_BUTTON, sorting_model, "sorting");
     public static final InventoryModel search_data_model                       = new InventoryModel(Material.OAK_BUTTON, sorting_grayed_model, "search");
     public static final InventoryModel home_model                              = new InventoryModel(Material.OAK_BUTTON, search_data_model, "home");
@@ -686,6 +690,13 @@ public class TPortInventories {
     public static void openPublicTPortGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
         //public.tports.<publicTPortSlot>.<TPortID>
         
+        JsonObject playerLang = Language.getPlayerLang(player);
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        
+        boolean filter = false;
+        FancyInventory.DataName<Boolean> filterDataName = new FancyInventory.DataName<>("filter", Boolean.class, false);
+        if (prevWindow != null) filter = prevWindow.getData("filter", Boolean.class, false);
+        
         List<ItemStack> list = new ArrayList<>();
         
         for (String publicTPortSlot : tportData.getKeys("public.tports")) {
@@ -693,6 +704,7 @@ public class TPortInventories {
             
             TPort tport = getTPort(UUID.fromString(tportID));
             if (tport != null) {
+                if (filter && !tport.getOwner().equals(player.getUniqueId())) continue;
                 list.add(toTPortItem(tport, player, List.of(ADD_OWNER, CLICK_TO_OPEN_PUBLIC), prevWindow));
                 if (tport.setPublicTPort(true)) {
                     tport.save();
@@ -703,6 +715,7 @@ public class TPortInventories {
                 
                 TPort tport2 = getTPort(UUID.fromString(tportID2));
                 if (tport2 != null) {
+                    if (filter && !tport.getOwner().equals(player.getUniqueId())) continue;
                     list.add(toTPortItem(tport2, player, List.of(ADD_OWNER, CLICK_TO_OPEN_PUBLIC), prevWindow));
                     if (tport2.setPublicTPort(true)) {
                         tport2.save();
@@ -725,6 +738,18 @@ public class TPortInventories {
         
         FancyInventory inv = getDynamicScrollableInventory(player, page, TPortInventories::openPublicTPortGUI, "tport.tportInventories.openPublicTP.title", list, createBack(player, MAIN, OWN, BIOME_TP, PUBLIC));
         if (prevWindow != null) inv.setData("TPortToMove", prevWindow.getData("TPortToMove", UUID.class));
+        inv.setData(filterDataName, filter);
+        
+        ItemStack publicFilter = (filter ? public_tp_filter_own_model : public_tp_filter_all_model).getItem(player);
+        addFunction(publicFilter, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            fancyInventory.setData("filter", !fancyInventory.getData("filter", Boolean.class, false));
+            openPublicTPortGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
+        }));
+        Message publicFilterTitle = formatInfoTranslation(playerLang, "tport.tportInventories.openPublicTP.filter." + (filter ? "own" : "all") + ".title");
+        Message publicFilterClick = formatInfoTranslation(playerLang, "tport.tportInventories.openPublicTP.filter." + (filter ? "own" : "all") + ".click", LEFT);
+        setCustomItemData(publicFilter, colorTheme, publicFilterTitle, List.of(new Message(), publicFilterClick));
+        inv.setItem(inv.getSize() - 9, publicFilter);
+        
         inv.open(player);
     }
     

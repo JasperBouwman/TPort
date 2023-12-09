@@ -29,7 +29,7 @@ public class TimeFormat extends SubCommand {
         setCommandDescription(formatInfoTranslation("tport.command.log.timeFormat.commandDescription"));
     }
     
-    private String getFormatExample(Player player, String timeFormat) {
+    public static String getFormatExample(Player player, String timeFormat) {
         SimpleDateFormat sdf = new SimpleDateFormat(timeFormat);
         sdf.setTimeZone(java.util.TimeZone.getTimeZone(
                 tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeZone", TimeZone.getDefault().getID())));

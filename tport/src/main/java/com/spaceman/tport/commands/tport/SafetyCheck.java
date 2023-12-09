@@ -60,14 +60,17 @@ public class SafetyCheck extends SubCommand {
         setCommandDescription(formatInfoTranslation("tport.command.safetyCheck.commandDescription"));
     }
     
-    private static SafetyChecker safetyChecker = (l -> true);
+    private static SafetyChecker safetyChecker = ((l, clearFeet) -> true);
     
     public static void setSafetyCheck(SafetyChecker safetyChecker) {
         SafetyCheck.safetyChecker = safetyChecker;
     }
     
     public static boolean isSafe(Location feet) {
-        return safetyChecker.isSafe(feet);
+        return safetyChecker.isSafe(feet, false);
+    }
+    public static boolean isSafe(Location feet, boolean clearFeet) {
+        return safetyChecker.isSafe(feet, clearFeet);
     }
     
     @Override
@@ -118,7 +121,7 @@ public class SafetyCheck extends SubCommand {
                     return;
                 }
                 Message state;
-                if (safetyChecker.isSafe(player.getLocation())) {
+                if (safetyChecker.isSafe(player.getLocation(), false)) {
                     state = formatTranslation(goodColor, goodColor, "tport.command.safetyCheck.check.safe");
                 } else {
                     state = formatTranslation(badColor, badColor, "tport.command.safetyCheck.check.unsafe");
@@ -154,7 +157,7 @@ public class SafetyCheck extends SubCommand {
     
     @FunctionalInterface
     public interface SafetyChecker {
-        boolean isSafe(Location feet);
+        boolean isSafe(Location feet, boolean clearFeet);
     }
     
     public enum SafetyCheckSource implements MessageUtils.MessageDescription {

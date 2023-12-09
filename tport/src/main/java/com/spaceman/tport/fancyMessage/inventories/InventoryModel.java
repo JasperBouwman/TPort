@@ -57,7 +57,7 @@ public class InventoryModel {
     }
     
     public boolean hasSubDir() {
-        return !subDir.equals("");
+        return !subDir.isEmpty();
     }
     public String getSubDir() {
         return subDir;

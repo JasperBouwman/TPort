@@ -198,9 +198,7 @@ public class TextComponent implements Cloneable {
         jsonObject.addProperty("color", translateColor(theme));
         if (!Strings.isNullOrEmpty(insertion)) jsonObject.addProperty("insertion", insertion);
         
-        for (Attribute attribute : Attribute.values()) {
-            jsonObject.addProperty(attribute.name().toLowerCase(), (attributes.contains(attribute) ? "true" : "false"));
-        }
+        Arrays.stream(Attribute.values()).forEach(attribute -> jsonObject.addProperty(attribute.name().toLowerCase(), (attributes.contains(attribute))));
         textEvents.forEach(event -> jsonObject.add(event.name(), event.translateJSON(theme)));
         
         if (!translateWith.isEmpty()) {

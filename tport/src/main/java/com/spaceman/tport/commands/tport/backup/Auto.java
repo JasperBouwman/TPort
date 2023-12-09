@@ -76,29 +76,33 @@ public class Auto extends SubCommand {
     public static void save(String backupName, Player player) {
         if (getBackupState()) {
             
-            String name = backupName;
+            if (Main.containsSpecialCharacter(backupName)) {
+                sendErrorTranslation(player, "tport.command.backup.save.name.error.specialChars", "A-Z", "0-9", "-", "_");
+                return;
+            }
+            
             int version = 0;
             while (true) {
                 String suffix = "";
                 if (version != 0) {
                     suffix = "(" + version + ")";
                 }
-                File file = new File(Main.getInstance().getDataFolder(), "/backup/" + name + suffix + ".yml");
+                File file = new File(Main.getInstance().getDataFolder(), "/backup/" + backupName + suffix + ".yml");
                 try {
                     if (file.createNewFile()) {
-                        Files configFile = new Files(Main.getInstance(), "/backup/" + name + suffix + ".yml");
+                        Files configFile = new Files(Main.getInstance(), "/backup/" + backupName + suffix + ".yml");
                         
                         configFile.getConfig().set("tport", tportData.getConfig().getConfigurationSection("tport"));
                         configFile.getConfig().set("public", tportData.getConfig().getConfigurationSection("public"));
                         configFile.saveConfig();
-                        Main.getInstance().getLogger().info("Auto backup " + name + " succeeded");
+                        Main.getInstance().getLogger().info("Auto backup " + backupName + " succeeded");
                         sendSuccessTranslation(player, "tport.command.backup.save.name.succeeded", file.getName());
                         return;
                     }
                     version++;
                 } catch (IOException e) {
                     e.printStackTrace();
-                    Main.getInstance().getLogger().warning("Could not auto backup file " + name + ": " + e.getMessage());
+                    Main.getInstance().getLogger().warning("Could not auto backup file " + backupName + ": " + e.getMessage());
                     sendErrorTranslation(player, "tport.command.backup.save.name.error", e.getMessage());
                     return;
                 }

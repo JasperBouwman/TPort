@@ -1,6 +1,7 @@
 package com.spaceman.textureGenerator;
 
 import com.google.gson.*;
+import com.spaceman.tport.Pair;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
@@ -12,6 +13,9 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
@@ -24,8 +28,24 @@ import java.util.Map;
 import static com.google.gson.JsonParser.parseReader;
 
 public class Main {
-    private static final String moduleName = "texture_generator";
-    private static final String outputDir = moduleName + "/texture_output";
+    
+    private static final boolean deleteFolders = false;
+    
+    // .../texture_generator/target/classes/
+    private static final String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+    
+    private static final String outputDir = path + "/../../texture_output";
+    
+    private static final HashMap<Color, Color> lightColorMap = com.spaceman.tport.Main.asMap(
+            new Pair<>(
+                    new Color(61, 61, 61),
+                    new Color(100, 100, 100)
+            ),
+            new Pair<>(
+                    new Color(31, 31, 31),
+                    new Color(50, 50, 50)
+            )
+    );
     
     record Model(String name, Material material, int model_data, String subDir) {}
     private static final ArrayList<Integer> collectedModelData = new ArrayList<>();
@@ -69,7 +89,7 @@ public class Main {
 //
 //        File outputDirectory = new File(outputDir + "/assets/tport/textures/item/dynmap_markers");
 //        try {
-//            FileUtils.deleteDirectory(outputDirectory);
+//            if (deleteFolders) FileUtils.deleteDirectory(outputDirectory);
 //        } catch (IOException e) {
 //            throw new RuntimeException(e);
 //        }
@@ -104,7 +124,7 @@ public class Main {
     private static JsonObject getJsonObject(Material material) {
         JsonObject j = minecraftJson.get(material);
         if (j == null) {
-            File jsonFile = new File(moduleName + "/src/main/resources/model_json/" + material.name().toLowerCase() + ".json");
+            File jsonFile = new File(path + "/model_json/" + material.name().toLowerCase() + ".json");
             InputStream jsonStream;
             try {
                 jsonStream = new FileInputStream(jsonFile);
@@ -142,7 +162,7 @@ public class Main {
         
         File outputDirectory = new File(outputDir + "/assets/minecraft/models/item");
         try {
-            FileUtils.deleteDirectory(outputDirectory);
+            if (deleteFolders) FileUtils.deleteDirectory(outputDirectory);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -194,7 +214,7 @@ public class Main {
         
         File outputDirectory = new File(outputDir + "/assets/tport/models/item");
         try {
-            FileUtils.deleteDirectory(outputDirectory);
+            if (deleteFolders) FileUtils.deleteDirectory(outputDirectory);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -223,16 +243,21 @@ public class Main {
         }
     }
     
-    private static void createPack_mcmeta(String packDir) throws URISyntaxException, IOException {
-        URL url = com.spaceman.tport.Main.class.getResource("/plugin.yml");
-        
-        FileConfiguration plugin_yml = YamlConfiguration.loadConfiguration(new File(url.getFile()));
+    private static void createPack_mcmeta(String packDir, boolean lightMode) throws URISyntaxException, IOException {
+        InputStream inputStream = com.spaceman.tport.Main.class.getResourceAsStream("/plugin.yml");
+        FileConfiguration plugin_yml = YamlConfiguration.loadConfiguration(new InputStreamReader(inputStream));
         
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         JsonObject pack_mcmeta = new JsonObject();
         JsonObject pack = new JsonObject();
         pack.add("pack_format", new JsonPrimitive(18));
-        pack.add("description", new JsonPrimitive(String.format("TPort %s (v%s), made by The_Spaceman", packDir, plugin_yml.get("version"))));
+        String description = "";
+        if (lightMode) {
+            description = String.format("TPort %s (v%s) (light), made by The_Spaceman", packDir, plugin_yml.get("version"));
+        } else {
+            description = String.format("TPort %s (v%s) (dark), made by The_Spaceman", packDir, plugin_yml.get("version"));
+        }
+        pack.add("description", new JsonPrimitive(description));
         pack_mcmeta.add("pack", pack);
         System.out.println(gson.toJson(pack_mcmeta));
         
@@ -246,10 +271,10 @@ public class Main {
             fileWriter.close();
         }
     }
-    private static void copyTextures(ArrayList<Model> models, String packDir) {
+    private static void copyTextures(ArrayList<Model> models, String packDir, boolean lightMode) {
         File outputDirectory = new File(outputDir + "/assets/tport/textures/item");
         try {
-            FileUtils.deleteDirectory(outputDirectory);
+            if (deleteFolders) FileUtils.deleteDirectory(outputDirectory);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -258,14 +283,17 @@ public class Main {
         
         for (Model model : models) {
             File texture;
-            texture = new File(moduleName + "/src/main/resources/icons/" + packDir + "/" + model.name + ".png");
+            texture = new File(path + "/icons/" + packDir + "/" + model.name + ".png");
             if (texture.exists()) {
                 try {
+                    File newFile;
                     if (model.subDir == null) {
-                        FileUtils.copyFile(texture, new File(outputDirectory, model.name + ".png"));
+                        newFile = new File(outputDirectory, model.name + ".png");
                     } else {
-                        FileUtils.copyFile(texture, new File(outputDirectory, model.subDir + "/" + model.name + ".png"));
+                        newFile = new File(outputDirectory, model.subDir + "/" + model.name + ".png");
                     }
+                    FileUtils.copyFile(texture, newFile);
+                    if (lightMode) lightModeConverter(newFile);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -276,7 +304,7 @@ public class Main {
             }
         }
         
-        File packPNG = new File(moduleName + "/src/main/resources/icons/" + packDir + "/pack.png");
+        File packPNG = new File(path + "/icons/" + packDir + "/pack.png");
         if (packPNG.exists()) {
             try {
                 FileUtils.copyFile(packPNG, new File(outputDir, "pack.png"));
@@ -293,8 +321,30 @@ public class Main {
         }
         
         try {
-            createPack_mcmeta(packDir);
+            createPack_mcmeta(packDir, lightMode);
         } catch (URISyntaxException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    private static void lightModeConverter(File file) {
+        try {
+            BufferedImage img = ImageIO.read(file);
+            boolean hasChanged = false;
+            
+            for (int x = 0; x < img.getWidth(); x++) {
+                for (int y = 0; y < img.getHeight(); y++) {
+                    Color c = new Color(img.getRGB(x, y), true);
+                    c = lightColorMap.getOrDefault(c, null);
+                    if (c != null) {
+                        img.setRGB(x, y, c.getRGB());
+                        hasChanged = true;
+                    }
+                }
+            }
+            
+            if (hasChanged) ImageIO.write(img, "png", file);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -304,7 +354,7 @@ public class Main {
             throw new IllegalArgumentException("Output file is a file, it must be a directory");
         }
         try {
-            FileUtils.deleteDirectory(packDir);
+            if (deleteFolders) FileUtils.deleteDirectory(packDir);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -318,7 +368,39 @@ public class Main {
         }
     }
     
+    private static void createPack(ArrayList<Model> models, String srcDir, String outputDir, boolean lightMode) {
+        try {
+            copyTextures(models, srcDir, lightMode);
+            System.out.println(new File(outputDir).getAbsolutePath());
+            copyTexturePack(new File(outputDir));
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Could not create texture pack " + srcDir);
+        }
+    }
+    
     public static void main(String[] args) {
+        
+        if (false) {
+            System.out.println("running");
+            
+            System.out.println(path);
+            
+            File file1 = new File("/classes/model_json/hopper.json");
+            File file2 = new File(path + "/../../texture_output");
+            file2.mkdir();
+            URL url1 = ClassLoader.getSystemResource("/model_json/hopper.json");
+            URL url2 = ClassLoader.getSystemResource("/src/main/resources/model_json/hopper.json");
+            
+            System.out.println(file1.exists());
+            System.out.println(file1);
+            System.out.println(file2.exists());
+            System.out.println(file2.getPath());
+            System.out.println(url1);
+            System.out.println(url2);
+            
+            return;
+        }
         
         ArrayList<Model> models = collectModels(FancyInventory.class);
         models.addAll( collectModels(KeyboardGUI.class) );
@@ -330,27 +412,14 @@ public class Main {
         createMinecraftModels(models);
         createTPortModels(models);
         
-        try {
-            copyTextures(models, "x32");
-            File scr_32x = new File("texture_generator\\..\\resource pack\\src (32x)");
-            copyTexturePack(scr_32x);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Could not create texture pack x32");
-        }
-        
-        try {
-            copyTextures(models, "x16");
-            File scr_16x = new File("texture_generator\\..\\resource pack\\src (16x)");
-            copyTexturePack(scr_16x);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Could not create texture pack x16");
-        }
+        createPack(models, "x32", "..\\resource pack\\src (32x)_dark", false);
+        createPack(models, "x32", "..\\resource pack\\src (32x)_light", true);
+        createPack(models, "x16", "..\\resource pack\\src (16x)_dark", false);
+        createPack(models, "x16", "..\\resource pack\\src (16x)_light", true);
         
         //delete texture_output
         try {
-            FileUtils.deleteDirectory(new File(outputDir));
+            if (deleteFolders) FileUtils.deleteDirectory(new File(outputDir));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

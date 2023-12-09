@@ -1,5 +1,6 @@
 package com.spaceman.tport;
 
+import com.spaceman.tport.adapters.TPortAdapter;
 import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.commands.tport.backup.Auto;
@@ -42,6 +43,7 @@ import java.awt.*;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.*;
 import java.util.logging.Level;
@@ -53,6 +55,8 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTran
 import static com.spaceman.tport.fileHander.Files.tportConfig;
 
 public class Main extends JavaPlugin {
+    
+    public TPortAdapter adapter = null;
     
     public static <O> O getOrDefault(@Nullable O object, O def) {
         return object == null ? def : object;
@@ -175,37 +179,29 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         
         /*
-         * changelog 1.20.2 update:
+         * changelog 1.20.3 update:
          *
-         * added /tport look [type]
-         * With this command players can teleport the block/entity/fluid that they are looking at.
-         * For this a new cooldown type is created: LookTP
+         * Fixed for Minecraft/Bukkit 1.20.4
          *
-         * The TPort Keyboard got updated:
-         * added:
-         *  - Quick Type. This opens a sign where players can type with their own keyboard and paste from their clipboard
-         *  - Title formatting. This is a toggle where players can preview their typed text with colors or as plain text
-         *      - example formatting on (imagine with colors): GREEN BLUE, example formatting off: &aGREEN &9BLUE
-         *      - note that typing colors in this example is not possible, but when formatting is off you see the color codes
-         *  - Cursor. The keyboard now has a cursor for easy typing in between text. It is shown as a red |
-         *      - when formatting is on the cursor jumps over the color
-         *  - Color edit. When clicking (left/right) on the color button you can now choose if you want to insert a color, or edit the current color
-         *      - when the cursor is on a color, it edits this color
-         *      - when the cursor is on text, it edits the previous color (since this color is used for the selected text)
-         *  - added 'delete' to the backspace button
+         * Light mode textures now available for x16 and x32
+         * Quick Edit Type names are now translatable via this key: tport.quickEditInventories.quickEditType.QUICK_EDIT_NAME.displayName
+         * Quick Edit Types now have a description
          *
-         * added to the Quick Edit menu:
-         *  - Offer/Revoke. This is from the transfer function set. Accepting/Rejecting is in the settings menu
-         * added to the settings menu:
-         *  - Restore
-         *  - Home
-         *  - Transfer
-         *  - Features
-         *  - Redirects
-         *  - Tags
-         *  - PLTP
-         *  - Resource Pack
-         *  - PublicTP
+         * Created the 'setting' Items Debug, it shows all TPort items, made for texture creators
+         *
+         * Created the Cooldown setting inside the Settings GUI
+         *
+         * Added filter to the PublicTP GUI, this is a toggle to show all Public TPorts or only your own Public TPorts
+         *
+         * FeatureTP now filters features that do not generate in the world (just like BiomeTP does)
+         * fixed FeatureTP, FeatureTP can search for strongholds again
+         *
+         * TPort display items now hides all Item Flags (attributes (flight duration, ect), enchantments, armor trim, ect)
+         *
+         * Updated the 'K' texture of the keyboard
+         *
+         * fixed some minor bugs
+         *
          */
         
         /*
@@ -217,14 +213,8 @@ public class Main extends JavaPlugin {
          * Texture 'settings_features_permissions_grayed.png' does not exist
          * Texture 'settings_features_tport_takes_item.png' does not exist
          * Texture 'settings_features_tport_takes_item_grayed.png' does not exist
-         * Texture 'settings_features_death_tp.png' does not exist
-         * Texture 'settings_features_death_tp_grayed.png' does not exist
-         * Texture 'settings_features_print_errors_in_console.png' does not exist
-         * Texture 'settings_features_print_errors_in_console_grayed.png' does not exist
          * Texture 'settings_features_feature_settings.png' does not exist
          * Texture 'settings_features_feature_settings_grayed.png' does not exist
-         *
-         * add filter (own/all) to the PublicTP GUI
          *
          * unify EmptyCommand names
          *
@@ -257,6 +247,17 @@ public class Main extends JavaPlugin {
         setSupportedVersions();
         Version.checkForLatestVersion();
         
+        try {
+            this.adapter = TPortAdapter.adapters.getOrDefault("adaptive", null);
+            if (this.adapter == null) {
+                Class<?> adaptive = Class.forName("com.spaceman.tport.adapters.AdaptiveAdapter");
+                this.adapter = (TPortAdapter) adaptive.getConstructor().newInstance();
+            }
+        } catch (ClassNotFoundException | InvocationTargetException | InstantiationException | IllegalAccessException |
+                 NoSuchMethodException e) {
+            throw new RuntimeException(e);
+        }
+        
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");
         ConfigurationSerialization.registerClass(Pair.class, "Pair");
@@ -272,7 +273,7 @@ public class Main extends JavaPlugin {
         
         Reload.reloadTPort();
         
-        SafetyCheck.setSafetyCheck((feet) -> {
+        SafetyCheck.setSafetyCheck((feet, clearFeet) -> {
             
             Location head = feet.clone().add(0, 1, 0);
             Location ground = feet.clone().add(0, -1, 0);
@@ -281,20 +282,23 @@ public class Main extends JavaPlugin {
                     (Material.LAVA, Material.CAMPFIRE, Material.SOUL_CAMPFIRE, Material.FIRE, Material.SOUL_FIRE, Material.MAGMA_BLOCK);
             
             return !damageableMaterials.contains(ground.getBlock().getType()) &&
+                    !damageableMaterials.contains(head.getBlock().getType()) &&
+                    !damageableMaterials.contains(feet.getBlock().getType()) &&
                     (ground.getBlock().getType().isSolid() || ground.getBlock().getType().equals(Material.WATER)) &&
                     !head.getBlock().getType().isSolid() &&
-                    !damageableMaterials.contains(ground.getBlock().getType()) &&
-                    !damageableMaterials.contains(ground.getBlock().getType());
+                    (!clearFeet || !feet.getBlock().getType().isSolid());
         });
-        
-        Glow.registerGlow();
         
         Features.convert();
         
         ResolutionCommand.Resolution.registerResourcePackResolution("x16", "https://github.com/JasperBouwman/TPort/releases/download/TPort-" +
-                Main.getInstance().getDescription().getVersion() + "/resource_pack_16x.zip");
+                Main.getInstance().getDescription().getVersion() + "/TPort_16x_dark.zip");
         ResolutionCommand.Resolution.registerResourcePackResolution("x32", "https://github.com/JasperBouwman/TPort/releases/download/TPort-" +
-                Main.getInstance().getDescription().getVersion() + "/resource_pack_32x.zip");
+                Main.getInstance().getDescription().getVersion() + "/TPort_32x_dark.zip");
+        ResolutionCommand.Resolution.registerResourcePackResolution("x16_light", "https://github.com/JasperBouwman/TPort/releases/download/TPort-" +
+                Main.getInstance().getDescription().getVersion() + "/TPort_16x_light.zip");
+        ResolutionCommand.Resolution.registerResourcePackResolution("x32_light", "https://github.com/JasperBouwman/TPort/releases/download/TPort-" +
+                Main.getInstance().getDescription().getVersion() + "/TPort_32x_light.zip");
         ResolutionCommand.Resolution.registerResourcePackResolution("custom", null);
         
         TPortCommand.getInstance().register();

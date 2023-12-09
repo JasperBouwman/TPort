@@ -4,6 +4,8 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.inventories.QuickEditInventories;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
@@ -64,16 +66,24 @@ public class Read extends SubCommand {
             TPort.LogEntry logEntry = log.get(i);
             Object playerRepresentation = asPlayer(logEntry.teleportedUUID());
             
-            if (color) logMessage.addMessage(formatTranslation(infoColor, varInfoColor, "tport.command.log.read.tportName.listElement",
-                    sdf.format(logEntry.timeOfTeleport().getTime()),
-                    playerRepresentation,
-                    logEntry.loggedMode() == null ? "???" : logEntry.loggedMode(),
-                    logEntry.ownerOnline() == null ? "???" : logEntry.ownerOnline()));
-            else       logMessage.addMessage(formatTranslation(infoColor, varInfo2Color, "tport.command.log.read.tportName.listElement",
-                    sdf.format(logEntry.timeOfTeleport().getTime()),
-                    playerRepresentation,
-                    logEntry.loggedMode() == null ? "???" : logEntry.loggedMode(),
-                    logEntry.ownerOnline() == null ? "???" : logEntry.ownerOnline()));
+            
+            if (color) {
+                TextComponent ownerOnlineComponent = new TextComponent(String.valueOf(logEntry.ownerOnline()), varInfoColor);
+                ownerOnlineComponent.addTextEvent(new HoverEvent(formatInfoTranslation("tport.tport.tport.logEntry." + logEntry.ownerOnline() + ".description")));
+                logMessage.addMessage(formatTranslation(infoColor, varInfoColor, "tport.command.log.read.tportName.listElement",
+                        sdf.format(logEntry.timeOfTeleport().getTime()),
+                        playerRepresentation,
+                        logEntry.loggedMode() == null ? "???" : logEntry.loggedMode(),
+                        logEntry.ownerOnline() == null ? "???" : ownerOnlineComponent));
+            } else {
+                TextComponent ownerOnlineComponent = new TextComponent(String.valueOf(logEntry.ownerOnline()), varInfo2Color);
+                ownerOnlineComponent.addTextEvent(new HoverEvent(formatInfoTranslation("tport.tport.tport.logEntry." + logEntry.ownerOnline() + ".description")));
+                logMessage.addMessage(formatTranslation(infoColor, varInfo2Color, "tport.command.log.read.tportName.listElement",
+                        sdf.format(logEntry.timeOfTeleport().getTime()),
+                        playerRepresentation,
+                        logEntry.loggedMode() == null ? "???" : logEntry.loggedMode(),
+                        logEntry.ownerOnline() == null ? "???" : ownerOnlineComponent));
+            }
             
             if (i + 2 == logSize) logMessage.addMessage(formatInfoTranslation("tport.command.log.read.tportName.lastDelimiter"));
             else                  logMessage.addMessage(formatInfoTranslation("tport.command.log.read.tportName.delimiter"));

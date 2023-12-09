@@ -15,7 +15,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -38,10 +37,16 @@ import static org.bukkit.persistence.PersistentDataType.STRING;
 
 public class KeyboardGUI {
     
-    public static final int TEXT_ONLY = 0b000;
-    public static final int SPACE     = 0b001;
-    public static final int NEWLINE   = 0b010;
-    public static final int COLOR     = 0b100;
+    public static final int ALL       = 0b1111111;
+    public static final int TEXT_ONLY = 0b1111000;
+    
+    public static final int SPACE     = 0b0000001;
+    public static final int NEWLINE   = 0b0000010;
+    public static final int COLOR     = 0b0000100;
+    public static final int NUMBERS   = 0b0001000; //accepts 0 though 9
+    public static final int CHARS     = 0b0010000; //accepts a-z and A-Z
+    public static final int SPECIAL   = 0b0100000; //accepts !"#$%'()*+-./ :;<=>?@ [\]^_` {|}~
+    public static final int LINES     = 0b1000000; //accepts - and _, overrides SPECIAL
     
     private static final FancyInventory.DataName<String> outputStorage = new FancyInventory.DataName<>("typedString", String.class, "");
     private static final FancyInventory.DataName<String> layoutDataType = new FancyInventory.DataName<>("layout", String.class);
@@ -77,7 +82,8 @@ public class KeyboardGUI {
     public static final InventoryModel keyboard_cursor_model = new InventoryModel(Material.OAK_BUTTON, keyboard_format_off_model, "keyboard");
     
     public static final InventoryModel keyboard_color_model = new InventoryModel(Material.OAK_BUTTON, keyboard_cursor_model, "keyboard");
-    public static final InventoryModel keyboard_color_accept_model = new InventoryModel(Material.OAK_BUTTON, keyboard_color_model, "keyboard");
+    public static final InventoryModel keyboard_color_grayed_model = new InventoryModel(Material.OAK_BUTTON, keyboard_color_model, "keyboard");
+    public static final InventoryModel keyboard_color_accept_model = new InventoryModel(Material.OAK_BUTTON, keyboard_color_grayed_model, "keyboard");
     public static final InventoryModel keyboard_color_reject_model = new InventoryModel(Material.OAK_BUTTON, keyboard_color_accept_model, "keyboard");
     public static final InventoryModel keyboard_color_red_add_model = new InventoryModel(Material.OAK_BUTTON, keyboard_color_reject_model, "keyboard");
     public static final InventoryModel keyboard_color_red_remove_model = new InventoryModel(Material.OAK_BUTTON, keyboard_color_red_add_model, "keyboard");
@@ -148,21 +154,77 @@ public class KeyboardGUI {
             default -> formatTranslation(varInfoColor, varInfoColor, "tport.fancyMessage.inventories.KeyboardGUI.key.other", key);
         };
     }
-    private static ItemStack getKey(char key, char alternate, ColorTheme colorTheme, JsonObject playerLang, UUID playerUUID) {
-        if (key == '\0') { key = alternate; alternate = '\0'; }
+    private static ItemStack getKey(char key, char alternate, ColorTheme colorTheme, JsonObject playerLang, UUID playerUUID, int keyboardSettings) {
         InventoryModel model = getModel(Character.toLowerCase(key));
         ItemStack item = model.getItem(playerUUID);
-        if (key == '\0') return null;
         
-        boolean hasRightClickAction = true;
+        boolean numbers  = (keyboardSettings & NUMBERS) == NUMBERS;
+        boolean chars    = (keyboardSettings & CHARS)   == CHARS;
+        boolean specials = (keyboardSettings & SPECIAL) == SPECIAL;
+        boolean space    = (keyboardSettings & SPACE)   == SPACE;
+        boolean newLine  = (keyboardSettings & NEWLINE) == NEWLINE;
+        boolean lines    = (keyboardSettings & LINES)   == LINES;
+        
+        boolean keyAccepted = false;
+        boolean alternateAccepted = false;
+        
+        if (numbers) {
+            if (key >= '0' && key <= '9') keyAccepted = true;
+            if (alternate >= '0' && alternate <= '9') alternateAccepted = true;
+        }
+        if (chars) {
+            if (key >= 'A' && key <= 'Z' || key >= 'a' && key <= 'z') {
+                keyAccepted = true;
+            }
+            if (alternate >= 'A' && alternate <= 'Z' || alternate >= 'a' && alternate <= 'z') {
+                alternateAccepted = true;
+            }
+        }
+        if (specials) {
+            if (
+                    (key >= '!' && key <= '/') ||
+                    (key >= ':' && key <= '@') ||
+                    (key >= '[' && key <= '`') ||
+                    (key >= '{' && key <= '~')
+            ) {
+                keyAccepted = true;
+            }
+            if (
+                    (alternate >= '!' && alternate <= '/') ||
+                    (alternate >= ':' && alternate <= '@') ||
+                    (alternate >= '[' && alternate <= '`') ||
+                    (alternate >= '{' && alternate <= '~')
+            ) {
+                alternateAccepted = true;
+            }
+        }
+        if (space) {
+            if (key == ' ') keyAccepted = true;
+            if (alternate == ' ') alternateAccepted = true;
+        }
+        if (newLine) {
+            if (key == '\n') keyAccepted = true;
+            if (alternate == '\n') alternateAccepted = true;
+        }
+        if (lines) {
+            if (key == '-' || key == '_') keyAccepted = true;
+            if (alternate == '-' || alternate == '_') alternateAccepted = true;
+        }
+        if (key == '\b' || key == (char) 127/*delete char*/) {
+            keyAccepted = true;
+        }
+        if (alternate == '\b' || alternate == (char) 127/*delete char*/) {
+            alternateAccepted = true;
+        }
+        
         Message title;
-        Message rightClick = null;
-        if (alternate == '\0') { //has no right click alternate key
-            title = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.key.title.withoutAlternate", getKeyTitle(key));
-            hasRightClickAction = false;
-        } else {
+        Message leftClick = (!keyAccepted ? null : formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.key.normal.click", LEFT, getKeyTitle(key)));
+        Message rightClick = (!alternateAccepted ? null : formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.key.alternate.click", RIGHT, getKeyTitle(alternate)));
+        
+        if (alternate != '\0') {
             title = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.key.title.withAlternate", getKeyTitle(key), getKeyTitle(alternate));
-            rightClick = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.key.alternate.click", ClickType.RIGHT, getKeyTitle(alternate));
+        } else { //has no right click alternate key
+            title = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.key.title.withoutAlternate", getKeyTitle(key));
         }
         
         Message clearTextNewLine = null;
@@ -178,7 +240,6 @@ public class KeyboardGUI {
             }));
         }
         
-        Message leftClick = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.key.normal.click", LEFT, getKeyTitle(key));
         
         setCustomItemData(item, colorTheme, title, Arrays.asList(new Message(), leftClick, rightClick, clearTextNewLine, clearText));
         
@@ -235,8 +296,8 @@ public class KeyboardGUI {
             }
         };
         
-        addFunction(item, LEFT, onClick);
-        if (hasRightClickAction) addFunction(item, ClickType.RIGHT, onClick);
+        if (keyAccepted)       addFunction(item, LEFT, onClick);
+        if (alternateAccepted) addFunction(item, RIGHT, onClick);
         
         return item;
     }
@@ -247,7 +308,6 @@ public class KeyboardGUI {
         String defColor = inv.getData(defColorDataType, null);
         ArrayList<Message> coloredMessage = MessageUtils.transformColoredTextToMessage(typedString, defColor);
         ArrayList<String> typedArray = MessageUtils.transformColoredTextToArray(typedString);
-        
         Message coloredTitle = new Message();
         int cursorIndex = inv.getData(cursorIndexDataType);
         if (showColors) {
@@ -378,101 +438,101 @@ public class KeyboardGUI {
         inv.open(player);
     }
     
-    private static void populateQWERTY(FancyInventory inv, ColorTheme colorTheme, JsonObject playerLang, UUID uuid) {
-        inv.setItem(0, getKey('1', '!', colorTheme, playerLang, uuid));
-        inv.setItem(1, getKey('2', '@', colorTheme, playerLang, uuid));
-        inv.setItem(2, getKey('3', '#', colorTheme, playerLang, uuid));
-        inv.setItem(3, getKey('4', '$', colorTheme, playerLang, uuid));
-        inv.setItem(4, getKey('5', '%', colorTheme, playerLang, uuid));
-        inv.setItem(5, getKey('6', '^', colorTheme, playerLang, uuid));
-        inv.setItem(6, getKey('7', '&', colorTheme, playerLang, uuid));
-        inv.setItem(7, getKey('8', '*', colorTheme, playerLang, uuid));
-        inv.setItem(8, getKey('9', '(', colorTheme, playerLang, uuid));
-        inv.setItem(9, getKey('0', ')', colorTheme, playerLang, uuid));
-        inv.setItem(10, getKey('-', '_', colorTheme, playerLang, uuid));
-        inv.setItem(11, getKey('=', '+', colorTheme, playerLang, uuid));
-        inv.setItem(12, getKey('[', '{', colorTheme, playerLang, uuid));
-        inv.setItem(13, getKey(']', '}', colorTheme, playerLang, uuid));
-        inv.setItem(14, getKey(';', ':', colorTheme, playerLang, uuid));
-        inv.setItem(15, getKey('\'', '"', colorTheme, playerLang, uuid));
-        inv.setItem(16, getKey('/', '?', colorTheme, playerLang, uuid));
-        inv.setItem(17, getKey('P', 'p', colorTheme, playerLang, uuid));
+    private static void populateQWERTY(FancyInventory inv, ColorTheme colorTheme, JsonObject playerLang, UUID uuid, int keyboardSettings) {
+        inv.setItem(0, getKey('1', '!', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(1, getKey('2', '@', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(2, getKey('3', '#', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(3, getKey('4', '$', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(4, getKey('5', '%', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(5, getKey('6', '^', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(6, getKey('7', '&', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(7, getKey('8', '*', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(8, getKey('9', '(', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(9, getKey('0', ')', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(10, getKey('-', '_', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(11, getKey('=', '+', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(12, getKey('[', '{', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(13, getKey(']', '}', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(14, getKey(';', ':', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(15, getKey('\'', '"', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(16, getKey('/', '?', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(17, getKey('P', 'p', colorTheme, playerLang, uuid, keyboardSettings));
         
-        inv.setItem(18, getKey('Q', 'q', colorTheme, playerLang, uuid));
-        inv.setItem(19, getKey('W', 'w', colorTheme, playerLang, uuid));
-        inv.setItem(20, getKey('E', 'e', colorTheme, playerLang, uuid));
-        inv.setItem(21, getKey('R', 'r', colorTheme, playerLang, uuid));
-        inv.setItem(22, getKey('T', 't', colorTheme, playerLang, uuid));
-        inv.setItem(23, getKey('Y', 'y', colorTheme, playerLang, uuid));
-        inv.setItem(24, getKey('U', 'u', colorTheme, playerLang, uuid));
-        inv.setItem(25, getKey('I', 'i', colorTheme, playerLang, uuid));
-        inv.setItem(26, getKey('O', 'o', colorTheme, playerLang, uuid));
-        inv.setItem(27, getKey('A', 'a', colorTheme, playerLang, uuid));
-        inv.setItem(28, getKey('S', 's', colorTheme, playerLang, uuid));
-        inv.setItem(29, getKey('D', 'd', colorTheme, playerLang, uuid));
-        inv.setItem(30, getKey('F', 'f', colorTheme, playerLang, uuid));
-        inv.setItem(31, getKey('G', 'g', colorTheme, playerLang, uuid));
-        inv.setItem(32, getKey('H', 'h', colorTheme, playerLang, uuid));
-        inv.setItem(33, getKey('J', 'j', colorTheme, playerLang, uuid));
-        inv.setItem(34, getKey('K', 'k', colorTheme, playerLang, uuid));
-        inv.setItem(35, getKey('L', 'l', colorTheme, playerLang, uuid));
-        inv.setItem(36, getKey('Z', 'z', colorTheme, playerLang, uuid));
-        inv.setItem(37, getKey('X', 'x', colorTheme, playerLang, uuid));
-        inv.setItem(38, getKey('C', 'c', colorTheme, playerLang, uuid));
-        inv.setItem(39, getKey('V', 'v', colorTheme, playerLang, uuid));
-        inv.setItem(40, getKey('B', 'b', colorTheme, playerLang, uuid));
-        inv.setItem(41, getKey('N', 'n', colorTheme, playerLang, uuid));
-        inv.setItem(42, getKey('M', 'm', colorTheme, playerLang, uuid));
-        inv.setItem(43, getKey(',', '<', colorTheme, playerLang, uuid));
-        inv.setItem(44, getKey('.', '>', colorTheme, playerLang, uuid));
+        inv.setItem(18, getKey('Q', 'q', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(19, getKey('W', 'w', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(20, getKey('E', 'e', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(21, getKey('R', 'r', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(22, getKey('T', 't', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(23, getKey('Y', 'y', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(24, getKey('U', 'u', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(25, getKey('I', 'i', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(26, getKey('O', 'o', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(27, getKey('A', 'a', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(28, getKey('S', 's', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(29, getKey('D', 'd', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(30, getKey('F', 'f', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(31, getKey('G', 'g', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(32, getKey('H', 'h', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(33, getKey('J', 'j', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(34, getKey('K', 'k', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(35, getKey('L', 'l', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(36, getKey('Z', 'z', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(37, getKey('X', 'x', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(38, getKey('C', 'c', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(39, getKey('V', 'v', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(40, getKey('B', 'b', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(41, getKey('N', 'n', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(42, getKey('M', 'm', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(43, getKey(',', '<', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(44, getKey('.', '>', colorTheme, playerLang, uuid, keyboardSettings));
     }
-    private static void populateAlphabet(FancyInventory inv, ColorTheme colorTheme, JsonObject playerLang, UUID uuid) {
-        inv.setItem(0, getKey('1', '!', colorTheme, playerLang, uuid));
-        inv.setItem(1, getKey('2', '@', colorTheme, playerLang, uuid));
-        inv.setItem(2, getKey('3', '#', colorTheme, playerLang, uuid));
-        inv.setItem(3, getKey('4', '$', colorTheme, playerLang, uuid));
-        inv.setItem(4, getKey('5', '%', colorTheme, playerLang, uuid));
-        inv.setItem(5, getKey('6', '^', colorTheme, playerLang, uuid));
-        inv.setItem(6, getKey('7', '&', colorTheme, playerLang, uuid));
-        inv.setItem(7, getKey('8', '*', colorTheme, playerLang, uuid));
-        inv.setItem(8, getKey('9', '(', colorTheme, playerLang, uuid));
-        inv.setItem(9, getKey('0', ')', colorTheme, playerLang, uuid));
-        inv.setItem(10, getKey('-', '_', colorTheme, playerLang, uuid));
-        inv.setItem(11, getKey('=', '+', colorTheme, playerLang, uuid));
-        inv.setItem(12, getKey('[', '{', colorTheme, playerLang, uuid));
-        inv.setItem(13, getKey(']', '}', colorTheme, playerLang, uuid));
-        inv.setItem(14, getKey(';', ':', colorTheme, playerLang, uuid));
-        inv.setItem(15, getKey('\'', '"', colorTheme, playerLang, uuid));
-        inv.setItem(16, getKey('/', '?', colorTheme, playerLang, uuid));
-        inv.setItem(17, getKey('J', 'j', colorTheme, playerLang, uuid));
+    private static void populateAlphabet(FancyInventory inv, ColorTheme colorTheme, JsonObject playerLang, UUID uuid, int keyboardSettings) {
+        inv.setItem(0, getKey('1', '!', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(1, getKey('2', '@', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(2, getKey('3', '#', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(3, getKey('4', '$', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(4, getKey('5', '%', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(5, getKey('6', '^', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(6, getKey('7', '&', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(7, getKey('8', '*', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(8, getKey('9', '(', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(9, getKey('0', ')', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(10, getKey('-', '_', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(11, getKey('=', '+', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(12, getKey('[', '{', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(13, getKey(']', '}', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(14, getKey(';', ':', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(15, getKey('\'', '"', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(16, getKey('/', '?', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(17, getKey('J', 'j', colorTheme, playerLang, uuid, keyboardSettings));
         
-        inv.setItem(18, getKey('A', 'a', colorTheme, playerLang, uuid));
-        inv.setItem(19, getKey('B', 'b', colorTheme, playerLang, uuid));
-        inv.setItem(20, getKey('C', 'c', colorTheme, playerLang, uuid));
-        inv.setItem(21, getKey('D', 'd', colorTheme, playerLang, uuid));
-        inv.setItem(22, getKey('E', 'e', colorTheme, playerLang, uuid));
-        inv.setItem(23, getKey('F', 'f', colorTheme, playerLang, uuid));
-        inv.setItem(24, getKey('G', 'g', colorTheme, playerLang, uuid));
-        inv.setItem(25, getKey('H', 'h', colorTheme, playerLang, uuid));
-        inv.setItem(26, getKey('I', 'i', colorTheme, playerLang, uuid));
-        inv.setItem(27, getKey('K', 'k', colorTheme, playerLang, uuid));
-        inv.setItem(28, getKey('L', 'l', colorTheme, playerLang, uuid));
-        inv.setItem(29, getKey('M', 'm', colorTheme, playerLang, uuid));
-        inv.setItem(30, getKey('N', 'n', colorTheme, playerLang, uuid));
-        inv.setItem(31, getKey('O', 'o', colorTheme, playerLang, uuid));
-        inv.setItem(32, getKey('P', 'p', colorTheme, playerLang, uuid));
-        inv.setItem(33, getKey('Q', 'q', colorTheme, playerLang, uuid));
-        inv.setItem(34, getKey('R', 'r', colorTheme, playerLang, uuid));
-        inv.setItem(35, getKey('T', 's', colorTheme, playerLang, uuid));
-        inv.setItem(36, getKey('S', 't', colorTheme, playerLang, uuid));
-        inv.setItem(37, getKey('U', 'u', colorTheme, playerLang, uuid));
-        inv.setItem(38, getKey('V', 'v', colorTheme, playerLang, uuid));
-        inv.setItem(39, getKey('W', 'w', colorTheme, playerLang, uuid));
-        inv.setItem(40, getKey('X', 'x', colorTheme, playerLang, uuid));
-        inv.setItem(41, getKey('Y', 'y', colorTheme, playerLang, uuid));
-        inv.setItem(42, getKey('Z', 'z', colorTheme, playerLang, uuid));
-        inv.setItem(43, getKey(',', '<', colorTheme, playerLang, uuid));
-        inv.setItem(44, getKey('.', '>', colorTheme, playerLang, uuid));
+        inv.setItem(18, getKey('A', 'a', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(19, getKey('B', 'b', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(20, getKey('C', 'c', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(21, getKey('D', 'd', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(22, getKey('E', 'e', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(23, getKey('F', 'f', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(24, getKey('G', 'g', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(25, getKey('H', 'h', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(26, getKey('I', 'i', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(27, getKey('K', 'k', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(28, getKey('L', 'l', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(29, getKey('M', 'm', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(30, getKey('N', 'n', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(31, getKey('O', 'o', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(32, getKey('P', 'p', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(33, getKey('Q', 'q', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(34, getKey('R', 'r', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(35, getKey('T', 's', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(36, getKey('S', 't', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(37, getKey('U', 'u', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(38, getKey('V', 'v', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(39, getKey('W', 'w', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(40, getKey('X', 'x', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(41, getKey('Y', 'y', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(42, getKey('Z', 'z', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(43, getKey(',', '<', colorTheme, playerLang, uuid, keyboardSettings));
+        inv.setItem(44, getKey('.', '>', colorTheme, playerLang, uuid, keyboardSettings));
     }
     
     private static void openColorKeyboard(Player player, @Nonnull FancyInventory keyboard) {
@@ -520,10 +580,18 @@ public class KeyboardGUI {
                             String originalColor = typedArray.get(i);
                             typedArray.set(i, addedColor);
                             cursorIndex += -originalColor.length() + addedColor.length();
+                        } else if (element.equals("\n")) {
+                            typedArray.add(i + 1, addedColor);
+                            cursorIndex += addedColor.length();
                         } else if (i > 0) {
                             String originalColor = typedArray.get(i-1);
-                            typedArray.set(i-1, addedColor);
-                            cursorIndex += -originalColor.length() + addedColor.length();
+                            if (originalColor.equals("\n")) {
+                                typedArray.add(i, addedColor);
+                                cursorIndex += addedColor.length();
+                            } else {
+                                typedArray.set(i-1, addedColor);
+                                cursorIndex += -originalColor.length() + addedColor.length();
+                            }
                         } else {
                             typedArray.add(0, addedColor);
                             cursorIndex += addedColor.length();
@@ -546,7 +614,8 @@ public class KeyboardGUI {
             fancyColorInventory.setData(cursorIndexDataType, cursorIndex);
             
             int keyboardSettings = fancyColorInventory.getData(keyboardSettingsDataType);
-            FancyInventory newKeyboard = openKeyboard(whoClicked, accFunc, rejFunc, typedString, keyboardSettings);
+            String defColor = fancyColorInventory.getData(defColorDataType);
+            FancyInventory newKeyboard = openKeyboard(whoClicked, accFunc, rejFunc, typedString, defColor, keyboardSettings);
             newKeyboard.transferData(fancyColorInventory);
             newKeyboard.setData(outputStorage, typedString);
             updateKeyboardTitle(whoClicked, newKeyboard);
@@ -567,7 +636,8 @@ public class KeyboardGUI {
             String typedString = getKeyboardOutput(fancyColorInventory);
             
             int keyboardSettings = fancyColorInventory.getData(keyboardSettingsDataType);
-            FancyInventory newKeyboard = openKeyboard(whoClicked, accFunc, rejFunc, typedString, keyboardSettings);
+            String defColor = fancyColorInventory.getData(defColorDataType);
+            FancyInventory newKeyboard = openKeyboard(whoClicked, accFunc, rejFunc, typedString, defColor, keyboardSettings);
             newKeyboard.transferData(fancyColorInventory);
             updateKeyboardTitle(whoClicked, newKeyboard);
         }));
@@ -766,6 +836,9 @@ public class KeyboardGUI {
                 if (MultiColor.isColor(element)) {
                     color = new MultiColor(element).getColor();
                 } else if (i > 0) {
+                    if (typedArray.get(i - 1).equals("\n") || element.equals("\n")) {
+                        break;
+                    }
                     color = new MultiColor(typedArray.get(i - 1)).getColor();
                 }
                 break;
@@ -775,15 +848,17 @@ public class KeyboardGUI {
     }
     private static void updateColorButton(FancyInventory keyboard, Player player, @Nullable ColorTheme colorTheme, @Nullable JsonObject playerLang) {
         int keyboardSettings = keyboard.getData(keyboardSettingsDataType);
-        if ((keyboardSettings & COLOR) == COLOR) {
-            if (colorTheme == null) colorTheme = ColorTheme.getTheme(player);
-            if (playerLang == null) playerLang = getPlayerLang(player.getUniqueId());
-            
-            ItemStack openColor = keyboard_color_model.getItem(player);
-            Message openColorTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.colorEditor.title");
-            List<Message> lore = new ArrayList<>();
+        boolean hasColors = (keyboardSettings & COLOR) == COLOR;
+        
+        if (colorTheme == null) colorTheme = ColorTheme.getTheme(player);
+        if (playerLang == null) playerLang = getPlayerLang(player.getUniqueId());
+        
+        ItemStack openColor = (hasColors ? keyboard_color_model : keyboard_color_grayed_model).getItem(player);
+        Message openColorTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.colorEditor.title");
+        List<Message> lore = new ArrayList<>();
+        
+        if (hasColors) {
             lore.add(new Message());
-            
             lore.add(formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.insertColor.title", LEFT));
             
             String typedString = getKeyboardOutput(keyboard);
@@ -795,40 +870,43 @@ public class KeyboardGUI {
                 Message thisMessage = formatTranslation(new MultiColor(color), new MultiColor(color), "tport.fancyMessage.inventories.KeyboardGUI.editColor.this");
                 thisMessage = translateMessage(thisMessage, playerLang);
                 lore.add(formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.editColor.title", RIGHT, thisMessage));
+                
+                addFunction(openColor, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                    String innerTypedString = getKeyboardOutput(fancyInventory);
+                    ArrayList<String> innerTypedArray = MessageUtils.transformColoredTextToArray(innerTypedString);
+                    
+                    Color innerColor = getColorFromCursor(fancyInventory, innerTypedArray);
+                    
+                    fancyInventory.setData(colorDataType, innerColor);
+                    fancyInventory.setData(editColorDataTye, true);
+                    openColorKeyboard(whoClicked, fancyInventory);
+                }));
             }
-            setCustomItemData(openColor, colorTheme, openColorTitle, lore);
             
             addFunction(openColor, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
                 fancyInventory.setData(editColorDataTye, false);
                 openColorKeyboard(whoClicked, fancyInventory);
             }));
-            if (!typedString.isEmpty()) addFunction(openColor, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
-                String innerTypedString = getKeyboardOutput(fancyInventory);
-                ArrayList<String> typedArray = MessageUtils.transformColoredTextToArray(innerTypedString);
-                
-                Color color = getColorFromCursor(fancyInventory, typedArray);
-                
-                fancyInventory.setData(colorDataType, color);
-                fancyInventory.setData(editColorDataTye, true);
-                openColorKeyboard(whoClicked, fancyInventory);
-            }));
-            keyboard.setItem(48, openColor);
         }
+        
+        setCustomItemData(openColor, colorTheme, openColorTitle, lore);
+        keyboard.setItem(48, openColor);
     }
     
     public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickEvent.FancyClickRunnable onAccept, @Nullable FancyClickEvent.FancyClickRunnable onReject) {
-        return openKeyboard(player, onAccept, onReject, 0);
+        return openKeyboard(player, onAccept, onReject, ALL);
     }
     public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickEvent.FancyClickRunnable onAccept, @Nullable FancyClickEvent.FancyClickRunnable onReject, int keyboardSettings) {
-        return openKeyboard(player, onAccept, onReject, "", keyboardSettings);
+        return openKeyboard(player, onAccept, onReject, "", null, keyboardSettings);
     }
-    public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickEvent.FancyClickRunnable onAccept, @Nullable FancyClickEvent.FancyClickRunnable onReject, String startInput) {
-        return openKeyboard(player, onAccept, onReject, startInput, 0);
+    public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickEvent.FancyClickRunnable onAccept, @Nullable FancyClickEvent.FancyClickRunnable onReject, @Nullable String startInput, @Nullable String defColor) {
+        return openKeyboard(player, onAccept, onReject, startInput, defColor, ALL);
     }
-    public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickEvent.FancyClickRunnable onAccept, @Nullable FancyClickEvent.FancyClickRunnable onReject, @Nullable String startInput, int keyboardSettings) {
+    public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickEvent.FancyClickRunnable onAccept, @Nullable FancyClickEvent.FancyClickRunnable onReject, @Nullable String startInput, @Nullable String defColor, int keyboardSettings) {
         ColorTheme colorTheme = ColorTheme.getTheme(player);
         JsonObject playerLang = Language.getPlayerLang(player.getUniqueId());
         startInput = Main.getOrDefault(startInput, "");
+        startInput = startInput.replace("\\n", "\n");
         
         Message invTitle = formatInfoTranslation("tport.fancyMessage.inventories.KeyboardGUI.title", cursor);
         FancyInventory inv = new FancyInventory(54, invTitle);
@@ -837,8 +915,9 @@ public class KeyboardGUI {
         inv.setData(keyboardSettingsDataType, keyboardSettings);
         inv.setData(formatTitleDataType, true);
         inv.setData(cursorIndexDataType, startInput.length());
+        inv.setData(defColorDataType, defColor);
         
-        populateQWERTY(inv, colorTheme, playerLang, player.getUniqueId());
+        populateQWERTY(inv, colorTheme, playerLang, player.getUniqueId(), keyboardSettings);
         
         setFormatButton(inv, player, colorTheme, playerLang);
         
@@ -846,11 +925,12 @@ public class KeyboardGUI {
         Message changeLayoutTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.changeLayout.title", LEFT);
         setCustomItemData(changeLayout, colorTheme, changeLayoutTitle, null);
         addFunction(changeLayout, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            int innerKeyboardSettings = fancyInventory.getData(keyboardSettingsDataType);
             if (fancyInventory.getData(layoutDataType).equals("qwerty")) {
-                populateAlphabet(fancyInventory, ColorTheme.getTheme(whoClicked), Language.getPlayerLang(whoClicked.getUniqueId()), whoClicked.getUniqueId());
+                populateAlphabet(fancyInventory, ColorTheme.getTheme(whoClicked), Language.getPlayerLang(whoClicked.getUniqueId()), whoClicked.getUniqueId(), innerKeyboardSettings);
                 fancyInventory.setData(layoutDataType, "alphabet");
             } else {
-                populateQWERTY(fancyInventory, ColorTheme.getTheme(whoClicked), Language.getPlayerLang(whoClicked.getUniqueId()), whoClicked.getUniqueId());
+                populateQWERTY(fancyInventory, ColorTheme.getTheme(whoClicked), Language.getPlayerLang(whoClicked.getUniqueId()), whoClicked.getUniqueId(), innerKeyboardSettings);
                 fancyInventory.setData(layoutDataType, "qwerty");
             }
             fancyInventory.open(whoClicked);
@@ -859,10 +939,8 @@ public class KeyboardGUI {
         
         updateColorButton(inv, player, colorTheme, playerLang);
         
-        char space = (keyboardSettings & SPACE) == SPACE ? ' ' : '\0';
-        char newLine = (keyboardSettings & NEWLINE) == NEWLINE ? '\n' : '\0';
-        inv.setItem(49, getKey(space, newLine, colorTheme, playerLang, player.getUniqueId()));
-        inv.setItem(50, getKey('\b', (char) 127/*delete char*/, colorTheme, playerLang, player.getUniqueId()));
+        inv.setItem(49, getKey(' ', '\n', colorTheme, playerLang, player.getUniqueId(), keyboardSettings));
+        inv.setItem(50, getKey('\b', (char) 127/*delete char*/, colorTheme, playerLang, player.getUniqueId(), keyboardSettings));
         
         ItemStack quickType = keyboard_quick_type_model.getItem(player);
         Message quickTypeTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.quickType.title", LEFT);
@@ -870,7 +948,7 @@ public class KeyboardGUI {
         addFunction(quickType, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
             QuickType.Callback c = (lines) -> {
                 String typedString = getKeyboardOutput(fancyInventory);
-                String signOutput = String.join("\n", lines).stripTrailing();
+                String signOutput = String.join("\n", lines).stripTrailing().replace("\\", "");
                 
                 int cursorIndex = fancyInventory.getData(cursorIndexDataType);
                 cursorIndex = Math.min(typedString.length(), cursorIndex);

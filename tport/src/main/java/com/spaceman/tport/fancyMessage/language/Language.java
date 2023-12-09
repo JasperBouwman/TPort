@@ -70,6 +70,10 @@ public class Language extends SubCommand {
     }
     
     @Nullable
+    public static JsonObject getPlayerLang(Player player) {
+        return getPlayerLang(player.getUniqueId());
+    }
+    @Nullable
     public static JsonObject getPlayerLang(UUID uuid) {
         String playerLang = getPlayerLangName(uuid);
         if (playerLang.equals("server")) {

@@ -1,0 +1,4 @@
+com\spaceman\tport\adapters\V1_19_4_FeatureTPAdapter.class
+com\spaceman\tport\adapters\V1_19_4_Adapter.class
+com\spaceman\tport\adapters\V1_19_4_BiomeTPAdapter.class
+com\spaceman\tport\adapters\V1_19_4_NBTAdapter.class

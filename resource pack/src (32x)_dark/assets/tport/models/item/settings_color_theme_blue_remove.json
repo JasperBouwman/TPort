@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "tport:item/settings/color_theme/settings_color_theme_blue_remove"
+  }
+}

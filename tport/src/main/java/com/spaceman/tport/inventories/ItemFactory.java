@@ -30,6 +30,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -326,6 +327,9 @@ public class ItemFactory {
         for (Enchantment e : im.getEnchants().keySet()) {
             im.removeEnchant(e);
         }
+        for (ItemFlag itemFlag : ItemFlag.values()) {
+            im.addItemFlags(itemFlag);
+        }
         
         Message title = formatTranslation(infoColor, varInfoColor, "tport.inventories.itemFactory.toTPortItem.title", tport.getName());
         List<Message> lore = tport.getHoverData(attributes.contains(TPortItemAttributes.ADD_OWNER));
@@ -459,7 +463,7 @@ public class ItemFactory {
             }
             
             if (Remove.getInstance().emptyAll.hasPermissionToRun(player, false)) {
-                lore.add(formatInfoTranslation("tport.inventories.itemFactory.toTPortItem.publicRemove", SHIFT_RIGHT));
+                lore.add(formatInfoTranslation("tport.inventories.itemFactory.toTPortItem.publicRemove", SHIFT_RIGHT, tport));
                 addCommand(im, SHIFT_RIGHT, "tport public remove " + tport.getName());
                 addFunction(im, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) ->
                         openPublicTPTPortsSettings(whoClicked, fancyInventory.getData(pageDataName), fancyInventory)));
@@ -577,7 +581,8 @@ public class ItemFactory {
         BACKUP(((whoClicked, clickType, pdc, fancyInventory) -> TPortCommand.executeTPortCommand(whoClicked, "backup"))),
         QUICK_EDIT(((whoClicked, clickType, pdc, fancyInventory) -> QuickEditInventories.openQuickEditSelection(whoClicked, 0, fancyInventory.getData(tportUUIDDataName)))),
         TPORT_LOG(((whoClicked, clickType, pdc, fancyInventory) -> QuickEditInventories.openTPortLogGUI(whoClicked, fancyInventory.getData(tportDataName)))),
-        PUBLIC_TP_SETTINGS(((whoClicked, clickType, pdc, fancyInventory) -> SettingsInventories.openPublicTPTPortsSettings(whoClicked, 0, null))),
+        PUBLIC_TP_SETTINGS(((whoClicked, clickType, pdc, fancyInventory) -> SettingsInventories.openPublicTPSettings(whoClicked))),
+        LOG_SETTINGS(((whoClicked, clickType, pdc, fancyInventory) -> SettingsInventories.openLogGUI(whoClicked))),
         PLTP(((whoClicked, clickType, pdc, fancyInventory) -> SettingsInventories.openPLTPGUI(whoClicked)));
         
         private final FancyClickEvent.FancyClickRunnable onClick;

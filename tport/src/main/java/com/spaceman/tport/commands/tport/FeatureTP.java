@@ -13,14 +13,6 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
-import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
-import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
-import net.minecraft.core.IRegistry;
-import net.minecraft.resources.MinecraftKey;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.level.levelgen.structure.Structure;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -35,7 +27,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
@@ -44,7 +35,6 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.pageDataName;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 import static com.spaceman.tport.inventories.TPortInventories.openFeatureTP;
-import static com.spaceman.tport.reflection.ReflectionManager.*;
 
 public class FeatureTP extends SubCommand {
     
@@ -89,56 +79,32 @@ public class FeatureTP extends SubCommand {
         sendErrorTranslation(player, "tport.command.wrongUsage", "/tport featureTP " + CommandTemplate.convertToArgs(getActions(), true));
     }
     
+    public static List<String> getFeatures() {
+        try {
+            return Main.getInstance().adapter.availableFeatures();
+        } catch (Throwable ex) {
+            Features.Feature.printSmallNMSErrorInConsole("FeatureTP feature list", false);
+            if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
     public static List<String> getFeatures(World world) {
         try {
-            WorldServer worldServer = getWorldServer(world);
-            IRegistry<Structure> structureRegistry = getStructureRegistry(worldServer);
-
-            return structureRegistry.e().stream().map(MinecraftKey::a).map(String::toLowerCase).toList();
-        } catch (Exception | Error ex) {
+            return Main.getInstance().adapter.availableFeatures(world);
+        } catch (Throwable ex) {
             Features.Feature.printSmallNMSErrorInConsole("FeatureTP feature list", false);
             if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
             return new ArrayList<>();
         }
     }
     public static List<com.spaceman.tport.Pair<String, List<String>>> getTags(World world) {
-        List<com.spaceman.tport.Pair<String, List<String>>> list = new ArrayList<>();
-        
         try {
-            WorldServer worldServer = getWorldServer(world);
-            IRegistry<Structure> structureRegistry = getStructureRegistry(worldServer);
-            
-//            List<String> tags = structureRegistry.i().map((tagKey) -> tagKey.b().a()).toList();
-            List<String> tags = structureRegistry.i().map((tagKey) -> tagKey.getFirst().b().a()).toList();
-            
-            for (String tagKeyName : tags) {
-                TagKey<Structure> tagKey = TagKey.a(getStructureResourceKey(), new MinecraftKey(tagKeyName));
-                
-                Optional<HolderSet.Named<Structure>> optional = structureRegistry.b(tagKey);
-                if (optional.isPresent()) {
-                    HolderSet.Named<Structure> named = optional.get();
-                    Stream<Holder<Structure>> values = named.a();
-                    
-                    List<String> features = values.map((holder) -> {
-                        return holder.a(); //Holder -> StructureFeature
-                    }).map((structureFeature) -> {
-//                        structureFeature.a(); //biomes
-                        MinecraftKey key = structureRegistry.b(structureFeature);
-                        if (key != null) {
-                            return key.a().toLowerCase();
-                        }
-                        return null;
-                    }).filter(Objects::nonNull).toList();
-                    
-                    list.add(new com.spaceman.tport.Pair<>("#" + tagKeyName.toLowerCase(), features));
-                }
-            }
-        } catch (Exception | Error ex) {
+            return Main.getInstance().adapter.getFeatureTags(world);
+        } catch (Throwable ex) {
             Features.Feature.printSmallNMSErrorInConsole("FeatureTP tags", false);
             if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
+            return new ArrayList<>();
         }
-        
-        return list;
     }
     
     public static Material getMaterial(String feature) {
@@ -329,7 +295,7 @@ public class FeatureTP extends SubCommand {
             for (int y = 1; y < world.getMaxHeight(); y++) {
                 Location tempFeet = new Location(world, x, y, z);
                 
-                if (SafetyCheck.isSafe(tempFeet)) {
+                if (SafetyCheck.isSafe(tempFeet, true)) {
                     return tempFeet;
                 } else if (tempFeet.getBlock().getType().equals(Material.BEDROCK) && y > 10) {
                     //spread location, reset search
@@ -342,7 +308,7 @@ public class FeatureTP extends SubCommand {
                     searches++;
                 }
             }
-            return new Location(world, originalX, world.getHighestBlockYAt(originalX, originalZ), originalZ);
+            return new Location(world, originalX, world.getHighestBlockYAt(originalX, originalZ) + 1, originalZ);
         } else {
             int y = world.getHighestBlockYAt(x, z);
             Location l = new Location(world, x, y + 1, z);

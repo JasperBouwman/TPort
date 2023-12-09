@@ -1,0 +1,5 @@
+com\spaceman\tport\adapters\AdaptiveFeatureTP.class
+com\spaceman\tport\adapters\AdaptiveBiomeTP.class
+com\spaceman\tport\adapters\AdaptiveReflectionManager.class
+com\spaceman\tport\adapters\AdaptiveAdapter.class
+com\spaceman\tport\adapters\AdaptiveNBTTags.class

@@ -1,6 +1,7 @@
 package com.spaceman.tport.cooldown;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.Permission;
@@ -16,25 +17,32 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.va
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varErrorColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fileHander.Files.tportConfig;
+import static com.spaceman.tport.inventories.SettingsInventories.*;
 
 public enum CooldownManager {
     
-    TPortTP("3000"),
-    PlayerTP("3000"),
-    FeatureTP("3000"),
-    BiomeTP("3000"),
-    Search("10000"),
-    Back("TPortTP"),
-    LookTP("3000");
+    TPortTP("3000", settings_cooldown_tport_tp_model),
+    PlayerTP("3000", settings_cooldown_player_tp_model),
+    FeatureTP("3000", settings_cooldown_feature_tp_model),
+    BiomeTP("3000", settings_cooldown_biome_tp_model),
+    Search("10000", settings_cooldown_search_model),
+    Back("TPortTP", settings_cooldown_back_model),
+    LookTP("3000", settings_cooldown_look_tp_model);
     
     public static boolean loopCooldown = false;
     private static String errorOccurredWith = "null";
     private static final HashMap<UUID, HashMap<CooldownManager, Long>> cooldownTime = new HashMap<>();
     
     private final String defaultValue;
+    private final InventoryModel inventoryModel;
     
-    CooldownManager(String defValue) {
+    CooldownManager(String defValue, InventoryModel inventoryModel) {
         this.defaultValue = defValue;
+        this.inventoryModel = inventoryModel;
+    }
+    
+    public InventoryModel getInventoryModel() {
+        return inventoryModel;
     }
     
     public static void setDefaultValues() {

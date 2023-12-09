@@ -1,0 +1,11 @@
+{
+  "parent": "minecraft:block/end_stone",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 5145566
+      },
+      "model": "tport:item/the_end"
+    }
+  ]
+}

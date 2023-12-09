@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>texture_generator</artifactId>
-    <version>2.0</version>
+    <version>3.0</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>com.spaceman</groupId>
         <artifactId>TPort-parent</artifactId>
-        <version>1.0</version>
+        <version>1.1</version>
     </parent>
 
     <properties>
@@ -26,18 +26,17 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                    </execution>
-                </executions>
                 <configuration>
+                    <executable>java</executable>
                     <mainClass>com.spaceman.textureGenerator.Main</mainClass>
                 </configuration>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
     </build>
 
     <repositories>
@@ -60,7 +59,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.20.2-R0.1-SNAPSHOT</version>
+            <version>1.20.4-R0.1-SNAPSHOT</version>
 <!--            <scope>provided</scope>-->
         </dependency>
 
@@ -80,7 +79,7 @@
         <dependency>
             <groupId>com.spaceman</groupId>
             <artifactId>TPort</artifactId>
-            <version>1.20.2</version>
+            <version>${TPortVersion}</version>
         </dependency>
     </dependencies>
 </project>

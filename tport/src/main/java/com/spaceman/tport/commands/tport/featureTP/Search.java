@@ -1,5 +1,6 @@
 package com.spaceman.tport.commands.tport.featureTP;
 
+import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
@@ -11,27 +12,9 @@ import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.encapsulation.FeatureEncapsulation;
 import com.spaceman.tport.metrics.FeatureSearchCounter;
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
-import it.unimi.dsi.fastutil.objects.ObjectArraySet;
-import net.minecraft.core.*;
-import net.minecraft.resources.MinecraftKey;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.world.level.IWorldReader;
-import net.minecraft.world.level.StructureManager;
-import net.minecraft.world.level.biome.BiomeBase;
-import net.minecraft.world.level.biome.WorldChunkManager;
-import net.minecraft.world.level.chunk.ChunkGenerator;
-import net.minecraft.world.level.chunk.ChunkGeneratorStructureState;
-import net.minecraft.world.level.levelgen.structure.Structure;
-import net.minecraft.world.level.levelgen.structure.placement.ConcentricRingsStructurePlacement;
-import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
-import net.minecraft.world.level.levelgen.structure.placement.StructurePlacement;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
-import java.lang.reflect.Method;
 import java.util.*;
 
 import static com.spaceman.tport.commands.tport.Back.prevTPorts;
@@ -40,7 +23,6 @@ import static com.spaceman.tport.commands.tport.featureTP.Mode.worldSearchString
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
-import static com.spaceman.tport.reflection.ReflectionManager.*;
 import static com.spaceman.tport.tpEvents.TPEManager.requestTeleportPlayer;
 
 public class Search extends SubCommand {
@@ -81,8 +63,6 @@ public class Search extends SubCommand {
     public Collection<String> tabList(Player player, String[] args) {
         ArrayList<String> list = new ArrayList<>(FeatureTP.getFeatures(player.getWorld()));
         FeatureTP.getTags(player.getWorld()).stream().map(Pair::getLeft).forEach(list::add);
-//        list.addAll(FeatureTP.getPOIs(player.getWorld()));
-//        FeatureTP.getPOITags(player.getWorld()).stream().map(Pair::getLeft).forEach(list::add);
         Arrays.stream(Mode.WorldSearchMode.values()).map(Enum::name).forEach(list::add);
         return list;
     }
@@ -176,7 +156,7 @@ public class Search extends SubCommand {
         featureList.removeLast();
         return featureList;
     }
-    private static Message featuresToMessageError(List<String> features) {
+    public static Message featuresToMessageError(List<String> features) {
         Message featureList = new Message();
         int listSize = features.size();
         boolean color = true;
@@ -230,23 +210,9 @@ public class Search extends SubCommand {
     
     public static Pair<Location, String> searchFeature(Player player, Location startLocation, List<String> features) {
         
-        List<Holder<Structure>> featureList = new ArrayList<>();
         try {
-            WorldServer worldServer = getWorldServer(player.getWorld());
-            IRegistry<Structure> structureRegistry = getStructureRegistry(worldServer);
-            for (String feature : features) {
-                Structure o = structureRegistry.a(new MinecraftKey(feature));
-                Optional<ResourceKey<Structure>> optional = structureRegistry.c(o);
-                if (optional.isPresent()) {
-//                Holder<Structure> holder = structureRegistry.c(optional.get());
-                    Holder<Structure> holder = structureRegistry.d(o);
-                    featureList.add(holder);
-//            System.out.println(structureRegistry.b(holder.a()).a());
-                }
-            }
-            
-            return searchFeature_1_19_3(player, startLocation, featureList, features);
-        } catch (Exception | Error ex) {
+            return Main.getInstance().adapter.searchFeature(player, startLocation, features);
+        } catch (Throwable ex) {
             Features.Feature.printSmallNMSErrorInConsole("FeatureTP prepare search", false);
             if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
             return null;
@@ -371,115 +337,133 @@ public class Search extends SubCommand {
 //        return null;
 //    }
     
-    private static Pair<Location, String> searchFeature_1_19_3(@Nullable Player player, Location startLocation, List<Holder<Structure>> featureList, List<String> features) {
-        
-        try {
-            BlockPosition startPosition = new BlockPosition(startLocation.getBlockX(), startLocation.getBlockY(), startLocation.getBlockZ());
-            
-            WorldServer worldServer = getWorldServer(startLocation.getWorld());
-            IRegistry<Structure> structureRegistry = getStructureRegistry(worldServer); //1.20
-            
-            Set<Holder<BiomeBase>> generateInBiomesList = generateBiomesInList(featureList);
-            
-            if (generateInBiomesList.isEmpty()) {
-                sendErrorTranslation(player, "tport.command.featureTP.search.feature.featuresNotGenerating");
-                return null; //does not generate at all
-            } else {
-                ChunkGenerator chunkGenerator = getChunkGenerator(worldServer);
-                WorldChunkManager worldChunkManager = getWorldChunkManager(chunkGenerator);
-                
-                Set<Holder<BiomeBase>> generatedBiomes = getGeneratedBiomes(worldChunkManager);
-                if (Collections.disjoint(generatedBiomes, generateInBiomesList)) {
-                    sendErrorTranslation(player, "tport.command.featureTP.search.feature.featuresNotGeneratingInWorld");
-                    return null; //does not generate in world
-                } else {
-                    Map<StructurePlacement, Set<Holder<Structure>>> map = new Object2ObjectArrayMap<>();
-                    ChunkGeneratorStructureState chunkgeneratorstructurestate = getChunkGeneratorStructureState(worldServer);
-                    
-                    for (Holder<Structure> holder : featureList) {
-                        if (generatedBiomes.stream().anyMatch(holder.a().a()::a)) {
-                            
-                            List<StructurePlacement> l = chunkgeneratorstructurestate.a(holder);
-                            for (StructurePlacement structureplacement : l) {
-                                map.computeIfAbsent(structureplacement, (p_211663_) -> new ObjectArraySet()).add(holder);
-                            }
-                        }
-                    }
-                    
-                    List<Map.Entry<StructurePlacement, Set<Holder<Structure>>>> list = new ArrayList<>(map.size());
-                    double d0 = Double.MAX_VALUE;
-                    com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>> pair = null;
-                    
-                    for (Map.Entry<StructurePlacement, Set<Holder<Structure>>> entry : map.entrySet()) {
-                        StructurePlacement structureplacement1 = entry.getKey();
-                        if (structureplacement1 instanceof ConcentricRingsStructurePlacement concentricringsstructureplacement) {
-                            Method m = ChunkGenerator.class.getDeclaredMethod("a", Set.class, WorldServer.class, StructureManager.class, BlockPosition.class, boolean.class, ConcentricRingsStructurePlacement.class);
-                            m.setAccessible(true);
-                            BlockPosition blockpos = (BlockPosition) m.invoke(chunkGenerator, entry.getValue(), worldServer, worldServer.a(), startPosition, false, concentricringsstructureplacement);
-                            double d1 = startPosition.j(blockpos);
-                            if (d1 < d0) {
-                                d0 = d1;
-                                pair = com.mojang.datafixers.util.Pair.of(blockpos, entry.getValue().iterator().next());
-                            }
-                        } else if (structureplacement1 instanceof RandomSpreadStructurePlacement) {
-                            list.add(entry);
-                        }
-                    }
-                    
-                    if (!list.isEmpty()) {
-                        int sectionX = SectionPosition.a(startLocation.getX());
-                        int sectionZ = SectionPosition.a(startLocation.getZ());
-                        
-                        for (int k = 0; k <= 100; ++k) {
-                            boolean flag = false;
-                            
-                            for (Map.Entry<StructurePlacement, Set<Holder<Structure>>> entry1 : list) {
-                                RandomSpreadStructurePlacement randomspreadstructureplacement = (RandomSpreadStructurePlacement) entry1.getKey();
-                                
-                                Method m = ChunkGenerator.class.getDeclaredMethod("a", Set.class, IWorldReader.class, StructureManager.class, int.class, int.class, int.class, boolean.class, long.class, RandomSpreadStructurePlacement.class);
-                                m.setAccessible(true);
-                                com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>> pair1 = (com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>>) m
-                                        .invoke(chunkGenerator, entry1.getValue(), worldServer, worldServer.a(), sectionX, sectionZ, k, false, chunkgeneratorstructurestate.d(), randomspreadstructureplacement);
-                                if (pair1 != null) {
-                                    flag = true;
-                                    double d2 = startPosition.j(pair1.getFirst());
-                                    if (d2 < d0) {
-                                        d0 = d2;
-                                        pair = pair1;
-                                    }
-                                }
-                            }
-                            
-                            if (flag) {
-                                if (pair == null) {
-                                    if (features.size() == 1) sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.singular", featuresToMessageError(features));
-                                    else                      sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.multiple", featuresToMessageError(features));
-                                    return null;
-                                }
-                                return new Pair<>(new Location(startLocation.getWorld(), pair.getFirst().u(), 200, pair.getFirst().w()),
-                                        structureRegistry.b(pair.getSecond().a()).a());
-                            }
-                        }
-                    }
-                    
-                    if (pair == null) {
-                        if (features.size() == 1) sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.singular", featuresToMessageError(features));
-                        else                      sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.multiple", featuresToMessageError(features));
-                        return null;
-                    }
-                    return new Pair<>(new Location(startLocation.getWorld(), pair.getFirst().u(), 200, pair.getFirst().w()),
-                            structureRegistry.b(pair.getSecond().a()).a());
-                }
-            }
-        } catch (Exception | Error ex) {
-            Features.Feature.printSmallNMSErrorInConsole("FeatureTP search", false);
-            if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
-        }
-        
-        if (features.size() == 1) sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.singular", featuresToMessageError(features));
-        else                      sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.multiple", featuresToMessageError(features));
-        return null;
-    }
+//    private static double distToLowCornerSqr(BlockPosition b1, BlockPosition b2) {
+//        int[] loc1 = getPosition(b1);
+//        int[] loc2 = getPosition(b2);
+//        double deltaX = loc1[0] - loc2[0];
+//        double deltaY = loc1[1] - loc2[1];
+//        double deltaZ = loc1[2] - loc2[2];
+//        return deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ;
+//    }
+//
+//    private static Pair<Location, String> searchFeature_1_19_3(@Nullable Player player, Location startLocation, List<Holder<Structure>> featureList, List<String> features) {
+//        //todo finish reflection
+//        try {
+//            BlockPosition startPosition = new BlockPosition(startLocation.getBlockX(), startLocation.getBlockY(), startLocation.getBlockZ());
+//
+//            WorldServer worldServer = (WorldServer) Main.getInstance().adapter.getWorldServer(startLocation.getWorld());
+//            IRegistry<Structure> structureRegistry = getStructureRegistry(worldServer);
+//
+//            Set<Holder<BiomeBase>> generateInBiomesList = generateBiomesInList(featureList);
+//
+//            if (generateInBiomesList.isEmpty()) {
+//                sendErrorTranslation(player, "tport.command.featureTP.search.feature.featuresNotGenerating");
+//                return null; //does not generate at all
+//            }
+//
+//            ChunkGenerator chunkGenerator = getChunkGenerator(worldServer);
+//            WorldChunkManager worldChunkManager = getWorldChunkManager(chunkGenerator);
+//
+//            Set<Holder<BiomeBase>> generatedBiomes = getGeneratedBiomes(worldChunkManager);
+//            if (Collections.disjoint(generatedBiomes, generateInBiomesList)) {
+//                sendErrorTranslation(player, "tport.command.featureTP.search.feature.featuresNotGeneratingInWorld");
+//                return null; //does not generate in world
+//            }
+//
+//            Map<StructurePlacement, Set<Holder<Structure>>> placementMap = new Object2ObjectArrayMap<>();
+//            ChunkGeneratorStructureState chunkGeneratorStructureState = getChunkGeneratorStructureState(worldServer);
+//
+//            //this for loop collects all structure placements and their structures
+//            for (Holder<Structure> structureHolder : featureList) {
+//                HolderSet<BiomeBase> generateInBiomes = getGenerateInBiomes(structureHolder);
+//                if (generatedBiomes.stream().anyMatch(biomeHolder -> contains(generateInBiomes, biomeHolder))) {
+//
+//                    List<StructurePlacement> structurePlacements = getPlacementsForStructure(chunkGeneratorStructureState, structureHolder);
+//                    for (StructurePlacement structurePlacement : structurePlacements) {
+//                        placementMap.computeIfAbsent(structurePlacement, (unusedStructurePlacement) -> new ObjectArraySet<>()).add(structureHolder);
+//                    }
+//                }
+//            }
+//
+//            List<Map.Entry<StructurePlacement, Set<Holder<Structure>>>> placementList = new ArrayList<>(placementMap.size());
+//            double closestDistance = Double.MAX_VALUE;
+//            Pair<BlockPosition, Holder<Structure>> closestPair = null;
+//            //this for loop re-collects all structure placements, and only the closest concentric ring structure placements (strongholds)
+//            for (Map.Entry<StructurePlacement, Set<Holder<Structure>>> entry : placementMap.entrySet()) {
+//                StructurePlacement structureplacement = entry.getKey();
+//                if (structureplacement instanceof ConcentricRingsStructurePlacement concentricRingsStructurePlacement) {
+//
+//                    Pair<BlockPosition, Holder<Structure>> pairCandidate = getNearestGeneratedStructure(chunkGenerator,
+//                            entry.getValue(), worldServer, startPosition, concentricRingsStructurePlacement);
+//                    if (pairCandidate == null) {
+//                        continue;
+//                    }
+//                    BlockPosition blockPos = pairCandidate.getLeft();
+//                    double distance = distToLowCornerSqr(startPosition, blockPos);
+//                    if (distance < closestDistance) {
+//                        closestDistance = distance;
+//                        closestPair = pairCandidate;
+//                    }
+//                } else if (structureplacement instanceof RandomSpreadStructurePlacement) {
+//                    placementList.add(entry);
+//                }
+//            }
+//
+//            if (!placementList.isEmpty()) {
+//                int sectionX = startLocation.getBlockX() >> 4; //block to section coord
+//                int sectionZ = startLocation.getBlockZ() >> 4; //block to section coord
+//                long worldSeed = getWorldSeed(chunkGeneratorStructureState);
+//
+//                //this for loop checks for the closest structure placement
+//                for (int squareSize = 0; squareSize <= 100; ++squareSize) {
+//                    boolean foundThisRound = false;
+//
+//                    for (Map.Entry<StructurePlacement, Set<Holder<Structure>>> entry : placementList) {
+//                        RandomSpreadStructurePlacement randomspreadstructureplacement = (RandomSpreadStructurePlacement) entry.getKey();
+//
+//                        Pair<BlockPosition, Holder<Structure>> pairCandidate = getNearestGeneratedStructure(chunkGenerator, entry.getValue(), worldServer, sectionX, sectionZ, squareSize, worldSeed, randomspreadstructureplacement);
+//                        if (pairCandidate != null) {
+//                            foundThisRound = true;
+//                            BlockPosition blockPos = pairCandidate.getLeft();
+//                            double distance = distToLowCornerSqr(startPosition, blockPos);
+//                            if (distance < closestDistance) {
+//                                closestDistance = distance;
+//                                closestPair = pairCandidate;
+//                            }
+//                        }
+//                    }
+//
+//                    if (foundThisRound) {
+//                        //closestPair should never be null, it is: stronghold, or: closest structure.
+//                        if (closestPair == null) {
+//                            if (features.size() == 1) sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.singular", featuresToMessageError(features));
+//                            else                      sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.multiple", featuresToMessageError(features));
+//                            return null;
+//                        }
+//
+//                        int[] loc = getPosition(closestPair.getLeft());
+//                        return new Pair<>(new Location(startLocation.getWorld(), loc[0], 200, loc[2]),
+//                                getPathFromMinecraftKey(getKeyFromRegistry(structureRegistry, closestPair.getRight())));
+//                    }
+//                }
+//            }
+//
+//            if (closestPair == null) {
+//                if (features.size() == 1) sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.singular", featuresToMessageError(features));
+//                else                      sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.multiple", featuresToMessageError(features));
+//                return null;
+//            }
+//            int[] loc = getPosition(closestPair.getLeft());
+//            return new Pair<>(new Location(startLocation.getWorld(), loc[0], 200, loc[2]),
+//                    getPathFromMinecraftKey(getKeyFromRegistry(structureRegistry, closestPair.getRight())));
+//        } catch (Throwable ex) {
+//            Features.Feature.printSmallNMSErrorInConsole("FeatureTP search", false);
+//            if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
+//        }
+//        if (features.size() == 1) sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.singular", featuresToMessageError(features));
+//        else                      sendErrorTranslation(player, "tport.command.featureTP.search.feature.featureNotFound.multiple", featuresToMessageError(features));
+//        return null;
+//    }
     
 //    private static Location featureFinder(Player player, Location startLocation, FeatureTP.FeatureType feature) {
 //        int x = SectionPosition.a(startLocation.getX());

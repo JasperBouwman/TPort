@@ -3,16 +3,19 @@ package com.spaceman.tport.inventories;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Glow;
 import com.spaceman.tport.Main;
+import com.spaceman.tport.Pair;
 import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.commands.tport.backup.Load;
+import com.spaceman.tport.commands.tport.log.TimeFormat;
 import com.spaceman.tport.commands.tport.pltp.Consent;
 import com.spaceman.tport.commands.tport.pltp.Offset;
 import com.spaceman.tport.commands.tport.pltp.Preview;
 import com.spaceman.tport.commands.tport.pltp.State;
 import com.spaceman.tport.commands.tport.publc.ListSize;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
+import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
@@ -36,8 +39,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.awt.*;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.*;
 
@@ -52,14 +57,14 @@ import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.*;
 import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.getDynamicScrollableInventory;
 import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.pageDataName;
-import static com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI.getKeyboardOutput;
+import static com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI.*;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 import static com.spaceman.tport.fileHander.Files.tportData;
-import static com.spaceman.tport.inventories.ItemFactory.*;
 import static com.spaceman.tport.inventories.ItemFactory.BackType.*;
 import static com.spaceman.tport.inventories.ItemFactory.HeadAttributes.PLTP_WHITELIST;
+import static com.spaceman.tport.inventories.ItemFactory.*;
 import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.*;
-import static com.spaceman.tport.inventories.ItemFactory.toTPortItem;
+import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.CLICK_TO_OPEN;
 import static com.spaceman.tport.inventories.TPortInventories.openHomeEditGUI;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 import static org.bukkit.event.inventory.ClickType.*;
@@ -70,8 +75,38 @@ public class SettingsInventories {
     public static final InventoryModel settings_model                          = new InventoryModel(Material.OAK_BUTTON, QuickEditInventories.last_model_id + 1, "settings");
     public static final InventoryModel settings_version_model                  = new InventoryModel(Material.OAK_BUTTON, settings_model, "settings/version");
     public static final InventoryModel settings_reload_model                   = new InventoryModel(Material.OAK_BUTTON, settings_version_model, "settings/reload");
-    public static final InventoryModel settings_log_model                      = new InventoryModel(Material.OAK_BUTTON, settings_reload_model, "settings/log");
-    public static final InventoryModel settings_backup_model                   = new InventoryModel(Material.OAK_BUTTON, settings_log_model, "settings/backup");
+    public static final InventoryModel settings_log_model                           = new InventoryModel(Material.OAK_BUTTON, settings_reload_model, "settings/log");
+    public static final InventoryModel settings_log_set_time_zone_model             = new InventoryModel(Material.OAK_BUTTON, settings_log_model, "settings/log");
+    public static final InventoryModel settings_log_time_zone_id_model              = new InventoryModel(Material.OAK_BUTTON, settings_log_set_time_zone_model, "settings/log");
+    public static final InventoryModel settings_log_set_time_format_model           = new InventoryModel(Material.OAK_BUTTON, settings_log_time_zone_id_model, "settings/log");
+    public static final InventoryModel settings_log_accept_time_format_model        = new InventoryModel(Material.OAK_BUTTON, settings_log_set_time_format_model, "settings/log");
+    public static final InventoryModel settings_log_accept_time_format_grayed_model = new InventoryModel(Material.OAK_BUTTON, settings_log_accept_time_format_model, "settings/log");
+    public static final InventoryModel settings_log_keyboard_model                  = new InventoryModel(Material.OAK_BUTTON, settings_log_accept_time_format_grayed_model, "settings/log");
+    public static final InventoryModel settings_log_format_eraDesignator_model      = new InventoryModel(Material.OAK_BUTTON, settings_log_keyboard_model, "settings/log");
+    public static final InventoryModel settings_log_format_year_model               = new InventoryModel(Material.OAK_BUTTON, settings_log_format_eraDesignator_model, "settings/log");
+    public static final InventoryModel settings_log_format_weekYear_model           = new InventoryModel(Material.OAK_BUTTON, settings_log_format_year_model, "settings/log");
+    public static final InventoryModel settings_log_format_monthInYear_model        = new InventoryModel(Material.OAK_BUTTON, settings_log_format_weekYear_model, "settings/log");
+    public static final InventoryModel settings_log_format_weekInYear_model         = new InventoryModel(Material.OAK_BUTTON, settings_log_format_monthInYear_model, "settings/log");
+    public static final InventoryModel settings_log_format_weekInMonth_model        = new InventoryModel(Material.OAK_BUTTON, settings_log_format_weekInYear_model, "settings/log");
+    public static final InventoryModel settings_log_format_dayInYear_model          = new InventoryModel(Material.OAK_BUTTON, settings_log_format_weekInMonth_model, "settings/log");
+    public static final InventoryModel settings_log_format_dayInMonth_model         = new InventoryModel(Material.OAK_BUTTON, settings_log_format_dayInYear_model, "settings/log");
+    public static final InventoryModel settings_log_format_dayOfWeekInMonth_model   = new InventoryModel(Material.OAK_BUTTON,settings_log_format_dayInMonth_model, "settings/log");
+    public static final InventoryModel settings_log_format_dayNameInWeek_model      = new InventoryModel(Material.OAK_BUTTON, settings_log_format_dayOfWeekInMonth_model, "settings/log");
+    public static final InventoryModel settings_log_format_dayNumberOfWeek_model    = new InventoryModel(Material.OAK_BUTTON, settings_log_format_dayNameInWeek_model, "settings/log");
+    public static final InventoryModel settings_log_format_amPmMarker_model         = new InventoryModel(Material.OAK_BUTTON, settings_log_format_dayNumberOfWeek_model, "settings/log");
+    public static final InventoryModel settings_log_format_hourInDay0_23_model      = new InventoryModel(Material.OAK_BUTTON, settings_log_format_amPmMarker_model, "settings/log");
+    public static final InventoryModel settings_log_format_hourInDay1_24_model      = new InventoryModel(Material.OAK_BUTTON, settings_log_format_hourInDay0_23_model, "settings/log");
+    public static final InventoryModel settings_log_format_hourInAmPm0_11_model     = new InventoryModel(Material.OAK_BUTTON, settings_log_format_hourInDay1_24_model, "settings/log");
+    public static final InventoryModel settings_log_format_hourInAmPm1_12_model     = new InventoryModel(Material.OAK_BUTTON, settings_log_format_hourInAmPm0_11_model, "settings/log");
+    public static final InventoryModel settings_log_format_minuteInHour_model       = new InventoryModel(Material.OAK_BUTTON, settings_log_format_hourInAmPm1_12_model, "settings/log");
+    public static final InventoryModel settings_log_format_secondInMinute_model     = new InventoryModel(Material.OAK_BUTTON, settings_log_format_minuteInHour_model, "settings/log");
+    public static final InventoryModel settings_log_format_millisecond_model        = new InventoryModel(Material.OAK_BUTTON, settings_log_format_secondInMinute_model, "settings/log");
+    public static final InventoryModel settings_log_format_timeZone0_model          = new InventoryModel(Material.OAK_BUTTON, settings_log_format_millisecond_model, "settings/log");
+    public static final InventoryModel settings_log_format_timeZone1_model          = new InventoryModel(Material.OAK_BUTTON, settings_log_format_timeZone0_model, "settings/log");
+    public static final InventoryModel settings_log_format_timeZone2_model          = new InventoryModel(Material.OAK_BUTTON, settings_log_format_timeZone1_model, "settings/log");
+    public static final InventoryModel settings_log_logdata_model                   = new InventoryModel(Material.OAK_BUTTON, settings_log_format_timeZone2_model, "settings/log");
+    public static final InventoryModel settings_log_size_model                      = new InventoryModel(Material.OAK_BUTTON, settings_log_logdata_model, "settings/log");
+    public static final InventoryModel settings_backup_model                   = new InventoryModel(Material.OAK_BUTTON, settings_log_size_model, "settings/backup");
     public static final InventoryModel settings_biome_tp_model                 = new InventoryModel(Material.OAK_BUTTON, settings_backup_model, "settings/biome_tp");
     public static final InventoryModel settings_delay_model                    = new InventoryModel(Material.OAK_BUTTON, settings_biome_tp_model, "settings/delay");
     public static final InventoryModel settings_restriction_model              = new InventoryModel(Material.OAK_BUTTON, settings_delay_model, "settings/restriction");
@@ -98,7 +133,9 @@ public class SettingsInventories {
     public static final InventoryModel settings_public_fit_model               = new InventoryModel(Material.OAK_BUTTON, settings_public_size_model, "settings/public_tp");
     public static final InventoryModel settings_public_reset_model             = new InventoryModel(Material.OAK_BUTTON, settings_public_fit_model, "settings/public_tp");
     public static final InventoryModel settings_public_tports_model            = new InventoryModel(Material.OAK_BUTTON, settings_public_reset_model, "settings/public_tp");
-    public static final InventoryModel settings_resource_pack_model                   = new InventoryModel(Material.OAK_BUTTON, settings_public_tports_model, "settings/resource_pack");
+    public static final InventoryModel settings_public_filter_own_model        = new InventoryModel(Material.OAK_BUTTON, settings_public_tports_model, "settings/public_tp");
+    public static final InventoryModel settings_public_filter_all_model        = new InventoryModel(Material.OAK_BUTTON, settings_public_filter_own_model, "settings/public_tp");
+    public static final InventoryModel settings_resource_pack_model                   = new InventoryModel(Material.OAK_BUTTON, settings_public_filter_all_model, "settings/resource_pack");
     public static final InventoryModel settings_resource_pack_state_enabled_model     = new InventoryModel(Material.OAK_BUTTON, settings_resource_pack_model, "settings/resource_pack");
     public static final InventoryModel settings_resource_pack_state_disabled_model    = new InventoryModel(Material.OAK_BUTTON, settings_resource_pack_state_enabled_model, "settings/resource_pack");
     public static final InventoryModel settings_resource_pack_resolution_model        = new InventoryModel(Material.OAK_BUTTON, settings_resource_pack_state_disabled_model, "settings/resource_pack");
@@ -174,7 +211,14 @@ public class SettingsInventories {
     public static final InventoryModel settings_safety_check_tport_public_grayed_model = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_tport_public_model, "settings/safety_check");
     public static final InventoryModel settings_language_model                 = new InventoryModel(Material.OAK_BUTTON, settings_safety_check_tport_public_grayed_model, "settings/language");
     public static final InventoryModel settings_cooldown_model                 = new InventoryModel(Material.OAK_BUTTON, settings_language_model, "settings/cooldown");
-    public static final InventoryModel settings_backup_state_true_model        = new InventoryModel(Material.OAK_BUTTON, settings_cooldown_model, "settings/backup");
+    public static final InventoryModel settings_cooldown_tport_tp_model        = new InventoryModel(Material.OAK_BUTTON, settings_cooldown_model, "settings/cooldown");
+    public static final InventoryModel settings_cooldown_player_tp_model       = new InventoryModel(Material.OAK_BUTTON, settings_cooldown_tport_tp_model, "settings/cooldown");
+    public static final InventoryModel settings_cooldown_feature_tp_model      = new InventoryModel(Material.OAK_BUTTON, settings_cooldown_player_tp_model, "settings/cooldown");
+    public static final InventoryModel settings_cooldown_biome_tp_model        = new InventoryModel(Material.OAK_BUTTON, settings_cooldown_feature_tp_model, "settings/cooldown");
+    public static final InventoryModel settings_cooldown_search_model          = new InventoryModel(Material.OAK_BUTTON, settings_cooldown_biome_tp_model, "settings/cooldown");
+    public static final InventoryModel settings_cooldown_back_model            = new InventoryModel(Material.OAK_BUTTON, settings_cooldown_search_model, "settings/cooldown");
+    public static final InventoryModel settings_cooldown_look_tp_model         = new InventoryModel(Material.OAK_BUTTON, settings_cooldown_back_model, "settings/cooldown");
+    public static final InventoryModel settings_backup_state_true_model        = new InventoryModel(Material.OAK_BUTTON, settings_cooldown_look_tp_model, "settings/backup");
     public static final InventoryModel settings_backup_state_false_model       = new InventoryModel(Material.OAK_BUTTON, settings_backup_state_true_model, "settings/backup");
     public static final InventoryModel settings_backup_count_model             = new InventoryModel(Material.OAK_BUTTON, settings_backup_state_false_model, "settings/backup");
     public static final InventoryModel settings_backup_load_model              = new InventoryModel(Material.OAK_BUTTON, settings_backup_count_model, "settings/backup");
@@ -284,7 +328,7 @@ public class SettingsInventories {
                 openBackupGUI(whoClicked1);
             };
             FancyClickEvent.FancyClickRunnable onReject = (whoClicked1, clickType1, pdc1, keyboardInventory) -> openBackupGUI(whoClicked1);
-            KeyboardGUI.openKeyboard(whoClicked, onAccept, onReject, KeyboardGUI.TEXT_ONLY);
+            KeyboardGUI.openKeyboard(whoClicked, onAccept, onReject, KeyboardGUI.NUMBERS | KeyboardGUI.CHARS | KeyboardGUI.LINES);
         });
         Message saveTitle = formatInfoTranslation("tport.settingsInventories.openTPortBackupGUI.save");
         saveTitle.translateMessage(playerLang);
@@ -788,9 +832,12 @@ public class SettingsInventories {
         ArrayList<Message> lore = new ArrayList<>();
         lore.add(new Message());
         lore.add(currentStateMessage);
-        lore.add(formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortFeaturesGUI.feature.moreInfo", RIGHT));
-        lore.add(new Message());
-        lore.add(clickMessage);
+        if (Features.Feature.FeatureSettings.isEnabled()) {
+            lore.add(formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortFeaturesGUI.feature.moreInfo", RIGHT));
+            lore.add(formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortFeaturesGUI.feature.moreInfo.hover"));
+            lore.add(new Message());
+            lore.add(clickMessage);
+        }
         
         setCustomItemData(is, colorTheme, title, lore);
         
@@ -1220,6 +1267,13 @@ public class SettingsInventories {
     static void openPublicTPTPortsSettings(Player player, int page, @Nullable FancyInventory prevWindow) {
         //public.tports.<publicTPortSlot>.<TPortID>
         
+        JsonObject playerLang = Language.getPlayerLang(player.getUniqueId());
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        
+        boolean filter = false;
+        FancyInventory.DataName<Boolean> filterDataName = new FancyInventory.DataName<>("filter", Boolean.class, false);
+        if (prevWindow != null) filter = prevWindow.getData(filterDataName);
+        
         List<ItemStack> list = new ArrayList<>();
         
         for (String publicTPortSlot : tportData.getKeys("public.tports")) {
@@ -1227,6 +1281,7 @@ public class SettingsInventories {
             
             TPort tport = getTPort(UUID.fromString(tportID));
             if (tport != null) {
+                if (filter && !tport.getOwner().equals(player.getUniqueId())) continue;
                 list.add(toTPortItem(tport, player, List.of(ADD_OWNER, PUBLIC_MOVE_DELETE), prevWindow));
                 if (tport.setPublicTPort(true)) {
                     tport.save();
@@ -1237,6 +1292,7 @@ public class SettingsInventories {
                 
                 TPort tport2 = getTPort(UUID.fromString(tportID2));
                 if (tport2 != null) {
+                    if (filter && !tport.getOwner().equals(player.getUniqueId())) continue;
                     list.add(toTPortItem(tport2, player, List.of(ADD_OWNER, PUBLIC_MOVE_DELETE), prevWindow));
                     if (tport2.setPublicTPort(true)) {
                         tport2.save();
@@ -1259,9 +1315,21 @@ public class SettingsInventories {
         
         FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openPublicTPTPortsSettings, "tport.settingsInventories.openPublicTPTPortsSettings.title", list, createBack(player, PUBLIC_TP_SETTINGS, OWN, MAIN));
         if (prevWindow != null) inv.setData("TPortToMove", prevWindow.getData("TPortToMove", UUID.class));
+        inv.setData(filterDataName, filter);
+        
+        ItemStack publicFilter = (filter ? settings_public_filter_own_model : settings_public_filter_all_model).getItem(player);
+        addFunction(publicFilter, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            fancyInventory.setData("filter", !fancyInventory.getData("filter", Boolean.class, false));
+            openPublicTPTPortsSettings(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
+        }));
+        Message publicFilterTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openPublicTPTPortsSettings.filter." + (filter ? "own" : "all") + ".title");
+        Message publicFilterClick = formatInfoTranslation(playerLang, "tport.settingsInventories.openPublicTPTPortsSettings.filter." + (filter ? "own" : "all") + ".click", LEFT);
+        setCustomItemData(publicFilter, colorTheme, publicFilterTitle, List.of(new Message(), publicFilterClick));
+        inv.setItem(inv.getSize() - 9, publicFilter);
+        
         inv.open(player);
     }
-    private static void openPublicTPSettings(Player player) {
+    static void openPublicTPSettings(Player player) {
         ColorTheme colorTheme = getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
@@ -1318,6 +1386,364 @@ public class SettingsInventories {
         inv.open(player);
     }
     
+    private static ArrayList<Pair<InventoryModel, String>> collectModels(Class<?> clazz) {
+        ArrayList<Pair<InventoryModel, String>> models = new ArrayList<>();
+        final String modelSuffix = "_model";
+        
+        for (Field modelField : clazz.getFields()) {
+            if (modelField.getType() == InventoryModel.class) {
+                if (modelField.getName().endsWith(modelSuffix)) {
+                    try {
+                        InventoryModel inventoryModel = (InventoryModel) modelField.get(null);
+                        String modelName = modelField.getName();
+                        modelName = modelName.substring(0, modelName.length() - modelSuffix.length());
+                        models.add(new Pair<>(inventoryModel, modelName));
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        
+        return models;
+    }
+    private static void openItemDebug(Player player) {
+        ArrayList<Pair<InventoryModel, String>> models = collectModels(FancyInventory.class);
+        models.addAll( collectModels(KeyboardGUI.class) );
+        models.addAll( collectModels(TPortInventories.class) );
+        models.addAll( collectModels(QuickEditInventories.class) );
+        models.addAll( collectModels(SettingsInventories.class) );
+        
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player.getUniqueId());
+        
+        ArrayList<ItemStack> items = new ArrayList<>();
+        for (Pair<InventoryModel, String> model : models) {
+            ItemStack is = model.getLeft().getItem(player);
+            Message title = formatInfoTranslation(playerLang, "tport.settingsInventories.openItemDebug.modelName", model.getRight());
+            Message subDir = formatInfoTranslation(playerLang, "tport.settingsInventories.openItemDebug.subDir", model.getLeft().getSubDir());
+            setCustomItemData(is, colorTheme, title, List.of(new Message(), subDir));
+            items.add(is);
+        }
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, 0, SettingsInventories::openItemDebug, "tport.settingsInventories.openItemDebug.title", items, createBack(player, SETTINGS, OWN, MAIN));
+        inv.setData("items", items);
+        inv.open(player);
+    }
+    public static void openItemDebug(Player player, int page, @Nonnull FancyInventory prevWindow) {
+        ArrayList<ItemStack> items = prevWindow.getData("items", ArrayList.class, new ArrayList<>());
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openItemDebug, "tport.settingsInventories.openItemDebug.title", items, createBack(player, SETTINGS, OWN, MAIN));
+        inv.setData("items", items);
+        inv.open(player);
+    }
+    
+    private static void openLanguageGUI(Player player) {
+        //todo create language setting
+        /*
+         * /tport language server [server]
+         * /tport language get
+         * /tport language set <custom|server|language>
+         * /tport language repair <language> [repair with]
+         */
+        
+    }
+    
+    private static void openTPortCooldownGUI(Player player) {
+        openTPortCooldownGUI(player, 0, null);
+    }
+    private static void openTPortCooldownGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player);
+        ArrayList<ItemStack> items = new ArrayList<>();
+        
+        String selectedCooldown = null;
+        if (prevWindow != null) {
+            selectedCooldown = prevWindow.getData("selectedCooldown", String.class);
+        }
+        
+        for (CooldownManager cooldown : CooldownManager.values()) {
+            ItemStack item = cooldown.getInventoryModel().getItem(player);
+            setStringData(item, new NamespacedKey(Main.getInstance(), "value"), cooldown.value());
+            setStringData(item, new NamespacedKey(Main.getInstance(), "name"), cooldown.name());
+            
+            Message title = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortCooldownGUI.cooldown.title", cooldown.name(), cooldown.value());
+            
+            if (selectedCooldown == null) {
+                Message clickLeft = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortCooldownGUI.cooldown.left", LEFT);
+                Message clickRight = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortCooldownGUI.cooldown.right.start", RIGHT);
+                Message clickShiftRight = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortCooldownGUI.cooldown.shift_right", SHIFT_RIGHT);
+                setCustomItemData(item, colorTheme, title, List.of(new Message(), clickLeft, clickRight, clickShiftRight));
+                
+                addFunction(item, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                    fancyInventory.setData("selectedCooldown", pdc.get(new NamespacedKey(Main.getInstance(), "name"), STRING));
+                    openTPortCooldownGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
+                }));
+                
+                addFunction(item, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                    FancyClickRunnable onAccept = (whoClicked1, clickType1, pdc1, keyboardGUI) -> {
+                        String newCooldownValue = KeyboardGUI.getKeyboardOutput(keyboardGUI);
+                        String cooldownName = keyboardGUI.getData("cooldownName", String.class);
+                        TPortCommand.executeTPortCommand(whoClicked1, new String[]{"cooldown", cooldownName, newCooldownValue});
+                        openTPortCooldownGUI(whoClicked1);
+                    };
+                    FancyClickRunnable onReject = (whoClicked1, clickType1, pdc1, keyboardGUI) -> openTPortCooldownGUI(whoClicked1);
+                    
+                    String value = pdc.get(new NamespacedKey(Main.getInstance(), "value"), STRING);
+                    try {
+                        if (value != null) Long.parseLong(value);
+                    } catch (NumberFormatException nfe) {
+                        value = "3000";
+                    }
+                    FancyInventory keyboard = KeyboardGUI.openKeyboard(whoClicked, onAccept, onReject, value, null, NUMBERS);
+                    keyboard.setData("cooldownName", pdc.get(new NamespacedKey(Main.getInstance(), "name"), STRING));
+                }));
+                
+                addFunction(item, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                    String name = pdc.get(new NamespacedKey(Main.getInstance(), "name"), STRING);
+                    TPortCommand.executeTPortCommand(whoClicked, new String[]{"cooldown", name, "permission"});
+                    
+                    openTPortCooldownGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
+                }));
+            }
+            else {
+                if (cooldown.name().equals(selectedCooldown)) {
+                    Message clickRight = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortCooldownGUI.cooldown.right.cancel", RIGHT);
+                    setCustomItemData(item, colorTheme, title, List.of(new Message(), clickRight));
+                    
+                    Glow.addGlow(item);
+                    addFunction(item, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                        fancyInventory.setData("selectedCooldown", null);
+                        openTPortCooldownGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
+                    }));
+                } else {
+                    Message clickRight = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortCooldownGUI.cooldown.right.set", RIGHT, selectedCooldown, cooldown.name());
+                    setCustomItemData(item, colorTheme, title, List.of(new Message(), clickRight));
+                    
+                    addFunction(item, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                        String selected = fancyInventory.getData("selectedCooldown", String.class);
+                        String name = pdc.get(new NamespacedKey(Main.getInstance(), "name"), STRING);
+                        TPortCommand.executeTPortCommand(whoClicked, new String[]{"cooldown", selected, name});
+                        
+                        fancyInventory.setData("selectedCooldown", null);
+                        openTPortCooldownGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
+                    }));
+                }
+            }
+            
+            items.add(item);
+        }
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openTPortCooldownGUI,
+                "tport.settingsInventories.openTPortCooldownGUI.title", items, createBack(player, SETTINGS, OWN, MAIN));
+        inv.setData("selectedCooldown", selectedCooldown);
+        
+        inv.open(player);
+    }
+    
+    private static void openLogTimeZoneEditor(Player player, int page, @Nullable FancyInventory prevWindow) {
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player);
+        
+        ArrayList<ItemStack> items = new ArrayList<>();
+        TimeZone playerTimeZone = com.spaceman.tport.commands.tport.log.TimeZone.getTimeZone(player);
+        
+        for (String timeZoneID : java.util.TimeZone.getAvailableIDs()) {
+            ItemStack item = settings_log_time_zone_id_model.getItem(player);
+            
+            Message timeZoneTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogTimeZoneEditor.timeZone", timeZoneID);
+            setCustomItemData(item, colorTheme, timeZoneTitle, null);
+            
+            setStringData(item, new NamespacedKey(Main.getInstance(), "timeZone"), timeZoneID);
+            
+            if (playerTimeZone.equals(TimeZone.getTimeZone(timeZoneID))) {
+                Glow.addGlow(item);
+                items.add(0, item);
+            } else {
+                addFunction(item, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                    String innerTimeZoneID = pdc.get(new NamespacedKey(Main.getInstance(), "timeZone"), STRING);
+                    TPortCommand.executeTPortCommand(whoClicked, new String[]{"log", "timeZone", innerTimeZoneID});
+                    openLogTimeZoneEditor(whoClicked, 0, fancyInventory);
+                }));
+                
+                items.add(item);
+            }
+        }
+        
+        Message title = formatInfoTranslation("tport.settingsInventories.openLogTimeZoneEditor.title");
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openLogTimeZoneEditor, title, items, createBack(player, LOG_SETTINGS, OWN, MAIN));
+        
+        inv.open(player);
+    }
+    private record TimeFormatRecord(String letter, String languageKey, int repeat, InventoryModel inventoryModel) {}
+    private static void openLogTimeFormatEditor(Player player) {
+        openLogTimeFormatEditor(player, "");
+    }
+    private static void openLogTimeFormatEditor(Player player, String timeFormat) {
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player);
+        
+        Message title = formatInfoTranslation("tport.settingsInventories.openLogTimeFormatEditor.title");
+        FancyInventory inv = new FancyInventory(4, title);
+        inv.setData("timeFormat", timeFormat);
+        
+        for (TimeFormatRecord timeFormatRecord : List.of(
+                new TimeFormatRecord("G", "eraDesignator",    1, settings_log_format_eraDesignator_model),
+                new TimeFormatRecord("y", "year",             4, settings_log_format_year_model),
+                new TimeFormatRecord("Y", "weekYear",         4, settings_log_format_weekYear_model),
+                new TimeFormatRecord("M", "monthInYear",      4, settings_log_format_monthInYear_model),
+                new TimeFormatRecord("w", "weekInYear",       2, settings_log_format_weekInYear_model),
+                new TimeFormatRecord("W", "weekInMonth",      1, settings_log_format_weekInMonth_model),
+                new TimeFormatRecord("D", "dayInYear",        3, settings_log_format_dayInYear_model),
+                new TimeFormatRecord("d", "dayInMonth",       2, settings_log_format_dayInMonth_model),
+                new TimeFormatRecord("F", "dayOfWeekInMonth", 1, settings_log_format_dayOfWeekInMonth_model),
+                new TimeFormatRecord("E", "dayNameInWeek",    4, settings_log_format_dayNameInWeek_model),
+                new TimeFormatRecord("u", "dayNumberOfWeek",  1, settings_log_format_dayNumberOfWeek_model),
+                new TimeFormatRecord("a", "amPmMarker",       1, settings_log_format_amPmMarker_model),
+                new TimeFormatRecord("H", "hourInDay0-23",    2, settings_log_format_hourInDay0_23_model),
+                new TimeFormatRecord("k", "hourInDay1-24",    2, settings_log_format_hourInDay1_24_model),
+                new TimeFormatRecord("K", "hourInAmPm0-11",   2, settings_log_format_hourInAmPm0_11_model),
+                new TimeFormatRecord("h", "hourInAmPm1-12",   2, settings_log_format_hourInAmPm1_12_model),
+                new TimeFormatRecord("m", "minuteInHour",     2, settings_log_format_minuteInHour_model),
+                new TimeFormatRecord("s", "secondInMinute",   2, settings_log_format_secondInMinute_model),
+                new TimeFormatRecord("S", "millisecond",      3, settings_log_format_millisecond_model),
+                new TimeFormatRecord("z", "timeZone0",        4, settings_log_format_timeZone0_model),
+                new TimeFormatRecord("Z", "timeZone1",        1, settings_log_format_timeZone1_model),
+                new TimeFormatRecord("X", "timeZone2",        3, settings_log_format_timeZone2_model))) {
+            
+            ItemStack item = timeFormatRecord.inventoryModel().getItem(player);
+            Message itemTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogTimeFormatEditor.type." + timeFormatRecord.languageKey() + ".title");
+            
+            ArrayList<Message> lore = new ArrayList<>();
+            lore.add(new Message());
+            Message itemLetter = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogTimeFormatEditor.type." + timeFormatRecord.languageKey() + ".letter", timeFormatRecord.letter());
+            lore.add(itemLetter);
+            
+            for (int i = 0; i < timeFormatRecord.repeat(); i++) {
+                String letters = timeFormatRecord.letter().repeat(i + 1);
+                Message itemExample = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogTimeFormatEditor.type." + timeFormatRecord.languageKey() + ".example",
+                        letters, TimeFormat.getFormatExample(player, letters));
+                lore.add(itemExample);
+            }
+            setCustomItemData(item, colorTheme, itemTitle, lore);
+            
+            setStringData(item, new NamespacedKey(Main.getInstance(), "letter"), timeFormatRecord.letter());
+            addFunction(item, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                String letter = pdc.get(new NamespacedKey(Main.getInstance(), "letter"), STRING);
+                openLogTimeFormatEditor(whoClicked, fancyInventory.getData("timeFormat", String.class) + letter);
+            }));
+            
+            inv.addItem(item);
+        }
+        
+        ItemStack acceptItem;
+        if (timeFormat.isBlank()) {
+            acceptItem = settings_log_accept_time_format_grayed_model.getItem(player);
+            Message acceptTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogTimeFormatEditor.accept.title");
+            setCustomItemData(acceptItem, colorTheme, acceptTitle, List.of(new Message()));
+        } else {
+            acceptItem = settings_log_accept_time_format_model.getItem(player);
+            Message acceptTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogTimeFormatEditor.accept.title");
+            Message acceptRaw = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogTimeFormatEditor.accept.raw", timeFormat);
+            Message acceptFormat = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogTimeFormatEditor.accept.format", TimeFormat.getFormatExample(player, timeFormat));
+            setCustomItemData(acceptItem, colorTheme, acceptTitle, List.of(new Message(), acceptRaw, acceptFormat));
+            addFunction(acceptItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                TPortCommand.executeTPortCommand(whoClicked, new String[]{"log", "timeFormat", fancyInventory.getData("timeFormat", String.class)});
+                    openLogGUI(whoClicked);
+        }));
+        }
+        inv.setItem(27, acceptItem);
+        
+        ItemStack keyboardItem = settings_log_keyboard_model.getItem(player);
+        Message keyboardTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogTimeFormatEditor.keyboard.title");
+        setCustomItemData(keyboardItem, colorTheme, keyboardTitle, null);
+        addFunction(keyboardItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            String startInput = fancyInventory.getData("timeFormat", String.class);
+            FancyClickRunnable onAccept = (whoClicked1, clickType1, pdc1, fancyKeyboard) ->
+                    openLogTimeFormatEditor(whoClicked1, getKeyboardOutput(fancyKeyboard));
+            FancyClickRunnable onReject = (whoClicked1, clickType1, pdc1, fancyKeyboard) ->
+                    openLogTimeFormatEditor(whoClicked1, fancyKeyboard.getData("oldTimeFormat", String.class));
+            
+            FancyInventory keyboard = openKeyboard(whoClicked, onAccept, onReject, startInput, null, SPACE | NUMBERS | SPECIAL);
+            keyboard.setData("oldTimeFormat", startInput);
+        }));
+        inv.setItem(28, keyboardItem);
+        
+        inv.setItem(35, createBack(player, LOG_SETTINGS, OWN, MAIN));
+        
+        inv.open(player);
+    }
+    private static void openLogDataGUI(Player player) {
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player);
+        
+        Message title = formatInfoTranslation("tport.settingsInventories.openLogDataGUI.title");
+        FancyInventory inv = new FancyInventory(3, title);
+        
+        int slotOffset = 0;
+        List<TPort> sortedTPortList = TPortManager.getSortedTPortList(tportData, player.getUniqueId());
+        for (int i = 0; i < sortedTPortList.size(); i++) {
+            
+            if (i == 8 || i == 16/*16 because of the slot+slotOffset*/) {
+                slotOffset++;
+            }
+            
+            TPort tport = sortedTPortList.get(i);
+            if (tport != null) {
+                if (tport.isLogged()) {
+                    ItemStack item = ItemFactory.toTPortItem(tport, player, List.of());
+                    inv.setItem(i + slotOffset, item);
+                } else {
+                    inv.setItem(i + slotOffset, new ItemStack(Material.BARRIER));
+                }
+            }
+        }
+        
+        inv.setItem(26, createBack(player, LOG_SETTINGS, OWN, MAIN));
+        
+        inv.open(player);
+    }
+    public static void openLogGUI(Player player) {
+        //todo create log setting
+        /*
+         * /tport log timeZone [timeZone]           DONE
+         * /tport log timeFormat [timeFormat]       DONE
+         * /tport log logData
+         * /tport log logData <TPort name> //todo check
+         * /tport log logSize [size]
+         * */
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player);
+        
+        ItemStack setTimeZone = settings_log_set_time_zone_model.getItem(player);
+        Message timeZoneTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogGUI.setTimeZone.title");
+        setCustomItemData(setTimeZone, colorTheme, timeZoneTitle, null);
+        addFunction(setTimeZone, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openLogTimeZoneEditor(whoClicked, 0, null)));
+        
+        ItemStack setTimeFormat = settings_log_set_time_format_model.getItem(player);
+        Message timeFormatTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogGUI.setTimeFormat.title");
+        setCustomItemData(setTimeFormat, colorTheme, timeFormatTitle, null);
+        addFunction(setTimeFormat, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openLogTimeFormatEditor(whoClicked)));
+        
+        ItemStack logData = settings_log_logdata_model.getItem(player);
+        Message logDataTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogGUI.logData.title");
+        setCustomItemData(logData, colorTheme, logDataTitle, List.of(new Message(), formatInfoTranslation(playerLang, "tport.comingSoon")));
+//        addFunction(logData, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openLogDataGUI(whoClicked)));
+        
+        ItemStack logSize = settings_log_size_model.getItem(player);
+        Message logSizeTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLogGUI.logSize.title");
+        setCustomItemData(logSize, colorTheme, logSizeTitle, List.of(new Message(), formatInfoTranslation(playerLang, "tport.comingSoon")));
+        
+        Message invTitle = formatInfoTranslation("tport.settingsInventories.openLogGUI.title");
+        FancyInventory inv = new FancyInventory(3, invTitle);
+        inv.setItem(10, setTimeZone);
+        inv.setItem(11, setTimeFormat);
+        inv.setItem(13, logData);
+        inv.setItem(15, logSize);
+        inv.setItem(17, createBack(player, SETTINGS, OWN, MAIN));
+        
+        inv.open(player);
+    }
+    
     public static void openSettingsGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
         ColorTheme colorTheme = getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
@@ -1337,14 +1763,7 @@ public class SettingsInventories {
         ItemStack logItem = settings_log_model.getItem(player);
         Message logTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.log.title");
         setCustomItemData(logItem, colorTheme, logTitle, null);
-        //todo create log setting
-        /*
-        * /tport log timeZone [timeZone]
-        * /tport log timeFormat [timeFormat]
-        * /tport log logData
-        * /tport log logData <TPort name> //todo check
-        * /tport log logSize [size]
-        * */
+        addFunction(logItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openLogGUI(whoClicked));
         
         ItemStack backupItem = settings_backup_model.getItem(player);
         addFunction(backupItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openBackupGUI(whoClicked));
@@ -1485,13 +1904,7 @@ public class SettingsInventories {
         ItemStack languageItem = settings_language_model.getItem(player);
         Message languageTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.language.title");
         setCustomItemData(languageItem, colorTheme, languageTitle, null);
-        //todo create language setting
-        /*
-        * /tport language server [server]
-        * /tport language get
-        * /tport language set <custom|server|language>
-        * /tport language repair <language> [repair with]
-        * */
+        addFunction(languageItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openLanguageGUI(whoClicked));
         
         ItemStack colorThemeItem = settings_color_theme_model.getItem(player);
         Message colorThemeTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.colorTheme.title");
@@ -1500,11 +1913,8 @@ public class SettingsInventories {
         
         ItemStack cooldownItem = settings_cooldown_model.getItem(player);
         Message cooldownTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.cooldown.title");
+        addFunction(cooldownItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openTPortCooldownGUI(whoClicked));
         setCustomItemData(cooldownItem, colorTheme, cooldownTitle, null);
-        //todo create cooldown setting
-        /*
-        * use dynamic scroll GUI with cooldown
-        * */
         
         ItemStack restoreItem = settings_restore_model.getItem(player);
         Message restoreTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.restore.title");
@@ -1536,6 +1946,11 @@ public class SettingsInventories {
         homeLore = MessageUtils.translateMessage(homeLore, playerLang);
         setCustomItemData(homeItem, colorTheme, homeTitle, homeLore);
         
+        ItemStack itemDebugItem = new ItemStack(Material.DIAMOND_BLOCK);
+        Message itemDebugTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.itemDebug.title");
+        setCustomItemData(itemDebugItem, colorTheme, itemDebugTitle, null);
+        addFunction(itemDebugItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openItemDebug(whoClicked)));
+        
         ArrayList<ItemStack> items = new ArrayList<>();
         //useful for users
         items.add(versionItem);         //DONE
@@ -1560,10 +1975,11 @@ public class SettingsInventories {
         items.add(redirectItem);        //DONE
         items.add(metricsItem);         //DONE
         items.add(dynmapItem);
-        items.add(cooldownItem);
+        items.add(cooldownItem);        //DONE
         items.add(publicItem);          //DONE
         items.add(delayItem);
         items.add(restrictionItem);
+        items.add(itemDebugItem);       //DONE
         
         FancyInventory inv = getDynamicScrollableInventory(player, page,
                 SettingsInventories::openSettingsGUI,

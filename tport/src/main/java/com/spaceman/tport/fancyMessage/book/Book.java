@@ -2,6 +2,7 @@ package com.spaceman.tport.fancyMessage.book;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.spaceman.tport.Main;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import io.netty.buffer.ByteBuf;
@@ -16,8 +17,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
-
-import static com.spaceman.tport.reflection.ReflectionManager.getServerVersion;
 
 public class Book {
     
@@ -84,7 +83,7 @@ public class Book {
         buf.writerIndex(1);
         
         try {
-            String version = getServerVersion();
+            String version = Main.getInstance().adapter.getServerVersion();
             Object nmsPlayer = player.getClass().getMethod("getHandle").invoke(player);
             Object connection = nmsPlayer.getClass().getField("b").get(nmsPlayer);
             
