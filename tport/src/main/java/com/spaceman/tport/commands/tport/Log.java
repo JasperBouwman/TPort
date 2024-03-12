@@ -20,6 +20,7 @@ public class Log extends SubCommand {
         addAction(new LogData());
         addAction(new Add());
         addAction(new Remove());
+        addAction(new Delete());
         addAction(new Default());
         addAction(new Notify());
         addAction(new LogSize());
@@ -34,6 +35,7 @@ public class Log extends SubCommand {
         // tport log logData [TPort name] [player]
         // tport log add <TPort name> <player[:LogMode]...>
         // tport log remove <TPort name> <player...>
+        // tport log delete <TPort name>
         // tport log default <TPort name> [default LogMode]
         // tport log notify <TPort name> [state]
         

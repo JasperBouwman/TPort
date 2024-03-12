@@ -8,11 +8,9 @@ import com.spaceman.tport.commands.tport.dynmap.Colors;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.language.Language;
-import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 import org.dynmap.DynmapAPI;
 import org.dynmap.markers.Marker;
@@ -21,7 +19,6 @@ import org.dynmap.markers.MarkerIcon;
 import org.dynmap.markers.MarkerSet;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -51,31 +48,32 @@ public class DynmapHandler {
         
         Plugin dynmapPlugin = Bukkit.getServer().getPluginManager().getPlugin("dynmap");
         
-        if (dynmapPlugin != null) {
-            if (!enabled) {
-                try {
-                    DynmapAPI dynmap = (DynmapAPI) dynmapPlugin;
-                    MarkerAPI markerAPI = dynmap.getMarkerAPI();
-                    
-                    MarkerIcon tportMarkerIcon = markerAPI.createMarkerIcon(tport_dynmap_icon, "TPort", DynmapHandler.class.getResourceAsStream("tport.png"));
-                    if (tportMarkerIcon == null) tportMarkerIcon = markerAPI.getMarkerIcon(tport_dynmap_icon);
-                    
-                    MarkerSet set = markerAPI.createMarkerSet("tports", "TPorts", null, false);
-                    set.setDefaultMarkerIcon(tportMarkerIcon);
-                    loadTPorts(markerAPI, set);
-                    Main.getInstance().getLogger().log(Level.INFO, "Enabled Dynmap support");
-                    enabled = true;
-                } catch (Exception e) {
-                    Main.getInstance().getLogger().log(Level.WARNING, "Tried to enable Dynmap support, error: " + e.getMessage());
-                    enabled = false;
-                }
-            } else {
-                Main.getInstance().getLogger().log(Level.WARNING, "Tried to enable Dynmap support, it was already enabled");
-                enabled = false;
-            }
-        } else {
+        if (dynmapPlugin == null) {
             enabled = false;
             Main.getInstance().getLogger().log(Level.SEVERE, "Tried to enable Dynmap support, Dynmap was not found");
+            return;
+        }
+        if (enabled) {
+            Main.getInstance().getLogger().log(Level.WARNING, "Tried to enable Dynmap support, it was already enabled");
+            enabled = false;
+            return;
+        }
+        
+        try {
+            DynmapAPI dynmap = (DynmapAPI) dynmapPlugin;
+            MarkerAPI markerAPI = dynmap.getMarkerAPI();
+            
+            MarkerIcon tportMarkerIcon = markerAPI.createMarkerIcon(tport_dynmap_icon, "TPort", Main.getInstance().getResource("tport.png"));
+            if (tportMarkerIcon == null) tportMarkerIcon = markerAPI.getMarkerIcon(tport_dynmap_icon);
+            
+            MarkerSet set = markerAPI.createMarkerSet("tports", "TPorts", null, false);
+            set.setDefaultMarkerIcon(tportMarkerIcon);
+            loadTPorts(markerAPI, set);
+            Main.getInstance().getLogger().log(Level.INFO, "Enabled Dynmap support");
+            enabled = true;
+        } catch (Exception e) {
+            Main.getInstance().getLogger().log(Level.WARNING, "Tried to enable Dynmap support, error: " + e.getMessage());
+            enabled = false;
         }
     }
     

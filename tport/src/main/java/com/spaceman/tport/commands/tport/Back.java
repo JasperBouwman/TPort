@@ -19,7 +19,6 @@ import org.bukkit.entity.Player;
 import java.util.*;
 
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_BACK;
-import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_PUBLIC;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
@@ -56,12 +55,12 @@ public class Back extends SubCommand {
         emptySafetyCheck = new EmptyCommand() {
             @Override
             public Message permissionsHover() {
-                return formatInfoTranslation("tport.command.back.safetyCheck.permissionHover", "TPort.back", TPORT_PUBLIC.getPermission(), "TPort.basic");
+                return formatInfoTranslation("tport.command.back.safetyCheck.permissionHover", "TPort.back", TPORT_BACK.getPermission(), "TPort.basic");
             }
         };
         emptySafetyCheck.setCommandName("safetyCheck", ArgumentType.OPTIONAL);
         emptySafetyCheck.setCommandDescription(formatInfoTranslation("tport.command.back.safetyCheck.commandDescription"));
-        emptySafetyCheck.setPermissions("TPort.back", TPORT_PUBLIC.getPermission(), "TPort.basic");
+        emptySafetyCheck.setPermissions("TPort.back", TPORT_BACK.getPermission(), "TPort.basic");
         addAction(emptySafetyCheck);
         
         this.setPermissions("TPort.back", "TPort.basic");

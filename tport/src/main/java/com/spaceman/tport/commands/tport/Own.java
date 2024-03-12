@@ -41,10 +41,10 @@ public class Own extends SubCommand {
         emptyOwnTPort.addAction(emptyOwnTPortSafetyCheck);
         emptyOwnTPort.setPermissions("TPort.own", "TPort.basic");
         emptyOwnTPort.setTabRunnable(((args, player) -> {
-            if (!emptyOwnTPortSafetyCheck.hasPermissionToRun(player, false)) {
-                return Collections.emptyList();
+            if (emptyOwnTPortSafetyCheck.hasPermissionToRun(player, false)) {
+                return Arrays.asList("true", "false");
             }
-            return Arrays.asList("true", "false");
+            return Collections.emptyList();
         }));
         
         addAction(emptyOwnTPort);

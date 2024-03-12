@@ -5,15 +5,18 @@ import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
+import com.spaceman.tport.history.LocationSource;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPortManager;
+import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 
-public class TPortEncapsulation extends Encapsulation {
+public class TPortEncapsulation extends LocationSource {
     
     private com.spaceman.tport.tport.TPort tport = null;
     private String tportName = null;
@@ -106,5 +109,19 @@ public class TPortEncapsulation extends Encapsulation {
     public String getInsertion() {
         if (tport == null) return tportName;
         return tport.getName();
+    }
+    
+    @Override
+    @Nullable
+    public Location getLocation(Player player) {
+        if (this.tport.canTeleport(player, false, false, false)) {
+            return tport.getLocation();
+        }
+        return null;
+    }
+    
+    @Override
+    public void teleportToLocation(Player player, boolean safetyCheck) {
+        this.tport.teleport(player, safetyCheck);
     }
 }

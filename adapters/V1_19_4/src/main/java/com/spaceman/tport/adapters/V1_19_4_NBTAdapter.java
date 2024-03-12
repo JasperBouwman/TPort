@@ -6,12 +6,10 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.world.item.ItemStack;
 
-import java.lang.reflect.InvocationTargetException;
-
 public abstract class V1_19_4_NBTAdapter extends V1_19_4_BiomeTPAdapter {
     
     @Override
-    public Object getNBTTag(Object nmsStackObject) throws InvocationTargetException, IllegalAccessException {
+    public Object getNBTTag(Object nmsStackObject) {
         net.minecraft.world.item.ItemStack nmsStack = (ItemStack) nmsStackObject;
         return nmsStack.v(); //not Nullable
     }

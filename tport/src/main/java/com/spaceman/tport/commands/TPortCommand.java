@@ -115,6 +115,7 @@ public class TPortCommand extends CommandTemplate {
         addAction(new SafetyCheck());
         addAction(new MetricsCommand());
         addAction(new DynmapCommand());
+        addAction(new BlueMapCommand());
         addAction(new MainLayout());
         addAction(new WorldCommand());
         addAction(new Requests());
@@ -125,6 +126,8 @@ public class TPortCommand extends CommandTemplate {
         addAction(new Restore());
         addAction(new Settings());
         addAction(new Look());
+        addAction(new Adapter());
+//        addAction(new History());
         
         TextComponent discordServer = new TextComponent("Discord Server", varInfoColor)
                 .addTextEvent(new HoverEvent(new TextComponent(Main.discordLink, infoColor)))

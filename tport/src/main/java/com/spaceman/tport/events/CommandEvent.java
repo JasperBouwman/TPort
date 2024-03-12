@@ -2,6 +2,7 @@ package com.spaceman.tport.events;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.commands.TPortCommand;
+import com.spaceman.tport.commands.tport.FeatureTP;
 import com.spaceman.tport.commands.tport.Redirect;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,12 +23,6 @@ public class CommandEvent implements Listener {
             }
         }
         
-        //todo make version dependant
-//        if (e.getMessage().toLowerCase().startsWith("/locate ")) {
-//            String query = e.getMessage().substring(18);
-//            FeatureTP.
-//        }
-        
         if (Redirect.Redirects.Locate_FeatureTP.isEnabled()) {
             if (e.getMessage().matches("/locate structure .+")) {
                 e.setCancelled(true);
@@ -35,6 +30,24 @@ public class CommandEvent implements Listener {
                 TPortCommand.executeTPortCommand(e.getPlayer(), "FeatureTP search " + structureQuery);
                 if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
                     Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "FeatureTP search " + structureQuery + "'");
+                }
+            } else if (e.getMessage().matches("/locate .+")) {
+                String possibleStructure = e.getMessage().substring(8);
+                if (possibleStructure.startsWith("#")) possibleStructure = possibleStructure.substring(1);
+                if (possibleStructure.startsWith("minecraft:")) possibleStructure = possibleStructure.substring(10);
+                
+                for (String structure : FeatureTP.getFeatures()) {
+                    if (structure.startsWith("#")) structure = structure.substring(1);
+                    if (structure.startsWith("minecraft:")) structure = structure.substring(10);
+                    
+                    if (structure.equalsIgnoreCase(possibleStructure)) {
+                        e.setCancelled(true);
+                        TPortCommand.executeTPortCommand(e.getPlayer(), "FeatureTP search " + possibleStructure);
+                        if (Redirect.Redirects.ConsoleFeedback.isEnabled()) {
+                            Main.getInstance().getLogger().log(Level.INFO, "Redirected the command '" + e.getMessage() + "' to '/tport " + "FeatureTP search " + possibleStructure + "'");
+                        }
+                        break;
+                    }
                 }
             }
         }

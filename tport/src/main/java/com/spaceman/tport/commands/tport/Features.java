@@ -10,6 +10,7 @@ import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.TextType;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
+import com.spaceman.tport.history.HistoryEvents;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -30,8 +31,11 @@ import static com.spaceman.tport.inventories.SettingsInventories.*;
 public class Features extends SubCommand {
     
     private final EmptyCommand emptyFeatureSetState;
+    private final boolean isDisabled;
     
     public Features() {
+        isDisabled = Feature.FeatureSettings.isDisabled();
+        
         emptyFeatureSetState = new EmptyCommand();
         emptyFeatureSetState.setCommandName("state", ArgumentType.OPTIONAL);
         emptyFeatureSetState.setCommandDescription(formatInfoTranslation("tport.command.features.feature.state.state.commandDescription"));
@@ -118,7 +122,7 @@ public class Features extends SubCommand {
     public void run(String[] args, Player player) {
         //tport features <feature> state [state]
         
-        if (Feature.FeatureSettings.isDisabled())  {
+        if (this.isDisabled)  {
             Feature.FeatureSettings.sendDisabledMessage(player);
             return;
         }
@@ -208,22 +212,26 @@ public class Features extends SubCommand {
         }
     }
     
-    public enum Feature implements MessageUtils.MessageDescription {
+    public enum Feature implements MessageUtils.MessageDescription {// todo reload command??? (onStateChange for Dynmap and BlueMap)
         BiomeTP(true, true, settings_features_biome_tp_model, settings_features_biome_tp_grayed_model),
         FeatureTP(true, true, settings_features_feature_tp_model, settings_features_feature_tp_grayed_model),
         BackTP(true, true, settings_features_back_tp_model, settings_features_back_tp_grayed_model),
         PublicTP(true, true, settings_features_public_tp_model, settings_features_public_tp_grayed_model),
         PLTP(true, true, settings_features_pltp_model, settings_features_pltp_grayed_model),
         Dynmap(true, true, settings_features_dynmap_model, settings_features_dynmap_grayed_model),
+        BlueMap(true, true, settings_features_bluemap_model, settings_features_bluemap_grayed_model),
         Metrics(true, true, settings_features_metrics_model, settings_features_metrics_grayed_model),
         Permissions(false, false, settings_features_permissions_model, settings_features_permissions_grayed_model),
         ParticleAnimation(true, true, settings_features_particle_animation_model, settings_features_particle_animation_grayed_model),
         Redirects(true, true, settings_features_redirects_model, settings_features_redirects_grayed_model),
+//        History(true, true, HistoryEvents::onStateChange, settings_features_history_model, settings_features_history_grayed_model),
         Preview(true, true, settings_features_preview_model, settings_features_preview_grayed_model),
         WorldTP(true, true, settings_features_world_tp_model, settings_features_world_tp_grayed_model),
         TPortTakesItem(false, true, settings_features_tport_takes_item_model, settings_features_tport_takes_item_grayed_model),
         InterdimensionalTeleporting(false, true, settings_features_interdimensional_teleporting_model, settings_features_interdimensional_teleporting_grayed_model),
         DeathTP(false, true, settings_features_death_tp_model, settings_features_death_tp_grayed_model),
+        LookTP(false, true, settings_features_look_tp_model, settings_features_look_tp_grayed_model),
+        EnsureUniqueUUID(false, false, settings_features_ensure_unique_uuid_model, settings_features_ensure_unique_uuid_grayed_model),
         PrintErrorsInConsole(false, false, settings_features_print_errors_in_console_model, settings_features_print_errors_in_console_grayed_model),
         FeatureSettings(false, true, settings_features_feature_settings_model, settings_features_feature_settings_grayed_model);
         
@@ -231,12 +239,26 @@ public class Features extends SubCommand {
         private final boolean defaultValue;
         private final InventoryModel enabledModel;
         private final InventoryModel disabledModel;
+        private final OnStateChange stateChange;
         
         Feature(boolean reloadCommands, boolean defaultValue, InventoryModel enabledModel, InventoryModel disabledModel) {
             this.reloadCommands = reloadCommands;
             this.defaultValue = defaultValue;
+            this.stateChange = (newState -> {});
             this.enabledModel = enabledModel;
             this.disabledModel = disabledModel;
+        }
+        Feature(boolean reloadCommands, boolean defaultValue, OnStateChange stateChange, InventoryModel enabledModel, InventoryModel disabledModel) {
+            this.reloadCommands = reloadCommands;
+            this.defaultValue = defaultValue;
+            this.stateChange = stateChange;
+            this.enabledModel = enabledModel;
+            this.disabledModel = disabledModel;
+        }
+        
+        @FunctionalInterface
+        private interface OnStateChange {
+            void onChange(boolean newState);
         }
         
         public static List<String> getStringValues() {
@@ -259,13 +281,14 @@ public class Features extends SubCommand {
             return !isEnabled();
         }
         
-        public Message setState(boolean enable) {
-            tportConfig.getConfig().set("features." + this.name() + ".enabled", enable);
+        public Message setState(boolean newState) {
+            tportConfig.getConfig().set("features." + this.name() + ".enabled", newState);
             tportConfig.saveConfig();
             
             if (reloadCommands) TPortCommand.reRegisterActions();
+            if (stateChange != null) stateChange.onChange(newState);
             
-            Message stateMessage = formatTranslation(varSuccessColor, varSuccess2Color, "tport.command.features." + (enable ? "enable" : "disable"));
+            Message stateMessage = formatTranslation(varSuccessColor, varSuccess2Color, "tport.command.features." + (newState ? "enable" : "disable"));
             return formatSuccessTranslation("tport.command.features.feature." + this.name() + ".setState", this, stateMessage, "/tport reload");
         }
         
@@ -294,8 +317,8 @@ public class Features extends SubCommand {
         }
         
         @Override
-        public TextComponent getName(String varColor) {
-            return new TextComponent(name(), varColor);
+        public Message getName(String color, String varColor) {
+            return new Message(new TextComponent(name(), varColor));
         }
         
         @Override

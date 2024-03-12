@@ -145,15 +145,23 @@ public class Language extends SubCommand {
     }
     
     public static Pair<JsonObject, Integer> repairLanguage(JsonObject language, @Nullable JsonObject repairWith) {
+        return repairLanguage(language, repairWith, false);
+    }
+    public static Pair<JsonObject, Integer> repairLanguage(JsonObject language, @Nullable JsonObject repairWith, boolean dump) {
         if (repairWith == null) return null;
+        
+        if (dump) Main.getInstance().getLogger().log(Level.INFO, "repairing language, missing ID's:");
         
         var ref = new Object() { int amountRepaired = 0; };
         repairWith.keySet().forEach(id -> {
             if (!language.has(id)) {
                 language.add(id, repairWith.get(id));
                 ref.amountRepaired++;
+                if (dump) Main.getInstance().getLogger().log(Level.INFO, id);
             }
         });
+        
+        if (dump && ref.amountRepaired == 0) Main.getInstance().getLogger().log(Level.INFO, "No missing ID's");
         return new Pair<>(language, ref.amountRepaired);
     }
     
@@ -185,7 +193,7 @@ public class Language extends SubCommand {
         // tport language set server
         // tport language set <server language>
         // tport language test <id>
-        // tport language repair <language> [repair with]
+        // tport language repair <language> [repair with] [dump]
         
         if (args.length > 1 && runCommands(getActions(), args[1], args, player)) {
             return;

@@ -7,14 +7,14 @@ import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
-import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
-import com.spaceman.tport.fancyMessage.language.Language;
 import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -29,8 +29,8 @@ import static com.spaceman.tport.fancyMessage.MessageUtils.translateMessage;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatTranslation;
-import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.addFunction;
-import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.getFunctionName;
+import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.*;
+import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.getDynamicScrollableInventory;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 import static org.bukkit.event.inventory.ClickType.*;
 import static org.bukkit.persistence.PersistentDataType.STRING;
@@ -141,7 +141,26 @@ public class KeyboardGUI {
     public static final InventoryModel char_space_model = registerKeyModel(' ', Material.OAK_BUTTON, char_comma_model);
     public static final InventoryModel char_backspace_model = registerKeyModel('\b', Material.OAK_BUTTON, char_space_model);
     public static final InventoryModel char_newline_model = registerKeyModel('\n', Material.OAK_BUTTON, char_backspace_model);
-    public static final int last_model_id = char_newline_model.getCustomModelData();
+    public static final InventoryModel keyboard_chat_color_model = new InventoryModel(Material.OAK_BUTTON, char_newline_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_reject_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_dark_blue_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_reject_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_dark_green_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_dark_blue_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_dark_aqua_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_dark_green_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_dark_red_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_dark_aqua_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_dark_purple_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_dark_red_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_gold_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_dark_purple_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_gray_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_gold_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_dark_gray_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_gray_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_blue_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_dark_gray_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_green_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_blue_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_aqua_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_green_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_red_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_aqua_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_light_purple_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_red_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_yellow_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_light_purple_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_white_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_yellow_model, "keyboard");
+    public static final InventoryModel keyboard_chat_color_black_model = new InventoryModel(Material.OAK_BUTTON, keyboard_chat_color_white_model, "keyboard");
+    
+    public static final int last_model_id = keyboard_chat_color_black_model.getCustomModelData();
     
     private static final TextComponent cursor = new TextComponent("|", ChatColor.DARK_RED);
     
@@ -233,7 +252,7 @@ public class KeyboardGUI {
             clearTextNewLine = new Message();
             clearText = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.key.clear.click", CONTROL_DROP);
             
-            FancyClickEvent.addFunction(item, CONTROL_DROP, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            addFunction(item, CONTROL_DROP, ((whoClicked, clickType, pdc, fancyInventory) -> {
                 fancyInventory.setData(cursorIndexDataType, 0);
                 fancyInventory.setData(outputStorage, "");
                 updateKeyboardTitle(whoClicked, fancyInventory);
@@ -245,10 +264,10 @@ public class KeyboardGUI {
         
         NamespacedKey currentKey_normal = new NamespacedKey(Main.getInstance(), "keyValue_normal");
         NamespacedKey currentKey_alternate = new NamespacedKey(Main.getInstance(), "keyValue_alternate");
-        FancyClickEvent.setStringData(item, currentKey_normal, String.valueOf(key));
-        FancyClickEvent.setStringData(item, currentKey_alternate, String.valueOf(alternate));
+        setStringData(item, currentKey_normal, String.valueOf(key));
+        setStringData(item, currentKey_alternate, String.valueOf(alternate));
         
-        FancyClickEvent.FancyClickRunnable onClick = (whoClicked, clickType, pdc, fancyInventory) -> {
+        FancyClickRunnable onClick = (whoClicked, clickType, pdc, fancyInventory) -> {
             NamespacedKey clickedCurrentKey = new NamespacedKey(Main.getInstance(), (clickType == LEFT ? "keyValue_normal" : "keyValue_alternate"));
             String typedString = getKeyboardOutput(fancyInventory);
             
@@ -535,6 +554,18 @@ public class KeyboardGUI {
         inv.setItem(44, getKey('.', '>', colorTheme, playerLang, uuid, keyboardSettings));
     }
     
+    private static int valueToEdit(ClickType clickType) {
+        return switch (clickType) {
+            case LEFT -> 1;
+            case RIGHT -> 10;
+            case SHIFT_LEFT -> 25;
+            case SHIFT_RIGHT -> 100;
+            default -> 0;
+        };
+    }
+    private static int constrain(int value, int max, int min) {
+        return Math.max(Math.min(value, max), min);
+    }
     private static void openColorKeyboard(Player player, @Nonnull FancyInventory keyboard) {
         ColorTheme colorTheme = ColorTheme.getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
@@ -554,11 +585,11 @@ public class KeyboardGUI {
         setCustomItemData(acceptColor, colorTheme, formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.acceptColor"), null);
         addFunction(acceptColor, LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
             String accFuncName = fancyColorInventory.getData(acceptFuncNameDataType);
-            FancyClickEvent.FancyClickRunnable accFunc = FancyClickEvent.getFunction(accFuncName);
+            FancyClickRunnable accFunc = getFunction(accFuncName);
             if (accFunc == null) accFunc = ((whoClicked1, clickType1, pdc1, fancyInventory1) -> { });
             
             String rejFuncName = fancyColorInventory.getData(rejectFuncNameDataType);
-            FancyClickEvent.FancyClickRunnable rejFunc = FancyClickEvent.getFunction(rejFuncName);
+            FancyClickRunnable rejFunc = getFunction(rejFuncName);
             if (rejFunc == null) rejFunc = ((whoClicked1, clickType1, pdc1, fancyInventory1) -> { });
             
             String typedString = getKeyboardOutput(fancyColorInventory);
@@ -626,11 +657,11 @@ public class KeyboardGUI {
         setCustomItemData(rejectColor, colorTheme, formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.cancel"), null);
         addFunction(rejectColor, LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
             String accFuncName = fancyColorInventory.getData(acceptFuncNameDataType);
-            FancyClickEvent.FancyClickRunnable accFunc = FancyClickEvent.getFunction(accFuncName);
+            FancyClickRunnable accFunc = getFunction(accFuncName);
             if (accFunc == null) accFunc = ((whoClicked1, clickType1, pdc1, fancyInventory1) -> { });
             
             String rejFuncName = fancyColorInventory.getData(rejectFuncNameDataType);
-            FancyClickEvent.FancyClickRunnable rejFunc = FancyClickEvent.getFunction(rejFuncName);
+            FancyClickRunnable rejFunc = getFunction(rejFuncName);
             if (rejFunc == null) rejFunc = ((whoClicked1, clickType1, pdc1, fancyInventory1) -> { });
             
             String typedString = getKeyboardOutput(fancyColorInventory);
@@ -646,166 +677,187 @@ public class KeyboardGUI {
         
         Message valueHEXMessage = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.hex", new MultiColor(color).getColorAsValue());
         Message valueRGBMessage = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.rgb", color.getRed(), color.getGreen(), color.getBlue());
-        Message valueAdd1      = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.add",    LEFT, 1);
-        Message valueAdd10     = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.add",    RIGHT, 10);
-        Message valueAdd25     = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.add",    SHIFT_LEFT, 25);
-        Message valueAdd100    = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.add",    SHIFT_RIGHT, 100);
-        Message valueRemove1   = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.remove", LEFT, 1);
-        Message valueRemove10  = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.remove", RIGHT, 10);
-        Message valueRemove25  = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.remove", SHIFT_LEFT, 25);
-        Message valueRemove100 = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.remove", SHIFT_RIGHT, 100);
+        Message valueAdd1      = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.add",    LEFT, valueToEdit(LEFT));
+        Message valueAdd10     = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.add",    RIGHT, valueToEdit(RIGHT));
+        Message valueAdd25     = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.add",    SHIFT_LEFT, valueToEdit(SHIFT_LEFT));
+        Message valueAdd100    = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.add",    SHIFT_RIGHT, valueToEdit(SHIFT_RIGHT));
+        Message valueRemove1   = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.remove", LEFT, valueToEdit(LEFT));
+        Message valueRemove10  = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.remove", RIGHT, valueToEdit(RIGHT));
+        Message valueRemove25  = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.remove", SHIFT_LEFT, valueToEdit(SHIFT_LEFT));
+        Message valueRemove100 = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.value.remove", SHIFT_RIGHT, valueToEdit(SHIFT_RIGHT));
+        
+        FancyClickRunnable onRedClick = (whoClicked, clickType, pdc, fancyColorInventory) -> {
+            int valueToAdd = valueToEdit(clickType);
+            if (pdc.has(new NamespacedKey(Main.getInstance(), "keyboard_color_remove"))) valueToAdd *= -1;
+            Color c = fancyColorInventory.getData(colorDataType);
+            
+            Color newColor = null;
+            if (pdc.has(new NamespacedKey(Main.getInstance(), "keyboard_color_red"))) {
+                newColor = new Color(constrain(c.getRed() + valueToAdd, 255, 0), c.getGreen(), c.getBlue());
+            } else if (pdc.has(new NamespacedKey(Main.getInstance(), "keyboard_color_green"))) {
+                newColor = new Color(c.getRed(), constrain(c.getGreen() + valueToAdd, 255, 0), c.getBlue());
+            } else if (pdc.has(new NamespacedKey(Main.getInstance(), "keyboard_color_blue"))) {
+                newColor = new Color(c.getRed(), c.getGreen(), constrain(c.getBlue() + valueToAdd, 255, 0));
+            }
+            
+            fancyColorInventory.setData(colorDataType, newColor);
+            openColorKeyboard(whoClicked, fancyColorInventory);
+        };
         
         ItemStack redAdd = keyboard_color_red_add_model.getItem(player);
         Message redAddTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.red.add");
-        MessageUtils.setCustomItemData(redAdd, colorTheme, redAddTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueAdd1, valueAdd10, valueAdd25, valueAdd100));
-        addFunction(redAdd, LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(Math.min(c.getRed() + 1, 255), c.getGreen(), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(redAdd, RIGHT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(Math.min(c.getRed() + 10, 255), c.getGreen(), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(redAdd, SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(Math.min(c.getRed() + 25, 255), c.getGreen(), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(redAdd, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(Math.min(c.getRed() + 100, 255), c.getGreen(), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
+        setCustomItemData(redAdd, colorTheme, redAddTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueAdd1, valueAdd10, valueAdd25, valueAdd100));
+        setBooleanData(redAdd, new NamespacedKey(Main.getInstance(), "keyboard_color_red"), true);
+        addFunction(redAdd, onRedClick, LEFT, RIGHT, SHIFT_LEFT, SHIFT_RIGHT);
         colorKeyboard.setItem(10, redAdd);
         
         ItemStack redRem = keyboard_color_red_remove_model.getItem(player);
         Message redRemTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.red.remove");
-        MessageUtils.setCustomItemData(redRem, colorTheme, redRemTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueRemove1, valueRemove10, valueRemove25, valueRemove100));
-        addFunction(redRem, LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(Math.max(c.getRed() - 1, 0), c.getGreen(), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(redRem, RIGHT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(Math.max(c.getRed() - 10, 0), c.getGreen(), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(redRem, SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(Math.max(c.getRed() - 25, 0), c.getGreen(), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(redRem, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(Math.max(c.getRed() - 100, 0), c.getGreen(), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
+        setCustomItemData(redRem, colorTheme, redRemTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueRemove1, valueRemove10, valueRemove25, valueRemove100));
+        setBooleanData(redRem, new NamespacedKey(Main.getInstance(), "keyboard_color_red"), true);
+        setBooleanData(redRem, new NamespacedKey(Main.getInstance(), "keyboard_color_remove"), true);
+        addFunction(redRem, onRedClick, LEFT, RIGHT, SHIFT_LEFT, SHIFT_RIGHT);
         colorKeyboard.setItem(11, redRem);
         
         ItemStack greenAdd = keyboard_color_green_add_model.getItem(player);
         Message greenAddTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.green.add");
-        MessageUtils.setCustomItemData(greenAdd, colorTheme, greenAddTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueAdd1, valueAdd10, valueAdd25, valueAdd100));
-        addFunction(greenAdd, LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), Math.min(c.getGreen() + 1, 255), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(greenAdd, RIGHT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), Math.min(c.getGreen() + 10, 255), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(greenAdd, SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), Math.min(c.getGreen() + 25, 255), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(greenAdd, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), Math.min(c.getGreen() + 100, 255), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
+        setCustomItemData(greenAdd, colorTheme, greenAddTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueAdd1, valueAdd10, valueAdd25, valueAdd100));
+        setBooleanData(greenAdd, new NamespacedKey(Main.getInstance(), "keyboard_color_green"), true);
+        addFunction(greenAdd, onRedClick, LEFT, RIGHT, SHIFT_LEFT, SHIFT_RIGHT);
         colorKeyboard.setItem(12, greenAdd);
         
         ItemStack greenRem = keyboard_color_green_remove_model.getItem(player);
         Message greenRemTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.green.remove");
-        MessageUtils.setCustomItemData(greenRem, colorTheme, greenRemTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueRemove1, valueRemove10, valueRemove25, valueRemove100));
-        addFunction(greenRem, LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), Math.max(c.getGreen() - 1, 0), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(greenRem, RIGHT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), Math.max(c.getGreen() - 10, 0), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(greenRem, SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), Math.max(c.getGreen() - 25, 0), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(greenRem, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), Math.max(c.getGreen() - 100, 0), c.getBlue()));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
+        setCustomItemData(greenRem, colorTheme, greenRemTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueRemove1, valueRemove10, valueRemove25, valueRemove100));
+        setBooleanData(greenRem, new NamespacedKey(Main.getInstance(), "keyboard_color_green"), true);
+        setBooleanData(greenRem, new NamespacedKey(Main.getInstance(), "keyboard_color_remove"), true);
+        addFunction(greenRem, onRedClick, LEFT, RIGHT, SHIFT_LEFT, SHIFT_RIGHT);
         colorKeyboard.setItem(13, greenRem);
         
         ItemStack blueAdd = keyboard_color_blue_add_model.getItem(player);
         Message blueAddTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.blue.add");
-        MessageUtils.setCustomItemData(blueAdd, colorTheme, blueAddTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueAdd1, valueAdd10, valueAdd25, valueAdd100));
-        addFunction(blueAdd, LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), c.getGreen(), Math.min(c.getBlue() + 1, 255)));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(blueAdd, RIGHT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), c.getGreen(), Math.min(c.getBlue() + 10, 255)));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(blueAdd, SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), c.getGreen(), Math.min(c.getBlue() + 25, 255)));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(blueAdd, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), c.getGreen(), Math.min(c.getBlue() + 100, 255)));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
+        setCustomItemData(blueAdd, colorTheme, blueAddTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueAdd1, valueAdd10, valueAdd25, valueAdd100));
+        setBooleanData(blueAdd, new NamespacedKey(Main.getInstance(), "keyboard_color_blue"), true);
+        addFunction(blueAdd, onRedClick, LEFT, RIGHT, SHIFT_LEFT, SHIFT_RIGHT);
         colorKeyboard.setItem(14, blueAdd);
         
         ItemStack blueRem = keyboard_color_blue_remove_model.getItem(player);
         Message blueRemTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.blue.remove");
-        MessageUtils.setCustomItemData(blueRem, colorTheme, blueRemTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueRemove1, valueRemove10, valueRemove25, valueRemove100));
-        addFunction(blueRem, LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), c.getGreen(), Math.max(c.getBlue() - 1, 0)));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(blueRem, RIGHT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), c.getGreen(), Math.max(c.getBlue() - 10, 0)));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(blueRem, SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), c.getGreen(), Math.max(c.getBlue() - 25, 0)));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
-        addFunction(blueRem, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyColorInventory) -> {
-            Color c = fancyColorInventory.getData(colorDataType);
-            fancyColorInventory.setData(colorDataType, new Color(c.getRed(), c.getGreen(), Math.max(c.getBlue() - 100, 0)));
-            openColorKeyboard(whoClicked, fancyColorInventory);
-        }));
+        setCustomItemData(blueRem, colorTheme, blueRemTitle, Arrays.asList(valueHEXMessage, valueRGBMessage, new Message(), valueRemove1, valueRemove10, valueRemove25, valueRemove100));
+        setBooleanData(blueRem, new NamespacedKey(Main.getInstance(), "keyboard_color_blue"), true);
+        setBooleanData(blueRem, new NamespacedKey(Main.getInstance(), "keyboard_color_remove"), true);
+        addFunction(blueRem, onRedClick, LEFT, RIGHT, SHIFT_LEFT, SHIFT_RIGHT);
         colorKeyboard.setItem(15, blueRem);
         
+        ItemStack builtInColorSelector = keyboard_chat_color_model.getItem(player);
+        Message builtInColorSelectorTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openColorKeyboard.openBuiltInColorSelector");
+        setCustomItemData(builtInColorSelector, colorTheme, builtInColorSelectorTitle,  null);
+        addFunction(builtInColorSelector, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openBuiltInColorSelector(whoClicked, 0, fancyInventory)));
+        colorKeyboard.setItem(16, builtInColorSelector);
+        
         colorKeyboard.open(player);
+    }
+    private static void openBuiltInColorSelector(Player player, int page, @Nonnull FancyInventory colorKeyboard) {
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        
+        ArrayList<ItemStack> items = new ArrayList<>();
+        for (ChatColor chatColor : ChatColor.values()) {
+            if (!chatColor.isColor()) continue;
+            ItemStack is = getChatColorStack(chatColor, player);
+            MultiColor chatMultiColor = new MultiColor(chatColor);
+            Message title = formatTranslation(colorTheme.getInfoColor(), chatMultiColor,
+                    "tport.fancyMessage.inventories.KeyboardGUI.openBuiltInColorSelector.chatColor", chatColor.name(), "&", chatColor.getChar()).translateMessage(playerLang);
+            
+            Message valueHEXMessage = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openBuiltInColorSelector.chatColor.hex", chatMultiColor.getColorAsValue());
+            Message valueRGBMessage = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openBuiltInColorSelector.chatColor.rgb", chatMultiColor.getRed(), chatMultiColor.getGreen(), chatMultiColor.getBlue());
+            Message clickToSelect = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openBuiltInColorSelector.clickToSelect", LEFT);
+            
+            setCustomItemData(is, colorTheme, title, List.of(new Message(), valueHEXMessage, valueRGBMessage, new Message(), clickToSelect));
+            setStringData(is, new NamespacedKey(Main.getInstance(), "keyboard_chat_color"), chatColor.name());
+            addFunction(is, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                ChatColor c = ChatColor.valueOf(pdc.get(new NamespacedKey(Main.getInstance(), "keyboard_chat_color"), STRING));
+                fancyInventory.setData(colorDataType, new MultiColor(c).getColor());
+                openColorKeyboard(whoClicked, fancyInventory);
+            }));
+            
+            items.add(is);
+        }
+        for (DyeColor dyeColor : DyeColor.values()) {
+            ItemStack is = getDyeStack(dyeColor);
+            MultiColor chatMultiColor = new MultiColor(dyeColor);
+            Message title = formatTranslation(colorTheme.getInfoColor(), chatMultiColor,
+                    "tport.fancyMessage.inventories.KeyboardGUI.openBuiltInColorSelector.dyeColor", dyeColor.name()).translateMessage(playerLang);
+            
+            Message valueHEXMessage = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openBuiltInColorSelector.dyeColor.hex", chatMultiColor.getColorAsValue());
+            Message valueRGBMessage = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openBuiltInColorSelector.dyeColor.rgb", chatMultiColor.getRed(), chatMultiColor.getGreen(), chatMultiColor.getBlue());
+            Message clickToSelect = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openBuiltInColorSelector.clickToSelect", LEFT);
+            
+            setCustomItemData(is, colorTheme, title, List.of(new Message(), valueHEXMessage, valueRGBMessage, new Message(), clickToSelect));
+            setStringData(is, new NamespacedKey(Main.getInstance(), "keyboard_dye_color"), dyeColor.name());
+            addFunction(is, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                DyeColor c = DyeColor.valueOf(pdc.get(new NamespacedKey(Main.getInstance(), "keyboard_dye_color"), STRING));
+                fancyInventory.setData(colorDataType, new MultiColor(c).getColor());
+                openColorKeyboard(whoClicked, fancyInventory);
+            }));
+            
+            items.add(is);
+        }
+        
+        ItemStack backButton = keyboard_chat_color_reject_model.getItem(player);
+        Message backTitle = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openBuiltInColorSelector.cancel");
+        setCustomItemData(backButton, colorTheme, backTitle, null);
+        addFunction(backButton, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openColorKeyboard(whoClicked, fancyInventory)));
+        
+        Message title = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.openBuiltInColorSelector.title");
+        FancyInventory builtInColorSelectorKeyboard = getDynamicScrollableInventory(player, page, KeyboardGUI::openBuiltInColorSelector, title, items, backButton);
+        builtInColorSelectorKeyboard.transferData(colorKeyboard, false);
+        builtInColorSelectorKeyboard.setData(outputStorage, getKeyboardOutput(colorKeyboard));
+        
+        builtInColorSelectorKeyboard.open(player);
+    }
+    public static ItemStack getDyeStack(DyeColor dyeColor) {
+        Material m = switch (dyeColor) {
+            case WHITE -> Material.WHITE_DYE;
+            case ORANGE -> Material.ORANGE_DYE;
+            case MAGENTA -> Material.MAGENTA_DYE;
+            case LIGHT_BLUE -> Material.LIGHT_BLUE_DYE;
+            case YELLOW -> Material.YELLOW_DYE;
+            case LIME -> Material.LIME_DYE;
+            case PINK -> Material.PINK_DYE;
+            case GRAY -> Material.GRAY_DYE;
+            case LIGHT_GRAY -> Material.LIGHT_GRAY_DYE;
+            case CYAN -> Material.CYAN_DYE;
+            case PURPLE -> Material.PURPLE_DYE;
+            case BLUE -> Material.BLUE_DYE;
+            case BROWN -> Material.BROWN_DYE;
+            case GREEN -> Material.GREEN_DYE;
+            case RED -> Material.RED_DYE;
+            case BLACK -> Material.BLACK_DYE;
+        };
+        
+        return new ItemStack(m);
+    }
+    public static ItemStack getChatColorStack(ChatColor chatColor, Player player) {
+        return switch (chatColor) {
+            case DARK_BLUE -> keyboard_chat_color_dark_blue_model.getItem(player);
+            case DARK_GREEN -> keyboard_chat_color_dark_green_model.getItem(player);
+            case DARK_AQUA -> keyboard_chat_color_dark_aqua_model.getItem(player);
+            case DARK_RED -> keyboard_chat_color_dark_red_model.getItem(player);
+            case DARK_PURPLE -> keyboard_chat_color_dark_purple_model.getItem(player);
+            case GOLD -> keyboard_chat_color_gold_model.getItem(player);
+            case GRAY -> keyboard_chat_color_gray_model.getItem(player);
+            case DARK_GRAY -> keyboard_chat_color_dark_gray_model.getItem(player);
+            case BLUE -> keyboard_chat_color_blue_model.getItem(player);
+            case GREEN -> keyboard_chat_color_green_model.getItem(player);
+            case AQUA -> keyboard_chat_color_aqua_model.getItem(player);
+            case RED -> keyboard_chat_color_red_model.getItem(player);
+            case LIGHT_PURPLE -> keyboard_chat_color_light_purple_model.getItem(player);
+            case YELLOW -> keyboard_chat_color_yellow_model.getItem(player);
+            case WHITE -> keyboard_chat_color_white_model.getItem(player);
+            case BLACK -> keyboard_chat_color_black_model.getItem(player);
+            default -> keyboard_chat_color_black_model.getItem(player);
+        };
     }
     
     private static void setFormatButton(FancyInventory keyboard, Player player, @Nullable ColorTheme colorTheme, @Nullable JsonObject playerLang) {
@@ -869,8 +921,8 @@ public class KeyboardGUI {
                 
                 Message thisMessage = formatTranslation(new MultiColor(color), new MultiColor(color), "tport.fancyMessage.inventories.KeyboardGUI.editColor.this");
                 thisMessage = translateMessage(thisMessage, playerLang);
-                lore.add(formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.editColor.title", RIGHT, thisMessage));
                 
+                lore.add(formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.editColor.title", RIGHT, thisMessage));
                 addFunction(openColor, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
                     String innerTypedString = getKeyboardOutput(fancyInventory);
                     ArrayList<String> innerTypedArray = MessageUtils.transformColoredTextToArray(innerTypedString);
@@ -880,6 +932,35 @@ public class KeyboardGUI {
                     fancyInventory.setData(colorDataType, innerColor);
                     fancyInventory.setData(editColorDataTye, true);
                     openColorKeyboard(whoClicked, fancyInventory);
+                }));
+                
+                lore.add(formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.removeColor.title", SHIFT_RIGHT, thisMessage));
+                addFunction(openColor, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                    String innerTypedString = getKeyboardOutput(fancyInventory);
+                    ArrayList<String> innerTypedArray = MessageUtils.transformColoredTextToArray(innerTypedString);
+                    
+                    int cursorIndex = fancyInventory.getData(cursorIndexDataType);
+                    int currentCursorIndex = 0;
+                    int colorLength = 0;
+                    for (int i = 0; i < innerTypedArray.size(); i++) {
+                        String element = innerTypedArray.get(i);
+                        currentCursorIndex += element.length();
+                        if (currentCursorIndex >= cursorIndex) {
+                            if (MultiColor.isColor(element)) {
+                                colorLength = innerTypedArray.remove(i).length() - (currentCursorIndex - cursorIndex);
+                            } else if (i > 0) {
+                                if (innerTypedArray.get(i - 1).equals("\n") || element.equals("\n")) {
+                                    break;
+                                }
+                                colorLength = innerTypedArray.remove(i-1).length();
+                            }
+                            break;
+                        }
+                    }
+                    
+                    fancyInventory.setData(cursorIndexDataType, Math.max(0, cursorIndex - colorLength));
+                    fancyInventory.setData(outputStorage, String.join("", innerTypedArray));
+                    updateKeyboardTitle(whoClicked, fancyInventory);
                 }));
             }
             
@@ -893,18 +974,18 @@ public class KeyboardGUI {
         keyboard.setItem(48, openColor);
     }
     
-    public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickEvent.FancyClickRunnable onAccept, @Nullable FancyClickEvent.FancyClickRunnable onReject) {
+    public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickRunnable onAccept, @Nullable FancyClickRunnable onReject) {
         return openKeyboard(player, onAccept, onReject, ALL);
     }
-    public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickEvent.FancyClickRunnable onAccept, @Nullable FancyClickEvent.FancyClickRunnable onReject, int keyboardSettings) {
+    public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickRunnable onAccept, @Nullable FancyClickRunnable onReject, int keyboardSettings) {
         return openKeyboard(player, onAccept, onReject, "", null, keyboardSettings);
     }
-    public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickEvent.FancyClickRunnable onAccept, @Nullable FancyClickEvent.FancyClickRunnable onReject, @Nullable String startInput, @Nullable String defColor) {
+    public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickRunnable onAccept, @Nullable FancyClickRunnable onReject, @Nullable String startInput, @Nullable String defColor) {
         return openKeyboard(player, onAccept, onReject, startInput, defColor, ALL);
     }
-    public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickEvent.FancyClickRunnable onAccept, @Nullable FancyClickEvent.FancyClickRunnable onReject, @Nullable String startInput, @Nullable String defColor, int keyboardSettings) {
+    public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickRunnable onAccept, @Nullable FancyClickRunnable onReject, @Nullable String startInput, @Nullable String defColor, int keyboardSettings) {
         ColorTheme colorTheme = ColorTheme.getTheme(player);
-        JsonObject playerLang = Language.getPlayerLang(player.getUniqueId());
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
         startInput = Main.getOrDefault(startInput, "");
         startInput = startInput.replace("\\n", "\n");
         
@@ -927,10 +1008,10 @@ public class KeyboardGUI {
         addFunction(changeLayout, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
             int innerKeyboardSettings = fancyInventory.getData(keyboardSettingsDataType);
             if (fancyInventory.getData(layoutDataType).equals("qwerty")) {
-                populateAlphabet(fancyInventory, ColorTheme.getTheme(whoClicked), Language.getPlayerLang(whoClicked.getUniqueId()), whoClicked.getUniqueId(), innerKeyboardSettings);
+                populateAlphabet(fancyInventory, ColorTheme.getTheme(whoClicked), getPlayerLang(whoClicked.getUniqueId()), whoClicked.getUniqueId(), innerKeyboardSettings);
                 fancyInventory.setData(layoutDataType, "alphabet");
             } else {
-                populateQWERTY(fancyInventory, ColorTheme.getTheme(whoClicked), Language.getPlayerLang(whoClicked.getUniqueId()), whoClicked.getUniqueId(), innerKeyboardSettings);
+                populateQWERTY(fancyInventory, ColorTheme.getTheme(whoClicked), getPlayerLang(whoClicked.getUniqueId()), whoClicked.getUniqueId(), innerKeyboardSettings);
                 fancyInventory.setData(layoutDataType, "qwerty");
             }
             fancyInventory.open(whoClicked);

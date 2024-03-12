@@ -5,11 +5,14 @@ import com.spaceman.tport.Glow;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.commands.TPortCommand;
+import com.spaceman.tport.commands.tport.BlueMapCommand;
 import com.spaceman.tport.commands.tport.DynmapCommand;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.Tag;
+import com.spaceman.tport.commands.tport.edit.Item;
 import com.spaceman.tport.commands.tport.log.Read;
 import com.spaceman.tport.commands.tport.log.TimeFormat;
+import com.spaceman.tport.dynmap.BlueMapHandler;
 import com.spaceman.tport.dynmap.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
@@ -20,9 +23,11 @@ import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
 import com.spaceman.tport.fancyMessage.language.Language;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -37,8 +42,7 @@ import static com.spaceman.tport.fancyMessage.MessageUtils.setCustomItemData;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
-import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.addCommand;
-import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.addFunction;
+import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.*;
 import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.getDynamicScrollableInventory;
 import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.pageDataName;
 import static com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI.ALL;
@@ -58,21 +62,24 @@ public class QuickEditInventories {
     public static final InventoryModel quick_edit_private_open_model = new InventoryModel(Material.OAK_BUTTON, TPortInventories.last_model_id + 1, "quick_edit");
     public static final InventoryModel quick_edit_private_private_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_private_open_model, "quick_edit");
     public static final InventoryModel quick_edit_private_online_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_private_private_model, "quick_edit");
-    public static final InventoryModel quick_edit_private_prion_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_private_online_model, "quick_edit");
-    public static final InventoryModel quick_edit_private_consent_private_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_private_prion_model, "quick_edit");
+    public static final InventoryModel quick_edit_private_private_online_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_private_online_model, "quick_edit");
+    public static final InventoryModel quick_edit_private_consent_private_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_private_private_online_model, "quick_edit");
     public static final InventoryModel quick_edit_private_consent_close_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_private_consent_private_model, "quick_edit");
     public static final InventoryModel quick_edit_whitelist_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_private_consent_close_model, "quick_edit");
     public static final InventoryModel quick_edit_whitelist_visibility_on_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_whitelist_model, "quick_edit");
     public static final InventoryModel quick_edit_whitelist_visibility_off_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_whitelist_visibility_on_model, "quick_edit");
-    public static final InventoryModel quick_edit_range_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_whitelist_visibility_off_model, "quick_edit");
+    public static final InventoryModel quick_edit_whitelist_clone_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_whitelist_visibility_off_model, "quick_edit");
+    public static final InventoryModel quick_edit_range_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_whitelist_clone_model, "quick_edit");
     public static final InventoryModel quick_edit_range_add_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_range_model, "quick_edit");
     public static final InventoryModel quick_edit_range_remove_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_range_add_model, "quick_edit");
     public static final InventoryModel quick_edit_move_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_range_remove_model, "quick_edit");
     public static final InventoryModel quick_edit_move_empty_slot_model = new InventoryModel(Material.GRAY_STAINED_GLASS_PANE, quick_edit_move_model, "quick_edit");
     public static final InventoryModel quick_edit_log_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_move_empty_slot_model, "quick_edit");
     public static final InventoryModel quick_edit_log_edit_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_log_model, "quick_edit");
-    public static final InventoryModel quick_edit_log_read_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_log_edit_model, "quick_edit");
-    public static final InventoryModel quick_edit_log_read_chat_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_log_read_model, "quick_edit");
+    public static final InventoryModel quick_edit_log_delete_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_log_edit_model, "quick_edit");
+    public static final InventoryModel quick_edit_log_read_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_log_delete_model, "quick_edit");
+    public static final InventoryModel quick_edit_log_read_filter_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_log_read_model, "quick_edit");
+    public static final InventoryModel quick_edit_log_read_chat_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_log_read_filter_model, "quick_edit");
     public static final InventoryModel quick_edit_log_clear_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_log_read_chat_model, "quick_edit");
     public static final InventoryModel quick_edit_log_mode_online_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_log_clear_model, "quick_edit");
     public static final InventoryModel quick_edit_log_mode_offline_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_log_mode_online_model, "quick_edit");
@@ -104,9 +111,14 @@ public class QuickEditInventories {
     public static final InventoryModel quick_edit_dynmap_icon_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_dynmap_show_grayed_model, "quick_edit");
     public static final InventoryModel quick_edit_dynmap_icon_tport_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_dynmap_icon_model, "quick_edit");
     public static final InventoryModel quick_edit_dynmap_icon_grayed_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_dynmap_icon_tport_model, "quick_edit");
-    public static final InventoryModel quick_edit_offer_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_dynmap_icon_grayed_model, "quick_edit");
+    public static final InventoryModel quick_edit_bluemap_show_on_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_dynmap_icon_grayed_model, "quick_edit");
+    public static final InventoryModel quick_edit_bluemap_show_off_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_bluemap_show_on_model, "quick_edit");
+    public static final InventoryModel quick_edit_bluemap_show_grayed_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_bluemap_show_off_model, "quick_edit");
+    public static final InventoryModel quick_edit_offer_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_bluemap_show_grayed_model, "quick_edit");
     public static final InventoryModel quick_edit_revoke_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_offer_model, "quick_edit");
-    public static final int last_model_id = quick_edit_revoke_model.getCustomModelData();
+    public static final InventoryModel quick_edit_item_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_revoke_model, "quick_edit");
+    public static final InventoryModel quick_edit_item_reload_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_item_model, "quick_edit");
+    public static final int last_model_id = quick_edit_item_reload_model.getCustomModelData();
     
     private static final FancyInventory.DataName<Boolean> fromQuickEditDataName = new FancyInventory.DataName<>("fromQuickEdit", Boolean.class, false);
     
@@ -153,7 +165,7 @@ public class QuickEditInventories {
             quickEdits.add(item);
         }
         
-        ItemStack backItem = createBack(player, MAIN, OWN, null);
+        ItemStack backItem = createBack(player, OWN, MAIN, null);
         Message invTitle = formatInfoTranslation("tport.quickEditInventories.openQuickEditSelection.title", asTPort(tport));
         FancyInventory inv = getDynamicScrollableInventory(player, page, QuickEditInventories::openQuickEditSelection, invTitle, quickEdits, backItem);
         inv.setData(tportUUIDDataName, tportUUID);
@@ -219,7 +231,7 @@ public class QuickEditInventories {
         }
         
         FancyInventory inv = getDynamicScrollableInventory(player, page, QuickEditInventories::openTPortTagSelectorGUI,
-                formatInfoTranslation("tport.quickEditInventories.openTPortTagSelectionGUI.title", asTPort(tport)), tagItems, createBack(player, MAIN, OWN, QUICK_EDIT));
+                formatInfoTranslation("tport.quickEditInventories.openTPortTagSelectionGUI.title", asTPort(tport)), tagItems, createBack(player, QUICK_EDIT, OWN, MAIN));
         
         inv.setItem(0, getCornerTPortIcon(tport, player));
         inv.setData(tportUUIDDataName, tport.getTportID());
@@ -239,7 +251,7 @@ public class QuickEditInventories {
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
         FancyInventory inv = getDynamicScrollableInventory(player, page, QuickEditInventories::openTPortWhitelistSelectorGUI,
-                formatInfoTranslation("tport.quickEditInventories.openTPortWhitelistSelectionGUI.title", asTPort(tport)), headItems, createBack(player, MAIN, OWN, QUICK_EDIT));
+                formatInfoTranslation("tport.quickEditInventories.openTPortWhitelistSelectionGUI.title", asTPort(tport)), headItems, createBack(player, QUICK_EDIT, OWN, MAIN));
         inv.setData("content", headItems);
         
         inv.setItem(0, getCornerTPortIcon(tport, player));
@@ -254,6 +266,26 @@ public class QuickEditInventories {
     }
     public static void openTPortWhitelistSelectorGUI(Player player, int page, FancyInventory fancyInventory) {
         openTPortWhitelistSelectorGUI(player, fancyInventory.getData(tportDataName), page, fancyInventory);
+    }
+    
+    public static final FancyInventory.DataName<UUID> whitelistCloneToDataName = new FancyInventory.DataName<>("whitelistCloneTo", UUID.class, null);
+    private static boolean onWhitelistClone(TPort toCloneTPort, Player player, FancyInventory fancyInventory) {
+        UUID cloneToTPortUUID = fancyInventory.getData(whitelistCloneToDataName);
+        if (cloneToTPortUUID == null) {
+            QuickEditType.setForPlayer(player.getUniqueId(), QuickEditType.WHITELIST_CLONE);
+            fancyInventory.setData(whitelistCloneToDataName, toCloneTPort.getTportID());
+            sendInfoTranslation(player, "tport.quickEditInventories.onWhitelistClone.firstSelection", toCloneTPort);
+        } else {
+            fancyInventory.setData(whitelistCloneToDataName, null);
+            if (!cloneToTPortUUID.equals(toCloneTPort.getTportID())) {
+                TPort cloneTo = TPortManager.getTPort(cloneToTPortUUID);
+                if (cloneTo != null) {
+                    TPortCommand.executeTPortCommand(player, new String[]{"edit", cloneTo.getName() , "whitelist", "clone", toCloneTPort.getName()});
+                }
+            }
+        }
+        TPortInventories.openTPortGUI(player.getUniqueId(), player, fancyInventory);
+        return false;
     }
     
     private static boolean openTPortRemoveGUI(Player player, TPort tport, FancyInventory prevWindow) {
@@ -385,7 +417,7 @@ public class QuickEditInventories {
             
             Message leftClickMessage = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortPrivateGUI.privateState.leftClick", LEFT);
             Message rightClickMessage = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortPrivateGUI.privateState.rightClick", RIGHT);
-            setCustomItemData(is, colorTheme, new Message(privateState.getName(null)), Arrays.asList(leftClickMessage, rightClickMessage));
+            setCustomItemData(is, colorTheme, privateState.getName(null, null), Arrays.asList(leftClickMessage, rightClickMessage));
             
             FancyClickEvent.setStringData(is, new NamespacedKey(Main.getInstance(), "privateState"), privateState.name());
             addCommand(is, LEFT, "tport edit " + tport.getName() + " private " + privateState.name(), "tport own");
@@ -400,7 +432,7 @@ public class QuickEditInventories {
             inv.setItem(itemIndex++, is);
         }
         
-        inv.setItem(17, createBack(player, MAIN, OWN, QUICK_EDIT));
+        inv.setItem(17, createBack(player, QUICK_EDIT, OWN, MAIN));
         inv.setData(tportUUIDDataName, tport.getTportID());
         inv.setData(tportDataName, tport);
         
@@ -461,7 +493,7 @@ public class QuickEditInventories {
         inv.setItem(11, rangeRemove);
         inv.setItem(13, rangeDisplay);
         inv.setItem(15, rangeAdd);
-        inv.setItem(17, createBack(player, MAIN, OWN, QUICK_EDIT));
+        inv.setItem(17, createBack(player, QUICK_EDIT, OWN, MAIN));
         
         inv.open(player);
         return false;
@@ -491,7 +523,7 @@ public class QuickEditInventories {
         }
         
         FancyInventory inv = getDynamicScrollableInventory(player, page, QuickEditInventories::openTPortDynmapIconGUI,
-                formatInfoTranslation("tport.quickEditInventories.openTPortDynmapIconGUI.title", tport), items, createBack(player, MAIN, OWN, QUICK_EDIT));
+                formatInfoTranslation("tport.quickEditInventories.openTPortDynmapIconGUI.title", tport), items, createBack(player, QUICK_EDIT, OWN, MAIN));
         inv.setData(tportDataName, tport);
         inv.setData(tportUUIDDataName, tport.getTportID());
         inv.setItem(0, getCornerTPortIcon(tport, player));
@@ -502,13 +534,43 @@ public class QuickEditInventories {
         openTPortDynmapIconGUI(player, prevWindow.getData(tportDataName), page);
     }
     
+    private static void openTPortLogRead_filterGUI(Player player, int page, FancyInventory prevWindow) {
+        openTPortLogRead_filterGUI(player, prevWindow.getData(tportDataName), prevWindow.getData("filterUUID", UUID.class), page, prevWindow);
+    }
+    private static void openTPortLogRead_filterGUI(Player player, TPort tport, @Nullable UUID oldFilterUUID, int page, @Nullable FancyInventory prevWindow) {
+        List<ItemStack> rawHeadItems;
+        if (prevWindow == null) {
+            rawHeadItems = getPlayerList(player, true, true, List.of(TPORT_LOG_READ_FILTER), List.of(), null);
+        } else {
+            rawHeadItems = prevWindow.getData("content", List.class);
+        }
+        
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player.getUniqueId());
+        
+        Message title = formatInfoTranslation("tport.quickEditInventories.openTPortLogRead_filterGUI.title", tport);
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, QuickEditInventories::openTPortLogRead_filterGUI, title, rawHeadItems, createBack(player, LOG_SETTINGS_READ, OWN, MAIN));
+        inv.setData("content", rawHeadItems);
+        inv.setData(tportDataName, tport);
+        inv.setData(tportUUIDDataName, tport.getTportID());
+        inv.setData("filterUUID", oldFilterUUID);
+        
+        inv.setItem(0, getCornerTPortIcon(tport, player));
+        inv.setItem(inv.getSize() / 18 * 9,
+                ItemFactory.getSortingItem(player, playerLang, colorTheme,
+                        ((whoClicked, clickType, pdc, fancyInventory) -> openTPortLogRead_filterGUI(
+                                whoClicked, fancyInventory.getData(tportDataName), fancyInventory.getData("filterUUID", UUID.class), 0, null))));
+        
+        inv.open(player);
+    }
     public static void openTPortLogReadGUI(Player player, TPort tport) {
-        openTPortLogReadGUI(player, tport, null, 0, null);
+        openTPortLogReadGUI(player, tport, null, 0);
     }
     public static void openTPortLogReadGUI(Player player, TPort tport, @Nullable UUID filterUUID) {
-        openTPortLogReadGUI(player, tport, filterUUID, 0, null);
+        openTPortLogReadGUI(player, tport, filterUUID, 0);
     }
-    private static void openTPortLogReadGUI(Player player, TPort tport, @Nullable UUID filterUUID, int page, @Nullable FancyInventory prevWindow) {
+    private static void openTPortLogReadGUI(Player player, TPort tport, @Nullable UUID filterUUID, int page) {
         ColorTheme colorTheme = ColorTheme.getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
@@ -523,14 +585,7 @@ public class QuickEditInventories {
             if (filterUUID != null && !log.teleportedUUID().equals(filterUUID)) {
                 continue;
             }
-            ItemStack is = getHead(log.teleportedUUID(), player, List.of(), null);
-            
-            Message title = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogReadGUI.log.title", asPlayer(log.teleportedUUID()));
-            Message timestamp = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogReadGUI.log.time", tport, sdf.format(log.timeOfTeleport().getTime()));
-            Message logMode = log.loggedMode() == null ? null : formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogReadGUI.log.logMode", log.loggedMode());
-            Message ownerOnline = log.ownerOnline() == null ? null : formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogReadGUI.log.ownerOnline." + log.ownerOnline(), log.ownerOnline());
-            setCustomItemData(is, colorTheme, title, Arrays.asList(timestamp, logMode, ownerOnline));
-            
+            ItemStack is = getHead(log.teleportedUUID(), player, List.of(TPORT_LOG_READ), new ImmutableTriple<>(tport, log, sdf));
             items.add(is);
         }
         
@@ -539,7 +594,7 @@ public class QuickEditInventories {
                 formatInfoTranslation("tport.quickEditInventories.openTPortLogReadGUI.filtered.title", tport, asPlayer(filterUUID));
         
         FancyInventory inv = getDynamicScrollableInventory(player, page, QuickEditInventories::openTPortLogReadGUI,
-                invTitle, items, createBack(player, MAIN, OWN, TPORT_LOG));
+                invTitle, items, createBack(player, TPORT_LOG, OWN, MAIN));
         inv.setData(tportDataName, tport);
         if (filterUUID != null) inv.setData("filterUUID", filterUUID);
         
@@ -550,19 +605,28 @@ public class QuickEditInventories {
                 Read.readLog_chat(
                         whoClicked,
                         fancyInventory.getData(tportDataName),
-                        fancyInventory.getData("filteredUUID", UUID.class, null)
+                        fancyInventory.getData("filterUUID", UUID.class, null)
                 )));
         inv.setItem(18, chatMode);
         
-        //todo add player filter button
+        ItemStack filterSelection = quick_edit_log_read_filter_model.getItem(player);
+        Message filterSelectionTitle = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogReadGUI.filterSelection.title");
+        Message filterSelect = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogReadGUI.filterSelection.select", LEFT);
+        Message filterReset = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogReadGUI.filterSelection.reset", RIGHT);
+        setCustomItemData(filterSelection, colorTheme, filterSelectionTitle, List.of(new Message(), filterSelect, filterReset));
+        addFunction(filterSelection, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openTPortLogRead_filterGUI(whoClicked, fancyInventory.getData(tportDataName), fancyInventory.getData("filterUUID", UUID.class), 0, null)));
+        addFunction(filterSelection, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> openTPortLogReadGUI(whoClicked, fancyInventory.getData(tportDataName))));
+        inv.setItem(9, filterSelection);
+        
+        inv.setItem(0, getCornerTPortIcon(tport, player));
         
         inv.open(player);
     }
     private static void openTPortLogReadGUI(Player player, int page, FancyInventory prevWindow) {
-        openTPortLogReadGUI(player, prevWindow.getData(tportDataName), prevWindow.getData("filterUUID", UUID.class), page, prevWindow);
+        openTPortLogReadGUI(player, prevWindow.getData(tportDataName), prevWindow.getData("filterUUID", UUID.class), page);
     }
     private static void openTPortLogSelectorGUI(Player player, TPort tport, int page, @Nullable FancyInventory prevWindow) {
-        List<ItemStack> headItems = ItemFactory.getPlayerList(player, true, true, List.of(TPORT_LOGGING), List.of(), tport);
+        List<ItemStack> headItems = ItemFactory.getPlayerList(player, true, true, List.of(TPORT_LOG_SELECTION), List.of(), tport);
         
         FancyInventory inv = getDynamicScrollableInventory(
                 player,
@@ -570,7 +634,7 @@ public class QuickEditInventories {
                 QuickEditInventories::openTPortLogSelectorGUI,
                 formatInfoTranslation("tport.quickEditInventories.openTPortLogSelectionGUI.title", asTPort(tport)),
                 headItems,
-                createBack(player, MAIN, OWN, TPORT_LOG));
+                createBack(player, TPORT_LOG, OWN, MAIN));
         inv.setData("content", headItems);
         
         inv.setItem(0, getCornerTPortIcon(tport, player));
@@ -586,6 +650,7 @@ public class QuickEditInventories {
     static void openTPortLogSelectorGUI(Player player, int page, FancyInventory prevWindow) {
         openTPortLogSelectorGUI(player, prevWindow.getData(tportDataName), page, prevWindow);
     }
+    //todo remember if opened from QuickEditor or Settings/Log
     public static boolean openTPortLogGUI(Player player, TPort tport) {
         ColorTheme colorTheme = ColorTheme.getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
@@ -594,6 +659,12 @@ public class QuickEditInventories {
         Message editTitle = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogGUI.edit.title");
         setCustomItemData(editItem, colorTheme, editTitle, null);
         addFunction(editItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openTPortLogSelectorGUI(whoClicked, fancyInventory.getData(tportDataName), 0, null)));
+        
+        ItemStack deleteItem = quick_edit_log_delete_model.getItem(player);
+        Message deleteTitle = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogGUI.delete.title", SHIFT_LEFT);
+        setCustomItemData(deleteItem, colorTheme, deleteTitle, null);
+        addCommand(deleteItem, SHIFT_LEFT, "tport log delete " + tport.getName());
+        addFunction(deleteItem, SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openTPortLogGUI(whoClicked, fancyInventory.getData(tportDataName))));
         
         ItemStack readItem = quick_edit_log_read_model.getItem(player);
         Message readTitle = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogGUI.read.title");
@@ -604,9 +675,9 @@ public class QuickEditInventories {
         addFunction(readItem, SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> Read.readLog_chat(whoClicked, fancyInventory.getData(tportDataName))));
         
         ItemStack clearItem = quick_edit_log_clear_model.getItem(player);
-        Message clearTitle = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogGUI.clear.title", LEFT);
+        Message clearTitle = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogGUI.clear.title", SHIFT_RIGHT);
         setCustomItemData(clearItem, colorTheme, clearTitle, null);
-        addCommand(clearItem, LEFT, "tport log clear " + tport.getName());
+        addCommand(clearItem, SHIFT_RIGHT, "tport log clear " + tport.getName());
         
         ItemStack defaultItem = tport.getDefaultLogMode().getModel().getItem(player);
         Message defaultTitle = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortLogGUI.default.title", tport.getDefaultLogMode());
@@ -620,11 +691,12 @@ public class QuickEditInventories {
         inv.setData(tportDataName, tport);
         
         inv.setItem(0, getCornerTPortIcon(tport, player));
-        inv.setItem(10, editItem);
-        inv.setItem(12, readItem);
-        inv.setItem(13, clearItem);
-        inv.setItem(15, defaultItem);
-        inv.setItem(17, createBack(player, MAIN, OWN, QUICK_EDIT));
+        inv.setItem(10, defaultItem);
+        inv.setItem(11, editItem);
+        inv.setItem(13, deleteItem);
+        inv.setItem(15, readItem);
+        inv.setItem(16, clearItem);
+        inv.setItem(17, createBack(player, QUICK_EDIT, OWN, MAIN));
         
         inv.open(player);
         return false;
@@ -648,7 +720,7 @@ public class QuickEditInventories {
         
         Message title = formatInfoTranslation("tport.quickEditInventories.openTPortOfferGUI.title", tport);
         
-        FancyInventory inv = getDynamicScrollableInventory(player, page, QuickEditInventories::openTPortOfferGUI, title, rawHeadItems, createBack(player, MAIN, OWN, QUICK_EDIT));
+        FancyInventory inv = getDynamicScrollableInventory(player, page, QuickEditInventories::openTPortOfferGUI, title, rawHeadItems, createBack(player, QUICK_EDIT, OWN, MAIN));
         inv.setData("offerContent", rawHeadItems);
         inv.setItem(0, getCornerTPortIcon(tport, player));
         inv.setData(tportDataName, tport);
@@ -664,7 +736,101 @@ public class QuickEditInventories {
         openTPortOfferGUI(player, prevWindow.getData(tportDataName), page, prevWindow.getData(fromQuickEditDataName), prevWindow);
     }
     
-    public enum QuickEditType {//todo add item selection
+    private static boolean openTPortItemGUI(Player player, TPort tport) {
+        openTPortItemGUI(player, tport, 0, null);
+        return false;
+    }
+    private static void openTPortItemGUI(Player player, TPort tport, int page, @Nullable FancyInventory prevWindow) {
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player);
+        
+        List<ItemStack> items;
+        if (prevWindow == null) {
+            items = new ArrayList<>();
+            for (ItemStack dontToutchItemStack : player.getInventory().getContents()) {
+                if (dontToutchItemStack == null) continue;
+                ItemStack is = dontToutchItemStack.clone();
+                setStringData(is, new NamespacedKey(Main.getInstance(), "itemData"), is.toString());
+                
+                Message itemTitle = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortItemGUI.item.title");
+                Message all = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortItemGUI.item.select.all", LEFT);
+                Message one = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortItemGUI.item.select.one", RIGHT);
+                Message tportTakesItem = Features.Feature.TPortTakesItem.isEnabled() ?
+                        formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortItemGUI.item.tportTakesItem.enabled") :
+                        formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortItemGUI.item.tportTakesItem.disabled");
+                Message returnItem = tport.shouldReturnItem() ?
+                        formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortItemGUI.item.returnItem.true", tport.getItem(), tport.getItem().getAmount()) :
+                        formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortItemGUI.item.returnItem.false");
+                
+                setCustomItemData(is, colorTheme, itemTitle, List.of(new Message(), all, one, new Message(), tportTakesItem, returnItem));
+                
+                ItemMeta im = is.getItemMeta();
+                if (im == null) continue;
+                FancyClickEvent.removeAllFunctions(im);
+                im.getEnchants().keySet().forEach(im::removeEnchant);
+                Arrays.stream(ItemFlag.values()).forEach(im::addItemFlags);
+                is.setItemMeta(im);
+                
+                addFunction(is, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                    String innerItemData = pdc.get(new NamespacedKey(Main.getInstance(), "itemData"), STRING);
+                    for (ItemStack innerDontToutchItemStack : whoClicked.getInventory().getContents()) {
+                        if (innerDontToutchItemStack == null) continue;
+                        ItemStack innerItem = innerDontToutchItemStack.clone();
+                        if (innerItem.toString().equals(innerItemData)) {
+                            Item.setTPortDisplayItem(whoClicked, fancyInventory.getData(tportDataName), innerItem, clickType == RIGHT);
+                            openQuickEditSelection(whoClicked, 0, fancyInventory.getData(tportDataName).getTportID());
+                            break;
+                        }
+                    }
+                }), LEFT, RIGHT);
+                
+                items.add(is);
+            }
+        } else {
+            items = prevWindow.getData("content", List.class);
+        }
+        
+        Message title = formatInfoTranslation("tport.quickEditInventories.openTPortItemGUI.title");
+        FancyInventory inv = getDynamicScrollableInventory(player, page, QuickEditInventories::openTPortItemGUI, title, items, createBack(player, QUICK_EDIT, OWN, MAIN));
+        inv.setData("content", items);
+        inv.setData(tportUUIDDataName, tport.getTportID());
+        inv.setData(tportDataName, tport);
+        
+        ItemStack reload = quick_edit_item_reload_model.getItem(player);
+        Message reloadTitle = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortItemGUI.reload.title", LEFT);
+        setCustomItemData(reload, colorTheme, reloadTitle, null);
+        addFunction(reload, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            openTPortItemGUI(whoClicked, fancyInventory.getData(tportDataName));
+        }));
+        inv.setItem(inv.getSize() - 9, reload);
+        
+        inv.open(player);
+    }
+    private static void openTPortItemGUI(Player player, int page, FancyInventory prevWindow) {
+        openTPortItemGUI(player, prevWindow.getData(tportDataName), page, prevWindow);
+    }
+    
+    public static final FancyInventory.DataName<UUID> tportToMoveDataName = new FancyInventory.DataName<>("TPortToMove", UUID.class, null);
+    private static boolean onMove(TPort moveToTPort, Player player, FancyInventory fancyInventory) {
+        UUID toMoveTPort = fancyInventory.getData(tportToMoveDataName);
+        if (toMoveTPort == null) {
+            QuickEditType.setForPlayer(player.getUniqueId(), QuickEditType.MOVE);
+            fancyInventory.setData(tportToMoveDataName, moveToTPort.getTportID());
+        } else {
+            fancyInventory.setData(tportToMoveDataName, null);
+            if (!toMoveTPort.equals(moveToTPort.getTportID())) {
+                TPort tmpTPort = TPortManager.getTPort(toMoveTPort);
+                if (tmpTPort != null) {
+                    TPortCommand.executeTPortCommand(player, new String[]{"edit", tmpTPort.getName() , "move", moveToTPort.getName()});
+                }
+            }
+        }
+        TPortInventories.openTPortGUI(player.getUniqueId(), player, fancyInventory);
+        return false;
+    }
+    
+    public enum QuickEditType {
+        ITEM(quick_edit_item_model, (tport, player, fancyInventory) -> openTPortItemGUI(player, tport)),
         PRIVATE(tport -> tport.getPrivateState().getInventoryModel(), (tport, player, fancyInventory) -> openTPortPrivateGUI(player, tport, fancyInventory)),
         WHITELIST(quick_edit_whitelist_model, (tport, player, fancyInventory) -> openTPortWhitelistSelectorGUI(player, tport, 0, null)),
         WHITELIST_VISIBILITY(tport -> tport.getWhitelistVisibility().getModel(),
@@ -672,23 +838,9 @@ public class QuickEditInventories {
                     TPortCommand.executeTPortCommand(player, new String[]{"edit", tport.getName(), "whitelist", "visibility", tport.getWhitelistVisibility().getNext().name()});
                     return true;
                 }),
+        WHITELIST_CLONE(quick_edit_whitelist_clone_model, QuickEditInventories::onWhitelistClone),
         RANGE(quick_edit_range_model, (tport, player, fancyInventory) -> openTPortRangeGUI(player, tport)),
-        MOVE(quick_edit_move_model, (moveToTPort, player, fancyInventory) -> {
-            UUID toMoveTPort = fancyInventory.getData("TPortToMove", UUID.class, null);
-            if (toMoveTPort == null) {
-                fancyInventory.setData("TPortToMove", moveToTPort.getTportID());
-            } else {
-                fancyInventory.setData("TPortToMove", null);
-                if (!toMoveTPort.equals(moveToTPort.getTportID())) {
-                    TPort tmpTPort = TPortManager.getTPort(toMoveTPort);
-                    if (tmpTPort != null) {
-                        TPortCommand.executeTPortCommand(player, new String[]{"edit", tmpTPort.getName() , "move", moveToTPort.getName()});
-                    }
-                }
-            }
-            TPortInventories.openTPortGUI(player.getUniqueId(), player, fancyInventory);
-            return false;
-        }),
+        MOVE(quick_edit_move_model, QuickEditInventories::onMove),
         LOG(quick_edit_log_model, (tport, player, fancyInventory) -> openTPortLogGUI(player, tport)),
         NOTIFY(tport -> tport.getNotifyMode().getModel(), (tport, player, fancyInventory) -> {
             TPortCommand.executeTPortCommand(player, new String[]{"log", "notify", tport.getName(), tport.getNotifyMode().getNext().name()});
@@ -787,6 +939,15 @@ public class QuickEditInventories {
             }
             return false;
         }),
+        BLUEMAP_SHOW(QuickEditType::getBlueMapShowModel, (tport, player, fancyInventory) -> {
+            if (BlueMapHandler.isEnabled()) {
+                TPortCommand.executeTPortCommand(player, new String[]{"edit", tport.getName(), "blueMap", "show", String.valueOf(!tport.showOnBlueMap())});
+                return true;
+            } else {
+                BlueMapCommand.sendDisableError(player);
+                return false;
+            }
+        }),
         OFFER(tport -> tport.isOffered() ? quick_edit_revoke_model : quick_edit_offer_model, ((tport, player, fancyInventory) -> {
             if (tport.isOffered()) {
                 TPortCommand.executeTPortCommand(player, new String[]{"transfer", "revoke", tport.getName()});
@@ -868,6 +1029,12 @@ public class QuickEditInventories {
                 return quick_edit_dynmap_show_grayed_model;
             }
             return tport.showOnDynmap() ? quick_edit_dynmap_show_on_model : quick_edit_dynmap_show_off_model;
+        }
+        private static InventoryModel getBlueMapShowModel(TPort tport) {
+            if (!BlueMapHandler.isEnabled()) {
+                return quick_edit_bluemap_show_grayed_model;
+            }
+            return tport.showOnBlueMap() ? quick_edit_bluemap_show_on_model : quick_edit_bluemap_show_off_model;
         }
         public static InventoryModel getPublicTPortModel(TPort tport) {
             if (Features.Feature.PublicTP.isDisabled()) {

@@ -1,5 +1,7 @@
 package com.spaceman.tport.commands.tport;
 
+import com.spaceman.tport.history.HistoryEvents;
+import com.spaceman.tport.fancyMessage.encapsulation.WorldEncapsulation;
 import com.spaceman.tport.inventories.TPortInventories;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
@@ -67,13 +69,15 @@ public class WorldCommand extends SubCommand {
                 return;
             }
             
-            Location l = FeatureTP.setSafeY(world, world.getSpawnLocation().getBlockX(), world.getSpawnLocation().getBlockZ());
-            if (l == null) {
+            Location location = FeatureTP.setSafeY(world, world.getSpawnLocation().getBlockX(), world.getSpawnLocation().getBlockZ());
+            if (location == null) {
                 sendErrorTranslation(player, "tport.command.worldCommand.world.world.notSafe", world);
                 return;
             }
-            l.add(0.5, 0.1, 0.5);
-            requestTeleportPlayer(player, l, true, () -> sendSuccessTranslation(player, "tport.command.worldCommand.world.world.succeeded", world),
+            location.add(0.5, 0.1, 0.5);
+            
+            HistoryEvents.setLocationSource(player.getUniqueId(), new WorldEncapsulation(world));
+            requestTeleportPlayer(player, location, true, () -> sendSuccessTranslation(player, "tport.command.worldCommand.world.world.succeeded", world),
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.worldCommand.world.world.tpRequested", world, delay, tickMessage, seconds, secondMessage));
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport world [world]");

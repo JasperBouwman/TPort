@@ -12,10 +12,7 @@ import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fancyMessage.events.ScoreEvent;
-import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.network.chat.IChatMutableComponent;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
+import com.spaceman.tport.fancyMessage.events.TextEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -31,7 +28,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
@@ -328,6 +324,17 @@ public class Message implements Cloneable {
         return components.isEmpty();
     }
     
+    public void setInsertion(String insertion) {
+        for (TextComponent component : this.components) {
+            component.setInsertion(insertion);
+        }
+    }
+    public void addTextEvent(TextEvent event) {
+        for (TextComponent component : this.components) {
+            component.addTextEvent(event);
+        }
+    }
+    
     public Message translateMessage(@Nullable JsonObject translateFile) {
         if (translateFile != null) {
             this.components = MessageUtils.translateMessage(this, translateFile).getText();
@@ -341,21 +348,13 @@ public class Message implements Cloneable {
     
     public void sendTitle(Player player, TitleTypes titleType, int fadeIn, int displayTime, int fadeOut) {
         
+        String message = translateJSON(ColorTheme.getTheme(player));
         try {
-            TPortAdapter adapter = Main.getInstance().adapter;
-            IChatMutableComponent text = IChatBaseComponent.ChatSerializer.a(this.translateJSON(player));
-            
-            Class<?> packetClass = Class.forName("net.minecraft.network.protocol.game." + titleType.mcClass);
-            Class<?> chatComponent = Class.forName("net.minecraft.network.chat.IChatBaseComponent");
-            Packet<?> packetObject = (Packet<?>) packetClass.getConstructor(chatComponent).newInstance(text);
-            
-            if (fadeIn != -1 || displayTime != -1 || fadeOut != -1) {
-                ClientboundSetTitlesAnimationPacket clientboundSetTitlesAnimationPacket = new ClientboundSetTitlesAnimationPacket(fadeIn, displayTime, fadeOut);
-                adapter.sendPlayerPacket(player, clientboundSetTitlesAnimationPacket);
-            }
-            adapter.sendPlayerPacket(player, packetObject);
+            Main.getInstance().adapter.sendTitle(player, message, titleType, fadeIn, displayTime, fadeOut);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            Features.Feature.printSmallNMSErrorInConsole("Messaging-title", true);
+            if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "title " + player.getName() + " " + titleType.name().toLowerCase() + " "  + message);
         }
     }
     
@@ -416,6 +415,10 @@ public class Message implements Cloneable {
         
         TitleTypes(String mcClass) {
             this.mcClass = mcClass;
+        }
+        
+        public String getMCClass() {
+            return this.mcClass;
         }
     }
 }

@@ -3,7 +3,8 @@ version: '${project.version}'
 name: '${project.artifactId}'
 author: '${author}'
 api-version: '1.17'
-website: '${url}'
-softdepend: [dynmap]
+website: '${bukkitURL}'
+softdepend: [dynmap, bluemap]
+description: "The visual location manager and other teleport related functions"
 
 supportedVersions: [${supportedVersions}]

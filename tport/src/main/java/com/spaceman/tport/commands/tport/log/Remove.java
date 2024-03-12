@@ -46,6 +46,19 @@ public class Remove extends SubCommand {
         return TPortManager.getTPortList(player.getUniqueId()).stream().filter(TPort::isLogged).map(TPort::getName).collect(Collectors.toList());
     }
     
+    public static void run(Player player, TPort tport, String playerName, boolean sendError) {
+        UUID playerUUID = PlayerUUID.getPlayerUUID(playerName, player);
+        if (playerUUID == null) {
+            return;
+        }
+        if (tport.removeLogged(playerUUID)) {
+            sendSuccessTranslation(player, "tport.command.log.remove.tportName.player.succeeded", asPlayer(playerUUID));
+            sendInfoTranslation(Bukkit.getPlayer(playerUUID), "tport.command.log.remove.tportName.player.succeededOtherPlayer", asPlayer(player), asTPort(tport));
+        } else {
+            if (sendError) sendErrorTranslation(player, "tport.command.log.remove.tportName.player.playerNotLogged", asPlayer(playerUUID));
+        }
+    }
+    
     @Override
     public void run(String[] args, Player player) {
         // tport log remove <TPort name> <player...>
@@ -63,16 +76,7 @@ public class Remove extends SubCommand {
         
         for (int i = 3; i < args.length; i++) {
             String playerName = args[i];
-            UUID playerUUID = PlayerUUID.getPlayerUUID(playerName, player);
-            if (playerUUID == null) {
-                return;
-            }
-            if (tport.removeLogged(playerUUID)) {
-                sendSuccessTranslation(player, "tport.command.log.remove.tportName.player.succeeded", asPlayer(playerUUID));
-                sendInfoTranslation(Bukkit.getPlayer(playerUUID), "tport.command.log.remove.tportName.player.succeededOtherPlayer", asPlayer(player), asTPort(tport));
-            } else {
-                sendErrorTranslation(player, "tport.command.log.remove.tportName.player.playerNotLogged", asPlayer(playerUUID));
-            }
+            run(player, tport, playerName, true);
         }
         tport.save();
     }

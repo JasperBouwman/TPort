@@ -1,6 +1,7 @@
 package com.spaceman.tport.commandHandler;
 
 import com.spaceman.tport.commandHandler.customRunnables.RunRunnable;
+import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
@@ -122,7 +123,7 @@ public class HelpCommand extends SubCommand {
                 
                 for (SubCommand subCommand : template.getActions()) {
                     TextComponent commandComponent;
-                    if (subCommand.getActions().size() == 0) {
+                    if (subCommand.getActions().isEmpty()) {
                         commandComponent = commandToComponent("/" + template.getName() + " " + subCommand.getCommandName(), subCommand, player, color);
                     } else {
                         if (subCommand.getCommandDescription().getText().get(0).getText().equals(descriptionNotGiven)) {
@@ -150,7 +151,7 @@ public class HelpCommand extends SubCommand {
             Message commands = new Message();
             boolean color = true;
             for (String tmpCommand : commandMap.keySet()) {
-                if (tmpCommand.toLowerCase().startsWith(command.toLowerCase()) || command.equalsIgnoreCase(tmpCommand)) {
+                if (tmpCommand.toLowerCase().startsWith(command.toLowerCase()) || command.equalsIgnoreCase(tmpCommand)) { //todo ignore matches for variables <var> [var]
                     SubCommand subCommand = commandMap.get(tmpCommand);
                     TextComponent commandComponent = commandToComponent(tmpCommand, subCommand, player, color);
                     commands.addText(commandComponent);
@@ -199,7 +200,7 @@ public class HelpCommand extends SubCommand {
         
         Message hover = new Message();
         hover.addMessage(subCommand.getCommandDescription());
-        if (!subCommand.getPermissions().isEmpty()) {
+        if (Features.Feature.Permissions.isEnabled() && !subCommand.getPermissions().isEmpty()) {
             hover.addNewLine();
             hover.addNewLine();
             hover.addMessage(subCommand.permissionsHover());

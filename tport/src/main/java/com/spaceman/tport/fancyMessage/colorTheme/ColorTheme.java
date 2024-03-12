@@ -38,7 +38,7 @@ public class ColorTheme implements ConfigurationSerializable {
         defaultThemes.put("darkTheme", new ColorTheme(ChatColor.DARK_GRAY, ChatColor.GRAY, ChatColor.GRAY, ChatColor.DARK_GRAY, ChatColor.GRAY, ChatColor.GRAY, ChatColor.RED, ChatColor.DARK_RED, ChatColor.DARK_RED));
         defaultThemes.put("lightTheme", new ColorTheme(ChatColor.WHITE, ChatColor.GRAY, ChatColor.GRAY, ChatColor.WHITE, ChatColor.GRAY, ChatColor.GRAY, ChatColor.RED, ChatColor.DARK_RED, ChatColor.DARK_RED));
         defaultThemes.put("oceanTheme", new ColorTheme(ChatColor.DARK_AQUA, ChatColor.BLUE, ChatColor.DARK_BLUE, ChatColor.GREEN, ChatColor.DARK_GREEN, ChatColor.DARK_GREEN, ChatColor.RED, ChatColor.DARK_RED, ChatColor.DARK_RED));
-        defaultThemes.put("developerTheme", new ColorTheme(new Color(18, 52, 86), new Color(170, 170, 170), new Color(52,86,120), new Color(85,85,85), new Color(170, 170, 170), new Color(170, 170, 170), new Color(255,85,85), new Color(170,0,0), new Color(170,0,0)));
+        defaultThemes.put("developerTheme", new ColorTheme(new Color(18, 52, 86), new Color(170, 170, 170), new Color(52,86,120), new Color(12, 199, 114), new Color(1, 77, 42), new Color(1, 77, 42), new Color(255,85,85), new Color(170,0,0), new Color(170,0,0)));
     }
     
     private MultiColor infoColor;
@@ -137,21 +137,21 @@ public class ColorTheme implements ConfigurationSerializable {
     
     public static String formatInfo(ColorTheme colorTheme, String baseString, Object... args) {
         for (Object arg : args) {
-            baseString = baseString.replaceFirst("%s", colorTheme.varInfoColor + arg.toString() + colorTheme.infoColor);
+            baseString = baseString.replaceFirst("%s", colorTheme.varInfoColor.getStringColor() + arg.toString() + colorTheme.infoColor.getStringColor());
         }
-        return colorTheme.infoColor + baseString;
+        return colorTheme.infoColor.getStringColor() + baseString;
     }
     public static String formatError(ColorTheme colorTheme, String baseString, Object... args) {
         for (Object arg : args) {
-            baseString = baseString.replaceFirst("%s", colorTheme.varErrorColor + arg.toString() + colorTheme.errorColor);
+            baseString = baseString.replaceFirst("%s", colorTheme.varErrorColor.getStringColor() + arg.toString() + colorTheme.errorColor.getStringColor());
         }
-        return colorTheme.errorColor + baseString;
+        return colorTheme.errorColor.getStringColor() + baseString;
     }
     public static String formatSuccess(ColorTheme colorTheme, String baseString, Object... args) {
         for (Object arg : args) {
-            baseString = baseString.replaceFirst("%s", colorTheme.varSuccessColor + arg.toString() + colorTheme.successColor);
+            baseString = baseString.replaceFirst("%s", colorTheme.varSuccessColor.getStringColor() + arg.toString() + colorTheme.successColor.getStringColor());
         }
-        return colorTheme.successColor + baseString;
+        return colorTheme.successColor.getStringColor() + baseString;
     }
     public static String formatInfoTheme(Player player, String baseString, Object... args) {
         return formatInfo(getTheme(player), baseString, args);
@@ -172,7 +172,7 @@ public class ColorTheme implements ConfigurationSerializable {
         if (player != null) player.sendMessage(formatSuccessTheme(player, baseMessage, args));
     }
     
-    private static Message formatTranslation(String color, String varColor, String id, Object... objects) {
+    public static Message formatTranslation(String color, String varColor, String id, Object... objects) {
         TextComponent text = textComponent(id, color);
         text.setType(TextType.TRANSLATE);
         for (Object o : objects) {
@@ -185,14 +185,14 @@ public class ColorTheme implements ConfigurationSerializable {
             }
             
             MessageUtils.ArgumentTranslator defaultArgumentTranslator = null;
-            for (String translatorName : MessageUtils.argumentTranslator.keySet()) {
-                if (!translatorName.equalsIgnoreCase("default")) {
-                    if (MessageUtils.argumentTranslator.get(translatorName).format(text, o, color, varColor)) {
+            for (Map.Entry<String, MessageUtils.ArgumentTranslator> translatorEntry : MessageUtils.argumentTranslator.entrySet()) {
+                if (!translatorEntry.getKey().equalsIgnoreCase("default")) {
+                    if (translatorEntry.getValue().format(text, o, color, varColor)) {
                         defaultArgumentTranslator = null;
                         break;
                     }
                 } else {
-                    defaultArgumentTranslator = MessageUtils.argumentTranslator.get(translatorName);
+                    defaultArgumentTranslator = translatorEntry.getValue();
                 }
             }
             if (defaultArgumentTranslator != null) {

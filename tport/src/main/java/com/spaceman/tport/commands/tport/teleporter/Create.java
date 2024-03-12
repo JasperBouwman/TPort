@@ -62,6 +62,11 @@ public class Create extends SubCommand {
          * /tport teleporter create PLTP <player>
          * /tport teleporter create home
          * /tport teleporter create public [TPort name]
+         *
+         * /tport teleporter create look [type]
+         * /tport teleporter create world <world>
+         * /tport teleporter create preview <player> [TPort name]
+         *
          * */
         
         if (args.length > 2) {

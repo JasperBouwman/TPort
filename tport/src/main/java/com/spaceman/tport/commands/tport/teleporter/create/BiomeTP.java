@@ -1,5 +1,6 @@
 package com.spaceman.tport.commands.tport.teleporter.create;
 
+import com.spaceman.tport.biomeTP.BiomePreset;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -77,7 +78,7 @@ public class BiomeTP extends SubCommand {
         };
         emptyBiomeTPPreset.setCommandName("preset", ArgumentType.FIXED);
         emptyBiomeTPPreset.setCommandDescription(formatInfoTranslation("tport.command.teleporter.create.biomeTP.preset.commandDescription"));
-        emptyBiomeTPPreset.setTabRunnable(((args, player) -> com.spaceman.tport.commands.tport.BiomeTP.BiomeTPPresets.getNames()));
+        emptyBiomeTPPreset.setTabRunnable(((args, player) -> BiomePreset.getNames(player.getWorld())));
         emptyBiomeTPPreset.addAction(emptyBiomeTPPresetPreset);
         emptyBiomeTPPreset.setPermissions("TPort.teleporter.create");
         
@@ -259,7 +260,7 @@ public class BiomeTP extends SubCommand {
                 if (!emptyBiomeTPEmpty.hasPermissionToRun(player, true)) {
                     return;
                 }
-                com.spaceman.tport.commands.tport.BiomeTP.BiomeTPPresets.BiomePreset preset = com.spaceman.tport.commands.tport.BiomeTP.BiomeTPPresets.getPreset(args[4], player.getWorld());
+                BiomePreset preset = BiomePreset.getPreset(args[4], player.getWorld());
                 if (preset != null) {
                     ArrayList<Message> pairs = new ArrayList<>();
                     pairs.add(formatInfoTranslation("tport.command.teleporter.create.format.data.biomes.type",

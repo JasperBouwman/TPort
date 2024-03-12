@@ -113,11 +113,11 @@ public class Redirect extends SubCommand {
             if (Main.isTrue(args[2])) {
                 redirect.setEnabled(true);
                 sendSuccessTranslation(player, "tport.command.redirect.redirect.state.succeeded", redirect,
-                        formatTranslation(varInfoColor, ColorType.varInfo2Color, "tport.command.redirect.redirect.enabled"));
+                        formatTranslation(goodColor, ColorType.goodColor, "tport.command.redirect.redirect.enabled"));
             } else {
                 redirect.setEnabled(false);
                 sendSuccessTranslation(player, "tport.command.redirect.redirect.state.succeeded", redirect,
-                        formatTranslation(varInfoColor, ColorType.varInfo2Color, "tport.command.redirect.redirect.disabled"));
+                        formatTranslation(badColor, ColorType.badColor, "tport.command.redirect.redirect.disabled"));
             }
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport redirect [redirect] [state]");
@@ -190,8 +190,8 @@ public class Redirect extends SubCommand {
         }
         
         @Override
-        public TextComponent getName(String varColor) {
-            return new TextComponent(name(), varColor);
+        public Message getName(String color, String varColor) {
+            return new Message(new TextComponent(name(), varColor));
         }
         
         @Override

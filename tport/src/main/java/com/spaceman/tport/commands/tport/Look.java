@@ -6,6 +6,8 @@ import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.cooldown.CooldownManager;
+import com.spaceman.tport.history.HistoryEvents;
+import com.spaceman.tport.history.LookLocationSource;
 import com.spaceman.tport.tpEvents.TPEManager;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
@@ -59,49 +61,50 @@ public class Look extends SubCommand {
             
             Predicate<Entity> predicate = (entity) -> !entity.equals(player) && !entity.equals(player.getVehicle());
             
-            Entity e;
+            Entity entity;
             RayTraceResult entityTrace = player.getWorld().rayTraceEntities(player.getEyeLocation(), player.getEyeLocation().getDirection(), 100, predicate);
             if (entityTrace != null) {
-                e = entityTrace.getHitEntity();
+                entity = entityTrace.getHitEntity();
             } else {
-                e = null;
+                entity = null;
             }
             
-            Block b;
+            Block block;
             RayTraceResult blockTrace = player.rayTraceBlocks(100, FluidCollisionMode.ALWAYS);
             if (blockTrace != null) {
-                b = blockTrace.getHitBlock();
+                block = blockTrace.getHitBlock();
             } else {
-                b = null;
+                block = null;
             }
             
-            if (e == null && b == null) {
+            if (entity == null && block == null) {
                 sendErrorTranslation(player, "tport.command.look.notLooking");
                 return;
             }
             
             
             double entityDistance = Double.POSITIVE_INFINITY;
-            if (e != null) {
-                entityDistance = player.getLocation().distance(e.getLocation());
+            if (entity != null) {
+                entityDistance = player.getLocation().distance(entity.getLocation());
             }
             double blockDistance = Double.POSITIVE_INFINITY;
-            if (b != null) {
-                blockDistance = player.getLocation().distance(b.getLocation());
+            if (block != null) {
+                blockDistance = player.getLocation().distance(block.getLocation());
             }
             
             if (entityDistance < blockDistance) { //entity TP
-                if (e.getType().equals(EntityType.PLAYER)) {
-                    Player p = (Player) e;
+                if (entity.getType().equals(EntityType.PLAYER)) {
+                    Player p = (Player) entity;
                     sendInfoTranslation(player, "tport.command.look.pltp");
                     TPortCommand.executeTPortCommand(player, new String[]{"PLTP", "tp", p.getName()});
                 } else {
-                    TPEManager.requestTeleportPlayer(player, e.getLocation(), () -> sendSuccessTranslation(player, "tport.command.look.entityTP", e.getType().toString()),
-                            (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.entityTP.tpRequested", e.getType().toString(), delay, tickMessage, seconds, secondMessage));
+                    HistoryEvents.setLocationSource(player.getUniqueId(), new LookLocationSource(entity.getType()));
+                    TPEManager.requestTeleportPlayer(player, entity.getLocation(), () -> sendSuccessTranslation(player, "tport.command.look.entityTP", entity.getType().toString()),
+                            (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.entityTP.tpRequested", entity.getType().toString(), delay, tickMessage, seconds, secondMessage));
                 }
             } else { //block TP
-                if (!b.getType().equals(Material.WATER) && !b.getType().equals(Material.LAVA)) { //block TP
-                    Location blockLocation = b.getLocation();
+                if (!block.getType().equals(Material.WATER) && !block.getType().equals(Material.LAVA)) { //block TP
+                    Location blockLocation = block.getLocation();
                     if (blockLocation.clone().add(0, 1, 0).getBlock().getType().isSolid()) {
                         blockLocation.add(blockTrace.getHitBlockFace().getDirection());
                     } else if (blockLocation.getBlock().getType().isSolid()) {
@@ -111,15 +114,17 @@ public class Look extends SubCommand {
                     blockLocation.setPitch(player.getLocation().getPitch());
                     blockLocation.setYaw(player.getLocation().getYaw());
                     
-                    TPEManager.requestTeleportPlayer(player, blockLocation, () -> sendSuccessTranslation(player, "tport.command.look.blockTP", b.getType().toString()),
-                            (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.blockTP.tpRequested", b.getType().toString(), delay, tickMessage, seconds, secondMessage));
+                    HistoryEvents.setLocationSource(player.getUniqueId(), new LookLocationSource(block.getType()));
+                    TPEManager.requestTeleportPlayer(player, blockLocation, () -> sendSuccessTranslation(player, "tport.command.look.blockTP", block.getType().toString()),
+                            (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.blockTP.tpRequested", block.getType().toString(), delay, tickMessage, seconds, secondMessage));
                 } else { //fluid TP
-                    Location l = b.getLocation().add(0.5, 1.1, 0.5);
-                    l.setPitch(player.getLocation().getPitch());
-                    l.setYaw(player.getLocation().getYaw());
+                    Location location = block.getLocation().add(0.5, 1.1, 0.5);
+                    location.setPitch(player.getLocation().getPitch());
+                    location.setYaw(player.getLocation().getYaw());
                     
-                    TPEManager.requestTeleportPlayer(player, l, () -> sendSuccessTranslation(player, "tport.command.look.fluidTP", b.getType().toString()),
-                            (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.fluidTP.tpRequested", b.getType().toString(), delay, tickMessage, seconds, secondMessage));
+                    HistoryEvents.setLocationSource(player.getUniqueId(), new LookLocationSource(block.getType()));
+                    TPEManager.requestTeleportPlayer(player, location, () -> sendSuccessTranslation(player, "tport.command.look.fluidTP", block.getType().toString()),
+                            (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.fluidTP.tpRequested", block.getType().toString(), delay, tickMessage, seconds, secondMessage));
                 }
             }
             
@@ -128,42 +133,43 @@ public class Look extends SubCommand {
         Look.registerLookType("entity", player -> {
             Predicate<Entity> predicate = (entity) -> !entity.equals(player) && !entity.equals(player.getVehicle());
             
-            RayTraceResult r = player.getWorld().rayTraceEntities(player.getEyeLocation(), player.getEyeLocation().getDirection(), 100, predicate);
-            if (r == null) { 
+            RayTraceResult rayTraceResult = player.getWorld().rayTraceEntities(player.getEyeLocation(), player.getEyeLocation().getDirection(), 100, predicate);
+            if (rayTraceResult == null) {
                 sendErrorTranslation(player, "tport.command.look.type.entity.notFound");
                 return;
             }
-            Entity e = r.getHitEntity();
-            if (e == null) {
+            Entity entity = rayTraceResult.getHitEntity();
+            if (entity == null) {
                 sendErrorTranslation(player, "tport.command.look.type.entity.notFound");
                 return;
             }
             
-            if (e.getType().equals(EntityType.PLAYER)) {
-                Player p = (Player) e;
+            if (entity.getType().equals(EntityType.PLAYER)) {
+                Player lookedAtPlayer = (Player) entity;
                 sendInfoTranslation(player, "tport.command.look.type.entity.pltp");
-                TPortCommand.executeTPortCommand(player, new String[]{"PLTP", "tp", p.getName()});
+                TPortCommand.executeTPortCommand(player, new String[]{"PLTP", "tp", lookedAtPlayer.getName()});
             } else {
-                TPEManager.requestTeleportPlayer(player, e.getLocation(), () -> sendSuccessTranslation(player, "tport.command.look.type.entity.succeeded", e.getType().toString()),
-                        (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.type.entity.tpRequested", e.getType().toString(), delay, tickMessage, seconds, secondMessage));
+                HistoryEvents.setLocationSource(player.getUniqueId(), new LookLocationSource(entity.getType()));
+                TPEManager.requestTeleportPlayer(player, entity.getLocation(), () -> sendSuccessTranslation(player, "tport.command.look.type.entity.succeeded", entity.getType().toString()),
+                        (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.type.entity.tpRequested", entity.getType().toString(), delay, tickMessage, seconds, secondMessage));
             }
         });
         
         Look.registerLookType("block", (player -> {
-            RayTraceResult r = player.rayTraceBlocks(100, FluidCollisionMode.NEVER);
-            if (r == null) { 
+            RayTraceResult rayTraceResult = player.rayTraceBlocks(100, FluidCollisionMode.NEVER);
+            if (rayTraceResult == null) {
                 sendErrorTranslation(player, "tport.command.look.type.block.notFound");
                 return;
             }
-            Block b = r.getHitBlock();
-            if (b == null) {
+            Block block = rayTraceResult.getHitBlock();
+            if (block == null) {
                 sendErrorTranslation(player, "tport.command.look.type.block.notFound");
                 return;
             }
             
-            Location blockLocation = b.getLocation();
+            Location blockLocation = block.getLocation();
             if (blockLocation.clone().add(0, 1, 0).getBlock().getType().isSolid()) {
-                blockLocation.add(r.getHitBlockFace().getDirection());
+                blockLocation.add(rayTraceResult.getHitBlockFace().getDirection());
             } else if (blockLocation.getBlock().getType().isSolid()) {
                 blockLocation.add(0, 1, 0);
             }
@@ -171,31 +177,33 @@ public class Look extends SubCommand {
             blockLocation.setPitch(player.getLocation().getPitch());
             blockLocation.setYaw(player.getLocation().getYaw());
             
-            TPEManager.requestTeleportPlayer(player, blockLocation, () -> sendSuccessTranslation(player, "tport.command.look.type.block.succeeded", b.getType().toString()),
-                    (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.type.block.tpRequested", b.getType().toString(), delay, tickMessage, seconds, secondMessage));
+            HistoryEvents.setLocationSource(player.getUniqueId(), new LookLocationSource(block.getType()));
+            TPEManager.requestTeleportPlayer(player, blockLocation, () -> sendSuccessTranslation(player, "tport.command.look.type.block.succeeded", block.getType().toString()),
+                    (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.type.block.tpRequested", block.getType().toString(), delay, tickMessage, seconds, secondMessage));
         }));
         
         Look.registerLookType("fluid", (player -> {
-            RayTraceResult r = player.rayTraceBlocks(100, FluidCollisionMode.ALWAYS);
-            if (r == null) {
+            RayTraceResult rayTraceResult = player.rayTraceBlocks(100, FluidCollisionMode.ALWAYS);
+            if (rayTraceResult == null) {
                 sendErrorTranslation(player, "tport.command.look.type.fluid.notFound");
                 return;
             }
-            Block f = r.getHitBlock();
-            if (f == null) {
+            Block fluid = rayTraceResult.getHitBlock();
+            if (fluid == null) {
                 sendErrorTranslation(player, "tport.command.look.type.fluid.notFound");
                 return;
             }
-            if (!f.getType().equals(Material.WATER) && !f.getType().equals(Material.LAVA)) {
+            if (!fluid.getType().equals(Material.WATER) && !fluid.getType().equals(Material.LAVA)) {
                 sendErrorTranslation(player, "tport.command.look.type.fluid.notFound");
                 return;
             }
             
-            Location l = f.getLocation().add(0.5, 1.1, 0.5);
-            l.setPitch(player.getLocation().getPitch());
-            l.setYaw(player.getLocation().getYaw());
-            TPEManager.requestTeleportPlayer(player, l, () -> sendSuccessTranslation(player, "tport.command.look.type.fluid.succeeded", f.getType().toString()),
-                    (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.type.fluid.tpRequested", f.getType().toString(), delay, tickMessage, seconds, secondMessage));
+            Location location = fluid.getLocation().add(0.5, 1.1, 0.5);
+            location.setPitch(player.getLocation().getPitch());
+            location.setYaw(player.getLocation().getYaw());
+            HistoryEvents.setLocationSource(player.getUniqueId(), new LookLocationSource(fluid.getType()));
+            TPEManager.requestTeleportPlayer(player, location, () -> sendSuccessTranslation(player, "tport.command.look.type.fluid.succeeded", fluid.getType().toString()),
+                    (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.type.fluid.tpRequested", fluid.getType().toString(), delay, tickMessage, seconds, secondMessage));
         }));
     }
     
@@ -207,6 +215,11 @@ public class Look extends SubCommand {
         // - entity
         // - block
         // - fluid
+        
+        if (Features.Feature.LookTP.isDisabled())  {
+            Features.Feature.LookTP.sendDisabledMessage(player);
+            return;
+        }
         
         if (args.length == 1) {
             if (!CooldownManager.LookTP.hasCooled(player, true)) return;

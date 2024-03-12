@@ -27,6 +27,7 @@ public class TPRequest {
     private static final HashMap<UUID, TPRequest> requests = new HashMap<>();
     
     private final UUID requesterUUID;
+    private final boolean safetyCheck;
     
     //if this is a PLTP request the 'requestToUUID' should be the player's UUID, if it's a TPort request it should be the owner of the TPort
     private final UUID requestToUUID; //the UUID of the requester
@@ -34,27 +35,29 @@ public class TPRequest {
     //if 'null' it's a PLTP request, if 'nonnull' it should be the UUID of the TPort
     private final UUID tportUUID;
     
-    private TPRequest(UUID requesterUUID, UUID requestToUUID) {
+    private TPRequest(UUID requesterUUID, UUID requestToUUID, boolean safetyCheck) {
         this.requesterUUID = requesterUUID;
         this.requestToUUID = requestToUUID;
         this.tportUUID = null;
+        this.safetyCheck = safetyCheck;
     }
-    private TPRequest(UUID requesterUUID, UUID tportOwner, UUID tportUUID) {
+    private TPRequest(UUID requesterUUID, UUID tportOwner, UUID tportUUID, boolean safetyCheck) {
         this.requesterUUID = requesterUUID;
         this.requestToUUID = tportOwner;
         this.tportUUID = tportUUID;
+        this.safetyCheck = safetyCheck;
     }
     
-    public static TPRequest createPLTPRequest(UUID requester, UUID requestTo) {
-        TPRequest request = new TPRequest(requester, requestTo);
+    public static TPRequest createPLTPRequest(UUID requester, UUID requestTo, boolean safetyCheck) {
+        TPRequest request = new TPRequest(requester, requestTo, safetyCheck);
         requests.put(requester, request);
         return request;
     }
-    public static TPRequest createTPortRequest(UUID requester, TPort tport) {
-        return createTPortRequest(requester, tport.getOwner(), tport.getTportID());
+    public static TPRequest createTPortRequest(UUID requester, TPort tport, boolean safetyCheck) {
+        return createTPortRequest(requester, tport.getOwner(), tport.getTportID(), safetyCheck);
     }
-    public static TPRequest createTPortRequest(UUID requester, UUID tportOwner, UUID tportUUID) {
-        TPRequest request = new TPRequest(requester, tportOwner, tportUUID);
+    public static TPRequest createTPortRequest(UUID requester, UUID tportOwner, UUID tportUUID, boolean safetyCheck) {
+        TPRequest request = new TPRequest(requester, tportOwner, tportUUID, safetyCheck);
         requests.put(requester, request);
         return request;
     }
@@ -84,7 +87,7 @@ public class TPRequest {
         
         if (isTPortRequest()) {
             TPort tport = TPortManager.getTPort(requestToUUID, tportUUID);
-            if (tport == null) {
+            if (tport == null) {//todo tport could have been transferred to another player
                 //something went wrong
                 return;
             }
@@ -93,14 +96,14 @@ public class TPRequest {
             sendInfoTranslation(requester,    "tport.tpEvents.TPRequest.accept.tport.requester", asPlayer(requestTo, requestToUUID), asTPort(tport));
             
             if (!tport.teleport(requester,
-                    false /*safetyCheck was already preformed before asking consent*/,
+                    safetyCheck /*safetyCheck was already preformed before asking consent, but will be checked again*/,
                     false, null, null)) {
                 sendErrorTranslation(requestTo, "tport.tpEvents.TPRequest.accept.tport.couldNotTP", asPlayer(requester, requesterUUID));
             }
         } else {
             sendSuccessTranslation(requestTo,"tport.tpEvents.TPRequest.accept.pltp.requestTo", asPlayer(requester, requesterUUID));
             sendInfoTranslation(requester,   "tport.tpEvents.TPRequest.accept.pltp.requester", asPlayer(requestTo, requestToUUID));
-            TP.tp(requester, requestTo);
+            TP.tp(requester, requestTo, safetyCheck, true);
         }
     }
     public void rejectRequest() {
@@ -204,7 +207,6 @@ public class TPRequest {
     }
 
     public Message toInfo() {
-        Message description = new Message();
         String type;
         Object requestTo;
         if (isTPortRequest()) {
@@ -217,7 +219,6 @@ public class TPRequest {
         return formatInfoTranslation("tport.fancyMessage.MessageUtils.tpRequest.description", type, requestTo);
     }
     public Message toInfo2() {
-        Message description = new Message();
         String type;
         Object requestTo;
         if (isTPortRequest()) {
@@ -230,7 +231,6 @@ public class TPRequest {
         return formatTranslation(infoColor, varInfo2Color, "tport.fancyMessage.MessageUtils.tpRequest.description", type, requestTo);
     }
     public Message toError() {
-        Message description = new Message();
         String type;
         Object requestTo;
         if (isTPortRequest()) {
@@ -243,7 +243,6 @@ public class TPRequest {
         return formatErrorTranslation("tport.fancyMessage.MessageUtils.tpRequest.description", type, requestTo);
     }
     public Message toSuccess() {
-        Message description = new Message();
         String type;
         Object requestTo;
         if (isTPortRequest()) {

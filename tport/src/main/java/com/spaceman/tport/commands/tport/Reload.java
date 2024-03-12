@@ -38,13 +38,14 @@ public class Reload extends SubCommand {
                     try (FileOutputStream fos = new FileOutputStream(new File(Main.getInstance().getDataFolder(), file))) {
                         fos.write(buffer);
                     }
-                    Main.getInstance().getLogger().log(Level.INFO, "" + file + " did not exist, resetting it...");
+                    Main.getInstance().getLogger().log(Level.INFO, file + " did not exist, resetting it...");
                 } catch (IOException ignore) {
                 }
             }
         }
         
         Files.reloadFiles();
+        Adapter.loadAdapter(null);
         
         if (!tportConfig.getConfig().contains("biomeTP.searches")) {
             tportConfig.getConfig().set("biomeTP.searches", 100);

@@ -6,6 +6,7 @@ import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.SafetyCheck;
 import com.spaceman.tport.commands.tport.log.LogSize;
 import com.spaceman.tport.cooldown.CooldownManager;
+import com.spaceman.tport.dynmap.BlueMapHandler;
 import com.spaceman.tport.dynmap.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
@@ -68,6 +69,7 @@ public class TPort implements ConfigurationSerializable {
     private ArrayList<String> tags = new ArrayList<>();
     private boolean showOnDynmap = true;
     private String dynmapIconID = "";
+    private boolean showOnBlueMap = true;
     private boolean shouldReturnItem = true;
     
     private boolean active;
@@ -239,6 +241,9 @@ public class TPort implements ConfigurationSerializable {
         return location.getBlock().getBiome();
     }
     
+    public World getWorld() {
+        return Main.getOrDefault(location.getWorld(), Bukkit.getWorlds().get(0));
+    }
     public World.Environment getDimension() {
         return Main.getOrDefault(location.getWorld(), Bukkit.getWorlds().get(0)).getEnvironment();
     }
@@ -346,7 +351,6 @@ public class TPort implements ConfigurationSerializable {
     
     public void setRange(int range) {
         this.range = Math.max(range, 0);
-        if (this.hasRange()) DynmapHandler.updateTPort(this);
     }
     
     public boolean hasRange() {
@@ -455,6 +459,11 @@ public class TPort implements ConfigurationSerializable {
         return false;
     }
     
+    public void setUnLogged() {
+        this.setDefaultLogMode(LogMode.NONE);
+        logged.clear();
+    }
+    
     public boolean setPublicTPort(boolean publicTPort) {
         return setPublicTPort(publicTPort, null);
     }
@@ -475,7 +484,6 @@ public class TPort implements ConfigurationSerializable {
                 sendInfoTranslation(player, "tport.tport.tport.setPublicTPort.incompatiblePreviewState", this, previewState);
             }
         }
-        if (b) DynmapHandler.updateTPort(this);
         return b;
     }
     
@@ -521,7 +529,6 @@ public class TPort implements ConfigurationSerializable {
     public boolean addTag(String tag) {
         if (!tags.contains(tag)) {
             tags.add(tag);
-            DynmapHandler.updateTPort(this);
             return true;
         }
         return false;
@@ -530,7 +537,6 @@ public class TPort implements ConfigurationSerializable {
     public boolean removeTag(String tag) {
         if (tags.contains(tag)) {
             tags.remove(tag);
-            DynmapHandler.updateTPort(this);
             return true;
         }
         return false;
@@ -560,6 +566,15 @@ public class TPort implements ConfigurationSerializable {
         this.dynmapIconID = dynmapIconID;
     }
     
+    public boolean showOnBlueMap() {
+        return showOnBlueMap;
+    }
+    
+    public void showOnBlueMap(boolean state) {
+        showOnBlueMap = state;
+    }
+    
+    
     public boolean shouldReturnItem() {
         return shouldReturnItem;
     }
@@ -583,6 +598,7 @@ public class TPort implements ConfigurationSerializable {
     public void save() {
         TPortManager.saveTPort(this);
         DynmapHandler.updateTPort(this);
+        BlueMapHandler.updateTPort(this);
     }
     
     public void setInactiveWorldName(String inactiveWorldName) {
@@ -620,20 +636,19 @@ public class TPort implements ConfigurationSerializable {
                     if (TPRequest.hasRequest(player, true)) {
                         return false;
                     }
-                    TPRequest.createTPortRequest(player.getUniqueId(), this);
+                    TPRequest.createTPortRequest(player.getUniqueId(), this, safetyCheck);
                     
                     Message accept = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
-                    accept.getText().forEach(t -> t
-                            .addTextEvent(ClickEvent.runCommand("/tport requests accept " + player.getName()))
-                            .addTextEvent(new HoverEvent(textComponent("/tport requests accept " + player.getName(), infoColor))));
+                    accept.addTextEvent(ClickEvent.runCommand("/tport requests accept " + player.getName()));
+                    accept.addTextEvent(new HoverEvent(textComponent("/tport requests accept " + player.getName(), infoColor)));
+                    
                     Message reject = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
-                    reject.getText().forEach(t -> t
-                            .addTextEvent(ClickEvent.runCommand("/tport requests reject " + player.getName()))
-                            .addTextEvent(new HoverEvent(textComponent("/tport requests reject " + player.getName(), infoColor))));
+                    reject.addTextEvent(ClickEvent.runCommand("/tport requests reject " + player.getName()));
+                    reject.addTextEvent(new HoverEvent(textComponent("/tport requests reject " + player.getName(), infoColor)));
+                    
                     Message revoke = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
-                    revoke.getText().forEach(t -> t
-                            .addTextEvent(ClickEvent.runCommand("/tport requests revoke"))
-                            .addTextEvent(new HoverEvent(textComponent("/tport requests revoke", infoColor))));
+                    revoke.addTextEvent(ClickEvent.runCommand("/tport requests revoke"));
+                    revoke.addTextEvent(new HoverEvent(textComponent("/tport requests revoke", infoColor)));
                     
                     sendInfoTranslation(ownerPlayer, "tport.tport.tport.consent.consent.askConsent", player, this, accept, reject);
                     sendInfoTranslation(player, "tport.tport.tport.consent.consent.consentAsked", ownerPlayer, this, this.getPrivateState(), revoke);
@@ -772,7 +787,7 @@ public class TPort implements ConfigurationSerializable {
                 (player, tport) -> tport.getWhitelist().contains(player)),
         ONLINE(new TextComponent("online", ChatColor.YELLOW), true, true, quick_edit_private_online_model,
                 (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null || PRIVATE.hasAccess(player, tport)),
-        PRION(new TextComponent("private online", ChatColor.GOLD), false, true, quick_edit_private_prion_model,
+        PRIVATE_ONLINE(new TextComponent("private online", ChatColor.GOLD), false, true, quick_edit_private_private_online_model,
                 (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null && PRIVATE.hasAccess(player, tport)),
         CONSENT_PRIVATE(new TextComponent("consent private", ChatColor.DARK_AQUA), false, true, quick_edit_private_consent_private_model,
                 (player, tport) -> Bukkit.getPlayer(tport.getOwner()) != null ? null : PRIVATE.hasAccess(player, tport)),
@@ -783,7 +798,7 @@ public class TPort implements ConfigurationSerializable {
          * OPEN: always open
          * PRIVATE: only players in whitelist can teleport
          * ONLINE: when online OPEN, when offline PRIVATE
-         * PRION: when online PRIVATE, when offline close
+         * PRIVATE_ONLINE: when online PRIVATE, when offline close
          * CONSENT_PRIVATE: when online ask consent, when offline PRIVATE
          * CONSENT_CLOSE: when online whitelist ask consent, when offline close
          * */
@@ -807,6 +822,8 @@ public class TPort implements ConfigurationSerializable {
             if (name == null) {
                 return def;
             }
+            // in older version PRIVATE_ONLINE was PRION
+            if (name.equalsIgnoreCase("prion")) return PRIVATE_ONLINE;
             try {
                 return PrivateState.valueOf(name.toUpperCase());
             } catch (IllegalArgumentException | NullPointerException iae) {
@@ -861,8 +878,8 @@ public class TPort implements ConfigurationSerializable {
         }
         
         @Override
-        public TextComponent getName(String unused) {
-            return getDisplayName();
+        public Message getName(String ignore_color, String ignore_varColor) {
+            return new Message(getDisplayName());
         }
         
         @Override
@@ -933,8 +950,8 @@ public class TPort implements ConfigurationSerializable {
         }
         
         @Override
-        public TextComponent getName(String ignore) {
-            return getDisplayName();
+        public Message getName(String ignore_color, String ignore_varColor) {
+            return new Message(getDisplayName());
         }
         
         @Override
@@ -996,8 +1013,8 @@ public class TPort implements ConfigurationSerializable {
         }
         
         @Override
-        public TextComponent getName(String varColor) {
-            return new TextComponent(name(), varColor);
+        public Message getName(String color, String varColor) {
+            return new Message(new TextComponent(name(), varColor));
         }
         
         @Override
@@ -1057,8 +1074,8 @@ public class TPort implements ConfigurationSerializable {
         }
         
         @Override
-        public TextComponent getName(String varColor) {
-            return getDisplayName();
+        public Message getName(String ignore_color, String ignore_varColor) {
+            return new Message(getDisplayName());
         }
         
         @Override
@@ -1137,8 +1154,8 @@ public class TPort implements ConfigurationSerializable {
         }
         
         @Override
-        public TextComponent getName(String ignore) {
-            return getDisplayName();
+        public Message getName(String ignore_color, String ignore_varColor) {
+            return new Message(getDisplayName());
         }
         
         @Override

@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static com.spaceman.tport.commands.tport.Features.Feature.EnsureUniqueUUID;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTranslation;
 import static com.spaceman.tport.fileHander.Files.tportData;
@@ -214,10 +215,12 @@ public class TPortManager {
         if (nextUUID.equals(defUUID)) {
             return getNextUUID();
         }
-        for (String uuid : tportData.getKeys("tport")) {
-            for (String tportID : tportData.getKeys("tport." + uuid + ".tports")) {
-                if (tportID.equals(nextUUID.toString())) {
-                    return getNextUUID();
+        if (EnsureUniqueUUID.isEnabled()) {
+            for (String uuid : tportData.getKeys("tport")) {
+                for (String tportID : tportData.getKeys("tport." + uuid + ".tports")) {
+                    if (tportID.equals(nextUUID.toString())) {
+                        return getNextUUID();
+                    }
                 }
             }
         }

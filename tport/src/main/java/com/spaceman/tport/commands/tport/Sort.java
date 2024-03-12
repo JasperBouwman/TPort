@@ -92,7 +92,7 @@ public class Sort extends SubCommand {
         return getSorter(getSorterForPlayer(player));
     }
     
-    public static String getNextSorterName(Player player) { //todo test
+    public static String getNextSorterName(Player player) {
         String currentSorter = Sort.getSorterForPlayer(player);
         ArrayList<String> list = new ArrayList<>(getSorters());
         
@@ -122,7 +122,7 @@ public class Sort extends SubCommand {
     }
     
     @Nullable
-    public static String getPreviousSorterName(Player player) { //todo test
+    public static String getPreviousSorterName(Player player) {
         String currentSorter = Sort.getSorterForPlayer(player);
         ArrayList<String> list = new ArrayList<>(getSorters());
         

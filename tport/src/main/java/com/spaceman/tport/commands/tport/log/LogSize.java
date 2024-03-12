@@ -34,7 +34,7 @@ public class LogSize extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport log logSize [size]
-    
+        
         if (args.length == 2) {
             sendInfoTranslation(player, "tport.command.log.logSize.succeeded", getLogSize());
         } else if (args.length == 3) {

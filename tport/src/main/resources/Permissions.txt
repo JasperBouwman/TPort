@@ -60,6 +60,7 @@ Permissions can work with trees.
 /tport PLTP whitelist <add> <player...>                                                                       TPort.PLTP.edit                             OR TPort.basic
 /tport PLTP whitelist <remove> <player...>
 /tport PLTP tp <player>                                                                                       TPort.PLTP.tp                               OR TPort.basic
+/tport PLTP tp <player> [safetyCheck]                                                                        (TPort.own AND TPort.safetyCheck.PLTP) OR TPort.basic
 /tport PLTP offset
 /tport PLTP offset <offset>
 /tport PLTP preview
@@ -226,3 +227,5 @@ Permissions can work with trees.
 /tport settings
 /tport look                                                                                                   TPort.look
 /tport look <type>                                                                                            TPort.look
+/tport adapter
+/tport adapter <adapter>                                                                                      TPort.adapter                               OR TPort.admin

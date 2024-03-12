@@ -3,7 +3,6 @@ package com.spaceman.tport.commands.tport.requests;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.TPRequest;
 import org.bukkit.entity.Player;

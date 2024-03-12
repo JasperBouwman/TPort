@@ -37,12 +37,14 @@ public class TimeFormat extends SubCommand {
     }
     
     public static String getTimeFormat(Player player) {
-        return tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
+        return tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", defaultTimeFormat);
     }
     public static void setTimeFormat(Player player, String format) {
         tportData.getConfig().set("tport." + player.getUniqueId() + ".timeFormat", format);
         tportData.saveConfig();
     }
+    
+    public static final String defaultTimeFormat = "EEE MMM dd HH:mm:ss zzz yyyy";
     
     @Override
     public void run(String[] args, Player player) {
@@ -52,8 +54,8 @@ public class TimeFormat extends SubCommand {
             String timeFormat = getTimeFormat(player);
             
             Message here = new Message();
-            here.addText(textComponent("tport.command.log.timeFormat.here", varInfoColor, ClickEvent.runCommand("/tport log timeFormat EEE MMM dd HH:mm:ss zzz yyyy"),
-                    new HoverEvent(textComponent("/tport log timeFormat EEE MMM dd HH:mm:ss zzz yyyy", ColorType.infoColor))).setType(TextType.TRANSLATE));
+            here.addText(textComponent("tport.command.log.timeFormat.here", varInfoColor, ClickEvent.runCommand("/tport log timeFormat " + defaultTimeFormat),
+                    new HoverEvent(textComponent("/tport log timeFormat " + defaultTimeFormat, ColorType.infoColor))).setType(TextType.TRANSLATE));
             
             sendInfoTranslation(player, "tport.command.log.timeFormat.succeeded", timeFormat, getFormatExample(player, timeFormat), here);
         } else if (args.length > 2) {

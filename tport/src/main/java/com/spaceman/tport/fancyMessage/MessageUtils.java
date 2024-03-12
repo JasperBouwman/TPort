@@ -4,6 +4,7 @@ import com.google.common.base.CharMatcher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
+import com.spaceman.tport.adapters.ReflectionManager;
 import com.spaceman.tport.adapters.TPortAdapter;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
@@ -16,7 +17,10 @@ import com.spaceman.tport.fancyMessage.language.Language;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
 import com.spaceman.tport.tpEvents.TPRestriction;
 import com.spaceman.tport.tport.TPort;
-import org.bukkit.*;
+import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -24,23 +28,11 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionEffect;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import javax.annotation.Nullable;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.metadata.IIOMetadata;
-import javax.imageio.metadata.IIOMetadataNode;
-import java.awt.Color;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.WritableRaster;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.List;
@@ -278,196 +270,6 @@ public class MessageUtils {
         return resizedImg;
     }
     
-    public static class ImageFrame {
-        private final int delay;
-        private final BufferedImage image;
-        private final String disposal;
-        private final int width, height;
-        
-        public ImageFrame(BufferedImage image, int delay, String disposal, int width, int height) {
-            this.image = image;
-            this.delay = delay;
-            this.disposal = disposal;
-            this.width = width;
-            this.height = height;
-        }
-        
-        public BufferedImage getImage() {
-            return image;
-        }
-        
-        public int getDelay() {
-            return delay;
-        }
-        
-        public String getDisposal() {
-            return disposal;
-        }
-        
-        public int getWidth() {
-            return width;
-        }
-        
-        public int getHeight() {
-            return height;
-        }
-        
-        public static void recursion(int index, MessageUtils.ImageFrame[] frames, Player player) {
-            MessageUtils.ImageFrame frame = frames[index];
-            Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> {
-                MessageUtils.toMessage(frame.getImage()).sendMessage(player);
-                if (frames.length - 1 != index) recursion(index + 1, frames, player);
-            }, (frame.getDelay() == 0 ? 1 : frame.getDelay()));
-        }
-        
-        public static ImageFrame[] readGif(InputStream stream) throws IOException {
-            ArrayList<ImageFrame> frames = new ArrayList<>(2);
-            
-            ImageReader reader = ImageIO.getImageReadersByFormatName("gif").next();
-            reader.setInput(ImageIO.createImageInputStream(stream));
-            
-            int lastx = 0;
-            int lasty = 0;
-            
-            int width = -1;
-            int height = -1;
-            
-            IIOMetadata metadata = reader.getStreamMetadata();
-            
-            Color backgroundColor = null;
-            
-            if (metadata != null) {
-                IIOMetadataNode globalRoot = (IIOMetadataNode) metadata.getAsTree(metadata.getNativeMetadataFormatName());
-                
-                NodeList globalColorTable = globalRoot.getElementsByTagName("GlobalColorTable");
-                NodeList globalScreeDescriptor = globalRoot.getElementsByTagName("LogicalScreenDescriptor");
-                
-                if (globalScreeDescriptor != null && globalScreeDescriptor.getLength() > 0) {
-                    IIOMetadataNode screenDescriptor = (IIOMetadataNode) globalScreeDescriptor.item(0);
-                    
-                    if (screenDescriptor != null) {
-                        width = Integer.parseInt(screenDescriptor.getAttribute("logicalScreenWidth"));
-                        height = Integer.parseInt(screenDescriptor.getAttribute("logicalScreenHeight"));
-                    }
-                }
-                
-                if (globalColorTable != null && globalColorTable.getLength() > 0) {
-                    IIOMetadataNode colorTable = (IIOMetadataNode) globalColorTable.item(0);
-                    
-                    if (colorTable != null) {
-                        String bgIndex = colorTable.getAttribute("backgroundColorIndex");
-                        
-                        IIOMetadataNode colorEntry = (IIOMetadataNode) colorTable.getFirstChild();
-                        while (colorEntry != null) {
-                            if (colorEntry.getAttribute("index").equals(bgIndex)) {
-                                int red = Integer.parseInt(colorEntry.getAttribute("red"));
-                                int green = Integer.parseInt(colorEntry.getAttribute("green"));
-                                int blue = Integer.parseInt(colorEntry.getAttribute("blue"));
-                                
-                                backgroundColor = new Color(red, green, blue);
-                                break;
-                            }
-                            
-                            colorEntry = (IIOMetadataNode) colorEntry.getNextSibling();
-                        }
-                    }
-                }
-            }
-            
-            BufferedImage master = null;
-            boolean hasBackground = false;
-            
-            for (int frameIndex = 0; ; frameIndex++) {
-                BufferedImage image;
-                try {
-                    image = reader.read(frameIndex);
-                } catch (IndexOutOfBoundsException io) {
-                    break;
-                }
-                
-                if (width == -1 || height == -1) {
-                    width = image.getWidth();
-                    height = image.getHeight();
-                }
-                
-                IIOMetadataNode root = (IIOMetadataNode) reader.getImageMetadata(frameIndex).getAsTree("javax_imageio_gif_image_1.0");
-                IIOMetadataNode gce = (IIOMetadataNode) root.getElementsByTagName("GraphicControlExtension").item(0);
-                NodeList children = root.getChildNodes();
-                
-                int delay = Integer.parseInt(gce.getAttribute("delayTime"));
-                
-                String disposal = gce.getAttribute("disposalMethod");
-                
-                if (master == null) {
-                    master = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-                    master.createGraphics().setColor(backgroundColor);
-                    master.createGraphics().fillRect(0, 0, master.getWidth(), master.getHeight());
-                    
-                    hasBackground = image.getWidth() == width && image.getHeight() == height;
-                    
-                    master.createGraphics().drawImage(image, 0, 0, null);
-                } else {
-                    int x = 0;
-                    int y = 0;
-                    
-                    for (int nodeIndex = 0; nodeIndex < children.getLength(); nodeIndex++) {
-                        Node nodeItem = children.item(nodeIndex);
-                        
-                        if (nodeItem.getNodeName().equals("ImageDescriptor")) {
-                            NamedNodeMap map = nodeItem.getAttributes();
-                            
-                            x = Integer.parseInt(map.getNamedItem("imageLeftPosition").getNodeValue());
-                            y = Integer.parseInt(map.getNamedItem("imageTopPosition").getNodeValue());
-                        }
-                    }
-                    
-                    if (disposal.equals("restoreToPrevious")) {
-                        BufferedImage from = null;
-                        for (int i = frameIndex - 1; i >= 0; i--) {
-                            if (!frames.get(i).getDisposal().equals("restoreToPrevious") || frameIndex == 0) {
-                                from = frames.get(i).getImage();
-                                break;
-                            }
-                        }
-                        
-                        {
-                            assert from != null;
-                            ColorModel model = from.getColorModel();
-                            boolean alpha = from.isAlphaPremultiplied();
-                            WritableRaster raster = from.copyData(null);
-                            master = new BufferedImage(model, raster, alpha, null);
-                        }
-                    } else if (disposal.equals("restoreToBackgroundColor") && backgroundColor != null) {
-                        if (!hasBackground || frameIndex > 1) {
-                            master.createGraphics().fillRect(lastx, lasty, frames.get(frameIndex - 1).getWidth(), frames.get(frameIndex - 1).getHeight());
-                        }
-                    }
-                    master.createGraphics().drawImage(image, x, y, null);
-                    
-                    lastx = x;
-                    lasty = y;
-                }
-                
-                {
-                    BufferedImage copy;
-                    
-                    {
-                        ColorModel model = master.getColorModel();
-                        boolean alpha = master.isAlphaPremultiplied();
-                        WritableRaster raster = master.copyData(null);
-                        copy = new BufferedImage(model, raster, alpha, null);
-                    }
-                    frames.add(new ImageFrame(copy, delay, disposal, image.getWidth(), image.getHeight()));
-                }
-                
-                master.flush();
-            }
-            reader.dispose();
-            
-            return frames.toArray(new ImageFrame[0]);
-        }
-    }
-    
     public static HashMap<String, ArgumentTranslator> argumentTranslator = new HashMap<>();
     static {
         argumentTranslator.put("null", (text, object, color, varColor) -> {
@@ -495,7 +297,7 @@ public class MessageUtils {
             if (object instanceof TPort tport) {
                 Encapsulation encapsulation = asTPort(tport);
                 
-                TextComponent component = new TextComponent(encapsulation.asString(), varColor);
+                Message component = encapsulation.toMessage(color, varColor);
                 component.addTextEvent(encapsulation.getHoverEvent());
                 component.addTextEvent(encapsulation.getClickEvent());
                 component.setInsertion(encapsulation.getInsertion());
@@ -508,7 +310,7 @@ public class MessageUtils {
             if (object instanceof Player player) {
                 Encapsulation encapsulation = asPlayer(player);
                 
-                TextComponent component = new TextComponent(encapsulation.asString(), varColor);
+                Message component = encapsulation.toMessage(color, varColor);
                 component.addTextEvent(encapsulation.getHoverEvent());
                 component.addTextEvent(encapsulation.getClickEvent());
                 component.setInsertion(encapsulation.getInsertion());
@@ -519,7 +321,7 @@ public class MessageUtils {
         });
         argumentTranslator.put("encapsulation", (text, object, color, varColor) -> {
             if (object instanceof Encapsulation encapsulation) {
-                TextComponent component = encapsulation.asText(varColor);
+                Message component = encapsulation.toMessage(color, varColor);
                 component.addTextEvent(encapsulation.getHoverEvent());
                 component.addTextEvent(encapsulation.getClickEvent());
                 component.setInsertion(encapsulation.getInsertion());
@@ -530,7 +332,7 @@ public class MessageUtils {
         });
         argumentTranslator.put("messageDescription", (text, object, color, varColor) -> {
             if (object instanceof MessageDescription messageDescription) {
-                TextComponent component = messageDescription.getName(varColor);
+                Message component = messageDescription.getName(color, varColor);
                 Message description = messageDescription.getDescription();
                 if (description != null && !description.isEmpty()) component.addTextEvent(new HoverEvent(description));
                 component.setInsertion(messageDescription.getInsertion());
@@ -590,7 +392,8 @@ public class MessageUtils {
         argumentTranslator.put("itemStack", (text, object, color, varColor) -> {
             if (object instanceof ItemStack item) {
                 TextComponent component = new TextComponent(item.getType().name(), varColor);
-                component.addTextEvent(new HoverEvent(textComponent(item.toString())));
+                
+                component.addTextEvent(new HoverEvent(textComponent(item.toString(), color)));
                 component.setInsertion(component.getText());
                 text.addTranslateWith(component);
                 return true;
@@ -646,7 +449,7 @@ public class MessageUtils {
         ItemStack itemStack = Main.getOrDefault(signItem, new ItemStack(Material.OAK_SIGN));
         try {
             TPortAdapter adapter = Main.getInstance().adapter;
-            String version = adapter.getServerVersion();
+            String version = ReflectionManager.getServerClassesVersion();
             Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
             
             Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
@@ -820,7 +623,7 @@ public class MessageUtils {
         try {
             TPortAdapter adapter = Main.getInstance().adapter;
             
-            String version = adapter.getServerVersion();
+            String version = ReflectionManager.getServerClassesVersion();
             Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
             
             Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
@@ -870,6 +673,12 @@ public class MessageUtils {
             }
         }
         return is;
+    }
+    public static boolean hasCustomName(ItemStack is) {
+        return hasCustomName(is.getItemMeta());
+    }
+    public static boolean hasCustomName(ItemMeta im) {
+        return im.hasDisplayName();
     }
     
     public static ArrayList<Message> transformColoredTextToMessage(String coloredText, @Nullable String defaultColor) {
@@ -1046,8 +855,8 @@ public class MessageUtils {
     }
     
     public interface MessageDescription {
-        Message getDescription();
-        TextComponent getName(String varColor);
+        @Nullable Message getDescription();
+        Message getName(String color, String varColor);
         String getInsertion();
     }
 }

@@ -38,9 +38,9 @@ public class SimpleAnimation extends ParticleAnimation {
     }
     
     @Override
-    public void show(Player player, Location l) {
+    public void show(Player player, Location location) {
         try {
-            if (l.getWorld() != null) l.getWorld().spawnParticle(particle, l, amount);
+            if (location.getWorld() != null) location.getWorld().spawnParticle(particle, location, amount);
         } catch (IllegalArgumentException ignore) {
         }
     }

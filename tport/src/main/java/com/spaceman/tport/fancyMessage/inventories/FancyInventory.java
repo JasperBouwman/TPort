@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.titleColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -81,7 +82,7 @@ public class FancyInventory implements InventoryHolder {
     }
     
     public <C> void setData(DataName<C> dataName, C data) {
-        if (dataName.getClazz().isInstance(data)) {
+        if (dataName.getClazz().isInstance(data) || data == null) {
             setData(dataName.getDataName(), data);
         }
     }
@@ -94,6 +95,34 @@ public class FancyInventory implements InventoryHolder {
     public <C> boolean hasData(DataName<C> dataName) {
         Object o = holderData.getOrDefault(dataName.getDataName(), null);
         return dataName.getClazz().isInstance(o);
+    }
+    
+    public void transferData(FancyInventory prevWindow) {
+        this.holderData.putAll(prevWindow.holderData);
+    }
+    public void transferData(FancyInventory prevWindow, boolean overwrite) {
+        if (overwrite) {
+            this.transferData(prevWindow);
+        } else {
+            for (Map.Entry<String, Object> s : prevWindow.holderData.entrySet()) {
+                if (!this.hasData(s.getKey())) {
+                    this.setData(s.getKey(), s.getValue());
+                }
+            }
+        }
+    }
+    
+    public <C> Object removeData(DataName<C> dataName) {
+        return this.holderData.remove(dataName.getDataName());
+    }
+    public Object removeData(String dataName) {
+        return this.holderData.remove(dataName);
+    }
+    
+    public void removeData(FancyInventory inventory) {
+        for (Map.Entry<String, Object> entry : inventory.holderData.entrySet()) {
+            this.removeData(entry.getKey());
+        }
     }
     
     public static class DataName<C> {
@@ -125,10 +154,6 @@ public class FancyInventory implements InventoryHolder {
         }
     }
     
-    public void transferData(FancyInventory prevWindow) {
-        this.holderData.putAll(prevWindow.holderData);
-    }
-    
     public int getSize() {
         return inventory.getSize();
     }
@@ -147,8 +172,9 @@ public class FancyInventory implements InventoryHolder {
         this.setData("originalContent", inventory.getContents());
     }
     public static void ensureOriginalContent(Player player) {
-        Inventory inv = player.getOpenInventory().getTopInventory();
-        
+        ensureOriginalContent(player, player.getOpenInventory().getTopInventory());
+    }
+    public static void ensureOriginalContent(Player player, Inventory inv) {
         if (inv.getHolder() instanceof FancyInventory fancyInventory) {
             List<ItemStack> originalContent = Arrays.asList(fancyInventory.getData("originalContent", ItemStack[].class, new ItemStack[0]));
             for (ItemStack item : inv.getContents()) {
@@ -156,7 +182,6 @@ public class FancyInventory implements InventoryHolder {
                     Main.giveItems(player, item);
                 }
             }
-            
         }
     }
     
@@ -220,6 +245,9 @@ public class FancyInventory implements InventoryHolder {
     }
     public static FancyInventory getDynamicScrollableInventory(Player player, int page, InventoryCreator invCreator, Message title, List<ItemStack> items, @Nullable ItemStack backButton, int minSize) {
         
+        ColorTheme theme = getTheme(player);
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        
         int rows = 3; //amount of rows
         int width = 7; //amount of items in a row
         int skipPerPage = 7; //amount of items skipped per page ( width * (rows to skip) )
@@ -245,7 +273,8 @@ public class FancyInventory implements InventoryHolder {
         size = Math.max(size, minSize);
         
         if (maxPages != 1) {
-            title.addMessage(formatInfoTranslation("tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.page", page + 1, maxPages));
+            Message m = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.page", page + 1, maxPages);
+            title.addMessage(m);
         }
         
         FancyInventory inv = new FancyInventory(size, title);
@@ -272,23 +301,13 @@ public class FancyInventory implements InventoryHolder {
             inv.setItem(size / 18 * 9 + 8, backButton);
         }
         
-        ColorTheme theme = getTheme(player);
-        JsonObject playerLang = getPlayerLang(player.getUniqueId());
-        
         if ((page + rows) * width < items.size()) { //if not all items could be displayed, add next 'button'
             ItemStack is = next_model.getItem(player);
             
-            Message nextTitle = formatTranslation(titleColor, titleColor, "tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.next.title");
-            Message next1 = formatInfoTranslation("tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.next.+1", ClickType.LEFT, "+1");
-            Message nextRow = formatInfoTranslation("tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.next.+row", ClickType.RIGHT, "+" + rows);
-            Message nextEnd = formatInfoTranslation("tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.next.end", ClickType.SHIFT_RIGHT);
-            
-            if (playerLang != null) {
-                nextTitle = MessageUtils.translateMessage(nextTitle, playerLang);
-                next1 = MessageUtils.translateMessage(next1, playerLang);
-                nextRow = MessageUtils.translateMessage(nextRow, playerLang);
-                nextEnd = MessageUtils.translateMessage(nextEnd, playerLang);
-            }
+            Message nextTitle = formatTranslation(titleColor, titleColor, "tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.next.title").translateMessage(playerLang);
+            Message next1 = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.next.+1", ClickType.LEFT, "+1");
+            Message nextRow = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.next.+row", ClickType.RIGHT, "+" + rows);
+            Message nextEnd = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.next.end", ClickType.SHIFT_RIGHT);
             
             MessageUtils.setCustomItemData(is, theme, nextTitle, Arrays.asList(next1, nextRow, nextEnd));
             
@@ -303,17 +322,10 @@ public class FancyInventory implements InventoryHolder {
         if (page != 0) { //if not at page 0 (1 as display) add previous 'button'
             ItemStack is = previous_model.getItem(player );
             
-            Message previousTitle = formatTranslation(titleColor, titleColor, "tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.previous.title");
-            Message previous1 = formatInfoTranslation("tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.previous.-1", ClickType.LEFT, "-1");
-            Message previousRow = formatInfoTranslation("tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.previous.-row", ClickType.RIGHT, "-" + rows);
-            Message previousBegin = formatInfoTranslation("tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.previous.begin", ClickType.SHIFT_RIGHT);
-            
-            if (playerLang != null) {
-                previousTitle = MessageUtils.translateMessage(previousTitle, playerLang);
-                previous1 = MessageUtils.translateMessage(previous1, playerLang);
-                previousRow = MessageUtils.translateMessage(previousRow, playerLang);
-                previousBegin = MessageUtils.translateMessage(previousBegin, playerLang);
-            }
+            Message previousTitle = formatTranslation(titleColor, titleColor, "tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.previous.title").translateMessage(playerLang);
+            Message previous1 = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.previous.-1", ClickType.LEFT, "-1");
+            Message previousRow = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.previous.-row", ClickType.RIGHT, "-" + rows);
+            Message previousBegin = formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.fancyInventory.getDynamicScrollableInventory.previous.begin", ClickType.SHIFT_RIGHT);
             
             MessageUtils.setCustomItemData(is, theme, previousTitle, Arrays.asList(previous1, previousRow, previousBegin));
             

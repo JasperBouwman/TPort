@@ -4,6 +4,7 @@ import com.spaceman.tport.commandHandler.customRunnables.RunRunnable;
 import com.spaceman.tport.commandHandler.customRunnables.TabRunnable;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,8 +27,8 @@ public class EmptyCommand extends SubCommand {
     }
     
     @Override
-    public void addAction(SubCommand subCommand) {
-        actions.add(subCommand);
+    public void addAction(@Nullable SubCommand subCommand) {
+        if (subCommand != null) actions.add(subCommand);
     }
     
     @Override

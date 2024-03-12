@@ -30,8 +30,9 @@ public class Edit extends SubCommand {
         emptyOwnTPort.addAction(Move.getInstance());
         emptyOwnTPort.addAction(new Range());
         emptyOwnTPort.addAction(new Tag());
-        if (Features.Feature.Preview.isEnabled()) emptyOwnTPort.addAction(new Preview());
-        if (Features.Feature.Dynmap.isEnabled()) emptyOwnTPort.addAction(new Dynmap());
+        emptyOwnTPort.addAction(new Preview());
+        emptyOwnTPort.addAction(new Dynmap());
+        emptyOwnTPort.addAction(new BlueMap());
         addAction(emptyOwnTPort);
     }
     

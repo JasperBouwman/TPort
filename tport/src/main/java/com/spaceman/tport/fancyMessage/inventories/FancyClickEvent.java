@@ -21,14 +21,33 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.bukkit.persistence.PersistentDataType.STRING;
+import static org.bukkit.persistence.PersistentDataType.*;
 
 public class FancyClickEvent implements Listener {
     
     public static void setStringData(ItemStack item, NamespacedKey key, String value) {
         ItemMeta im = item.getItemMeta();
-        im.getPersistentDataContainer().set(key, STRING, value);
+        if (im != null) setStringData(im, key, value);
         item.setItemMeta(im);
+    }
+    public static void setStringData(ItemMeta im, NamespacedKey key, String value) {
+        im.getPersistentDataContainer().set(key, STRING, value);
+    }
+    public static void setBooleanData(ItemStack item, NamespacedKey key, boolean value) {
+        ItemMeta im = item.getItemMeta();
+        if (im != null) setBooleanData(im, key, value);
+        item.setItemMeta(im);
+    }
+    public static void setBooleanData(ItemMeta im, NamespacedKey key, boolean value) {
+        im.getPersistentDataContainer().set(key, BOOLEAN, value);
+    }
+    public static void setIntData(ItemStack item, NamespacedKey key, int value) {
+        ItemMeta im = item.getItemMeta();
+        if (im != null) setIntData(im, key, value);
+        item.setItemMeta(im);
+    }
+    public static void setIntData(ItemMeta im, NamespacedKey key, int value) {
+        im.getPersistentDataContainer().set(key, INTEGER, value);
     }
     
     public static ItemStack addCommand(ItemStack is, ClickType clickType, String command) {
@@ -49,9 +68,12 @@ public class FancyClickEvent implements Listener {
         return is;
     }
     public static ItemMeta addCommand(@Nonnull ItemMeta im, ClickType clickType, String command, @Nullable String secondary) {
+        if (command.startsWith("/")) command = command.substring(1);
         im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "runCommand_" + clickType.name()), PersistentDataType.STRING, command);
-        if (!StringUtils.isEmpty(secondary))
+        if (!(secondary == null || secondary.isBlank())) {
+            if (secondary.startsWith("/")) secondary = secondary.substring(1);
             im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "runCommand_" + clickType.name() + "_secondary"), PersistentDataType.STRING, secondary);
+        }
         return im;
     }
     
@@ -61,6 +83,12 @@ public class FancyClickEvent implements Listener {
             addFunction(is, clickType, runnable);
         }
         return is;
+    }
+    public static ItemMeta addFunction(ItemMeta im, FancyClickRunnable runnable, ClickType... clickTypes) {
+        for (ClickType clickType : clickTypes) {
+            addFunction(im, clickType, runnable);
+        }
+        return im;
     }
     public static ItemStack addFunction(ItemStack is, ClickType clickType, FancyClickRunnable runnable) {
         ItemMeta im = is.getItemMeta();
@@ -77,6 +105,7 @@ public class FancyClickEvent implements Listener {
         functionsMap.putIfAbsent(funcName, runnable);
         return im;
     }
+    
     public static ItemMeta removeFunction(ItemMeta im, ClickType clickType) {
         if (im == null) return null;
         im.getPersistentDataContainer().remove(new NamespacedKey(Main.getInstance(), "runFunc_" + clickType.name()));
@@ -119,16 +148,7 @@ public class FancyClickEvent implements Listener {
     @EventHandler
     @SuppressWarnings("unused")
     public void onFancyClose(InventoryCloseEvent e) {
-        if (!(e.getInventory().getHolder() instanceof FancyInventory fancyInventory)) {
-            return;
-        }
-        
-        List<ItemStack> originalContent = Arrays.asList(fancyInventory.getData("originalContent", ItemStack[].class, new ItemStack[0]));
-        for (ItemStack item : e.getInventory().getContents()) {
-            if (!originalContent.contains(item)) {
-                Main.giveItems((Player) e.getPlayer(), item);
-            }
-        }
+        FancyInventory.ensureOriginalContent((Player) e.getPlayer(), e.getInventory());
     }
     
     @EventHandler

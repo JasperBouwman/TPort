@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "tport:item/settings/safety_check/settings_safety_check_pltp_grayed"
+  }
+}

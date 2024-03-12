@@ -165,6 +165,7 @@ public class SafetyCheck extends SubCommand {
         TPORT_OWN(settings_safety_check_tport_own_model, settings_safety_check_tport_own_grayed_model),
         TPORT_HOME(settings_safety_check_tport_home_model, settings_safety_check_tport_home_grayed_model),
         TPORT_BACK(settings_safety_check_tport_back_model, settings_safety_check_tport_back_grayed_model),
+        PLTP(settings_safety_check_pltp_model, settings_safety_check_pltp_grayed_model),
         TPORT_PUBLIC(settings_safety_check_tport_public_model, settings_safety_check_tport_public_grayed_model);
         
         private final InventoryModel enabledModel;
@@ -217,8 +218,8 @@ public class SafetyCheck extends SubCommand {
         }
         
         @Override
-        public TextComponent getName(String varColor) {
-            return new TextComponent(name(), varColor);
+        public Message getName(String color, String varColor) {
+            return new Message(new TextComponent(name(), varColor));
         }
         
         @Override

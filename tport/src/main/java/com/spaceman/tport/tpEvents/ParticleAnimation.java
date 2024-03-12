@@ -48,7 +48,7 @@ public abstract class ParticleAnimation {
     
     public abstract String getAnimationName();
     
-    public abstract void show(Player player, Location l);
+    public abstract void show(Player player, Location location);
     
     public abstract boolean edit(Player player, String[] data);
     

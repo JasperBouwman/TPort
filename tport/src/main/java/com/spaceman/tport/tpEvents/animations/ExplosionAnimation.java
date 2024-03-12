@@ -53,11 +53,11 @@ public class ExplosionAnimation extends ParticleAnimation {
     }
     
     @Override
-    public void show(Player player, Location l) {
-        World world = l.getWorld();
+    public void show(Player player, Location location) {
+        World world = location.getWorld();
         if (world == null) return;
         
-        l = l.add(0, 1, 0);
+        location = location.add(0, 1, 0);
         
         double two_pi = Math.PI * 2;
         double increment = two_pi / resolution;
@@ -71,12 +71,12 @@ public class ExplosionAnimation extends ParticleAnimation {
                 
                 try {
                     if (explosion)
-                        world.spawnParticle(particle, l.getX(), l.getY(), l.getZ(), 0, (float) xOffset * sinPhi, (float) cosPhi, (float) zOffset * sinPhi, velocity);
+                        world.spawnParticle(particle, location.getX(), location.getY(), location.getZ(), 0, (float) xOffset * sinPhi, (float) cosPhi, (float) zOffset * sinPhi, velocity);
                     else
                         world.spawnParticle(particle,
-                                l.getX() + xOffset * sinPhi * radius,
-                                l.getY() + cosPhi * radius,
-                                l.getZ() + zOffset * sinPhi * radius,
+                                location.getX() + xOffset * sinPhi * radius,
+                                location.getY() + cosPhi * radius,
+                                location.getZ() + zOffset * sinPhi * radius,
                                 0, (float) -xOffset * sinPhi, (float) -Math.cos(phi), (float) -zOffset * sinPhi, velocity);
                 } catch (IllegalArgumentException ignore) {
                 }

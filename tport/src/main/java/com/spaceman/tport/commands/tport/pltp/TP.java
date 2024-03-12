@@ -1,8 +1,10 @@
 package com.spaceman.tport.commands.tport.pltp;
 
+import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.SafetyCheck;
 import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
@@ -18,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.PLTP;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -29,10 +32,28 @@ public class TP extends SubCommand {
     private final EmptyCommand emptyPlayer;
     
     public TP() {
+        EmptyCommand emptyPlayerSafetyCheck = new EmptyCommand() {
+            @Override
+            public Message permissionsHover() {
+                return formatInfoTranslation("tport.command.PLTP.TP.player.safetyCheck.permissionHover", "TPort.PLTP.tp", PLTP.getPermission(), "TPort.basic");
+            }
+        };
+        emptyPlayerSafetyCheck.setCommandName("safetyCheck", ArgumentType.OPTIONAL);
+        emptyPlayerSafetyCheck.setCommandDescription(formatInfoTranslation("tport.command.PLTP.TP.player.safetyCheck.commandDescription"));
+        emptyPlayerSafetyCheck.setPermissions("TPort.own", PLTP.getPermission(), "TPort.basic");
+        
         emptyPlayer = new EmptyCommand();
         emptyPlayer.setCommandName("player", ArgumentType.REQUIRED);
         emptyPlayer.setCommandDescription(formatInfoTranslation("tport.command.PLTP.TP.player.commandDescription"));
         emptyPlayer.setPermissions("TPort.PLTP.tp", "TPort.basic");
+        emptyPlayer.setTabRunnable((args, player) -> {
+            if (emptyPlayerSafetyCheck.hasPermissionToRun(player, false)) {
+                return List.of("true", "false");
+            }
+            return Collections.emptyList();
+        });
+        emptyPlayer.addAction(emptyPlayerSafetyCheck);
+        
         addAction(emptyPlayer);
     }
     
@@ -51,10 +72,10 @@ public class TP extends SubCommand {
     
     @Override
     public void run(String[] args, Player player) {
-        //tport PLTP tp <player>
+        //tport PLTP tp <player> [safetyCheck]
         
-        if (args.length != 3) {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP tp <player>");
+        if (args.length != 3 && args.length != 4) {
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP tp <player> [safetyCheck]");
             return;
         }
         if (!emptyPlayer.hasPermissionToRun(player, true)) {
@@ -79,6 +100,21 @@ public class TP extends SubCommand {
             }
         }
         
+        Boolean safetyCheckState;
+        if (args.length == 4) {
+            if (PLTP.hasPermission(player, true)) {
+                safetyCheckState = Main.toBoolean(args[3]);
+                if (safetyCheckState == null) {
+                    sendErrorTranslation(player, "tport.command.wrongUsage", "/tport PLTP tp <player> [true|false]");
+                    return;
+                }
+            } else {
+                return;
+            }
+        } else {
+            safetyCheckState = PLTP.getState(player);
+        }
+        
         if (Consent.shouldAskConsent(warpTo)) {
             if (!whitelist.contains(player.getUniqueId().toString())) {
                 
@@ -89,20 +125,19 @@ public class TP extends SubCommand {
                 if (TPRequest.hasRequest(player, true)) {
                     return;
                 }
-                TPRequest.createPLTPRequest(player.getUniqueId(), warpTo.getUniqueId());
+                TPRequest.createPLTPRequest(player.getUniqueId(), warpTo.getUniqueId(), safetyCheckState);
                 
                 Message accept = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
-                accept.getText().forEach(t -> t
-                        .addTextEvent(ClickEvent.runCommand("/tport requests accept " + player.getName()))
-                        .addTextEvent(new HoverEvent(textComponent("/tport requests accept " + player.getName(), infoColor))));
+                accept.addTextEvent(ClickEvent.runCommand("/tport requests accept " + player.getName()));
+                accept.addTextEvent(new HoverEvent(textComponent("/tport requests accept " + player.getName(), infoColor)));
+                
                 Message reject = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
-                reject.getText().forEach(t -> t
-                        .addTextEvent(ClickEvent.runCommand("/tport requests reject " + player.getName()))
-                        .addTextEvent(new HoverEvent(textComponent("/tport requests reject " + player.getName(), infoColor))));
+                reject.addTextEvent(ClickEvent.runCommand("/tport requests reject " + player.getName()));
+                reject.addTextEvent(new HoverEvent(textComponent("/tport requests reject " + player.getName(), infoColor)));
+                
                 Message revoke = formatTranslation(varInfoColor, varInfo2Color, "tport.command.requests.here");
-                revoke.getText().forEach(t -> t
-                        .addTextEvent(ClickEvent.runCommand("/tport requests revoke"))
-                        .addTextEvent(new HoverEvent(textComponent("/tport requests revoke", infoColor))));
+                revoke.addTextEvent(ClickEvent.runCommand("/tport requests revoke"));
+                revoke.addTextEvent(new HoverEvent(textComponent("/tport requests revoke", infoColor)));
                 
                 sendInfoTranslation(warpTo, "tport.command.PLTP.TP.player.askConsent", player, accept, reject);
                 sendInfoTranslation(player, "tport.command.PLTP.TP.player.consentAsked", warpTo, "true", revoke);
@@ -111,20 +146,26 @@ public class TP extends SubCommand {
             }
         }
         
-        tp(player, warpTo);
+        tp(player, warpTo, safetyCheckState, false);
     }
     
-    public static boolean tp(Player player, Player toPlayer) {
+    public static boolean tp(Player player, Player toPlayer, boolean safetyCheck, boolean requested) {
         if (!CooldownManager.PlayerTP.hasCooled(player)) {
             return false;
         }
         
+        if (safetyCheck && !SafetyCheck.isSafe(Offset.getPLTPOffset(player).applyOffset(toPlayer.getLocation()))) {
+            sendErrorTranslation(player, "tport.command.PLTP.TP.player.notSafe", asPlayer(toPlayer));
+            if (requested) sendErrorTranslation(toPlayer, "tport.command.PLTP.TP.player.notSafeOtherPlayer", asPlayer(player));
+            return false;
+        }
+        
         tpPlayerToPlayer(player, toPlayer, () -> {
-                    sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.PLTP.TP.player.succeeded", toPlayer);
-                    sendInfoTranslation(Bukkit.getPlayer(toPlayer.getUniqueId()), "tport.command.PLTP.TP.player.succeededOtherPlayer", player);
+                    sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.PLTP.TP.player.succeeded", asPlayer(toPlayer));
+                    sendInfoTranslation(Bukkit.getPlayer(toPlayer.getUniqueId()), "tport.command.PLTP.TP.player.succeededOtherPlayer", asPlayer(player));
                 },
                 ((p, delay, tickMessage, seconds, secondMessage) -> {
-                    sendSuccessTranslation(p, "tport.command.PLTP.TP.player.succeededRequested", toPlayer, delay, tickMessage, seconds, secondMessage);
+                    sendSuccessTranslation(p, "tport.command.PLTP.TP.player.succeededRequested", asPlayer(toPlayer), delay, tickMessage, seconds, secondMessage);
                     sendInfoTranslation(toPlayer, "tport.command.PLTP.TP.player.succeededOtherPlayerRequested", p, delay, tickMessage, seconds, secondMessage);
                 }));
         CooldownManager.PlayerTP.update(player);

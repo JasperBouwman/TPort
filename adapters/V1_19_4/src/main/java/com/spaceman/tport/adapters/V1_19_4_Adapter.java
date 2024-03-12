@@ -2,18 +2,23 @@ package com.spaceman.tport.adapters;
 
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.server.network.PlayerConnection;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.InvocationTargetException;
-
-public class V1_19_4_Adapter extends V1_19_4_NBTAdapter {
+public class V1_19_4_Adapter extends V1_19_4_FancyMessageAdapter {
     
-    static {
-        adapters.put("V1_19_4", new V1_19_4_Adapter());
+    @Override
+    public String getAdapterName() {
+        return "1.19.4";
     }
     
     @Override
-    public void sendPlayerPacket(Player player, Object packet) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, ClassNotFoundException {
+    public Object getPlayerConnection(Player player) {
+        return ((CraftPlayer)player).getHandle().b;
+    }
+    
+    @Override
+    public void sendPlayerPacket(Player player, Object packet) {
         PlayerConnection pc = (PlayerConnection) getPlayerConnection(player);
         pc.a((Packet<?>) packet);
     }

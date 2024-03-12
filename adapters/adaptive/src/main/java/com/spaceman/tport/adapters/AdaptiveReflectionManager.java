@@ -1,7 +1,6 @@
 package com.spaceman.tport.adapters;
 
 import com.mojang.datafixers.util.Pair;
-import com.spaceman.tport.Main;
 import net.minecraft.core.*;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.resources.ResourceKey;
@@ -188,11 +187,13 @@ public class AdaptiveReflectionManager {
         }
     }
     public static HolderSet<BiomeBase> getGenerateInBiomes(Holder<Structure> holder) throws InvocationTargetException, IllegalAccessException {
-        Structure structure = getValueFromHolder(holder);
+        return getGenerateInBiomes(getValueFromHolder(holder));
+    }
+    public static HolderSet<BiomeBase> getGenerateInBiomes(Structure structure) throws InvocationTargetException, IllegalAccessException {
         //searching for Structure#biomes()
         return ReflectionManager.get(HolderSet.class, structure);
     }
-    public static Set<Holder<BiomeBase>> generateBiomesInList(List<Holder<Structure>> featureList) throws InvocationTargetException, IllegalAccessException {
+    public static Set<Holder<BiomeBase>> generateBiomesInListHolder(List<Holder<Structure>> featureList) throws InvocationTargetException, IllegalAccessException {
 //        Set<Holder<BiomeBase>> generateInBiomesList = featureList.stream().flatMap((holder) -> holder.a().a().a()).collect(Collectors.toSet());
         
         Set<Holder<BiomeBase>> returnSet = new HashSet<>();
@@ -205,9 +206,19 @@ public class AdaptiveReflectionManager {
         
         return returnSet;
     }
+    public static Set<Holder<BiomeBase>> getGenerateBiomesAsSet(Structure structure) throws InvocationTargetException, IllegalAccessException {
+//        Set<Holder<BiomeBase>> generateInBiomesList = featureList.stream().flatMap((holder) -> holder.a().a().a()).collect(Collectors.toSet());
+        
+        Set<Holder<BiomeBase>> returnSet = new HashSet<>();
+        HolderSet<BiomeBase> biomes = getGenerateInBiomes(structure);
+        Stream<Holder<BiomeBase>> biomeStream = ReflectionManager.get(Stream.class, biomes);
+        
+        biomeStream.forEach(returnSet::add);
+        return returnSet;
+    }
     
     public static List<StructurePlacement> getPlacementsForStructure(ChunkGeneratorStructureState chunkGeneratorStructureState, Holder<Structure> structureHolder) throws InvocationTargetException, IllegalAccessException {
-        ReflectionManager.get(List.class, chunkGeneratorStructureState, structureHolder);
+        ReflectionManager.get(List.class, chunkGeneratorStructureState, structureHolder); //todo why this?
         return chunkGeneratorStructureState.a(structureHolder);
     }
     public static StructureManager getStructureManager(WorldServer worldServer) throws InvocationTargetException, IllegalAccessException {
@@ -262,7 +273,7 @@ public class AdaptiveReflectionManager {
     }
     
     public static Class<?> getRegistryClass() throws ClassNotFoundException {
-        String version = Main.getInstance().adapter.getServerVersion();
+        String version = ReflectionManager.getServerClassesVersion();
         int mainVersion = Integer.parseInt(version.split("_")[1]);
         
         if (mainVersion > 19) {

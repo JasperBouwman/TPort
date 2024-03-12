@@ -1,16 +1,16 @@
 package com.spaceman.tport.commands.tport.biomeTP;
 
-import com.spaceman.tport.commands.TPortCommand;
-import com.spaceman.tport.inventories.TPortInventories;
+import com.spaceman.tport.biomeTP.BiomePreset;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.BiomeTP;
+import com.spaceman.tport.inventories.TPortInventories;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 
-import static com.spaceman.tport.commands.TPortCommand.executeTPortCommand;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
@@ -40,7 +40,7 @@ public class Preset extends SubCommand {
         if (!hasPermissionToRun(player, false)) {
             return Collections.emptyList();
         }
-        return BiomeTP.BiomeTPPresets.getNames();
+        return BiomePreset.getNames(player.getWorld());
     }
     
     @Override
@@ -57,13 +57,24 @@ public class Preset extends SubCommand {
             }
             String biomePreset = args[2];
             if (biomePreset.startsWith("#minecraft:")) biomePreset = "#" + biomePreset.substring(11);
-            BiomeTP.BiomeTPPresets.BiomePreset preset = BiomeTP.BiomeTPPresets.getPreset(biomePreset, player.getWorld());
+            BiomePreset preset = BiomePreset.getPreset(biomePreset, player.getWorld());
             if (preset == null) {
                 sendErrorTranslation(player, "tport.command.biomeTP.preset.presetNotExist", args[2]);
                 return;
             }
             List<String> command = new ArrayList<>(Arrays.asList("biomeTP", preset.whitelist() ? "whitelist" : "blacklist"));
-            command.addAll(preset.biomes());
+            List<String> generatedBiomes = BiomeTP.availableBiomes(player.getWorld());
+            for (String biome : preset.biomes()) {
+                if (!generatedBiomes.contains(biome)) {
+                    sendErrorTranslation(player, "tport.command.biomeTP.preset.biome.worldNotGenerateBiome", biome);
+                    continue;
+                }
+                command.add(biome);
+            }
+            if (command.size() == 2) {
+                sendErrorTranslation(player, "tport.command.biomeTP.preset.biome.noBiomesLeft");
+                return;
+            }
             TPortCommand.executeTPortCommand(player, command.toArray(new String[0]));
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport biomeTP preset [preset]");

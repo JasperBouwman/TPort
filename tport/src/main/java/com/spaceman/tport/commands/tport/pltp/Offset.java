@@ -67,11 +67,11 @@ public class Offset extends SubCommand {
     public enum PLTPOffset implements MessageUtils.MessageDescription {
         IN(origin -> origin, settings_pltp_offset_in_model),
         BEHIND(origin -> {
-            Location l = origin.clone();
-            l.setPitch(0);
-            l = l.add(l.getDirection().multiply(-1));
-            l.setPitch(origin.getPitch());
-            return SafetyCheck.isSafe(l) ? l : origin;
+            Location location = origin.clone();
+            location.setPitch(0);
+            location = location.add(location.getDirection().multiply(-1));
+            location.setPitch(origin.getPitch());
+            return SafetyCheck.isSafe(location) ? location : origin;
         }, settings_pltp_offset_behind_model);
         
         private final OffsetApplier offsetApplier;
@@ -109,12 +109,12 @@ public class Offset extends SubCommand {
         
         @Override
         public Message getDescription() {
-            return formatInfoTranslation("tport.tport.tport.privateState." + this.name() + ".description", this.name());
+            return formatInfoTranslation("tport.command.PLTP.offset.PLTPOffset." + this.name() + ".description", this.name());
         }
         
         @Override
-        public TextComponent getName(String varColor) {
-            return new TextComponent(name(), varColor);
+        public Message getName(String color, String varColor) {
+            return new Message(new TextComponent(name(), varColor));
         }
         
         @Override

@@ -4,6 +4,7 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.DyeColor;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
@@ -104,6 +105,10 @@ public class MultiColor implements ConfigurationSerializable, Serializable {
         this.setColor(color);
     }
     
+    public MultiColor(DyeColor color) {
+        this.setColor(color);
+    }
+    
     public MultiColor(Color color) {
         this.setColor(color);
     }
@@ -154,6 +159,10 @@ public class MultiColor implements ConfigurationSerializable, Serializable {
         };
     }
     
+    public void setColor(DyeColor color) {
+        setColor(color.getColor());
+    }
+    
     public void setColor(Color color) {
         this.setColor(new java.awt.Color(color.asRGB()));
     }
@@ -176,6 +185,18 @@ public class MultiColor implements ConfigurationSerializable, Serializable {
             color.append('§').append(c);
         }
         return color.toString();
+    }
+    
+    public int getRed() {
+        return getColor().getRed();
+    }
+    
+    public int getGreen() {
+        return getColor().getGreen();
+    }
+    
+    public int getBlue() {
+        return getColor().getBlue();
     }
     
     @Override

@@ -130,8 +130,8 @@ public class Preview extends SubCommand {
         }
         
         @Override
-        public TextComponent getName(String ignore) {
-            return new TextComponent(getDisplayName());
+        public Message getName(String ignore_color, String ignore_varColor) {
+            return new Message(new TextComponent(getDisplayName()));
         }
         
         @Override

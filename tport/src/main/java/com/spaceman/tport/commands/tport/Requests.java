@@ -58,7 +58,7 @@ public class Requests extends SubCommand {
                 return;
             }
             
-            if (sendRequest != null) sendInfoTranslation(player, "tport.command.requests.sendRequest", sendRequest.toInfo());
+            if (sendRequest != null) sendInfoTranslation(player, "tport.command.requests.sendRequest", sendRequest.toInfo()); //todo show safety check info
             if (!requests.isEmpty()) {
                 
                 Message list = new Message();

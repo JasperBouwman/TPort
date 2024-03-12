@@ -116,13 +116,13 @@ public class Accuracy extends SubCommand {
         }
         
         @Override
-        public TextComponent getName(String varColor) {
-            return new TextComponent(name, varColor);
+        public Message getName(String color, String varColor) {
+            return new Message(new TextComponent(name, varColor));
         }
         
         @Override
         public String getInsertion() {
-            return null;
+            return name;
         }
         
         public int getRange() {

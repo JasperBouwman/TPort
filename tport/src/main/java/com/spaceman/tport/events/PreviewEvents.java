@@ -1,6 +1,8 @@
 package com.spaceman.tport.events;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.commands.tport.pltp.Offset;
+import com.spaceman.tport.history.HistoryEvents;
 import com.spaceman.tport.tport.TPort;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -99,19 +101,20 @@ public class PreviewEvents implements Listener {
     }
     
     private static void createPreviewObject(Player player, TPort tport, UUID previewUUID) {
-        GameMode gm = player.getGameMode();
-        Location l = player.getLocation();
+        GameMode gameMode = player.getGameMode();
+        Location location = player.getLocation();
         if (isPreviewing(player.getUniqueId())) {
             PreviewObject po = previews.get(player.getUniqueId());
-            gm = po.oldGameMode;
-            l = po.oldLocation;
+            gameMode = po.oldGameMode;
+            location = po.oldLocation;
         }
-        previews.put(player.getUniqueId(), new PreviewObject(l, tport, previewUUID, gm));
+        previews.put(player.getUniqueId(), new PreviewObject(location, tport, previewUUID, gameMode));
     }
     
     public static void preview(Player player, TPort tport) {
         createPreviewObject(player, tport, null);
         player.setGameMode(GameMode.SPECTATOR);
+        HistoryEvents.ignoreTeleport(player.getUniqueId());
         player.teleport(tport.getLocation());
         
         sendSuccessTranslation(player, "tport.tport.tport.preview.succeeded.tport", asTPort(tport));
@@ -119,7 +122,8 @@ public class PreviewEvents implements Listener {
     public static void preview(Player player, Player preview) {
         createPreviewObject(player, null, preview.getUniqueId());
         player.setGameMode(GameMode.SPECTATOR);
-        player.teleport(preview);
+        HistoryEvents.ignoreTeleport(player.getUniqueId());
+        player.teleport(Offset.getPLTPOffset(preview).applyOffset(preview.getLocation()));
         
         sendSuccessTranslation(player, "tport.tport.tport.preview.succeeded.player", asPlayer(preview));
     }

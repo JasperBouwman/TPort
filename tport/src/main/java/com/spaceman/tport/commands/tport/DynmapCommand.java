@@ -19,7 +19,7 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 public class DynmapCommand extends SubCommand {
     
     public DynmapCommand() {
-        if (Features.Feature.BiomeTP.isEnabled())  {
+        if (Features.Feature.Dynmap.isEnabled())  {
             DynmapHandler.enable();
         } else {
             DynmapHandler.disable();
@@ -54,6 +54,7 @@ public class DynmapCommand extends SubCommand {
         // tport dynmap
         // tport dynmap search <player> [TPort name]
         // tport dynmap IP [IP]
+        // tport dynmap colors [color theme]
         
         if (args.length == 1) {
             //When disabled this command can't be executed

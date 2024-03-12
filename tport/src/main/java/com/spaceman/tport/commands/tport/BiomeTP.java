@@ -1,9 +1,8 @@
 package com.spaceman.tport.commands.tport;
 
-import com.google.common.collect.Iterables;
-import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
+import com.spaceman.tport.biomeTP.BiomePreset;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.CommandTemplate;
 import com.spaceman.tport.commandHandler.EmptyCommand;
@@ -11,34 +10,33 @@ import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.biomeTP.*;
 import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.MessageUtils;
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
-import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
+import com.spaceman.tport.history.HistoryEvents;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.awt.*;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.commands.tport.Back.prevTPorts;
-import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
-import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.inventories.TPortInventories.openBiomeTP;
 import static com.spaceman.tport.tpEvents.TPEManager.requestTeleportPlayer;
 
 public class BiomeTP extends SubCommand {
+    
+    public static boolean legacyBiomeTP = false;
     
     private final EmptyCommand empty;
     
@@ -65,39 +63,110 @@ public class BiomeTP extends SubCommand {
     }
     
     public static List<String> availableBiomes() {
-        return Main.getInstance().adapter.availableBiomes();
+        if (!legacyBiomeTP) {
+            try {
+                return Main.getInstance().adapter.availableBiomes();
+            } catch (Throwable ex) {
+                Features.Feature.printSmallNMSErrorInConsole("BiomeTP biome list", true);
+                if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
+                legacyBiomeTP = true;
+            }
+        }
+        return Arrays.stream(Biome.values()).map(Enum::name).map(String::toLowerCase).collect(Collectors.toList());
     }
     
     public static List<String> availableBiomes(World world) {
-        return Main.getInstance().adapter.availableBiomes(world);
+        if (!legacyBiomeTP) {
+            try {
+                return Main.getInstance().adapter.availableBiomes(world);
+            } catch (Throwable ex) {
+                Features.Feature.printSmallNMSErrorInConsole("BiomeTP per world biome list", true);
+                if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
+                legacyBiomeTP = true;
+            }
+        }
+        return availableBiomes();
     }
     
     @Nullable
     public static Pair<Location, String> biomeFinder(Player player, List<String> biomes, @Nonnull Location startLocation, Accuracy.AccuracySettings accuracy) {
-        return Main.getInstance().adapter.biomeFinder(player, biomes, startLocation, accuracy);
+        if (!legacyBiomeTP) {
+            try {
+                return Main.getInstance().adapter.biomeFinder(player, biomes, startLocation, accuracy);
+            } catch (Throwable ex) {
+                Features.Feature.printSmallNMSErrorInConsole("BiomeTP biome finder", true);
+                if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
+                legacyBiomeTP = true;
+            }
+        }
+        
+        return legacyBiomeTP(player, biomes, startLocation, accuracy);
+    }
+    private static Pair<Location, String> legacyBiomeTP(Player player, List<String> biomes, @Nonnull Location startLocation, Accuracy.AccuracySettings accuracy) {
+        int startX = startLocation.getBlockX();
+        int startZ = startLocation.getBlockZ();
+        World world = startLocation.getWorld();
+        if (world == null) return null;
+        Rectangle searchArea = Main.getSearchArea(player);
+        
+        int size = accuracy.getRange();
+        List<Integer> yLevels = accuracy.getYLevels();
+        int increment = accuracy.getIncrement();
+        
+        int quartSize = size >> 2;
+        int quartX = startX >> 2;
+        int quartZ = startZ >> 2;
+        
+        for (int squareSize = 0; squareSize <= quartSize; squareSize += increment) {
+            for (int zOffset = -squareSize; zOffset <= squareSize; zOffset += increment) {
+                boolean zEnd = Math.abs(zOffset) == squareSize;
+                
+                for (int xOffset = -squareSize; xOffset <= squareSize; xOffset += increment) {
+                    boolean xEnd = Math.abs(zOffset) == squareSize;
+                    if (!zEnd && !xEnd) continue;
+                    
+                    int newX = (quartX + xOffset) << 2;
+                    int newZ = (quartZ + zOffset) << 2;
+                    
+                    if (!searchArea.contains(newX, newZ)) {
+                        continue;
+                    }
+                    
+                    for (int y : yLevels) {
+                        Location testLocation = new Location(world, newX, y, newZ);
+                        Biome biome = world.getBiome(testLocation);
+                        
+                        if (biomes.stream().anyMatch(b -> biome.name().equalsIgnoreCase(b))) {
+                            return new Pair<>(testLocation, biome.name());
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
     
     public static int randomTPTries = 100;
-    
     public static void randomTP(Player player) {
-        Location l;
+        Location location;
         
         for (int i = 0; i < randomTPTries; i++) {
-            l = Main.getRandomLocation(player);
+            location = Main.getRandomLocation(player);
             
-            l = FeatureTP.setSafeY(player.getWorld(), l.getBlockX(), l.getBlockZ());
-            if (l == null) {
+            location = FeatureTP.setSafeY(player.getWorld(), location.getBlockX(), location.getBlockZ());
+            if (location == null) {
                 continue;
             }
             
-            l.add(0.5, 0.1, 0.5);
-            l.setPitch(player.getLocation().getPitch());
-            l.setYaw(player.getLocation().getYaw());
+            location.add(0.5, 0.1, 0.5);
+            location.setPitch(player.getLocation().getPitch());
+            location.setYaw(player.getLocation().getYaw());
             
-            prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.BIOME, "biomeLoc", l,
+            prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.BIOME, "biomeLoc", location,
                     "prevLoc", player.getLocation(), "biomeName", "Random"));
+            HistoryEvents.setLocationSource(player.getUniqueId(), new BiomeEncapsulation("random"));
             
-            requestTeleportPlayer(player, l, () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.biomeTP.random.succeeded"),
+            requestTeleportPlayer(player, location, () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.biomeTP.random.succeeded"),
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.biomeTP.randomTP.succeededRequested", delay, tickMessage, seconds, secondMessage));
             CooldownManager.BiomeTP.update(player);
             return;
@@ -126,23 +195,24 @@ public class BiomeTP extends SubCommand {
                 sendErrorTranslation(player, "tport.command.biomeTP.couldNotFindBiomes", biomesToStringError(biomes), accuracySettings);
             }
         } else {
-            Location l = biomeLocation.getLeft();
+            Location biomeLoc = biomeLocation.getLeft();
             
-            l = FeatureTP.setSafeY(player.getWorld(), l.getBlockX(), l.getBlockZ());
-            if (l == null) {
+            biomeLoc = FeatureTP.setSafeY(player.getWorld(), biomeLoc.getBlockX(), biomeLoc.getBlockZ());
+            if (biomeLoc == null) {
                 sendErrorTranslation(player, "tport.command.biomeTP.noSafeLocationFound");
                 return;
             }
             
-            l.add(0.5, 0.1, 0.5);
-            l.setPitch(player.getLocation().getPitch());
-            l.setYaw(player.getLocation().getYaw());
+            biomeLoc.add(0.5, 0.1, 0.5);
+            biomeLoc.setPitch(player.getLocation().getPitch());
+            biomeLoc.setYaw(player.getLocation().getYaw());
             
-            prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.BIOME, "biomeLoc", l,
+            prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.BIOME, "biomeLoc", biomeLoc,
                     "prevLoc", player.getLocation(), "biomeName", biomeLocation.getRight()));
+            HistoryEvents.setLocationSource(player.getUniqueId(), new BiomeEncapsulation(biomeLocation.getRight()));
             
             Message biomeName = formatTranslation(varInfoColor, varInfoColor, "%s", new BiomeEncapsulation(biomeLocation.getRight()));
-            requestTeleportPlayer(player, l, () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.biomeTP.succeeded", biomeName),
+            requestTeleportPlayer(player, biomeLoc, () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.biomeTP.succeeded", biomeName),
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.biomeTP.succeededRequested", biomeName, delay, tickMessage, seconds, secondMessage));
         }
     }
@@ -196,7 +266,7 @@ public class BiomeTP extends SubCommand {
     
     @SuppressWarnings("CommentedOutCode")
     private void registerBiomeTPPresets() {
-        BiomeTP.BiomeTPPresets.registerPreset("Land", Arrays.asList(
+        BiomePreset.registerPreset("Land", Arrays.asList(
                 "OCEAN", "WARM_OCEAN", "LUKEWARM_OCEAN",
                 "COLD_OCEAN", "FROZEN_OCEAN", "DEEP_OCEAN",
                 "DEEP_LUKEWARM_OCEAN",
@@ -204,7 +274,7 @@ public class BiomeTP extends SubCommand {
                 "RIVER", "FROZEN_RIVER"
         ), false, Material.GRASS_BLOCK);
         
-        BiomeTP.BiomeTPPresets.registerPreset("Water", Arrays.asList(
+        BiomePreset.registerPreset("Water", Arrays.asList(
                 "OCEAN", "WARM_OCEAN", "LUKEWARM_OCEAN",
                 "COLD_OCEAN", "FROZEN_OCEAN", "DEEP_OCEAN",
                 "DEEP_LUKEWARM_OCEAN",
@@ -212,20 +282,20 @@ public class BiomeTP extends SubCommand {
                 "RIVER", "FROZEN_RIVER"
         ), true, Material.WATER_BUCKET);
         
-        BiomeTP.BiomeTPPresets.registerPreset("The_End", Arrays.asList(
+        BiomePreset.registerPreset("The_End", Arrays.asList(
                         "END_BARRENS", "END_HIGHLANDS", "END_MIDLANDS", "THE_END", "SMALL_END_ISLANDS"),
                 true, Material.END_STONE);
         
-        BiomeTP.BiomeTPPresets.registerPreset("Nether", Arrays.asList(
+        BiomePreset.registerPreset("Nether", Arrays.asList(
                         "NETHER_WASTES", "BASALT_DELTAS",
                         "CRIMSON_FOREST", "WARPED_FOREST", "SOUL_SAND_VALLEY"),
                 true, Material.NETHERRACK);
         
-        BiomeTP.BiomeTPPresets.registerPreset("Trees", Arrays.asList(
+        BiomePreset.registerPreset("Trees", Arrays.asList(
                         "FOREST", "CHERRY_GROVE", "WINDSWEPT_FOREST", "DARK_FOREST", "SAVANNA", "SAVANNA_PLATEAU", "WINDSWEPT_SAVANNA", "JUNGLE", "SPARSE_JUNGLE", "BIRCH_FOREST", "OLD_GROWTH_BIRCH_FOREST", "TAIGA", "OLD_GROWTH_SPRUCE_TAIGA", "OLD_GROWTH_PINE_TAIGA"),
                 true, Material.OAK_WOOD);
 
-//        BiomeTP.BiomeTPPresets.registerPreset("name", Arrays.asList(
+//        BiomePreset.registerPreset("name", Arrays.asList(
 //                "biome names"),
 //                true, Material.STONE);
     }
@@ -299,241 +369,5 @@ public class BiomeTP extends SubCommand {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport biomeTP " + CommandTemplate.convertToArgs(getActions(), true));
             }
         }
-    }
-    
-    public static class BiomeTPPresets {
-        private static final ArrayList<BiomePreset> biomePresets = new ArrayList<>();
-        private static final HashMap<String, ArrayList<BiomePreset>> tagPresets = new HashMap<>();
-        
-        /**
-         * @return {@link Pair} with {@link Boolean} (true when registered, false when not registered), and a {@link List<String>} with all unregistered biomes
-         */
-        @SuppressWarnings("UnusedReturnValue")
-        public static Pair<Boolean, List<String>> registerPreset(String name, List<String> biomes, boolean whitelist, Material material) {
-            if (Main.containsSpecialCharacter(name)) {
-                return new Pair<>(false, biomes);
-            }
-            if (biomePresets.stream().map(BiomePreset::name).anyMatch(n -> n.equalsIgnoreCase(name))) { //name check
-                return new Pair<>(false, biomes);
-            }
-            
-            List<String> availableBiomes = availableBiomes();
-            ArrayList<String> biomeList = new ArrayList<>();
-            ArrayList<String> errorList = new ArrayList<>();
-            for (String biome : biomes) {
-                String b = biome.toLowerCase();
-                if (availableBiomes.stream().anyMatch(b::equals)) {
-                    biomeList.add(b);
-                } else {
-                    errorList.add(biome);
-                }
-            }
-            
-            if (biomeList.isEmpty()) {
-                return new Pair<>(false, errorList);
-            } else {
-                biomePresets.add(new BiomePreset(name, biomeList, whitelist, material, false));
-                return new Pair<>(true, errorList);
-            }
-        }
-        
-        public static List<String> getNames() {
-            List<String> list = biomePresets.stream().map(BiomePreset::name).collect(Collectors.toList());
-            ArrayList<BiomePreset> tagPreset = tagPresets.getOrDefault("world", null);
-            if (tagPreset == null) {
-                tagPreset = Main.getOrDefault(loadPresetsFromWorld(Bukkit.getWorld("world")), new ArrayList<>());
-            }
-            tagPreset.stream().map(BiomePreset::name).forEach(list::add);
-            return list;
-        }
-        
-        public static List<ItemStack> getItems(Player player) {
-            ArrayList<ItemStack> items = new ArrayList<>();
-            ColorTheme ct = ColorTheme.getTheme(player);
-            
-            ArrayList<BiomePreset> tagPreset = tagPresets.getOrDefault(player.getWorld().getName(), null);
-            if (tagPreset == null) {
-                tagPreset = Main.getOrDefault(loadPresetsFromWorld(player.getWorld()), new ArrayList<>());
-            }
-            
-            for (BiomePreset preset : Iterables.concat(biomePresets, tagPreset)) {
-                ItemStack is = new ItemStack(preset.material());
-                
-                JsonObject playerLang = getPlayerLang(player.getUniqueId());
-                
-                List<Message> lore = new LinkedList<>();
-                lore.add(new Message());
-                
-                String baseType = "tport.commands.tport.biomeTP.biomeTPPresets.getItems.type";
-                if (preset.biomes().size() == 1) baseType += ".singular";
-                else baseType += ".multiple";
-                if (preset.whitelist()) {
-                    lore.add(formatInfoTranslation(baseType,
-                            formatTranslation(varInfoColor, varInfo2Color, "tport.commands.tport.biomeTP.biomeTPPresets.getItems.whitelist")));
-                } else {
-                    lore.add(formatInfoTranslation(baseType,
-                            formatTranslation(varInfoColor, varInfo2Color, "tport.commands.tport.biomeTP.biomeTPPresets.getItems.blacklist")));
-                }
-                
-                Message lorePiece = new Message();
-                boolean color = true;
-                
-                for (int i = 0; i < preset.biomes().size(); i++) {
-                    if ((i % 2) == 0 && i != 0) {
-                        lore.add(lorePiece);
-                        lorePiece = new Message();
-                    }
-                    if (color) {
-                        lorePiece.addMessage(formatTranslation(varInfoColor, varInfoColor, "%s", new BiomeEncapsulation(preset.biomes().get(i))));
-                    } else {
-                        lorePiece.addMessage(formatTranslation(varInfo2Color, varInfo2Color, "%s", new BiomeEncapsulation(preset.biomes().get(i))));
-                    }
-                    lorePiece.addText(textComponent(", ", infoColor));
-                    color = !color;
-                }
-                lorePiece.removeLast();
-                lore.add(lorePiece);
-                
-                if (preset.fromMC) {
-                    lore.add(new Message());
-                    lore.add(formatInfoTranslation("tport.commands.tport.biomeTP.biomeTPPresets.getItems.fromMC"));
-                    lore.add(new Message(textComponent(preset.name(), varInfoColor)));
-                }
-                lore.add(new Message());
-                lore.add(formatInfoTranslation("tport.commands.tport.biomeTP.biomeTPPresets.getItems.selectBiomes.additive." + ((preset.biomes.size() == 1) ? "singular" : "multiple"), ClickType.LEFT));
-                lore.add(formatInfoTranslation("tport.commands.tport.biomeTP.biomeTPPresets.getItems.selectBiomes.overwrite." + ((preset.biomes.size() == 1) ? "singular" : "multiple"), ClickType.SHIFT_LEFT));
-                lore.add(formatInfoTranslation("tport.commands.tport.biomeTP.biomeTPPresets.getItems.runPreset", ClickType.RIGHT));
-                lore = MessageUtils.translateMessage(lore, playerLang);
-                ColorType titleColor = (preset.fromMC) ? varInfo2Color : varInfoColor;
-                Message biomeTitle = formatTranslation(titleColor, titleColor, "%s", preset.name);
-                MessageUtils.setCustomItemData(is, ct, biomeTitle, lore);
-                
-                ItemMeta im = is.getItemMeta();
-                if (im == null) {
-                    continue;
-                }
-                
-                String biomesAsString = String.join("|", preset.biomes());
-                
-                FancyClickEvent.addCommand(im, ClickType.RIGHT, "tport biomeTP preset " + preset.name());
-                im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "biomePreset/name"), PersistentDataType.STRING, preset.name());
-                im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "biomePreset/biomes"), PersistentDataType.STRING, biomesAsString);
-                im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "biomePreset/whitelist"), PersistentDataType.INTEGER, preset.whitelist ? 1 : 0);
-                FancyClickEvent.addFunction(im, ClickType.LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
-                    NamespacedKey biomeKey = new NamespacedKey(Main.getInstance(), "biomePreset/biomes");
-                    NamespacedKey whitelistKey = new NamespacedKey(Main.getInstance(), "biomePreset/whitelist");
-                    
-                    if (pdc.has(biomeKey, PersistentDataType.STRING) && pdc.has(whitelistKey, PersistentDataType.INTEGER)) {
-                        String biomes = pdc.get(biomeKey, PersistentDataType.STRING);
-                        String[] biomesArray = biomes.split("\\|");
-                        Integer whitelist = Main.getOrDefault(pdc.get(whitelistKey, PersistentDataType.INTEGER), 1);
-                        ArrayList<String> biomeSelection = fancyInventory.getData("biomeSelection", ArrayList.class, new ArrayList<String>());
-                        if (whitelist == 1) {
-                            Arrays.stream(biomesArray).filter(s -> !biomeSelection.contains(s)).forEach(biomeSelection::add);
-                        } else {
-                            for (Biome biome : Biome.values()) {
-                                String biomeName = biome.name().toLowerCase();
-                                if (Arrays.stream(biomesArray).noneMatch(b -> b.equals(biomeName))) {
-                                    biomeSelection.add(biomeName);
-                                }
-                            }
-                        }
-                        fancyInventory.setData("biomeSelection", biomeSelection);
-                        openBiomeTP(whoClicked, 0, fancyInventory);
-                    }
-                }));
-                FancyClickEvent.addFunction(im, ClickType.SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
-                    NamespacedKey biomeKey = new NamespacedKey(Main.getInstance(), "biomePreset/biomes");
-                    NamespacedKey whitelistKey = new NamespacedKey(Main.getInstance(), "biomePreset/whitelist");
-                    
-                    if (pdc.has(biomeKey, PersistentDataType.STRING) && pdc.has(whitelistKey, PersistentDataType.INTEGER)) {
-                        String biomes = pdc.get(biomeKey, PersistentDataType.STRING);
-                        String[] biomesArray = biomes.split("\\|");
-                        Integer whitelist = Main.getOrDefault(pdc.get(whitelistKey, PersistentDataType.INTEGER), 1);
-                        ArrayList<String> biomeSelection = new ArrayList<>();
-                        if (whitelist == 1) {
-                            biomeSelection = Arrays.stream(biomesArray).collect(Collectors.toCollection(ArrayList::new));
-                        } else {
-                            for (Biome biome : Biome.values()) {
-                                if (Arrays.stream(biomesArray).noneMatch(b -> b.equals(biome.name().toLowerCase()))) {
-                                    biomeSelection.add(biome.name().toLowerCase());
-                                }
-                            }
-                        }
-                        fancyInventory.setData("biomeSelection", biomeSelection);
-                        openBiomeTP(whoClicked, 0, fancyInventory);
-                    }
-                }));
-                is.setItemMeta(im);
-                items.add(is);
-            }
-            
-            return items;
-        }
-        
-        public static String getMaterialName(String tagKeyName) {
-            return switch (tagKeyName) {
-                case "is_deep_ocean", "is_river", "is_ocean", "reduce_water_ambient_spawns", "water_on_map_outlines", "has_closer_water_fog" -> "WATER_BUCKET";
-                case "is_mountain" -> "STONE";
-                case "is_hill", "is_overworld" -> "GRASS_BLOCK";
-                case "is_taiga" -> "SPRUCE_LOG";
-                case "is_beach" -> "SAND";
-                case "is_badlands" -> "TERRACOTTA";
-                case "is_nether" -> "NETHERRACK";
-                case "is_jungle" -> "JUNGLE_LOG";
-                case "is_forest" -> "OAK_SAPLING";
-                case "without_zombie_sieges" -> "ZOMBIE_HEAD";
-                case "required_ocean_monument_surrounding" -> "DARK_PRISMARINE";
-                case "spawns_cold_variant_frogs" -> "VERDANT_FROGLIGHT";
-                case "spawns_temperate_variant_frogs" -> "OCHRE_FROGLIGHT";
-                case "spawns_warm_variant_frogs" -> "PEARLESCENT_FROGLIGHT";
-                case "without_patrol_spawns" -> "RAVAGER_SPAWN_EGG";
-                case "allows_surface_slime_spawns" -> "SLIME_BALL";
-                case "without_wandering_trader_spawns" -> "WANDERING_TRADER_SPAWN_EGG";
-                case "polar_bears_spawn_on_alternate_blocks" -> "POLAR_BEAR_SPAWN_EGG";
-                case "is_end" -> "END_STONE";
-                case "plays_underwater_music" -> "MUSIC_DISC_MALL";
-                case "only_allows_snow_and_gold_rabbits", "spawns_gold_rabbits", "spawns_white_rabbits" -> "RABBIT_SPAWN_EGG";
-                case "more_frequent_drowned_spawns" -> "DROWNED_SPAWN_EGG";
-                case "allows_tropical_fish_spawns_at_any_height" -> "TROPICAL_FISH_SPAWN_EGG";
-                case "produces_corals_from_bonemeal" -> "BRAIN_CORAL";
-                case "is_savanna" -> "ACACIA_LOG";
-                case "stronghold_biased_to" -> "END_PORTAL_FRAME";
-                case "mineshaft_blocking" -> "CHEST_MINECART";
-                case "snow_golem_melts" -> "CARVED_PUMPKIN";
-                case "spawns_snow_foxes" -> "FOX_SPAWN_EGG";
-                case "increased_fire_burnout" -> "FLINT_AND_STEEL";
-                
-                default -> "DIAMOND_BLOCK";
-            };
-        }
-        
-        private static ArrayList<BiomePreset> loadPresetsFromWorld(World world) {
-            ArrayList<BiomePreset> returnList =  Main.getInstance().adapter.loadPresetsFromWorld(world);
-            if (returnList != null) {
-                tagPresets.put(world.getName(), returnList);
-            }
-            return returnList;
-        }
-        
-        public static BiomePreset getPreset(String name, World world) {
-            for (BiomePreset preset : biomePresets) {
-                if (preset.name().equalsIgnoreCase(name)) {
-                    return preset;
-                }
-            }
-            ArrayList<BiomePreset> tagPreset = tagPresets.getOrDefault(world.getName(), null);
-            if (tagPreset == null) {
-                tagPreset = Main.getOrDefault(loadPresetsFromWorld(world), new ArrayList<>());
-            }
-            for (BiomePreset preset : tagPreset) {
-                if (preset.name().equalsIgnoreCase(name)) {
-                    return preset;
-                }
-            }
-            return null;
-        }
-        
-        public record BiomePreset(String name, List<String> biomes, boolean whitelist, Material material, boolean fromMC) { }
     }
 }

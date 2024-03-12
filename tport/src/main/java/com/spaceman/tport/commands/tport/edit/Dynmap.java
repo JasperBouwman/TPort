@@ -2,6 +2,7 @@ package com.spaceman.tport.commands.tport.edit;
 
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.DynmapCommand;
+import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.edit.dynmap.Icon;
 import com.spaceman.tport.commands.tport.edit.dynmap.Show;
 import com.spaceman.tport.dynmap.DynmapHandler;
@@ -21,6 +22,11 @@ public class Dynmap extends SubCommand {
     public void run(String[] args, Player player) {
         // tport edit <TPort name> dynmap show [state]
         // tport edit <TPort name> dynmap icon [icon]
+        
+        if (Features.Feature.Dynmap.isDisabled()) {
+            Features.Feature.Dynmap.sendDisabledMessage(player);
+            return;
+        }
         
         if (!DynmapHandler.isEnabled()) {
             DynmapCommand.sendDisableError(player);

@@ -8,10 +8,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
-public class AdaptiveAdapter extends AdaptiveNBTTags {
+public class AdaptiveAdapter extends AdaptiveFancyMessage {
     
-    static {
-        adapters.put("adaptive", new AdaptiveAdapter());
+    @Override
+    public String getAdapterName() {
+        return "adaptive";
     }
     
     @Override
@@ -40,5 +41,4 @@ public class AdaptiveAdapter extends AdaptiveNBTTags {
             }
         }
     }
-
 }

@@ -37,7 +37,7 @@ public class Clone extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport edit <TPort name> whitelist clone <TPort name>
-    
+        
         if (args.length != 5) {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> whitelist clone <TPort name>");
             return;

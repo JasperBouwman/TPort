@@ -67,11 +67,21 @@
             <artifactId>adaptive</artifactId>
             <version>${TPortVersion}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.spaceman</groupId>-->
-<!--            <artifactId>V1_19_4</artifactId>-->
-<!--            <version>${TPortVersion}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.spaceman</groupId>
+            <artifactId>V1_20_4</artifactId>
+            <version>${TPortVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.spaceman</groupId>
+            <artifactId>V1_19_4</artifactId>
+            <version>${TPortVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.spaceman</groupId>
+            <artifactId>V1_18_2</artifactId>
+            <version>${TPortVersion}</version>
+        </dependency>
     </dependencies>
 
 </project>

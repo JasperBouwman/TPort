@@ -111,13 +111,13 @@ public class Home extends SubCommand {
     
     @Override
     public Collection<String> tabList(Player player, String[] args) {
+        Collection<String> tabList = super.tabList(player, args);
+        
         if (!emptyHomeSafetyCheck.hasPermissionToRun(player, false)) {
-            return Collections.emptyList();
+            tabList.addAll(Arrays.asList("true", "false"));
         }
         
-        Collection<String> l = super.tabList(player, args);
-        l.addAll(Arrays.asList("true", "false"));
-        return l;
+        return tabList;
     }
     
     @Override
@@ -130,7 +130,7 @@ public class Home extends SubCommand {
             if (!hasPermissionToRun(player, true)) {
                 return;
             }
-        
+            
             if (!hasHome(player, false)) {
                 sendErrorTranslation(player, "tport.command.home.noHome");
                 return;
@@ -140,7 +140,7 @@ public class Home extends SubCommand {
                 sendErrorTranslation(player, "tport.command.home.homeNotFound");
                 return;
             }
-        
+            
             tport.teleport(player, TPORT_HOME.getState(player));
         } else {
             if (!runCommands(getActions(), args[1], args, player)) {

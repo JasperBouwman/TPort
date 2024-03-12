@@ -26,7 +26,6 @@ import org.bukkit.persistence.PersistentDataType;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
@@ -34,7 +33,10 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.pageDataName;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
+import static com.spaceman.tport.inventories.TPortInventories.featureSelectionDataName;
 import static com.spaceman.tport.inventories.TPortInventories.openFeatureTP;
+import static org.bukkit.event.inventory.ClickType.LEFT;
+import static org.bukkit.event.inventory.ClickType.SHIFT_LEFT;
 
 public class FeatureTP extends SubCommand {
     
@@ -146,7 +148,7 @@ public class FeatureTP extends SubCommand {
         };
         return Main.getOrDefault(Material.getMaterial(materialName), Material.DIAMOND_BLOCK);
     }
-    public static List<ItemStack> getItems(Player player, ArrayList<String> featureSelection) {
+    public static List<ItemStack> getItems(Player player, Set<String> featureSelection) {
         ColorTheme theme = ColorTheme.getTheme(player);
         ArrayList<ItemStack> features = new ArrayList<>();
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
@@ -162,7 +164,7 @@ public class FeatureTP extends SubCommand {
             } else {
                 selectedMessage = formatTranslation(varInfoColor, varInfoColor, "tport.tportInventories.openFeatureTP.feature.select");
             }
-            Message featureLClick = formatInfoTranslation("tport.tportInventories.openFeatureTP.feature.LClick", ClickType.LEFT, selectedMessage);
+            Message featureLClick = formatInfoTranslation("tport.tportInventories.openFeatureTP.feature.LClick", LEFT, selectedMessage);
             Message featureRClick = formatInfoTranslation("tport.tportInventories.openFeatureTP.feature.RClick", ClickType.RIGHT);
             if (playerLang != null) { //if player has no custom language, translate it
                 featureLClick = MessageUtils.translateMessage(featureLClick, playerLang);
@@ -176,17 +178,17 @@ public class FeatureTP extends SubCommand {
             im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "feature"), PersistentDataType.STRING, feature.toLowerCase());
             if (selected) Glow.addGlow(im);
             
-            FancyClickEvent.addFunction(im, ClickType.LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            FancyClickEvent.addFunction(im, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
                 NamespacedKey featureKey = new NamespacedKey(Main.getInstance(), "feature");
                 if (pdc.has(featureKey, PersistentDataType.STRING)) {
-                    ArrayList<String> innerFeatureSelection = fancyInventory.getData("featureSelection", ArrayList.class, new ArrayList<String>());
+                    Set<String> innerFeatureSelection = fancyInventory.getData(featureSelectionDataName);
                     String innerFeature = pdc.get(featureKey, PersistentDataType.STRING);
                     if (innerFeatureSelection.contains(innerFeature)) {
                         innerFeatureSelection.remove(innerFeature);
                     } else {
                         innerFeatureSelection.add(innerFeature);
                     }
-                    fancyInventory.setData("featureSelection", innerFeatureSelection);
+                    fancyInventory.setData(featureSelectionDataName, innerFeatureSelection);
                     openFeatureTP(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
                 }
             }));
@@ -239,8 +241,8 @@ public class FeatureTP extends SubCommand {
             lore.add(lorePiece);
             
             lore.add(new Message());
-            lore.add(formatInfoTranslation("tport.commands.tport.featureTP.getItems.selectFeatures.additive." + ((featureList.size() == 1) ? "singular" : "multiple"), ClickType.LEFT));
-            lore.add(formatInfoTranslation("tport.commands.tport.featureTP.getItems.selectFeatures.overwrite." + ((featureList.size() == 1) ? "singular" : "multiple"), ClickType.SHIFT_LEFT));
+            lore.add(formatInfoTranslation("tport.commands.tport.featureTP.getItems.selectFeatures.additive." + ((featureList.size() == 1) ? "singular" : "multiple"), LEFT));
+            lore.add(formatInfoTranslation("tport.commands.tport.featureTP.getItems.selectFeatures.overwrite." + ((featureList.size() == 1) ? "singular" : "multiple"), SHIFT_LEFT));
             lore.add(formatInfoTranslation("tport.commands.tport.featureTP.getItems.selectFeatures.run", ClickType.RIGHT));
             
             if (playerLang != null) { //if player has no custom language, translate it
@@ -250,31 +252,30 @@ public class FeatureTP extends SubCommand {
             MessageUtils.setCustomItemData(is, theme, featureTitle, lore);
             
             ItemMeta im = is.getItemMeta();
-            String featuresAsString = String.join("|", pair.getRight());
             im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "featureTag/name"), PersistentDataType.STRING, pair.getLeft());
-            im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "featureTag/features"), PersistentDataType.STRING, featuresAsString);
+            im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "featureTag/featuresFromPreset"), PersistentDataType.LIST.strings(), pair.getRight());
             
-            FancyClickEvent.addFunction(im, ClickType.LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
-                NamespacedKey tagKey = new NamespacedKey(Main.getInstance(), "featureTag/features");
-                if (pdc.has(tagKey, PersistentDataType.STRING)) {
-                    String innerFeatures = pdc.get(tagKey, PersistentDataType.STRING);
-                    String[] featureArray = innerFeatures.split("\\|");
-                    ArrayList<String> innerFeatureSelection = fancyInventory.getData("featureSelection", ArrayList.class, new ArrayList<String>());
-                    Arrays.stream(featureArray).filter(s -> !innerFeatureSelection.contains(s)).forEach(innerFeatureSelection::add);
-                    fancyInventory.setData("featureSelection", innerFeatureSelection);
+            FancyClickEvent.addFunction(im, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                NamespacedKey tagKey = new NamespacedKey(Main.getInstance(), "featureTag/featuresFromPreset");
+                if (pdc.has(tagKey, PersistentDataType.LIST.strings())) {
+                    List<String> featuresFromPreset = pdc.getOrDefault(tagKey, PersistentDataType.LIST.strings(), new ArrayList<>());
+                    Set<String> innerFeatureSelection = clickType == LEFT ? fancyInventory.getData(featureSelectionDataName) : new HashSet<>();
+                    int originalSelectionSize = innerFeatureSelection.size();
+                    List<String> availableFeatures = FeatureTP.getFeatures(whoClicked.getWorld());
+                    
+                    for (String feature : featuresFromPreset) {
+                        if (availableFeatures.contains(feature)) {
+                            innerFeatureSelection.add(feature);
+                        }
+                    }
+                    if (originalSelectionSize == innerFeatureSelection.size()) {
+                        sendErrorTranslation(whoClicked, "tport.commands.tport.featureTP.getItems.selectFeatures.noBiomesLeft");
+                    }
+                    
+                    fancyInventory.setData(featureSelectionDataName, innerFeatureSelection);
                     openFeatureTP(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
                 }
-            }));
-            FancyClickEvent.addFunction(im, ClickType.SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
-                NamespacedKey tagKey = new NamespacedKey(Main.getInstance(), "featureTag/features");
-                if (pdc.has(tagKey, PersistentDataType.STRING)) {
-                    String innerFeatures = pdc.get(tagKey, PersistentDataType.STRING);
-                    String[] featureArray = innerFeatures.split("\\|");
-                    ArrayList<String> innerFeatureSelection = Arrays.stream(featureArray).collect(Collectors.toCollection(ArrayList::new));
-                    fancyInventory.setData("featureSelection", innerFeatureSelection);
-                    openFeatureTP(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
-                }
-            }));
+            }), LEFT, SHIFT_LEFT);
             FancyClickEvent.addCommand(im, ClickType.RIGHT, "tport featureTP search " + pair.getLeft());
             
             is.setItemMeta(im);
@@ -311,22 +312,22 @@ public class FeatureTP extends SubCommand {
             return new Location(world, originalX, world.getHighestBlockYAt(originalX, originalZ) + 1, originalZ);
         } else {
             int y = world.getHighestBlockYAt(x, z);
-            Location l = new Location(world, x, y + 1, z);
+            Location location = new Location(world, x, y + 1, z);
             Random random = new Random();
             int spread = 10;
             int searches = 0;
             
-            while (y <= 1 || !SafetyCheck.isSafe(l)) {
+            while (y <= 1 || !SafetyCheck.isSafe(location)) {
                 if (searches == 20) {
                     return null;
                 }
                 x += (int) (random.nextInt(spread) - spread * 0.5);
                 z += (int) (random.nextInt(spread) - spread * 0.5);
                 y = world.getHighestBlockYAt(x, z);
-                l = new Location(world, x, y + 1, z);
+                location = new Location(world, x, y + 1, z);
                 searches++;
             }
-            return l;
+            return location;
         }
     }
 }

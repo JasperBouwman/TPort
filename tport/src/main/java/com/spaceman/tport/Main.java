@@ -12,6 +12,7 @@ import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.QuickType;
+import com.spaceman.tport.history.HistoryEvents;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
 import com.spaceman.tport.metrics.CommandCounter;
 import com.spaceman.tport.metrics.FeatureSearchCounter;
@@ -43,7 +44,6 @@ import java.awt.*;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.*;
 import java.util.logging.Level;
@@ -99,7 +99,7 @@ public class Main extends JavaPlugin {
     }
     
     public static boolean containsSpecialCharacter(String s) {
-        if (s == null || s.trim().isEmpty()) {
+        if (s == null || s.isBlank()) {
             return true;
         }
         Pattern p = Pattern.compile("[^A-Za-z0-9_-]");
@@ -171,54 +171,108 @@ public class Main extends JavaPlugin {
             return;
         }
         Reader r = new InputStreamReader(is);
-
+        
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(r);
         supportedVersions = yaml.getStringList("supportedVersions").toArray(new String[]{});
     }
     
+    @Override
     public void onEnable() {
         
         /*
-         * changelog 1.20.3 update:
+         * changelog 1.20.4 update:
          *
-         * Fixed for Minecraft/Bukkit 1.20.4
+         * updated the resource pack format to 22
          *
-         * Light mode textures now available for x16 and x32
-         * Quick Edit Type names are now translatable via this key: tport.quickEditInventories.quickEditType.QUICK_EDIT_NAME.displayName
-         * Quick Edit Types now have a description
+         * Finished the Logging setting
+         * Auto backups are working again
          *
-         * Created the 'setting' Items Debug, it shows all TPort items, made for texture creators
+         * Added Item Selection in the Quick Edit menu
+         * Added whitelist clone to the Quick Edit menu
          *
-         * Created the Cooldown setting inside the Settings GUI
+         * Full update for Search
+         *  - Added World search type. Search for TPorts that are in the given world
+         *  - Added OwnedTPorts search type. Search for players owned TPorts
+         *  - Search can now be run with inventories, use '/tport search' or find it in the settings screen
+         *  - Added new search modes: not equals, ends with, not contains
          *
-         * Added filter to the PublicTP GUI, this is a toggle to show all Public TPorts or only your own Public TPorts
+         * Added full adapter support
+         *  - server admins now can select the best adapter for their server
+         *  - The default is set to automatic, this chooses based upon the server version the best adapter
+         *  - The end goal is that each Minecraft version has their own adapter
+         *  - The adaptive adapter should mainly be used if your version does not exist (example: using TPort for a new Minecraft version that TPort does not yet have a adapter for)
+         *  - If the selected adapter does not load the adaptive is used as a backup
+         *  - command: /tport adapter [adapter]
+         *  - permissions: tport.adapter or tport.admin for setting the adapter
+         *  - selecting the adapter can also be done via the setting menu
          *
-         * FeatureTP now filters features that do not generate in the world (just like BiomeTP does)
-         * fixed FeatureTP, FeatureTP can search for strongholds again
+         * Added beta support for BlueMap
+         *  - Works the same as the Dynmap support
+         *  - to enable: /tport features blueMap state true, and make sure that BlueMap is successfully loaded into your server
+         *  - For now only a toggle for showing state on the map is available using: /tport edit <TPort name> blueMap show [state]
          *
-         * TPort display items now hides all Item Flags (attributes (flight duration, ect), enchantments, armor trim, ect)
+         * Added a safety check to PLTP
+         *  - /tport PLTP tp <player> [safetyCheck]
+         *  - when teleport needs to be requested, the check is preformed after the request is accepted
+         * Another safety check is preformed for teleporting to a TPort
+         *  - the owner of the TPort can move the TPort to a dangerous location in between the request and accepting
          *
-         * Updated the 'K' texture of the keyboard
+         * More features for the Keyboard:
+         *  - you can now delete a color
+         *  - in the color selector, you can select a color from Minecraft (Chat Colors & Dye Colors)
+         *    This built-in color selector is also used for creating your own color theme
+         *
+         * Renamed TPort private state 'prion' to PRIVATE_ONLINE
+         *
+         * New icons for the transfer system. Check them out in: settings, transfer window offered/offers filter and in the Quick Edit window
+         *
+         * Added a command to fully stop logging a TPort
+         *  /tport log delete <TPort name>
+         *  This removes all players from the logged players list, and sets the default log mode to NONE
+         *
+         * Added LookTP to the features list. Default value is on
+         * Added EnsureUniqueUUID to the features list. Default value is off.
+         *  - This feature was already in TPort, but its now changeable.
+         *  - When enabled, TPort will look at all existing TPorts and check if the new UUID for the new TPort is truly unique.
+         *  - The changes of it randomly creating a UUID that is already in use is animatronic low.
+         *
+         * When Permissions are disabled, they won't show anymore in the help page (/tport help <command>)
+         *
+         * Added '/tport language repair <language> [repair with] [dump]'.
+         * When dump is set to true, it prints all repaired ID's in the console
+         *
+         * '/tport back <safetyCheck>' now uses the correct safetyCheck permissions.
+         *  - old: (TPort.Back and TPort.safetyCheck.TPORT_PUBLIC) or TPort.basic
+         *  - new: (TPort.Back and TPort.safetyCheck.TPORT_BACK) or TPort.basic
          *
          * fixed some minor bugs
-         *
          */
         
         /*
          * //todo
          *
-         * edit settings/transfer/switch     icon
+         * settings_features_permissions
+         * settings_features_permissions_grayed
+         * settings_features_tport_takes_item
+         * settings_features_tport_takes_item_grayed
+         * settings_search_owned_tports
          *
-         * Texture 'settings_features_permissions.png' does not exist
-         * Texture 'settings_features_permissions_grayed.png' does not exist
-         * Texture 'settings_features_tport_takes_item.png' does not exist
-         * Texture 'settings_features_tport_takes_item_grayed.png' does not exist
-         * Texture 'settings_features_feature_settings.png' does not exist
-         * Texture 'settings_features_feature_settings_grayed.png' does not exist
+         * disabling biomes per player now is only by permissions
+         * add server wide biome selection
+         * add per player biome selection
+         * do this also for FeatureTP
+         *
+         * add preview state: whitelist
+         *
+         * create a friend list. use this friend list as option for all whitelists
+         * /tport friends [add|remove|list]
          *
          * unify EmptyCommand names
          *
          * add POI
+         * bring featureTP and biomeTP closer together, feature/usage wise
+         *
+         * add swear word filter to TPort name and description
          *
          * /tport bed
          *
@@ -231,6 +285,19 @@ public class Main extends JavaPlugin {
          * - use om items in itemFrame
          * - use on sign
          *
+         * inventories:
+         *  - particle animation
+         *  - language
+         *  - biomeTP
+         *  - featureTP
+         *  - dynmap
+         *  - blueMap
+         *  - delay
+         *  - restriction
+         *  - requests
+         *
+         * Add minimalTPortBetweenTPortDistance. This helps owners protect their home, so no other can add a TPort and bypass the private state/range
+         *
          * unify getPlayer in commands
          *
          * for the usage of the tab complete the player now need the permission to run the command
@@ -240,23 +307,19 @@ public class Main extends JavaPlugin {
          *
          * update /tport version compatible Bukkit versions
          * create tutorial for creating your own Particle Animations and TP Restrictions
+         *
          * create payment system (with elytra pay with fire rockets)
+         * earn credits when players teleport to one of your TPorts. use these credits to teleport to other TPorts.
          * */
         
         this.getLogger().log(Level.INFO, "TPort has a Discord server, for any questions/more go to: " + discordLink);
         setSupportedVersions();
         Version.checkForLatestVersion();
         
-        try {
-            this.adapter = TPortAdapter.adapters.getOrDefault("adaptive", null);
-            if (this.adapter == null) {
-                Class<?> adaptive = Class.forName("com.spaceman.tport.adapters.AdaptiveAdapter");
-                this.adapter = (TPortAdapter) adaptive.getConstructor().newInstance();
-            }
-        } catch (ClassNotFoundException | InvocationTargetException | InstantiationException | IllegalAccessException |
-                 NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
+        Adapter.registerAdapter("adaptive", "com.spaceman.tport.adapters.AdaptiveAdapter");
+        Adapter.registerAdapter("1.18.2", "com.spaceman.tport.adapters.V1_18_2_Adapter");
+        Adapter.registerAdapter("1.19.4", "com.spaceman.tport.adapters.V1_19_4_Adapter");
+        Adapter.registerAdapter("1.20.4", "com.spaceman.tport.adapters.V1_20_4_Adapter");
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");
@@ -309,7 +372,7 @@ public class Main extends JavaPlugin {
         pm.registerEvents(new RespawnEvent(), this);
         pm.registerEvents(new CommandEvent(), this);
         pm.registerEvents(new FancyClickEvent(), this);
-        pm.registerEvents(new QuickType(), this);
+        HistoryEvents.load();
         
         for (Player player : Bukkit.getOnlinePlayers()) {
             JoinEvent.setData(player);

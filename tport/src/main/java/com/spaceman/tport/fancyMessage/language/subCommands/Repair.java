@@ -14,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static com.google.gson.JsonParser.parseReader;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -23,20 +24,28 @@ public class Repair extends SubCommand {
     private final EmptyCommand emptyRepairLanguageRepairWith;
     
     public Repair() {
+        EmptyCommand emptyRepairLanguageRepairWithDump = new EmptyCommand();
+        emptyRepairLanguageRepairWithDump.setCommandName("dump", ArgumentType.OPTIONAL);
+        emptyRepairLanguageRepairWithDump.setPermissions("TPort.language.repair", "TPort.admin.language");
+        emptyRepairLanguageRepairWithDump.setCommandDescription(formatInfoTranslation("tport.command.language.repair.language.repairWith.dump.commandDescription"));
+        
         emptyRepairLanguageRepairWith = new EmptyCommand();
         emptyRepairLanguageRepairWith.setCommandName("repair with", ArgumentType.OPTIONAL);
         emptyRepairLanguageRepairWith.setPermissions("TPort.language.repair", "TPort.admin.language");
         emptyRepairLanguageRepairWith.setCommandDescription(formatInfoTranslation("tport.command.language.repair.language.repairWith.commandDescription"));
+        emptyRepairLanguageRepairWith.setTabRunnable((args, player) ->
+                emptyRepairLanguageRepairWithDump.hasPermissionToRun(player, false) ? List.of("true", "false") : Collections.emptyList());
+        emptyRepairLanguageRepairWith.addAction(emptyRepairLanguageRepairWithDump);
         
         EmptyCommand emptyRepairLanguage = new EmptyCommand();
         emptyRepairLanguage.setCommandName("language", ArgumentType.REQUIRED);
         emptyRepairLanguage.setCommandDescription(formatInfoTranslation("tport.command.language.repair.language.commandDescription"));
-        emptyRepairLanguage.setTabRunnable(((args, player) -> {
-            if (!emptyRepairLanguageRepairWith.hasPermissionToRun(player, false)) {
-                return Collections.emptyList();
+        emptyRepairLanguage.setTabRunnable((args, player) -> {
+            if (emptyRepairLanguageRepairWith.hasPermissionToRun(player, false)) {
+                return Language.getAvailableLang().stream().filter(s -> !s.equalsIgnoreCase(args[2])).toList();
             }
-            return Language.getAvailableLang();
-        }));
+            return Collections.emptyList();
+        });
         emptyRepairLanguage.setPermissions(emptyRepairLanguageRepairWith.getPermissions());
         emptyRepairLanguage.addAction(emptyRepairLanguageRepairWith);
         
@@ -53,7 +62,7 @@ public class Repair extends SubCommand {
     
     @Override
     public void run(String[] args, Player player) {
-        // tport language repair <language> [repair with]
+        // tport language repair <language> [repair with] [dump]
         
         if (args.length == 3) {
             if (!emptyRepairLanguageRepairWith.hasPermissionToRun(player, true)) {
@@ -88,7 +97,7 @@ public class Repair extends SubCommand {
                 sendErrorTranslation(player, "tport.command.language.repair.language.couldNotRepair", args[2]);
             }
             
-        } else if (args.length == 4) {
+        } else if (args.length == 4 || args.length == 5) {
             if (!emptyRepairLanguageRepairWith.hasPermissionToRun(player, true)) {
                 return;
             }
@@ -106,9 +115,23 @@ public class Repair extends SubCommand {
                 return;
             }
             
+            if (args[2].equalsIgnoreCase(args[3])) {
+                sendErrorTranslation(player, "tport.command.language.repair.language.repairWith.repairWithSame", args[2], args[3]);
+                return;
+            }
+            
+            Boolean dump = false;
+            if (args.length == 5) {
+                dump = Main.toBoolean(args[4]);
+                if (dump == null) {
+                    sendErrorTranslation(player, "tport.command.wrongUsage", "/tport language repair <language> [repair with] [true|false]");
+                    return;
+                }
+            }
+            
             try {
                 JsonObject oldJSON = (JsonObject) parseReader(new FileReader(langFile));
-                Pair<JsonObject, Integer> newJSON = Language.repairLanguage(oldJSON, repairWith);
+                Pair<JsonObject, Integer> newJSON = Language.repairLanguage(oldJSON, repairWith, dump);
                 if (newJSON == null) {
                     sendErrorTranslation(player, "tport.command.language.repair.language.repairWith.couldNotRepair", args[2]);
                     return;

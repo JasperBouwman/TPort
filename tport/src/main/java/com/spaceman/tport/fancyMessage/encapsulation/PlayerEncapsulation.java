@@ -6,7 +6,10 @@ import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
+import com.spaceman.tport.history.LocationSource;
 import com.spaceman.tport.playerUUID.PlayerUUID;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
@@ -17,7 +20,7 @@ import java.util.UUID;
 import static com.spaceman.tport.commands.TPortCommand.getPlayerData;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 
-public class PlayerEncapsulation extends Encapsulation {
+public class PlayerEncapsulation extends LocationSource {
     
     private final UUID uuid;
     private final String name;
@@ -100,5 +103,20 @@ public class PlayerEncapsulation extends Encapsulation {
     
     public String getName() {
         return name;
+    }
+    
+    @Override
+    @Nullable
+    public Location getLocation(Player player) {
+        Player toPlayer = Bukkit.getPlayer(name);
+        if (toPlayer == null) {
+            return null;
+        }
+        return toPlayer.getLocation();
+    }
+    
+    @Override
+    public void teleportToLocation(Player player, boolean safetyCheck) {
+        Bukkit.dispatchCommand(player, "/tport pltp tp " + player);
     }
 }

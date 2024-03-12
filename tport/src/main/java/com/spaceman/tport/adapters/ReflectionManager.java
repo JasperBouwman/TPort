@@ -1,5 +1,7 @@
 package com.spaceman.tport.adapters;
 
+import org.bukkit.Bukkit;
+
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -7,6 +9,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class ReflectionManager {
+    
+    public static String getServerClassesVersion() {
+        return Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
+    }
+    
+    public static String getServerVersion() {
+        String s = Bukkit.getVersion();
+        int startIndex = s.indexOf(":");
+        return s.substring(startIndex+2, s.length()-1);
+    }
     
     public static <R, I> R getPrivateField(Class<R> r, I invoked) throws IllegalAccessException {
         if (invoked == null) return null;

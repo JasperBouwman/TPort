@@ -7,9 +7,12 @@ import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.pltp.Offset;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextType;
+import com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation;
+import com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fileHander.Files;
+import com.spaceman.tport.history.HistoryEvents;
 import com.spaceman.tport.tpEvents.animations.SimpleAnimation;
 import com.spaceman.tport.tpEvents.restrictions.NoneRestriction;
 import com.spaceman.tport.tport.TPort;
@@ -199,11 +202,13 @@ public class TPEManager {
     
     public static void tpPlayerToPlayer(Player player, Player toPlayer, Runnable postRestrictionMessage, RequestedRunnable requestedRunnable) {
         prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.PLAYER, "playerUUID", toPlayer.getUniqueId().toString(), "prevLoc", player.getLocation()));
+        HistoryEvents.setLocationSource(player.getUniqueId(), new PlayerEncapsulation(toPlayer));
         requestTeleportPlayer(player, Offset.getPLTPOffset(toPlayer).applyOffset(toPlayer.getLocation()), postRestrictionMessage, requestedRunnable);
     }
     
     public static void tpPlayerToTPort(Player player, TPort tport, Runnable postRestrictionMessage, RequestedRunnable requestedRunnable) {
         prevTPorts.put(player.getUniqueId(), new Back.PrevTPort("TPORT", "tportName", tport.getName(), "tportUUID", tport.getTportID(), "tportOwner", tport.getOwner(), "prevLoc", player.getLocation()));
+        HistoryEvents.setLocationSource(player.getUniqueId(), new TPortEncapsulation(tport));
         requestTeleportPlayer(player, tport.getLocation(), postRestrictionMessage, requestedRunnable);
     }
     
@@ -320,7 +325,8 @@ public class TPEManager {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            Features.Feature.printSmallNMSErrorInConsole("Teleport horse/boat", false);
+            if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
         }
         
         for (LivingEntity e : slaves) {
@@ -328,7 +334,8 @@ public class TPEManager {
                 e.teleport(player);
                 e.setLeashHolder(player);
             } catch (Exception ex) {
-                ex.printStackTrace();
+                Features.Feature.printSmallNMSErrorInConsole("Teleport leash", false);
+                if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
             }
         }
     }

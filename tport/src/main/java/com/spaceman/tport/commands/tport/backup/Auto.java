@@ -4,6 +4,7 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fileHander.Files;
 import org.bukkit.entity.Player;
@@ -40,7 +41,7 @@ public class Auto extends SubCommand {
     }
     
     public static String getBackupName() {
-        return new SimpleDateFormat("dd-MMM-yyyy-hh;mm;ss").format(Calendar.getInstance().getTime());
+        return new SimpleDateFormat("dd-MMM-yyyy-hh_mm_ss").format(Calendar.getInstance().getTime());
     }
     private static void removeRedundant() {
         File dir = new File(Main.getInstance().getDataFolder(), "/backup");
@@ -95,14 +96,23 @@ public class Auto extends SubCommand {
                         configFile.getConfig().set("tport", tportData.getConfig().getConfigurationSection("tport"));
                         configFile.getConfig().set("public", tportData.getConfig().getConfigurationSection("public"));
                         configFile.saveConfig();
-                        Main.getInstance().getLogger().info("Auto backup " + backupName + " succeeded");
                         sendSuccessTranslation(player, "tport.command.backup.save.name.succeeded", file.getName());
+                        
+                        if (player == null) {
+                            Main.getInstance().getLogger().info("Auto save backup " + backupName + " succeeded");
+                        } else {
+                            Main.getInstance().getLogger().info("Save backup " + backupName + " succeeded");
+                        }
                         return;
                     }
                     version++;
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    Main.getInstance().getLogger().warning("Could not auto backup file " + backupName + ": " + e.getMessage());
+                    if (Features.Feature.PrintErrorsInConsole.isEnabled()) e.printStackTrace();
+                    if (player == null) {
+                        Main.getInstance().getLogger().warning("Could not auto save backup file " + backupName + ": " + e.getMessage());
+                    } else {
+                        Main.getInstance().getLogger().warning("Could not save backup file " + backupName + ": " + e.getMessage());
+                    }
                     sendErrorTranslation(player, "tport.command.backup.save.name.error", e.getMessage());
                     return;
                 }

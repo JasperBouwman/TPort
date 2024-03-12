@@ -18,6 +18,7 @@ import java.util.TimeZone;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.spaceman.tport.commands.tport.log.TimeFormat.defaultTimeFormat;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
@@ -105,7 +106,7 @@ public class Read extends SubCommand {
             sendInfoTranslation(player, "tport.command.log.read.tportName.isEmpty", asTPort(tport));
             return;
         }
-        String format = tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", "EEE MMM dd HH:mm:ss zzz yyyy");
+        String format = tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeFormat", defaultTimeFormat);
         SimpleDateFormat sdf = new SimpleDateFormat(format);
         sdf.setTimeZone(TimeZone.getTimeZone(
                 tportData.getConfig().getString("tport." + player.getUniqueId() + ".timeZone", TimeZone.getDefault().getID())));
@@ -145,7 +146,7 @@ public class Read extends SubCommand {
         if (size == 0) {
             sendErrorTranslation(player, "tport.command.log.read.tportName.player.playerNotInLog", asPlayer(filterUUID), asTPort(tport));
         } else {
-            sendInfoTranslation(player, "tport.command.log.read.tportName.succeeded", asTPort(tport), asPlayer(filterUUID), logMessage);
+            sendInfoTranslation(player, "tport.command.log.read.tportName.player.succeeded", asTPort(tport), asPlayer(filterUUID), logMessage);
         }
     }
     

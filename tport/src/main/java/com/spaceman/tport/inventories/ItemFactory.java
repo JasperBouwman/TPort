@@ -23,6 +23,7 @@ import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -38,6 +39,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.spaceman.tport.commands.TPortCommand.executeTPortCommand;
@@ -71,7 +73,9 @@ public class ItemFactory {
         OFFER_TO_PLAYER, //used for offering a TPort to player
         TPORT_WHITELIST, //used for TPort whitelist selection
         PLTP_WHITELIST, //used for PLTP whitelist selection
-        TPORT_LOGGING, //used for TPort logging
+        TPORT_LOG_SELECTION, //used for TPort logging selection
+        TPORT_LOG_READ, //used for TPort read log
+        TPORT_LOG_READ_FILTER, //used for TPort read log, filter selection
         REMOVE_PLAYER; //shows the message to remove this Player (used for Remove Player)
     }
     public static ItemStack getHead(UUID head, Player player, List<HeadAttributes> attributes, @Nullable Object headData) {
@@ -116,7 +120,7 @@ public class ItemFactory {
                         textComponent(Keybinds.DROP, varInfoColor).setType(TextType.KEYBIND), headOwner.getName()));
                 FancyClickEvent.addCommand(item, ClickType.DROP, "tport preview " + headOwner.getName());
                 
-                if (DynmapHandler.isEnabled()) {
+                if (DynmapHandler.isEnabled()) { //todo add BlueMap
                     lore.add(formatInfoTranslation("tport.inventories.itemFactory.getHead.click_events.dynmapSearch", ClickType.CONTROL_DROP, headOwner.getName()));
                     FancyClickEvent.addCommand(item, ClickType.CONTROL_DROP, "tport dynmap search " + headOwner.getName());
                 }
@@ -182,7 +186,7 @@ public class ItemFactory {
             }
         }
         
-        if (attributes.contains(HeadAttributes.TPORT_LOGGING) && headData instanceof TPort tport) {
+        if (attributes.contains(HeadAttributes.TPORT_LOG_SELECTION) && headData instanceof TPort tport) {
             boolean isPlayerLogged = tport.getLogged().contains(headOwner.getUniqueId());
             
             lore.add(new Message());
@@ -223,6 +227,29 @@ public class ItemFactory {
                     }
                 });
             }
+        }
+        
+        if (attributes.contains(HeadAttributes.TPORT_LOG_READ) && headData instanceof ImmutableTriple) {
+            lore.add(new Message());
+            
+            ImmutableTriple<TPort, TPort.LogEntry, SimpleDateFormat> triple = (ImmutableTriple<TPort, TPort.LogEntry, SimpleDateFormat>) headData;
+            
+            Message timestamp = formatInfoTranslation("tport.quickEditInventories.openTPortLogReadGUI.log.time", triple.left, triple.right.format(triple.middle.timeOfTeleport().getTime()));
+            Message logMode = triple.middle.loggedMode() == null ? null : formatInfoTranslation("tport.quickEditInventories.openTPortLogReadGUI.log.logMode", triple.middle.loggedMode());
+            Message ownerOnline = triple.middle.ownerOnline() == null ? null : formatInfoTranslation("tport.quickEditInventories.openTPortLogReadGUI.log.ownerOnline." + triple.middle.ownerOnline(), triple.middle.ownerOnline());
+            
+            lore.add(timestamp);
+            lore.add(logMode);
+            lore.add(ownerOnline);
+        }
+        
+        if (attributes.contains(HeadAttributes.TPORT_LOG_READ_FILTER)) {
+            lore.add(new Message());
+            lore.add(formatInfoTranslation("tport.quickEditInventories.openTPortLogRead_filterGUI.selectForFiltering", LEFT));
+            
+            addFunction(item, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                openTPortLogReadGUI(whoClicked, fancyInventory.getData(tportDataName), headOwner.getUniqueId());
+            }));
         }
         
         if (attributes.contains(HeadAttributes.PLTP_WHITELIST)) {
@@ -302,10 +329,11 @@ public class ItemFactory {
         ADD_OWNER,  //add the owner name at the top
         QUICK_EDITOR, //add the quick edit (needs the FancyInventory for move)
         CLICK_TO_OPEN,  //add the teleport, inverted safetyCheck and preview events
-        CLICK_TO_OPEN_PUBLIC,  //add the move, teleport, inverted safetyCheck and preview events for the public GUI (needs the FancyInventory for move)
+        CLICK_TO_OPEN_PUBLIC,  //add the teleport, inverted safetyCheck and preview events for the public GUI (needs the FancyInventory for move)
         TRANSFER_OFFERS, //TPorts offered to the player
         TRANSFER_OFFERED, //own TPorts offered to other players
-        PUBLIC_MOVE_DELETE,
+        PUBLIC_MOVE_DELETE, //add move and remove from Public TP settings
+        LOG_DATA, //add the 'is logged' and link to the Quick Edit
         SELECT_HOME
     }
     public static ItemStack toTPortItem(TPort tport, Player player, List<TPortItemAttributes> attributes) {
@@ -324,6 +352,7 @@ public class ItemFactory {
         ColorTheme theme = ColorTheme.getTheme(player);
         
         im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "tportUUID"), STRING, tport.getTportID().toString());
+        im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "tportName"), STRING, tport.getName());
         for (Enchantment e : im.getEnchants().keySet()) {
             im.removeEnchant(e);
         }
@@ -345,8 +374,11 @@ public class ItemFactory {
             lore.add(formatInfoTranslation("tport.inventories.itemFactory.toTPortItem.editing", ClickType.RIGHT, type.getDisplayName()));
             lore.add(formatInfoTranslation("tport.inventories.itemFactory.toTPortItem.buttons", ClickType.SHIFT_RIGHT));
             
-            if (prevWindow != null && tport.getTportID().equals(prevWindow.getData("TPortToMove", UUID.class))) {
-                Glow.addGlow(im);
+            if (prevWindow != null) {
+                if (tport.getTportID().equals(prevWindow.getData(tportToMoveDataName)) ||
+                    tport.getTportID().equals(prevWindow.getData(whitelistCloneToDataName))) {
+                    Glow.addGlow(im);
+                }
             }
             
             FancyClickEvent.addFunction(im, ClickType.RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
@@ -390,18 +422,13 @@ public class ItemFactory {
             lore.add(formatInfoTranslation("tport.inventories.itemFactory.toTPortItem.preview", ClickType.DROP));
             addCommand(im, ClickType.DROP, "tport preview " + PlayerUUID.getPlayerName(tport.getOwner()) + " " + tport.getName());
             
-            if (DynmapHandler.isEnabled()) {
+            if (DynmapHandler.isEnabled()) { //todo add BlueMap
                 lore.add(formatInfoTranslation("tport.inventories.itemFactory.toTPortItem.dynmapSearch", ClickType.CONTROL_DROP));
                 addCommand(im, ClickType.CONTROL_DROP, "tport dynmap search " + PlayerUUID.getPlayerName(tport.getOwner()) + " " + tport.getName());
             }
         }
         
         if (attributes.contains(TPortItemAttributes.CLICK_TO_OPEN_PUBLIC)) {
-            FancyInventory prevWindow = null;
-            if (extraData instanceof FancyInventory) {
-                prevWindow = (FancyInventory) extraData;
-            }
-            
             Boolean safetyState = null;
             if (TPORT_PUBLIC.hasPermission(player, false)) {
                 safetyState = TPORT_PUBLIC.getState(player);
@@ -435,12 +462,12 @@ public class ItemFactory {
                     if (toMoveTPort == null) {
                         return;
                     }
-                    UUID moveToTPort = fancyInventory.getData("TPortToMove", UUID.class, null);
+                    UUID moveToTPort = fancyInventory.getData(tportToMoveDataName);
                     if (moveToTPort == null) {
-                        fancyInventory.setData("TPortToMove", toMoveTPort.getTportID());
+                        fancyInventory.setData(tportToMoveDataName, toMoveTPort.getTportID());
                         openPublicTPTPortsSettings(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
                     } else {
-                        fancyInventory.setData("TPortToMove", null);
+                        fancyInventory.setData(tportToMoveDataName, null);
                         if (!moveToTPort.equals(toMoveTPort.getTportID())) {
                             TPort tmpTPort = TPortManager.getTPort(moveToTPort);
                             if (tmpTPort != null) {
@@ -457,7 +484,7 @@ public class ItemFactory {
             if (Move.getInstance().emptySlot.hasPermissionToRun(player, false)) {
                 lore.add(formatInfoTranslation("tport.inventories.itemFactory.toTPortItem.publicMove", LEFT, tport));
                 
-                if (prevWindow != null && tport.getTportID().equals(prevWindow.getData("TPortToMove", UUID.class))) {
+                if (prevWindow != null && tport.getTportID().equals(prevWindow.getData(tportToMoveDataName))) {
                     Glow.addGlow(im);
                 }
             }
@@ -490,6 +517,19 @@ public class ItemFactory {
             lore.add(new Message());
             lore.add(formatInfoTranslation("tport.inventories.itemFactory.toTPortItem.transfer.revoke", LEFT, tport));
             addCommand(im, LEFT, "tport transfer revoke " + tport.getName());
+        }
+        
+        if (attributes.contains(TPortItemAttributes.LOG_DATA)) {
+            lore.add(new Message());
+            
+            lore.add(formatInfoTranslation("tport.inventories.itemFactory.toTPortItem.logData.isLogged"));
+            lore.add(formatInfoTranslation("tport.inventories.itemFactory.toTPortItem.logData.quickEdit", LEFT));
+            
+            addFunction(im, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                String innerTPortName = pdc.get(new NamespacedKey(Main.getInstance(), "tportName"), STRING);
+                TPort innerTPort = TPortManager.getTPort(whoClicked.getUniqueId(), innerTPortName);
+                if (innerTPort != null) QuickEditInventories.openTPortLogGUI(whoClicked, innerTPort);
+            }));
         }
         
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
@@ -572,7 +612,7 @@ public class ItemFactory {
         MAIN(((whoClicked, clickType, pdc, fancyInventory) -> TPortCommand.executeTPortCommand(whoClicked, ""))),
         OWN(((whoClicked, clickType, pdc, fancyInventory) -> TPortCommand.executeTPortCommand(whoClicked, "own"))),
         PUBLIC(((whoClicked, clickType, pdc, fancyInventory) -> TPortCommand.executeTPortCommand(whoClicked, "public"))), //TPort.public.open OR TPort.basic
-        BIOME_TP(((whoClicked, clickType, pdc, fancyInventory) -> TPortCommand.executeTPortCommand(whoClicked, "biomeTP"))), //TPort.biomeTP.open
+        BIOME_TP(((whoClicked, clickType, pdc, fancyInventory) -> openBiomeTP(whoClicked, 0, fancyInventory))), //TPort.biomeTP.open
         FEATURE_TP(((whoClicked, clickType, pdc, fancyInventory) -> TPortCommand.executeTPortCommand(whoClicked, "featureTP"))), //TPort.featureTP.open
         WORLD_TP(((whoClicked, clickType, pdc, fancyInventory) -> TPortCommand.executeTPortCommand(whoClicked, "world"))), //TPort.world.tp
         SETTINGS(((whoClicked, clickType, pdc, fancyInventory) -> TPortCommand.executeTPortCommand(whoClicked, "settings"))),
@@ -583,6 +623,8 @@ public class ItemFactory {
         TPORT_LOG(((whoClicked, clickType, pdc, fancyInventory) -> QuickEditInventories.openTPortLogGUI(whoClicked, fancyInventory.getData(tportDataName)))),
         PUBLIC_TP_SETTINGS(((whoClicked, clickType, pdc, fancyInventory) -> SettingsInventories.openPublicTPSettings(whoClicked))),
         LOG_SETTINGS(((whoClicked, clickType, pdc, fancyInventory) -> SettingsInventories.openLogGUI(whoClicked))),
+        LOG_SETTINGS_READ(((whoClicked, clickType, pdc, fancyInventory) -> QuickEditInventories.openTPortLogReadGUI(whoClicked, fancyInventory.getData(tportDataName), fancyInventory.getData("filterUUID", UUID.class)))),
+        SEARCH(((whoClicked, clickType, pdc, fancyInventory) -> SettingsInventories.openMainSearchGUI(whoClicked, 0))),
         PLTP(((whoClicked, clickType, pdc, fancyInventory) -> SettingsInventories.openPLTPGUI(whoClicked)));
         
         private final FancyClickEvent.FancyClickRunnable onClick;
@@ -646,6 +688,7 @@ public class ItemFactory {
         return list;
     }
     
+    //todo fix content stored in prevWindow
     public static ItemStack getSortingItem(Player player, JsonObject playerLang, ColorTheme theme, FancyClickEvent.FancyClickRunnable invCreator) {
         String nextSort = Sort.getNextSorterName(player);
         

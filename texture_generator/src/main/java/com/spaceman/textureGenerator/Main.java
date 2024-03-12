@@ -250,7 +250,7 @@ public class Main {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         JsonObject pack_mcmeta = new JsonObject();
         JsonObject pack = new JsonObject();
-        pack.add("pack_format", new JsonPrimitive(18));
+        pack.add("pack_format", new JsonPrimitive(22));
         String description = "";
         if (lightMode) {
             description = String.format("TPort %s (v%s) (light), made by The_Spaceman", packDir, plugin_yml.get("version"));

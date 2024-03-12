@@ -3,6 +3,7 @@ package com.spaceman.tport.commands.tport.edit;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
@@ -42,6 +43,11 @@ public class Preview extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport edit <TPort name> preview [state]
+        
+        if (Features.Feature.Preview.isDisabled()) {
+            Features.Feature.Preview.sendDisabledMessage(player);
+            return;
+        }
         
         if (args.length == 3) {
             TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
