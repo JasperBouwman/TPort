@@ -11,7 +11,7 @@ import com.spaceman.tport.commands.tport.Sort;
 import com.spaceman.tport.commands.tport.pltp.Whitelist;
 import com.spaceman.tport.commands.tport.publc.Move;
 import com.spaceman.tport.commands.tport.publc.Remove;
-import com.spaceman.tport.dynmap.DynmapHandler;
+import com.spaceman.tport.webMaps.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Keybinds;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;

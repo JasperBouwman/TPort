@@ -12,8 +12,8 @@ import com.spaceman.tport.commands.tport.Tag;
 import com.spaceman.tport.commands.tport.edit.Item;
 import com.spaceman.tport.commands.tport.log.Read;
 import com.spaceman.tport.commands.tport.log.TimeFormat;
-import com.spaceman.tport.dynmap.BlueMapHandler;
-import com.spaceman.tport.dynmap.DynmapHandler;
+import com.spaceman.tport.webMaps.BlueMapHandler;
+import com.spaceman.tport.webMaps.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
@@ -37,7 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.spaceman.tport.commands.TPortCommand.executeTPortCommand;
-import static com.spaceman.tport.dynmap.DynmapHandler.tport_dynmap_icon;
+import static com.spaceman.tport.webMaps.DynmapHandler.tport_dynmap_icon;
 import static com.spaceman.tport.fancyMessage.MessageUtils.setCustomItemData;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
@@ -940,7 +940,10 @@ public class QuickEditInventories {
             return false;
         }),
         BLUEMAP_SHOW(QuickEditType::getBlueMapShowModel, (tport, player, fancyInventory) -> {
-            if (BlueMapHandler.isEnabled()) {
+            boolean blueMapState = false;
+            try { blueMapState = BlueMapHandler.isEnabled(); } catch (Throwable ignored) { }
+            
+            if (blueMapState) {
                 TPortCommand.executeTPortCommand(player, new String[]{"edit", tport.getName(), "blueMap", "show", String.valueOf(!tport.showOnBlueMap())});
                 return true;
             } else {
@@ -1031,7 +1034,10 @@ public class QuickEditInventories {
             return tport.showOnDynmap() ? quick_edit_dynmap_show_on_model : quick_edit_dynmap_show_off_model;
         }
         private static InventoryModel getBlueMapShowModel(TPort tport) {
-            if (!BlueMapHandler.isEnabled()) {
+            boolean blueMapState = false;
+            try { blueMapState = BlueMapHandler.isEnabled(); } catch (Throwable ignored) { }
+            
+            if (!blueMapState) {
                 return quick_edit_bluemap_show_grayed_model;
             }
             return tport.showOnBlueMap() ? quick_edit_bluemap_show_on_model : quick_edit_bluemap_show_off_model;

@@ -6,7 +6,7 @@ import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.dynmap.Colors;
 import com.spaceman.tport.commands.tport.dynmap.IP;
 import com.spaceman.tport.commands.tport.dynmap.Search;
-import com.spaceman.tport.dynmap.DynmapHandler;
+import com.spaceman.tport.webMaps.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import org.bukkit.entity.Player;

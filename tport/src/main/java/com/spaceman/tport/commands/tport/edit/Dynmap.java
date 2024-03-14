@@ -5,7 +5,7 @@ import com.spaceman.tport.commands.tport.DynmapCommand;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.edit.dynmap.Icon;
 import com.spaceman.tport.commands.tport.edit.dynmap.Show;
-import com.spaceman.tport.dynmap.DynmapHandler;
+import com.spaceman.tport.webMaps.DynmapHandler;
 import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;

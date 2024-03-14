@@ -4,7 +4,7 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.DynmapCommand;
-import com.spaceman.tport.dynmap.DynmapHandler;
+import com.spaceman.tport.webMaps.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.playerUUID.PlayerUUID;

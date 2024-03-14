@@ -12,7 +12,7 @@
     <properties>
         <author>The_Spaceman</author>
         <bukkitURL>https://dev.bukkit.org/projects/tport</bukkitURL>
-        <TPortVersion>1.20.4</TPortVersion>
+        <TPortVersion>1.20.5</TPortVersion>
         <MainSpigotVersion>1.20.4-R0.1-SNAPSHOT</MainSpigotVersion>
         <supportedVersions>'1.20.4','1.20.2','1.20.1','1.20','1.19.4','1.18.2'</supportedVersions>
     </properties>

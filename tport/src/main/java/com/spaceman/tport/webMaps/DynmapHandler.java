@@ -1,4 +1,4 @@
-package com.spaceman.tport.dynmap;
+package com.spaceman.tport.webMaps;
 
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;

@@ -1,10 +1,13 @@
 package com.spaceman.tport.commands.tport;
 
+import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.dynmap.BlueMapHandler;
+import com.spaceman.tport.webMaps.BlueMapHandler;
 import org.bukkit.entity.Player;
+
+import java.util.logging.Level;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
@@ -12,9 +15,15 @@ public class BlueMapCommand extends SubCommand {
     
     public BlueMapCommand() {
         if (Features.Feature.BlueMap.isEnabled())  {
-            BlueMapHandler.enable();
+            try {
+                BlueMapHandler.enable();
+            } catch (Throwable ignored) {
+                Main.getInstance().getLogger().log(Level.SEVERE, "Tried to enable BlueMap support, BlueMap API was not found");
+            }
         } else {
-            BlueMapHandler.disable();
+            try {
+                BlueMapHandler.disable();
+            } catch (Throwable ignored) {}
         }
         
         EmptyCommand empty = new EmptyCommand() {

@@ -5,7 +5,7 @@ The main functionality is the location manager.
 
 TPort has an official [Discord](https://discord.gg/tq5RTmSbHU "Discord") server, any type of question can be asked here.
 
-A quick start can be found here: [QuickStart.md](https://github.com/JasperBouwman/TPort/blob/master/QuickStart.md)
+A quick start can be found here: [quickStart.md](https://github.com/JasperBouwman/TPort/blob/master/quickStart.md)
 
 ### Location manager
 

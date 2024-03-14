@@ -4,7 +4,7 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.DynmapCommand;
-import com.spaceman.tport.dynmap.DynmapHandler;
+import com.spaceman.tport.webMaps.DynmapHandler;
 import org.bukkit.entity.Player;
 
 import java.io.BufferedReader;

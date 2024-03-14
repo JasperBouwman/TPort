@@ -123,18 +123,22 @@ public class HelpCommand extends SubCommand {
                 
                 for (SubCommand subCommand : template.getActions()) {
                     TextComponent commandComponent;
+                    String clickCommand;
                     if (subCommand.getActions().isEmpty()) {
-                        commandComponent = commandToComponent("/" + template.getName() + " " + subCommand.getCommandName(), subCommand, player, color);
+                        clickCommand = "/" + template.getName() + " " + subCommand.getCommandName();
+                        commandComponent = commandToComponent(clickCommand, subCommand, player, color);
                     } else {
+                        clickCommand = "/" + template.getName() + " help " + template.getName() + " " + subCommand.getCommandName();
                         if (subCommand.getCommandDescription().getText().get(0).getText().equals(descriptionNotGiven)) {
                             EmptyCommand descriptionHack = new EmptyCommand();
                             descriptionHack.setCommandDescription(formatInfoTranslation("tport.commandHandler.subCommand.shorten.generalDescription",
-                                    "/" + template.getName() + " help " + template.getName() + " " + subCommand.getCommandName()));
+                                    clickCommand));
                             commandComponent = commandToComponent("/" + template.getName() + " " + subCommand.getCommandName() + " <...>", descriptionHack, player, color);
                         } else {
                             commandComponent = commandToComponent("/" + template.getName() + " " + subCommand.getCommandName() + " [...]", subCommand, player, color);
                         }
                     }
+                    commandComponent.addTextEvent(new ClickEvent(ClickEvent.RUN_COMMAND, clickCommand));
                     commands.addText(commandComponent);
                     commands.addNewLine();
                     color = !color;
@@ -146,12 +150,12 @@ public class HelpCommand extends SubCommand {
             }
             
             HashMap<String, SubCommand> commandMap = template.collectActions();
-            String command = "/" + StringUtils.join(args, " ", 1, args.length);
+            String searchedCommand = "/" + StringUtils.join(args, " ", 1, args.length);
             
             Message commands = new Message();
             boolean color = true;
             for (String tmpCommand : commandMap.keySet()) {
-                if (tmpCommand.toLowerCase().startsWith(command.toLowerCase()) || command.equalsIgnoreCase(tmpCommand)) { //todo ignore matches for variables <var> [var]
+                if (commandMatches(tmpCommand, searchedCommand, "/" + template.getName())) {
                     SubCommand subCommand = commandMap.get(tmpCommand);
                     TextComponent commandComponent = commandToComponent(tmpCommand, subCommand, player, color);
                     commands.addText(commandComponent);
@@ -161,7 +165,7 @@ public class HelpCommand extends SubCommand {
             }
             commands.removeLast();
             
-            sendInfoTranslation(player, "tport.command.help.command.succeeded", command, commands);
+            sendInfoTranslation(player, "tport.command.help.command.succeeded", searchedCommand, commands);
         });
         commandHelp.setTabRunnable((args, player) -> {
             String s = StringUtils.join(args, " ", 1, args.length - 1) + " ";
@@ -192,6 +196,55 @@ public class HelpCommand extends SubCommand {
         });
         addAction(commandPage);
         addAction(commandHelp);
+    }
+    
+    private boolean commandMatches(String command, String searchedCommand, String mainCommandName) {
+        if (searchedCommand.length() != mainCommandName.length()) {
+            if (command.equalsIgnoreCase(mainCommandName)) {
+                return false;
+            }
+        }
+        
+        ArrayList<String> commandSplit = new ArrayList<>();
+        for (String s : command.split(" ")) {
+            if (s.contains("<") || s.contains("[")) {
+                commandSplit.add(null);
+            } else if (!s.contains(">") && !s.contains("]")) { //no closing tags
+                commandSplit.add(s);
+            }
+        }
+        //tport edit <TPort name> location -> 'tport' 'edit'  null  'location'
+        //tport edit home         location -> 'tport' 'edit' 'home' 'location'
+        //tport edit home                  -> 'tport' 'edit' 'home'
+        
+        ArrayList<String> searchedSplit = new ArrayList<>();
+        for (String s : searchedCommand.split(" ")) {
+            if (s.contains("<") || s.contains("[")) {
+                searchedSplit.add(null);
+            } else if (!s.contains(">") && !s.contains("]")) { //no closing tags
+                searchedSplit.add(s);
+            }
+        }
+        
+        int forSize = Math.max(commandSplit.size(), searchedSplit.size());
+        for (int i = 0; i < forSize; i++) {
+            if (i >= searchedSplit.size()) { // if command accepts more arguments
+                return true;
+            }
+            if (i >= commandSplit.size()) { // if command is shorter (back propagation)
+                return true;
+            }
+            
+            String commandArgument = commandSplit.get(i);
+            String searchArgument = searchedSplit.get(i);
+            
+            if (commandArgument != null) {
+                if (!searchArgument.equalsIgnoreCase(commandArgument) && !commandArgument.contains(searchArgument)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
     
     private TextComponent commandToComponent(String command, SubCommand subCommand, Player player, boolean color) {

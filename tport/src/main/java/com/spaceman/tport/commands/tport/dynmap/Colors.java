@@ -3,7 +3,7 @@ package com.spaceman.tport.commands.tport.dynmap;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.dynmap.DynmapHandler;
+import com.spaceman.tport.webMaps.DynmapHandler;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import org.bukkit.entity.Player;
 

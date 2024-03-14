@@ -4,7 +4,7 @@ import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.BlueMapCommand;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.edit.blueMap.Show;
-import com.spaceman.tport.dynmap.BlueMapHandler;
+import com.spaceman.tport.webMaps.BlueMapHandler;
 import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
@@ -25,7 +25,9 @@ public class BlueMap extends SubCommand {
             return;
         }
         
-        if (!BlueMapHandler.isEnabled()) {
+        boolean blueMapState = false;
+        try { blueMapState = BlueMapHandler.isEnabled(); } catch (Throwable ignored) { }
+        if (!blueMapState) {
             BlueMapCommand.sendDisableError(player);
             return;
         }

@@ -1,4 +1,4 @@
-package com.spaceman.tport.dynmap;
+package com.spaceman.tport.webMaps;
 
 import com.flowpowered.math.vector.Vector3d;
 import com.google.gson.JsonObject;
@@ -17,7 +17,6 @@ import de.bluecolored.bluemap.api.markers.MarkerSet;
 import de.bluecolored.bluemap.api.markers.POIMarker;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import javax.imageio.ImageIO;
@@ -43,7 +42,7 @@ public class BlueMapHandler {
         return enabled;
     }
     
-    public static boolean shouldEnable() {
+    private static boolean shouldEnable() {
         return Features.Feature.BlueMap.isEnabled();
     }
     

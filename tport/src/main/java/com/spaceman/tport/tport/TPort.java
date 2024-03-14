@@ -6,8 +6,8 @@ import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.SafetyCheck;
 import com.spaceman.tport.commands.tport.log.LogSize;
 import com.spaceman.tport.cooldown.CooldownManager;
-import com.spaceman.tport.dynmap.BlueMapHandler;
-import com.spaceman.tport.dynmap.DynmapHandler;
+import com.spaceman.tport.webMaps.BlueMapHandler;
+import com.spaceman.tport.webMaps.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
@@ -598,7 +598,7 @@ public class TPort implements ConfigurationSerializable {
     public void save() {
         TPortManager.saveTPort(this);
         DynmapHandler.updateTPort(this);
-        BlueMapHandler.updateTPort(this);
+        try { BlueMapHandler.updateTPort(this); } catch (Throwable ignored) { }
     }
     
     public void setInactiveWorldName(String inactiveWorldName) {
