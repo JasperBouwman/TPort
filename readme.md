@@ -91,6 +91,8 @@ Some safety measurements:
   Then you are riding a horse, driving a boat or holding entities with a leash. They will all teleport with you.
 - **Dynmap support** <img src="https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/settings_dynmap.png?raw=true" width="32" height="32"><br />
   When [Dynmap](https://dev.bukkit.org/projects/dynmap) is loaded in the server, it is possible to show TPorts on the map. This is customizable for each TPort.
+- **BlueMap support** <img src="https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/settings_bluemap.png?raw=true" width="32" height="32"><br />
+  When [BlueMap](https://bluemap.bluecolored.de/) is loaded in the server, it is possible to show TPorts on the map. This is customizable for each TPort.
 
 There are over 200 commands that can be used. Don't worry, all commands have their own explanation which can be looked at in game.
 For help with TPort use `/tport help <command>`.<br />
