@@ -409,8 +409,6 @@ The second way is using the Color Editor (![](https://github.com/JasperBouwman/T
 When opening the Color Editor, 6 buttons will appear to create a color (![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color_red_add.png?raw=true "Add red"), ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color_red_remove.png?raw=true "Remove red"), ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color_green_add.png?raw=true "Add green"), ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color_green_remove.png?raw=true "Remove green"), ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color_blue_add.png?raw=true "Add blue"), ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color_blue_remove.png?raw=true "Remove blue")),
 and the seventh button (![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_chat_color.png?raw=true "Choose from Minecraft")) is to choose a color from Minecraft (chat colors & dye colors).
 
-[//]: # (todo)
-
 ***
 
 ### Customisation
@@ -466,6 +464,8 @@ If you want to make changes and use your own custom version, you can use the `cu
 #### Language ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/settings_language.png?raw=true "Language")<br />
 
 Description coming soon.
+
+[//]: # (todo)
 
 ***
 

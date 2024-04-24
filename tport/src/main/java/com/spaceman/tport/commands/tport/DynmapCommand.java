@@ -45,8 +45,18 @@ public class DynmapCommand extends SubCommand {
         return "dynmap";
     }
     
-    public static void sendDisableError(Player player) {
-        sendErrorTranslation(player, "tport.command.dynmapCommand.disableError", "/tport features dynmap state true");
+    public static boolean checkDynmapState(Player player) {
+        if (Features.Feature.Dynmap.isDisabled()) {
+            Features.Feature.Dynmap.sendDisabledMessage(player);
+            return false;
+        }
+        
+        if (!DynmapHandler.isEnabled()) {
+            sendErrorTranslation(player, "tport.command.dynmapCommand.disableError", "/tport features dynmap state true");
+            return false;
+        }
+        
+        return true;
     }
     
     @Override
@@ -55,6 +65,10 @@ public class DynmapCommand extends SubCommand {
         // tport dynmap search <player> [TPort name]
         // tport dynmap IP [IP]
         // tport dynmap colors [color theme]
+        
+        if (!checkDynmapState(player))  {
+            return;
+        }
         
         if (args.length == 1) {
             //When disabled this command can't be executed

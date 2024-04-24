@@ -114,7 +114,10 @@ public class QuickEditInventories {
     public static final InventoryModel quick_edit_bluemap_show_on_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_dynmap_icon_grayed_model, "quick_edit");
     public static final InventoryModel quick_edit_bluemap_show_off_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_bluemap_show_on_model, "quick_edit");
     public static final InventoryModel quick_edit_bluemap_show_grayed_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_bluemap_show_off_model, "quick_edit");
-    public static final InventoryModel quick_edit_offer_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_bluemap_show_grayed_model, "quick_edit");
+    public static final InventoryModel quick_edit_bluemap_icon_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_bluemap_show_grayed_model, "quick_edit");
+    public static final InventoryModel quick_edit_bluemap_icon_tport_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_bluemap_icon_model, "quick_edit");
+    public static final InventoryModel quick_edit_bluemap_icon_grayed_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_bluemap_icon_tport_model, "quick_edit");
+    public static final InventoryModel quick_edit_offer_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_bluemap_icon_grayed_model, "quick_edit");
     public static final InventoryModel quick_edit_revoke_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_offer_model, "quick_edit");
     public static final InventoryModel quick_edit_item_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_revoke_model, "quick_edit");
     public static final InventoryModel quick_edit_item_reload_model = new InventoryModel(Material.OAK_BUTTON, quick_edit_item_model, "quick_edit");
@@ -503,21 +506,21 @@ public class QuickEditInventories {
         ColorTheme colorTheme = ColorTheme.getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
-        List<Pair<String, String>> markers = DynmapHandler.getIcons();
+        List<Pair<String, String>> icons = DynmapHandler.getIcons();
         ArrayList<ItemStack> items = new ArrayList<>();
         
-        if (markers != null) {
-            markers.sort(Comparator.comparing(Pair::getLeft));
-            for (Pair<String, String> marker : markers) {
-                ItemStack is = (marker.getLeft().equals(tport_dynmap_icon) ? quick_edit_dynmap_icon_tport_model : quick_edit_dynmap_icon_model).getItem(player);
+        if (icons != null) {
+            icons.sort(Comparator.comparing(Pair::getLeft));
+            for (Pair<String, String> icon : icons) {
+                ItemStack is = (icon.getLeft().equals(tport_dynmap_icon) ? quick_edit_dynmap_icon_tport_model : quick_edit_dynmap_icon_model).getItem(player);
                 
-                Message markerTitle = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortDynmapIconGUI.icon.title", marker.getRight());
+                Message markerTitle = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortDynmapIconGUI.icon.title", icon.getRight());
                 Message markerLeft = formatInfoTranslation(playerLang,"tport.quickEditInventories.openTPortDynmapIconGUI.icon.leftClick", LEFT);
                 setCustomItemData(is, colorTheme, markerTitle, List.of(markerLeft));
                 
-                addCommand(is, LEFT, "tport edit " + tport.getName() + " dynmap icon " + marker.getRight());
+                addCommand(is, LEFT, "tport edit " + tport.getName() + " dynmap icon " + icon.getRight());
                 
-                if (marker.getLeft().equals(tport_dynmap_icon)) items.set(0, is);
+                if (icon.getLeft().equals(tport_dynmap_icon)) items.add(0, is);
                 else items.add(is);
             }
         }
@@ -532,6 +535,42 @@ public class QuickEditInventories {
     }
     private static void openTPortDynmapIconGUI(Player player, int page, FancyInventory prevWindow) {
         openTPortDynmapIconGUI(player, prevWindow.getData(tportDataName), page);
+    }
+    
+    private static void openTPortBlueMapIconGUI(Player player, TPort tport, int page) {
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = getPlayerLang(player.getUniqueId());
+        
+        ArrayList<ItemStack> items = new ArrayList<>();
+        
+        try {
+            ArrayList<String> icons = BlueMapHandler.getBlueMapImages();
+            if (icons != null) {
+                for (String icon : icons) {
+                    ItemStack is = (icon.equals(BlueMapHandler.defaultIcon) ? quick_edit_bluemap_icon_tport_model : quick_edit_bluemap_icon_model).getItem(player);
+                    
+                    Message markerTitle = formatInfoTranslation(playerLang, "tport.quickEditInventories.openTPortBlueMapIconGUI.icon.title", icon);
+                    Message markerLeft = formatInfoTranslation(playerLang,"tport.quickEditInventories.openTPortBlueMapIconGUI.icon.leftClick", LEFT);
+                    setCustomItemData(is, colorTheme, markerTitle, List.of(markerLeft));
+                    
+                    addCommand(is, LEFT, "tport edit " + tport.getName() + " blueMap icon " + icon);
+                    
+                    if (icon.equals(BlueMapHandler.defaultIcon)) items.add(0, is);
+                    else items.add(is);
+                }
+            }
+        } catch (Throwable ignore) { }
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, QuickEditInventories::openTPortBlueMapIconGUI,
+                formatInfoTranslation("tport.quickEditInventories.openTPortBlueMapIconGUI.title", tport), items, createBack(player, QUICK_EDIT, OWN, MAIN));
+        inv.setData(tportDataName, tport);
+        inv.setData(tportUUIDDataName, tport.getTportID());
+        inv.setItem(0, getCornerTPortIcon(tport, player));
+        
+        inv.open(player);
+    }
+    private static void openTPortBlueMapIconGUI(Player player, int page, FancyInventory prevWindow) {
+        openTPortBlueMapIconGUI(player, prevWindow.getData(tportDataName), page);
     }
     
     private static void openTPortLogRead_filterGUI(Player player, int page, FancyInventory prevWindow) {
@@ -922,34 +961,32 @@ public class QuickEditInventories {
             }
         })),
         DYNMAP_SHOW(QuickEditType::getDynmapShowModel, (tport, player, fancyInventory) -> {
-            if (DynmapHandler.isEnabled()) {
+            if (DynmapCommand.checkDynmapState(player)) {
                 TPortCommand.executeTPortCommand(player, new String[]{"edit", tport.getName(), "dynmap", "show", String.valueOf(!tport.showOnDynmap())});
                 return true;
             } else {
-                DynmapCommand.sendDisableError(player);
                 return false;
             }
         }),
-        DYNMAP_ICON(DynmapHandler.isEnabled() ? quick_edit_dynmap_icon_model : quick_edit_dynmap_icon_grayed_model,
-                (tport, player, fancyInventory) -> {
-            if (DynmapHandler.isEnabled()) {
+        DYNMAP_ICON(DynmapHandler.isEnabled() ? quick_edit_dynmap_icon_model : quick_edit_dynmap_icon_grayed_model, (tport, player, fancyInventory) -> {
+            if (DynmapCommand.checkDynmapState(player)) {
                 openTPortDynmapIconGUI(player, tport, 0);
-            } else {
-                DynmapCommand.sendDisableError(player);
             }
             return false;
         }),
         BLUEMAP_SHOW(QuickEditType::getBlueMapShowModel, (tport, player, fancyInventory) -> {
-            boolean blueMapState = false;
-            try { blueMapState = BlueMapHandler.isEnabled(); } catch (Throwable ignored) { }
-            
-            if (blueMapState) {
+            if (BlueMapCommand.checkBlueMapState(player)) {
                 TPortCommand.executeTPortCommand(player, new String[]{"edit", tport.getName(), "blueMap", "show", String.valueOf(!tport.showOnBlueMap())});
                 return true;
             } else {
-                BlueMapCommand.sendDisableError(player);
                 return false;
             }
+        }),
+        BLUEMAP_ICON(QuickEditType::getBlueMapIconModel, (tport, player, fancyInventory) -> {
+            if (BlueMapCommand.checkBlueMapState(player)) {
+                openTPortBlueMapIconGUI(player, tport, 0);
+            }
+            return false;
         }),
         OFFER(tport -> tport.isOffered() ? quick_edit_revoke_model : quick_edit_offer_model, ((tport, player, fancyInventory) -> {
             if (tport.isOffered()) {
@@ -1041,6 +1078,12 @@ public class QuickEditInventories {
                 return quick_edit_bluemap_show_grayed_model;
             }
             return tport.showOnBlueMap() ? quick_edit_bluemap_show_on_model : quick_edit_bluemap_show_off_model;
+        }
+        private static InventoryModel getBlueMapIconModel(TPort ignored) {
+            boolean blueMapState = false;
+            try { blueMapState = BlueMapHandler.isEnabled(); } catch (Throwable ignoredError) { }
+            
+            return blueMapState ? quick_edit_bluemap_icon_model : quick_edit_bluemap_icon_grayed_model;
         }
         public static InventoryModel getPublicTPortModel(TPort tport) {
             if (Features.Feature.PublicTP.isDisabled()) {

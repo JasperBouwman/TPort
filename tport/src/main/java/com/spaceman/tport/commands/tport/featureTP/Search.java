@@ -222,6 +222,7 @@ public class Search extends SubCommand {
         } catch (Throwable ex) {
             Features.Feature.printSmallNMSErrorInConsole("FeatureTP search", false);
             if (Features.Feature.PrintErrorsInConsole.isEnabled()) ex.printStackTrace();
+//            startLocation.getWorld().locateNearestStructure(startLocation, StructureType.FORTRESS /*structures*/, 0, true /*find unexplored*/);
             return null;
         }
     }

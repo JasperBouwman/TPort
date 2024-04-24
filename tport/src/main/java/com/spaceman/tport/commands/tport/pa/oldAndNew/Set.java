@@ -61,7 +61,7 @@ public class Set extends SubCommand {
         
         ParticleAnimation pa = ParticleAnimation.getNewAnimation(args[3], Arrays.copyOfRange(args, 4, args.length), player);
         if (pa == null) {
-            sendErrorTranslation(player, "tport.command.particleAnimationCommand." + this.type + ".set.particleAnimation.data.animationNotFound", args[4]);
+            sendErrorTranslation(player, "tport.command.particleAnimationCommand." + this.type + ".set.particleAnimation.data.animationNotFound", args[3]);
             return;
         }
         if (this.type == ParticleAnimationCommand.AnimationType.NEW) {

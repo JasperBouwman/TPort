@@ -5,7 +5,7 @@
       "predicate": {
         "custom_model_data": 5145582
       },
-      "model": "tport:item/overworld"
+      "model": "tport:item/world_tp_overworld"
     }
   ]
 }

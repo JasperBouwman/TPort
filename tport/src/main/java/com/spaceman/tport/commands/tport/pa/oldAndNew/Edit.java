@@ -26,7 +26,7 @@ public class Edit extends SubCommand {
         emptyEditData.setCommandName("data", ArgumentType.REQUIRED);
         emptyEditData.setCommandDescription(formatInfoTranslation("tport.command.particleAnimationCommand." + this.type + ".edit.data.commandDescription"));
         emptyEditData.setTabRunnable((args, player) -> {
-            if (emptyEditData.hasPermissionToRun(player, false)) {
+            if (!emptyEditData.hasPermissionToRun(player, false)) {
                 return Collections.emptyList();
             }
             if (this.type == ParticleAnimationCommand.AnimationType.NEW) {

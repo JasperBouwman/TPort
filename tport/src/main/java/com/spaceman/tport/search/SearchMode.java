@@ -11,12 +11,12 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTr
 import static com.spaceman.tport.inventories.SettingsInventories.*;
 
 public enum SearchMode implements MessageUtils.MessageDescription {
-    EQUALS(String::contentEquals,                                  (search, query) -> search == query, settings_search_mode_equal_model),
-    NOT_EQUALS((search, query) -> !search.equalsIgnoreCase(query), (search, query) -> search != query, settings_search_mode_not_equal_model),
-    CONTAINS(String::contains,                                     (search, query) -> search >= query, settings_search_mode_contains_model),
-    NOT_CONTAINS(String::contains,                                 (search, query) -> search <= query, settings_search_mode_not_contains_model),
-    STARTS(String::startsWith,                                     null,                    settings_search_mode_starts_model),
-    ENDS(String::endsWith,                                         null,                    settings_search_mode_ends_model);
+    EQUALS(String::contentEquals,                                          (element, searched) -> element == searched, settings_search_mode_equal_model),
+    NOT_EQUALS((element, searched) -> !element.equalsIgnoreCase(searched), (element, searched) -> element != searched, settings_search_mode_not_equal_model),
+    CONTAINS(String::contains,                                             (element, searched) -> element >= searched, settings_search_mode_contains_model),
+    NOT_CONTAINS(String::contains,                                         (element, searched) -> element <= searched, settings_search_mode_not_contains_model),
+    STARTS(String::startsWith,                                             null,                    settings_search_mode_starts_model),
+    ENDS(String::endsWith,                                                 null,                    settings_search_mode_ends_model);
     
     private final StringFitter stringFitter;
     private final IntegerFitter integerFitter;
@@ -28,20 +28,20 @@ public enum SearchMode implements MessageUtils.MessageDescription {
         this.inventoryModel = inventoryModel;
     }
     
-    public static SearchMode get(String s) {
+    public static SearchMode get(String searchModeName) {
         try {
-            return valueOf(s.toUpperCase());
+            return valueOf(searchModeName.toUpperCase());
         } catch (IllegalArgumentException iae) {
             return null;
         }
     }
     
-    public boolean fits(String search, String query) {
-        return this.stringFitter.fit(search.toLowerCase(), query.toLowerCase());
+    public boolean fits(String element, String searched) {
+        return this.stringFitter.fit(element.toLowerCase(), searched.toLowerCase());
     }
     
-    public boolean fits(int search, int query) {
-        if (hasIntegerFitter()) return this.integerFitter.fit(search, query);
+    public boolean fits(int element, int searched) {
+        if (hasIntegerFitter()) return this.integerFitter.fit(element, searched);
         else return false;
     }
     
@@ -70,10 +70,10 @@ public enum SearchMode implements MessageUtils.MessageDescription {
     
     @FunctionalInterface
     private interface StringFitter {
-        boolean fit(String search, String query);
+        boolean fit(String element, String searched);
     }
     @FunctionalInterface
     private interface IntegerFitter {
-        boolean fit(int search, int query);
+        boolean fit(int element, int searched);
     }
 }

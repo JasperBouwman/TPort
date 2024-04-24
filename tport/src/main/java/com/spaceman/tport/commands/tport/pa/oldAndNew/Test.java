@@ -23,7 +23,7 @@ public class Test extends SubCommand {
     public void run(String[] args, Player player) {
         // tport particleAnimation new|old test
         
-        if (args.length == 4) {
+        if (args.length == 3) {
             if (!this.hasPermissionToRun(player, true)) {
                 return;
             }

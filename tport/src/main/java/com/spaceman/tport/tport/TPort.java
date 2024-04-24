@@ -70,6 +70,7 @@ public class TPort implements ConfigurationSerializable {
     private boolean showOnDynmap = true;
     private String dynmapIconID = "";
     private boolean showOnBlueMap = true;
+    private String blueMapIcon = "";
     private boolean shouldReturnItem = true;
     
     private boolean active;
@@ -162,6 +163,8 @@ public class TPort implements ConfigurationSerializable {
         
         tport.showOnDynmap((Boolean) args.getOrDefault("showOnDynmap", true));
         tport.setDynmapIconID((String) args.getOrDefault("dynmapIconID", ""));
+        tport.showOnBlueMap((Boolean) args.getOrDefault("showOnBlueMap", true));
+        tport.setBlueMapIcon((String) args.getOrDefault("blueMapIcon", ""));
         tport.setShouldReturnItem((Boolean) args.getOrDefault("shouldReturnItem", true));
         
         return tport;
@@ -209,6 +212,8 @@ public class TPort implements ConfigurationSerializable {
         
         map.put("showOnDynmap", showOnDynmap);
         map.put("dynmapIconID", dynmapIconID);
+        map.put("showOnBlueMap", showOnBlueMap);
+        map.put("blueMapIcon", blueMapIcon);
         map.put("shouldReturnItem", shouldReturnItem);
         
         return map;
@@ -234,6 +239,11 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public void setLocation(Location location) {
+        if (this.location != null && !Objects.equals(location.getWorld(), this.location.getWorld())) {
+            try {
+                BlueMapHandler.forceRemoveTPort(this);
+            } catch (Exception ignore) { }
+        }
         this.location = location;
     }
     
@@ -459,11 +469,6 @@ public class TPort implements ConfigurationSerializable {
         return false;
     }
     
-    public void setUnLogged() {
-        this.setDefaultLogMode(LogMode.NONE);
-        logged.clear();
-    }
-    
     public boolean setPublicTPort(boolean publicTPort) {
         return setPublicTPort(publicTPort, null);
     }
@@ -574,6 +579,13 @@ public class TPort implements ConfigurationSerializable {
         showOnBlueMap = state;
     }
     
+    public String getBlueMapIcon() {
+        return blueMapIcon;
+    }
+    
+    public void setBlueMapIcon(String icon) {
+        blueMapIcon = icon;
+    }
     
     public boolean shouldReturnItem() {
         return shouldReturnItem;

@@ -18,6 +18,7 @@ import java.util.List;
 
 import static com.google.gson.JsonParser.parseReader;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.language.Language.getLangDir;
 
 public class Repair extends SubCommand {
     
@@ -69,7 +70,7 @@ public class Repair extends SubCommand {
                 return;
             }
             
-            File langFile = new File(Main.getInstance().getDataFolder(), "lang/" + args[2]);
+            File langFile = new File(getLangDir(), args[2]);
             
             if (!langFile.exists()) {
                 sendErrorTranslation(player, "tport.command.language.repair.language.languageFileNotExist", args[2]);
@@ -102,7 +103,7 @@ public class Repair extends SubCommand {
                 return;
             }
             
-            File langFile = new File(Main.getInstance().getDataFolder(), "lang/" + args[2]);
+            File langFile = new File(getLangDir(), args[2]);
             
             if (!langFile.exists()) {
                 sendErrorTranslation(player, "tport.command.language.repair.language.repairWith.languageFileNotExist", args[2]);

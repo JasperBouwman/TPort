@@ -8,7 +8,7 @@
       "predicate": {
         "custom_model_data": 5145585
       },
-      "model": "tport:item/other_environments"
+      "model": "tport:item/world_tp_other_environments"
     }
   ]
 }

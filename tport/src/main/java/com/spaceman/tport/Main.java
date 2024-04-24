@@ -5,6 +5,7 @@ import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
+import com.spaceman.tport.webMaps.BlueMapHandler;
 import com.spaceman.tport.webMaps.DynmapHandler;
 import com.spaceman.tport.events.*;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
@@ -46,6 +47,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -198,6 +200,9 @@ public class Main extends JavaPlugin {
          * create a friend list. use this friend list as option for all whitelists
          * /tport friends [add|remove|list]
          *
+         * /tport party
+         * If a player teleports, every other player in that party also teleports
+         *
          * unify EmptyCommand names
          *
          * add POI
@@ -206,6 +211,12 @@ public class Main extends JavaPlugin {
          * add swear word filter to TPort name and description
          *
          * /tport bed
+         *
+         * Feature: disableRandomWorldSearch
+         *
+         * add TPort advancements
+         *
+         * Use World.locateNearestStructure as fallback for FeatureTP
          *
          * /tport history
          * /tport history back
@@ -251,6 +262,7 @@ public class Main extends JavaPlugin {
         Adapter.registerAdapter("1.18.2", "com.spaceman.tport.adapters.V1_18_2_Adapter");
         Adapter.registerAdapter("1.19.4", "com.spaceman.tport.adapters.V1_19_4_Adapter");
         Adapter.registerAdapter("1.20.4", "com.spaceman.tport.adapters.V1_20_4_Adapter");
+        Adapter.registerAdapter("1.20.5", "com.spaceman.tport.adapters.V1_20_5_Adapter");
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");
@@ -316,9 +328,32 @@ public class Main extends JavaPlugin {
             m.addCustomChart(new Metrics.AdvancedPie("biome_searches", BiomeSearchCounter::getData));
             m.addCustomChart(new Metrics.AdvancedPie("feature_searches", FeatureSearchCounter::getData));
             m.addCustomChart(new Metrics.SimplePie("tport_version", () -> this.getDescription().getVersion()));
-            m.addCustomChart(new Metrics.SimplePie("public_enabled", () -> (Features.Feature.PublicTP.isEnabled() ? "True" : "False")));
-            m.addCustomChart(new Metrics.SimplePie("permissions_enabled", () -> (PermissionHandler.isPermissionEnabled() ? "True" : "False")));
-            m.addCustomChart(new Metrics.SimplePie("dynmap_enabled", () -> (DynmapHandler.isEnabled() ? "True" : "False")));
+            
+            m.addCustomChart(new Metrics.AdvancedPie("features", () -> {
+                HashMap<String, Integer> map = new HashMap<>();
+                for (Features.Feature feature : Features.Feature.values()) {
+                    if (feature == Features.Feature.Dynmap) {
+                        if (DynmapHandler.isEnabled()) {
+                            map.put(feature.name(), 1);
+                        } else {
+                            map.put(feature.name(), 0);
+                        }
+                    } else if (feature == Features.Feature.BlueMap) {
+                        if (BlueMapHandler.isEnabled()) {
+                            map.put(feature.name(), 1);
+                        } else {
+                            map.put(feature.name(), 0);
+                        }
+                        
+                    } else if (feature.isEnabled()) {
+                        map.put(feature.name(), 1);
+                    } else {
+                        map.put(feature.name(), 0);
+                    }
+                }
+                return map;
+            }));
+            
         }
     }
     
@@ -330,6 +365,7 @@ public class Main extends JavaPlugin {
         Tag.saveTags();
         Auto.save();
         DynmapHandler.disable();
+        try { BlueMapHandler.disable(); } catch (Throwable ignored) { }
         PreviewEvents.cancelAllPreviews();
         
         for (Player player : Bukkit.getOnlinePlayers()) {

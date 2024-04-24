@@ -155,6 +155,7 @@ public class Features extends SubCommand {
                 if (i + 2 == values.length) list.addMessage(formatInfoTranslation("tport.command.features.lastDelimiter"));
                 else                        list.addMessage(delimiter);
             }
+            list.removeLast();
             
             sendInfoTranslation(player, "tport.command.features.succeeded", list);
         }
@@ -221,10 +222,11 @@ public class Features extends SubCommand {
         Dynmap(true, true, settings_features_dynmap_model, settings_features_dynmap_grayed_model),
         BlueMap(true, true, settings_features_bluemap_model, settings_features_bluemap_grayed_model),
         Metrics(true, true, settings_features_metrics_model, settings_features_metrics_grayed_model),
+        CompanionTP(false, true, settings_features_companion_tp_model, settings_features_companion_tp_grayed_model),
         Permissions(false, false, settings_features_permissions_model, settings_features_permissions_grayed_model),
         ParticleAnimation(true, true, settings_features_particle_animation_model, settings_features_particle_animation_grayed_model),
         Redirects(true, true, settings_features_redirects_model, settings_features_redirects_grayed_model),
-//        History(true, true, HistoryEvents::onStateChange, settings_features_history_model, settings_features_history_grayed_model),
+        History(true, true, HistoryEvents::onStateChange, settings_features_history_model, settings_features_history_grayed_model),
         Preview(true, true, settings_features_preview_model, settings_features_preview_grayed_model),
         WorldTP(true, true, settings_features_world_tp_model, settings_features_world_tp_grayed_model),
         TPortTakesItem(false, true, settings_features_tport_takes_item_model, settings_features_tport_takes_item_grayed_model),

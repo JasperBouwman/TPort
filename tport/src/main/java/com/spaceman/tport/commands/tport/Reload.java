@@ -7,6 +7,7 @@ import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.tpEvents.TPEManager;
+import com.spaceman.tport.webMaps.BlueMapHandler;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -61,6 +62,19 @@ public class Reload extends SubCommand {
         TPEManager.loadTPE(tportConfig);
         ColorTheme.loadThemes(tportConfig);
         Tag.loadTags();
+        
+        
+        try {
+            BlueMapHandler.disable();
+            
+            if (Features.Feature.BlueMap.isEnabled())  {
+                try {
+                    BlueMapHandler.enable();
+                } catch (Throwable ignored) {
+                    Main.getInstance().getLogger().log(Level.SEVERE, "Tried to enable BlueMap support, BlueMap API was not found");
+                }
+            }
+        } catch (Throwable ignore) { }
     }
     
     @Override

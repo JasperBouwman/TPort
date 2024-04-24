@@ -55,7 +55,7 @@ Some safety measurements:
   You can create your own color theme (or use pre-build ones), and the plugin will change to those colors.
 - **Custom icons** ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/settings_resource_pack.png?raw=true)<br />
   TPort has for every button in the inventories custom icons. These can be enabled using: `/tport resourcePack state <state>`.<br />
-  The nearly 400 custom icons (in x16 and x32 resolution) helps you identify the buttons in the inventories.
+  The over 400 custom icons (in x16 and x32 resolution) helps you identify the buttons in the inventories.
 - **Translations** ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/settings_language.png?raw=true)<br />
   TPort is fully translatable, even when the server does not have your preferred language. The language files have the same layout from Minecraft, so you can use them in a Resource Pack.
 - **PLTP** ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/settings_pltp.png?raw=true)<br />

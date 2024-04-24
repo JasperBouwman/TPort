@@ -28,7 +28,7 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTr
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static org.bukkit.persistence.PersistentDataType.STRING;
 
-public class SearchType implements MessageUtils.MessageDescription {
+public class SearchType implements MessageUtils.MessageDescription { //todo remove 'query' naming
     
     private final String searchTypeName;
     
@@ -93,7 +93,7 @@ public class SearchType implements MessageUtils.MessageDescription {
     
     @FunctionalInterface
     public interface Searcher {
-        List<ItemStack> search(SearchMode searchMode, String query, Player player);
+        List<ItemStack> search(SearchMode searchMode, String searched, Player player);
     }
     
     public void setSearcher(Searcher searcher) {

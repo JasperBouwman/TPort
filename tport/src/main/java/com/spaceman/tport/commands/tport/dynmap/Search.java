@@ -3,8 +3,6 @@ package com.spaceman.tport.commands.tport.dynmap;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.commands.tport.DynmapCommand;
-import com.spaceman.tport.webMaps.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.playerUUID.PlayerUUID;
@@ -72,11 +70,6 @@ public class Search extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport dynmap search <player> [tport name]
-        
-        if (!DynmapHandler.isEnabled()) {
-            DynmapCommand.sendDisableError(player);
-            return;
-        }
         
         if (args.length == 3) {
             if (!emptyPlayerTPort.hasPermissionToRun(player, true)) {

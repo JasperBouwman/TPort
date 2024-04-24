@@ -1,86 +1,97 @@
-# Version 1.20.5
+# Version 1.20.6
 
-### In this version:
+#### In this version:
 
-TPort does not crash anymore on server load.
+### updated to Minecraft 1.20.5
 
-`/tport help` is now a bit smarter.
-Previously when searches for `/tport edit home item` it would not find any commands matching. Now it will ignore variables.
-Now when searching `/tport edit home item` it will find this command.  
-If you are struggling with a command, you can just add `tport help` before your command.  
-Also added back propagation for searches. When searching for `/tport biomeTP accuracy default` these command will be found:
-- /tport biomeTP
-- /tport biomeTP accuracy
-- /tport biomeTP accuracy <size>
+With NBT tags getting removed, some changed in the code where made.
+With this a new adapter is made: 1.20.5.
+The adaptive adapter is not fully functional yet.
+The resource pack _pack format_ is updated to 32.
 
-This should help you in showing more relatable matches
+The default particle of the animations where: `EXPLOSION_NORMAL`. Since 1.20.5 this does not exist anymore. This is now `EXPLOSION`
+When using older versions, an error will occur. This is fixed in this version.
 
+### Fixes some bugs with Search.  
 
+- Looped queries now work in the Search window (biome searcher).
+- Minecraft tag list are now updated when searching for BiomePresets.
+- Whitelist and Blacklist biome presets are now used correctly.
 
-# test
+### Language files are now correctly loaded on platforms other than Windows.
 
-# Version 1.20.4  
-updated the resource pack format to 22
+### CompanionTP
 
-Finished the Logging setting  
-Auto backups are working again  
+Teleporting with a boat now won't change your chest boat into a regular boat.  
+Added CompanionTP as a feature. With this you can enable/disable that boats, horses and leashed entities will teleport with you.
+To change this setting: ``/tport features CompanionTP state <state>``
 
-Added Item Selection in the Quick Edit menu  
-Added whitelist clone to the Quick Edit menu
+### Added the History beta feature
+This keeps track on every teleport a player makes.
+Depending on the final form of History, this will fully replace the `/tport back` system.
+You can enable/disable History via the Features command (`/tport features history state <state>`)
 
-Full update for Search  
- - Added World search type. Search for TPorts that are in the given world  
- - Added OwnedTPorts search type. Search for players owned TPorts  
- - Search can now be run with inventories, use `/tport search` or find it in the settings screen  
- - Added new search modes: not equals, ends with, not contains  
+How History works:  
+For every teleport a player makes, TPort will check the cause of the teleport.
+If the cause of the teleport comes from a plugin, TPort will look up which plugin issued
+the teleport. Every data is stored in a History Element. This looks like this:  
+```
+location before teleport -> location after teleport.
+Cause: teleport cause, Source: plugin
+```
+Example of an ender pearl:
+```
+{world, x=0, y=0, z=0} -> {world, x=1, y=1, z=1}.
+Cause: ENDER_PEARL, Source: null
+```
+Or teleporting to a TPort:
+```
+{world, x=0, y=0, z=0} -> home.
+Cause: PLUGIN, Source: TPort
+```
 
-Added full adapter support
- - server admins now can select the best adapter for their server  
- - The default is set to automatic, this chooses based upon the server version the best adapter  
- - The end goal is that each Minecraft version has their own adapter  
- - The adaptive adapter should mainly be used if your version does not exist (example: using TPort for a new Minecraft version that TPort does not yet have a adapter for)  
- - If the selected adapter does not load the adaptive is used as a backup  
- - command: /tport adapter [adapter]  
- - permissions: tport.adapter or tport.admin for setting the adapter  
- - selecting the adapter can also be done via the setting menu
+There are a few commands to use the history:
 
-Added beta support for BlueMap  
- - Works the same as the Dynmap support  
- - to enable: `/tport features blueMap state true`, and make sure that BlueMap is successfully loaded into your server  
- - For now only a toggle for showing state on the map is available using: `/tport edit <TPort name> blueMap show [state]  `
+* `/tport history`  
+This is the command to see your history  
+* `/tport history back [filter]`  
+This is the command to teleport back. It uses the _location before teleport_ of the last history element  
+* `/tport history last`  
+This is the command to teleport back. It uses the _location after teleport_ of the last history element  
+* `/tport history secondLast`  
+This is the command to teleport back. It uses the _location after teleport_ of the second last history element  
+* `/tport history clear`  
+This command is used to clear your history  
+* `/tport history size [size]`  
+This command is used to edit the size of the history  
 
-Added a safety check to PLTP  
- - `/tport PLTP tp <player> [safetyCheck]  `
- - when teleport needs to be requested, the check is preformed after the request is accepted  
-Another safety check is preformed for teleporting to a TPort  
- - the owner of the TPort can move the TPort to a dangerous location in between the request and accepting  
+### The icons for WorldTP have been renamed:
+- overworld -> world_tp_overworld![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/world_tp_overworld.png?raw=true "Over world")
+- nether -> world_tp_nether![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/world_tp_nether.png?raw=true "Nether")
+- the_end -> world_tp_the_end![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/world_tp_the_end.png?raw=true "The End")
+- other_environments -> world_tp_other_environments![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/world_tp_other_environments.png?raw=true "Other environments")
 
-More features for the Keyboard:  
- - you can now delete a color  
- - in the color selector, you can select a color from Minecraft (Chat Colors & Dye Colors)  
-   This built-in color selector is also used for creating your own color theme  
+### BlueMap:  
+TPort BlueMap states are now saved. In the previous version the show state was not saved.  
+Added icon support. When BlueMap support is enabled, 
+TPort will create the `blueMapImages` folder inside the TPort folder.
+Every `png` and `jpg` will be added to the assets storage of BlueMap.
+Only these images are usable for TPort.
+The images will be scaled to 32x32 resolution.
+To select an icon for TPort use this command `/tport edit <TPort name> blueMap icon [icon name]`.
+Or edit the icons via the QuickEdit (show state: <img height="32" src="https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/quick_edit_bluemap_show_on.png?raw=true" title="BlueMap show state on" width="32"/><img height="32" src="https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/quick_edit_bluemap_show_off.png?raw=true" title="BlueMap show state off" width="32"/><img height="32" src="https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/quick_edit_bluemap_show_grayed.png?raw=true" title="BlueMap not enabled" width="32"/>, icon: ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/quick_edit_bluemap_icon.png?raw=true "BlueMap icon")![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/quick_edit_bluemap_icon_grayed.png?raw=true "BlueMap not enabled"))
 
-Renamed TPort private state 'prion' to PRIVATE_ONLINE  
+### Added four new redirects:
 
-New icons for the transfer system. Check them out in: settings, transfer window offered/offers filter and in the Quick Edit window  
+ - TPA_PLTP_TP  
+   Redirect `/tpa <player>` to `/tport pltp tp <player>`
+ - TPAccept_Requests_accept  
+   Redirect `/tpaccept [player]` to `/tport requests accept [player]`
+ - TPDeny_Requests_reject  
+   Redirect `/tpdeny [player]` to `/tport requests reject [player]`
+ - TPRevoke_Requests_revoke  
+   Redirect `/tprevoke` to `/tport requests revoke`
+ - TPRandom_BiomeTP_random  
+   Redirect `/randomtp` and `/tprandom` to `/tport biomeTP random`
 
-Added a command to fully stop logging a TPort
-- `/tport log delete <TPort name>`  
-- This removes all players from the logged players list, and sets the default log mode to NONE  
-
-Added LookTP to the features list. Default value is on  
-Added EnsureUniqueUUID to the features list. Default value is off.  
- - This feature was already in TPort, but its now changeable.  
- - When enabled, TPort will look at all existing TPorts and check if the new UUID for the new TPort is truly unique.  
- - The changes of it randomly creating a UUID that is already in use is animatronic low.  
-
-When Permissions are disabled, they won't show anymore in the help page (`/tport help <command>`)  
-
-Added `/tport language repair <language> [repair with] [dump]`.  
-When dump is set to true, it prints all repaired ID's in the console  
-
-`/tport back <safetyCheck>` now uses the correct safetyCheck permissions.  
- - old: (TPort.Back and TPort.safetyCheck.TPORT_PUBLIC) or TPort.basic  
- - new: (TPort.Back and TPort.safetyCheck.TPORT_BACK) or TPort.basic  
-
-fixed some minor bugs  
+default state for all is `false`.

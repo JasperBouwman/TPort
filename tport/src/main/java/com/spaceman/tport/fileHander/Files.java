@@ -32,7 +32,8 @@ public class Files {
 
     public Files(JavaPlugin plugin, String extraPath, String fileName) {
         this.plugin = plugin;
-        this.configFile = new File(plugin.getDataFolder() + extraPath, fileName + (fileName.toLowerCase().endsWith(".yml") ? "" : ".yml"));
+        File f = new File(plugin.getDataFolder(), extraPath);
+        this.configFile = new File(f, fileName + (fileName.toLowerCase().endsWith(".yml") ? "" : ".yml"));
     }
 
     private void reloadConfig() {

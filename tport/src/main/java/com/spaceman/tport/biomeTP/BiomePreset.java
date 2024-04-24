@@ -41,13 +41,17 @@ public record BiomePreset(String name, List<String> biomes, boolean whitelist, M
     public static ArrayList<BiomePreset> getBiomePresets() {
         return new ArrayList<>(biomePresets);
     }
-    public static ArrayList<BiomePreset> getTagPresets() {
+    public static ArrayList<BiomePreset> getTagPresets(World world) {
         ArrayList<BiomePreset> list = new ArrayList<>();
-        for (ArrayList<BiomePreset> presets : tagPresets.values()) {
-            for (BiomePreset preset : presets) {
-                if (list.stream().noneMatch(p -> p.name().equalsIgnoreCase(preset.name()))) {
-                    list.add(preset);
-                }
+        
+        ArrayList<BiomePreset> tagPreset = tagPresets.getOrDefault(world.getName(), null);
+        if (tagPreset == null) {
+            tagPreset = Main.getOrDefault(loadPresetsFromWorld(world), new ArrayList<>());
+        }
+        
+        for (BiomePreset preset : tagPreset) {
+            if (list.stream().noneMatch(p -> p.name().equalsIgnoreCase(preset.name()))) {
+                list.add(preset);
             }
         }
         return list;

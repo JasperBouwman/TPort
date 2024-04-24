@@ -104,11 +104,11 @@ public class TPortInventories {
     public static final InventoryModel home_grayed_model                       = new InventoryModel(Material.OAK_BUTTON, home_model, "home");
     public static final InventoryModel world_tp_model                          = new InventoryModel(Material.OAK_BUTTON, home_grayed_model, "world_tp");
     public static final InventoryModel world_tp_grayed_model                   = new InventoryModel(Material.OAK_BUTTON, world_tp_model, "world_tp");
-    public static final InventoryModel overworld_model                         = new InventoryModel(Material.STONE,      world_tp_grayed_model, "world_tp");
-    public static final InventoryModel nether_model                            = new InventoryModel(Material.NETHERRACK, overworld_model, "world_tp");
-    public static final InventoryModel the_end_model                           = new InventoryModel(Material.END_STONE,  nether_model, "world_tp");
-    public static final InventoryModel other_environments_model                = new InventoryModel(Material.GLOWSTONE,  the_end_model, "world_tp");
-    public static final int last_model_id = other_environments_model.getCustomModelData();
+    public static final InventoryModel world_tp_overworld_model = new InventoryModel(Material.STONE,      world_tp_grayed_model, "world_tp");
+    public static final InventoryModel world_tp_nether_model = new InventoryModel(Material.NETHERRACK, world_tp_overworld_model, "world_tp");
+    public static final InventoryModel world_tp_the_end_model = new InventoryModel(Material.END_STONE, world_tp_nether_model, "world_tp");
+    public static final InventoryModel world_tp_other_environments_model = new InventoryModel(Material.GLOWSTONE, world_tp_the_end_model, "world_tp");
+    public static final int last_model_id = world_tp_other_environments_model.getCustomModelData();
     
     public static void openMainTPortGUI(Player player) {
         openMainTPortGUI(player, 0, null);
@@ -659,10 +659,10 @@ public class TPortInventories {
         List<ItemStack> worlds = new ArrayList<>();
         for (World world : Bukkit.getWorlds()) {
             ItemStack is = (switch (world.getEnvironment()) {
-                case NORMAL -> overworld_model;
-                case NETHER -> nether_model;
-                case THE_END -> the_end_model;
-                default -> other_environments_model;
+                case NORMAL -> world_tp_overworld_model;
+                case NETHER -> world_tp_nether_model;
+                case THE_END -> world_tp_the_end_model;
+                default -> world_tp_other_environments_model;
             }).getItem(player);
             
             Message title = formatTranslation(titleColor, titleColor, "tport.tportInventories.openWorldTP.world.name", world.getName());
@@ -773,7 +773,7 @@ public class TPortInventories {
         
         openSearchGUI(player, page, searched, query, searcherName, searchMode, true);
     }
-    private static void openSearchGUI(Player player, int page, FancyInventory fancyInventory) {
+    private static void openSearchGUI(Player player, int page, FancyInventory fancyInventory) { //todo remove 'query' naming
         openSearchGUI(player, page,
                 fancyInventory.getData("content", List.class),
                 fancyInventory.getData("query", String.class),
@@ -781,7 +781,7 @@ public class TPortInventories {
                 fancyInventory.getData("searchMode", SearchMode.class),
                 false);
     }
-    private static void openSearchGUI(Player player, int page, List<ItemStack> searched, String query, String searcher, SearchMode searchMode, boolean updateCooldown) {
+    private static void openSearchGUI(Player player, int page, List<ItemStack> searched, String query, String searcher, SearchMode searchMode, boolean updateCooldown) { //todo remove 'query' naming
         FancyInventory inv = getDynamicScrollableInventory(player, page, TPortInventories::openSearchGUI, "tport.tportInventories.openSearchGUI.title",
                 searched, createBack(player, SEARCH, OWN, MAIN));
         

@@ -71,9 +71,9 @@ public class HistoryEvents implements Listener {
     }
     
     public static void load() {
-//        if (Features.Feature.History.isEnabled()) {
-//            onStateChange(true);
-//        }
+        if (Features.Feature.History.isEnabled()) {
+            onStateChange(true);
+        }
     }
     public static void onStateChange(boolean newState) {
         if (newState) {
@@ -115,30 +115,32 @@ public class HistoryEvents implements Listener {
     @EventHandler
     @SuppressWarnings("unused")
     public void onTeleport(PlayerTeleportEvent e) {
-        
         LocationSource locationSource = getLocationSource(e.getPlayer().getUniqueId());
         if (locationSource instanceof IgnoreLocationSource) return;
         locationSource.setLocation(e.getTo());
         
+        String plugin = null;
         if (e.getCause().equals(PlayerTeleportEvent.TeleportCause.PLUGIN)) {
-            String plugin = findPlugin(searchStack());
-            
-            HistoryElement element = new HistoryElement(e.getFrom(), locationSource, e.getCause().name(), plugin);
-            addHistory(e.getPlayer(), element);
-        } else {
-            HistoryElement element = new HistoryElement(e.getFrom(), locationSource, e.getCause().name(), null);
-            addHistory(e.getPlayer(), element);
+            plugin = findPlugin(searchStack());
         }
+        
+        HistoryElement element = new HistoryElement(e.getFrom(), locationSource, e.getCause().name(), plugin);
+        addHistory(e.getPlayer(), element);
     }
     
     @Nullable
     private String searchStack() {
-        boolean foundBukkit = false;
+        boolean foundCraftPlayer = false;
         for (StackTraceElement stackTraceElement : new Throwable().getStackTrace()) {
-            if (stackTraceElement.getClassName().startsWith("org.bukkit")) {
-                foundBukkit = true;
-            } else if (foundBukkit) {
-                return stackTraceElement.getClassName();
+            String stackClassName = stackTraceElement.getClassName();
+            if (stackClassName.endsWith("entity.CraftPlayer")) {
+                foundCraftPlayer = true;
+            } else if (foundCraftPlayer) {
+                if (stackClassName.endsWith("entity.CraftEntity")) {
+                    continue;
+                }
+                
+                return stackClassName;
             }
         }
         return null;

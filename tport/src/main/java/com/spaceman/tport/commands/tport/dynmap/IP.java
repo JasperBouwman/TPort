@@ -3,8 +3,6 @@ package com.spaceman.tport.commands.tport.dynmap;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.commands.tport.DynmapCommand;
-import com.spaceman.tport.webMaps.DynmapHandler;
 import org.bukkit.entity.Player;
 
 import java.io.BufferedReader;
@@ -58,11 +56,6 @@ public class IP extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport dynmap IP [IP]
-        
-        if (!DynmapHandler.isEnabled()) {
-            DynmapCommand.sendDisableError(player);
-            return;
-        }
         
         if (args.length == 2) {
             if (tportConfig.getConfig().contains("dynmap.ip")) {

@@ -44,7 +44,7 @@ public class Auto extends SubCommand {
         return new SimpleDateFormat("dd-MMM-yyyy-hh_mm_ss").format(Calendar.getInstance().getTime());
     }
     private static void removeRedundant() {
-        File dir = new File(Main.getInstance().getDataFolder(), "/backup");
+        File dir = new File(Main.getInstance().getDataFolder(), "backup");
         if (!dir.mkdir()) {
             ArrayList<File> files = new ArrayList<>();
             for (File f : dir.listFiles()) {
@@ -88,10 +88,10 @@ public class Auto extends SubCommand {
                 if (version != 0) {
                     suffix = "(" + version + ")";
                 }
-                File file = new File(Main.getInstance().getDataFolder(), "/backup/" + backupName + suffix + ".yml");
+                File file = new File(new File(Main.getInstance().getDataFolder(), "backup"), backupName + suffix + ".yml");
                 try {
                     if (file.createNewFile()) {
-                        Files configFile = new Files(Main.getInstance(), "/backup/" + backupName + suffix + ".yml");
+                        Files configFile = new Files(Main.getInstance(), "backup", backupName + suffix + ".yml");
                         
                         configFile.getConfig().set("tport", tportData.getConfig().getConfigurationSection("tport"));
                         configFile.getConfig().set("public", tportData.getConfig().getConfigurationSection("public"));

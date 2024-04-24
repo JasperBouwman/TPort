@@ -4,7 +4,6 @@ import com.google.common.base.CharMatcher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
-import com.spaceman.tport.adapters.ReflectionManager;
 import com.spaceman.tport.adapters.TPortAdapter;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
@@ -27,13 +26,11 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
-import org.bukkit.potion.PotionEffect;
 
 import javax.annotation.Nullable;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.List;
 import java.util.*;
@@ -70,25 +67,6 @@ public class MessageUtils {
         
         if (im instanceof Repairable) {
             tags.addProperty("repairCost", ((Repairable) im).getRepairCost());
-        }
-        
-        if (im instanceof PotionMeta potionMeta) {
-            tags.addProperty("Potion", potionMeta.getBasePotionData().getType().getEffectType().getName());
-            
-            if (potionMeta.hasColor()) {
-                tags.addProperty("CustomPotionColor", potionMeta.getColor().asRGB());
-            }
-            
-            JsonArray customPotionEffects = new JsonArray();
-            for (PotionEffect potionEffect : potionMeta.getCustomEffects()) {
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("id", potionEffect.getType().getId());
-                jsonObject.addProperty("Duration", potionEffect.getDuration());
-                jsonObject.addProperty("Amplifier", potionEffect.getAmplifier());
-                jsonObject.addProperty("ShowParticles", (potionEffect.hasParticles() ? 1 : 0));
-                customPotionEffects.add(jsonObject);
-            }
-            tags.add("CustomPotionEffects", customPotionEffects);
         }
         
         if (im instanceof CrossbowMeta crossbowMeta) {
@@ -447,34 +425,36 @@ public class MessageUtils {
     }
     public static ItemStack getSign(@Nullable ItemStack signItem, ColorTheme theme, List<Message> lines, @Nullable DyeColor glow) {
         ItemStack itemStack = Main.getOrDefault(signItem, new ItemStack(Material.OAK_SIGN));
-        try {
-            TPortAdapter adapter = Main.getInstance().adapter;
-            String version = ReflectionManager.getServerClassesVersion();
-            Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
-            
-            Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
-            Object nmsStack = craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, itemStack);
-            
-            Object tag = adapter.getNBTTag(nmsStack);
-            Object blockTag = adapter.getCompound(tag, "BlockEntityTag");
-            adapter.putString(blockTag, "id", "minecraft:sign");
-            for (int i = 0; i < 4 && i < lines.size(); i++) {
-                Message line = lines.get(i);
-                if (line != null) {
-                    adapter.putString(blockTag, "Text" + (i + 1), line.translateJSON(theme));
-                }
-            }
-            if (glow != null) {
-                adapter.putBoolean(blockTag, "GlowingText", true);
-                adapter.putString(blockTag, "Color", glow.name().toLowerCase());
-            }
-            adapter.put(tag, "BlockEntityTag", blockTag);
-            
-            itemStack = (ItemStack) craftItemStack.getMethod("asCraftMirror", nmsStack.getClass()).invoke(null, nmsStack);
-//            itemStack = CraftItemStack.asCraftMirror(item);
-        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            TPortAdapter adapter = Main.getInstance().adapter;
+//            String version = ReflectionManager.getServerClassesVersion();
+//            Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
+//
+//            Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
+//            Object nmsStack = craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, itemStack);
+//
+//            Object tag = adapter.getNBTTag(nmsStack);
+//            Object blockTag = adapter.getCompound(tag, "BlockEntityTag");
+//            adapter.putString(blockTag, "id", "minecraft:sign");
+//            for (int i = 0; i < 4 && i < lines.size(); i++) {
+//                Message line = lines.get(i);
+//                if (line != null) {
+//                    adapter.putString(blockTag, "Text" + (i + 1), line.translateJSON(theme));
+//                }
+//            }
+//            if (glow != null) {
+//                adapter.putBoolean(blockTag, "GlowingText", true);
+//                adapter.putString(blockTag, "Color", glow.name().toLowerCase());
+//            }
+//            adapter.put(tag, "BlockEntityTag", blockTag);
+//
+//            itemStack = (ItemStack) craftItemStack.getMethod("asCraftMirror", nmsStack.getClass()).invoke(null, nmsStack);
+////            itemStack = CraftItemStack.asCraftMirror(item);
+//        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+//            e.printStackTrace();
+//        }
+        
+        //todo fix signs
         return itemStack;
     }
     
@@ -623,33 +603,12 @@ public class MessageUtils {
         try {
             TPortAdapter adapter = Main.getInstance().adapter;
             
-            String version = ReflectionManager.getServerClassesVersion();
-            Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
-            
-            Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
-            Object nmsStack = craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, is);
-            Class<?> itemStackClass = nmsStack.getClass();
-            
-            Object tag = adapter.getNBTTag(nmsStack);
-            
-            Object display = adapter.getCompound(tag, "display");
-            if (displayName != null) adapter.putString(display, "Name", displayName.translateJSON(theme));
-            
-            if (lore != null) {
-                Object loreT = adapter.new_NBTTagList();
-                int id = 0;
-                for (Message line : lore) {
-                    if (line != null) {
-                        adapter.listTag_addTag(loreT, id++, adapter.stringTag_valueOf(line.translateJSON(theme)));
-                    }
-                }
-                adapter.put(display, "Lore", loreT);
+            if (displayName != null) {
+                adapter.setDisplayName(is, displayName, theme);
             }
-            
-            adapter.put(tag, "display", display);
-            
-            ItemMeta im = (ItemMeta) craftItemStack.getMethod("getItemMeta", itemStackClass).invoke(craftItemStack, nmsStack);
-            is.setItemMeta(im);
+            if (lore != null) {
+                adapter.setLore(is, lore, theme);
+            }
             return is;
         } catch (Throwable ex) {
             Features.Feature.printSmallNMSErrorInConsole("Fancy item stacks", true);

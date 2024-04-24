@@ -65,8 +65,8 @@ public class Search extends SubCommand {
     @Override
     public void run(String[] args, Player player) {
         // tport search <type>
-        // tport search <type> <query...>
-        // tport search <type> <mode> <query...>
+        // tport search <type> <searched...>
+        // tport search <type> <mode> <searched...>
         
         /*
          * type:
@@ -102,11 +102,11 @@ public class Search extends SubCommand {
                 }
             }
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport search <type> [mode] <query...>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport search <type> [mode] <searched...>");
     }
     
     private boolean alreadyRegistered = false;
-    private void registerSearchers() {
+    private void registerSearchers() { //todo remove 'query' naming
         if (alreadyRegistered) return;
         else alreadyRegistered = true;
         
@@ -117,11 +117,11 @@ public class Search extends SubCommand {
             searchType.setQuery("TPort name", false, false, null, null);
             searchType.hasSearchMode(true);
             
-            searchType.setSearcher((searchMode, query, player) -> {
+            searchType.setSearcher((searchMode, searched, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        if (searchMode.fits(tport.getName(), query)) {
+                        if (searchMode.fits(tport.getName(), searched)) {
                             list.add(ItemFactory.toTPortItem(tport, player, List.of(ADD_OWNER, CLICK_TO_OPEN)));
                         }
                     }
@@ -139,11 +139,11 @@ public class Search extends SubCommand {
             searchType.setQuery("description", true, false, null, null);
             searchType.hasSearchMode(true);
             
-            searchType.setSearcher((searchMode, query, player) -> {
+            searchType.setSearcher((searchMode, searched, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        if (searchMode.fits(tport.getTextDescription().replace("\n", ""), query)) {
+                        if (searchMode.fits(tport.getTextDescription().replace("\n", ""), searched)) {
                             list.add(ItemFactory.toTPortItem(tport, player, List.of(ADD_OWNER, CLICK_TO_OPEN)));
                         }
                     }
@@ -163,10 +163,10 @@ public class Search extends SubCommand {
                     null);
             searchType.hasSearchMode(true);
             
-            searchType.setSearcher((searchMode, query, player) -> {
+            searchType.setSearcher((searchMode, searched, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
                 for (String uuid : tportData.getKeys("tport")) {
-                    if (searchMode.fits(PlayerUUID.getPlayerName(uuid), query)) {
+                    if (searchMode.fits(PlayerUUID.getPlayerName(uuid), searched)) {
                         list.add(Main.getOrDefault(getHead(UUID.fromString(uuid), player, List.of(TPORT_AMOUNT, CLICK_EVENTS), null), new ItemStack(Material.AIR)));
                     }
                 }
@@ -185,9 +185,9 @@ public class Search extends SubCommand {
                     null);
             searchType.hasSearchMode(true);
             
-            searchType.setSearcher((searchMode, query, player) -> {
+            searchType.setSearcher((searchMode, searched, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
-                int i = Integer.parseInt(query);
+                int i = Integer.parseInt(searched);
                 for (String uuidString : tportData.getKeys("tport")) {
                     UUID uuid = UUID.fromString(uuidString);
                     if (searchMode.fits(TPortManager.getTPortList(uuid).size(), i)) {
@@ -207,7 +207,7 @@ public class Search extends SubCommand {
             searchType.removeQuery();
             searchType.hasSearchMode(false);
             
-            searchType.setSearcher((searchMode, query, player) -> {
+            searchType.setSearcher((searchMode, searched, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
@@ -246,9 +246,9 @@ public class Search extends SubCommand {
                     }));
             searchType.hasSearchMode(false);
             
-            searchType.setSearcher((searchMode, query, player) -> {
+            searchType.setSearcher((searchMode, searched, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
-                String[] split = query.split(" ");
+                String[] split = searched.split(" ");
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
                         if (Arrays.stream(split).anyMatch(s -> s.equalsIgnoreCase(tport.getBiome().name()))) {
@@ -270,7 +270,7 @@ public class Search extends SubCommand {
                     ((args, player) -> BiomePreset.getNames(player.getWorld())),
                     ((player) -> {
                         ArrayList<ItemStack> items = new ArrayList<>();
-                        for (BiomePreset preset : Iterables.concat(getBiomePresets(), getTagPresets())) {
+                        for (BiomePreset preset : Iterables.concat(getBiomePresets(), getTagPresets(player.getWorld()))) {
                             ItemStack is = new ItemStack(preset.material());
                             setStringData(is, new NamespacedKey(Main.getInstance(), "query"), preset.name());
                             items.add(is);
@@ -279,13 +279,21 @@ public class Search extends SubCommand {
                     }));
             searchType.hasSearchMode(false);
             
-            searchType.setSearcher((searchMode, query, player) -> {
+            searchType.setSearcher((searchMode, searched, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
+                BiomePreset preset = BiomePreset.getPreset(searched, player.getLocation().getWorld());
+                //noinspection ConstantConditions, command checks if available
+                List<String> biomes = preset.biomes();
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        //noinspection ConstantConditions, command checks if available
-                        if (BiomePreset.getPreset(query, tport.getLocation().getWorld()).biomes().stream().anyMatch(b -> b.equalsIgnoreCase(tport.getBiome().name()))) {
-                            list.add(ItemFactory.toTPortItem(tport, player, List.of(ADD_OWNER, CLICK_TO_OPEN)));
+                        if (preset.whitelist()) {
+                            if (biomes.stream().anyMatch(b -> b.equalsIgnoreCase(tport.getBiome().name()))) {
+                                list.add(ItemFactory.toTPortItem(tport, player, List.of(ADD_OWNER, CLICK_TO_OPEN)));
+                            }
+                        } else {
+                            if (biomes.stream().noneMatch(b -> b.equalsIgnoreCase(tport.getBiome().name()))) {
+                                list.add(ItemFactory.toTPortItem(tport, player, List.of(ADD_OWNER, CLICK_TO_OPEN)));
+                            }
                         }
                     }
                 }
@@ -318,11 +326,11 @@ public class Search extends SubCommand {
                     }));
             searchType.hasSearchMode(false);
             
-            searchType.setSearcher((searchMode, query, player) -> {
+            searchType.setSearcher((searchMode, searched, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        if (tport.getDimension().name().equalsIgnoreCase(query)) {
+                        if (tport.getDimension().name().equalsIgnoreCase(searched)) {
                             list.add(ItemFactory.toTPortItem(tport, player, List.of(ADD_OWNER, CLICK_TO_OPEN)));
                         }
                     }
@@ -356,11 +364,11 @@ public class Search extends SubCommand {
                     }));
             searchType.hasSearchMode(false);
             
-            searchType.setSearcher((searchMode, query, player) -> {
+            searchType.setSearcher((searchMode, searched, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        if (tport.getWorld().getName().equalsIgnoreCase(query)) {
+                        if (tport.getWorld().getName().equalsIgnoreCase(searched)) {
                             list.add(ItemFactory.toTPortItem(tport, player, List.of(ADD_OWNER, CLICK_TO_OPEN)));
                         }
                     }
@@ -388,11 +396,11 @@ public class Search extends SubCommand {
                     }));
             searchType.hasSearchMode(false);
             
-            searchType.setSearcher((searchMode, query, player) -> {
+            searchType.setSearcher((searchMode, searched, player) -> {
                 ArrayList<ItemStack> list = new ArrayList<>();
                 for (String uuid : tportData.getKeys("tport")) {
                     for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
-                        if (tport.getTags().contains(query)) {
+                        if (tport.getTags().contains(searched)) {
                             list.add(ItemFactory.toTPortItem(tport, player, List.of(ADD_OWNER, CLICK_TO_OPEN)));
                         }
                     }

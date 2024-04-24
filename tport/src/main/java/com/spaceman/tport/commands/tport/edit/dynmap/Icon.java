@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class Icon extends SubCommand {
     
@@ -50,7 +51,7 @@ public class Icon extends SubCommand {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
                 return;
             }
-            sendInfoTranslation(player, "tport.command.edit.dynmap.icon.succeeded", tport, DynmapHandler.getTPortIconName(tport));
+            sendInfoTranslation(player, "tport.command.edit.dynmap.icon.succeeded", asTPort(tport), DynmapHandler.getTPortIconName(tport));
         } else if (args.length == 5) {
             if (!emptyIcon.hasPermissionToRun(player, true)) {
                 return;
@@ -62,7 +63,7 @@ public class Icon extends SubCommand {
             }
             if (tport.isOffered()) {
                 sendErrorTranslation(player, "tport.command.edit.dynmap.icon.icon.isOffered",
-                        tport, asPlayer(tport.getOfferedTo()));
+                        asTPort(tport), asPlayer(tport.getOfferedTo()));
                 return;
             }
             
@@ -74,7 +75,7 @@ public class Icon extends SubCommand {
             }
             tport.setDynmapIconID(id);
             tport.save();
-            sendSuccessTranslation(player, "tport.command.edit.dynmap.icon.icon.succeeded", tport, DynmapHandler.getTPortIconName(tport));
+            sendSuccessTranslation(player, "tport.command.edit.dynmap.icon.icon.succeeded", asTPort(tport), DynmapHandler.getTPortIconName(tport));
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> dynmap show [state]");
         }

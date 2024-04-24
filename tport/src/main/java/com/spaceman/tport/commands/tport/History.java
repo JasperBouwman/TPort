@@ -35,10 +35,10 @@ public class History extends SubCommand {
         // tport history last       teleport to last history element new location
         // tport history clear
         
-//        if (Features.Feature.History.isDisabled())  {
-//            Features.Feature.History.sendDisabledMessage(player);
-//            return;
-//        }
+        if (Features.Feature.History.isDisabled())  {
+            Features.Feature.History.sendDisabledMessage(player);
+            return;
+        }
         
         if (args.length == 1) {
             

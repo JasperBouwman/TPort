@@ -5,7 +5,7 @@
       "predicate": {
         "custom_model_data": 5145583
       },
-      "model": "tport:item/nether"
+      "model": "tport:item/world_tp_nether"
     }
   ]
 }

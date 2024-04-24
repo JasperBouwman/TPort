@@ -129,14 +129,24 @@ public class Redirect extends SubCommand {
                 settings_redirect_console_feedback_model, settings_redirect_console_feedback_grayed_model),
         TP_PLTP(true, formatInfoTranslation("tport.command.redirect.redirect.TP_PLTP.description", "/tp <player>", "/tport PLTP tp <player>"),
                 settings_redirect_tp_pltp_model, settings_redirect_tp_pltp_grayed_model),
-        Locate_FeatureTP(true, formatInfoTranslation("tport.command.redirect.redirect.Locate_FeatureTP.description", "/locate structure <structure>", "/tport FeatureTP search <feature>"),
+        Locate_FeatureTP(true, formatInfoTranslation("tport.command.redirect.redirect.Locate_FeatureTP.description", "/locate structure <structure>", "/locate <structure>", "/tport FeatureTP search <feature>"),
                 settings_redirect_locate_feature_tp_model, settings_redirect_locate_feature_tp_grayed_model),
-        LocateBiome_BiomeTP(true, formatInfoTranslation("tport.command.redirect.redirect.LocateBiome_BiomeTP.description", "/locate biome <biome>", "/tport BiomeTP whitelist <biome>"),
+        LocateBiome_BiomeTP(true, formatInfoTranslation("tport.command.redirect.redirect.LocateBiome_BiomeTP.description", "/locate biome <biome>", "/locatebiome <biome>", "/tport BiomeTP whitelist <biome>"),
                 settings_redirect_locate_biome_biome_tp_model, settings_redirect_locate_biome_biome_tp_grayed_model),
-        Home_TPortHome(false, formatInfoTranslation("tport.command.redirect.redirect.Home_TPortHome.description", "/home", "/tport home", "/home"),
+        Home_TPortHome(false, formatInfoTranslation("tport.command.redirect.redirect.Home_TPortHome.description", "/home", "/tport home"),
                 settings_redirect_home_tport_home_model, settings_redirect_home_tport_home_grayed_model),
         Back_TPortBack(false, formatInfoTranslation("tport.command.redirect.redirect.Back_TPortBack.description", "/back", "/tport back"),
-                settings_redirect_back_tport_back_model, settings_redirect_back_tport_back_grayed_model);
+                settings_redirect_back_tport_back_model, settings_redirect_back_tport_back_grayed_model),
+        TPA_PLTP_TP(false, formatInfoTranslation("tport.command.redirect.redirect.TPA_PLTP_TP.description", "/tpa <player>", "/tport pltp tp <player>"),
+                settings_redirect_tpa_pltp_tp_model, settings_redirect_tpa_pltp_tp_grayed_model),
+        TPAccept_Requests_accept(false, formatInfoTranslation("tport.command.redirect.redirect.TPAccept_Requests_accept.description", "/tpaccept [player]", "/tport requests accept [player]"),
+                settings_redirect_tpaccept_requests_accept_model, settings_redirect_tpaccept_requests_accept_grayed_model),
+        TPDeny_Requests_reject(false, formatInfoTranslation("tport.command.redirect.redirect.TPDeny_Requests_reject.description", "/tpdeny", "/tport requests reject [player]"),
+                settings_redirect_tpdeny_requests_reject_model, settings_redirect_tpdeny_requests_reject_grayed_model),
+        TPRevoke_Requests_revoke(false, formatInfoTranslation("tport.command.redirect.redirect.TPRevoke_Requests_revoke.description", "/tprevoke", "/tport requests revoke"),
+                settings_redirect_tprevoke_requests_revoke_model, settings_redirect_tprevoke_requests_revoke_grayed_model),
+        TPRandom_BiomeTP_random(false, formatInfoTranslation("tport.command.redirect.redirect.TPRandom_BiomeTP_random.description", "/tprandom", "/randomtp", "/rtp", "/tport biomeTP random"),
+                settings_redirect_tprandom_biome_tp_random_model, settings_redirect_tprandom_biome_tp_random_grayed_model);
         
         private boolean enabled;
         private final Message description;

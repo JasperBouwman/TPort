@@ -96,9 +96,10 @@ public class Language extends SubCommand {
         JsonObject defaultEN_US = (JsonObject) parseReader(new InputStreamReader(en_us_resource, StandardCharsets.UTF_8));
         languages.put("en_us.json", defaultEN_US);
         
+        File langDir = getLangDir();
         try {
-            File langFile = new File(Main.getInstance().getDataFolder(), "lang/en_us.json");
-            langFile.getParentFile().mkdir();
+            File langFile = new File(langDir, "en_us.json");
+            langDir.mkdir();
             langFile.createNewFile();
             
             saveLanguage(defaultEN_US, langFile);
@@ -106,12 +107,13 @@ public class Language extends SubCommand {
             Main.getInstance().getLogger().log(Level.WARNING, "Could not update 'lang/en_us.json'");
         }
         
-        File[] files = new File(Main.getInstance().getDataFolder().getAbsolutePath() + "\\lang").listFiles();
+        File[] files = langDir.listFiles();
         if (files != null) {
             for (File f : files) {
                 if (f.isFile() && !f.getName().contains(" ")) {
                     try {
-                        if (FilenameUtils.getExtension(f.getName()).equals("json")) {
+                        String fileType = FilenameUtils.getExtension(f.getName());
+                        if (fileType.equalsIgnoreCase("json")) {
                             Main.getInstance().getLogger().log(Level.INFO, "Loading language " + f.getName());
                             Pair<JsonObject, Integer> json = loadLanguage(f);
                             if (json != null) {
@@ -122,12 +124,23 @@ public class Language extends SubCommand {
                             } else {
                                 Main.getInstance().getLogger().log(Level.WARNING, "Could not load language " + f.getName());
                             }
+                        } else {
+                            Main.getInstance().getLogger().log(Level.WARNING, "Language files must be a JSON file type, found '" + fileType + "' in file " + f.getName());
                         }
                     } catch (IllegalArgumentException ignore) {
+                        Main.getInstance().getLogger().log(Level.WARNING, "Could not load language " + f.getName());
                     }
+                } else {
+                    Main.getInstance().getLogger().log(Level.WARNING, "Language files can not contain any spaces, error in file " + f.getName());
                 }
             }
+        } else {
+            Main.getInstance().getLogger().log(Level.WARNING, "Could not read files in the 'lang' directory");
         }
+    }
+    
+    public static File getLangDir() {
+        return new File(Main.getInstance().getDataFolder(), "lang");
     }
     
     public static void saveLanguage(JsonObject json, File langFile) {
@@ -150,7 +163,7 @@ public class Language extends SubCommand {
     public static Pair<JsonObject, Integer> repairLanguage(JsonObject language, @Nullable JsonObject repairWith, boolean dump) {
         if (repairWith == null) return null;
         
-        if (dump) Main.getInstance().getLogger().log(Level.INFO, "repairing language, missing ID's:");
+        if (dump) Main.getInstance().getLogger().log(Level.INFO, "Repairing language, missing ID's:");
         
         var ref = new Object() { int amountRepaired = 0; };
         repairWith.keySet().forEach(id -> {

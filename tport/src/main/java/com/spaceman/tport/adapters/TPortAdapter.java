@@ -5,19 +5,18 @@ import com.spaceman.tport.biomeTP.BiomePreset;
 import com.spaceman.tport.commands.tport.BiomeTP;
 import com.spaceman.tport.commands.tport.biomeTP.Accuracy;
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.spaceman.tport.adapters.ReflectionManager.getField;
 
@@ -49,18 +48,9 @@ public abstract class TPortAdapter {
     public abstract void removeQuickTypeSignHandler(Player player) throws IllegalAccessException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException;
     public abstract void sendBlockChange(Player player, Location blockLoc, Material material) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException;
     public abstract void sendBlockChange(Player player, Location blockLoc, Block block) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException;
+    public abstract void setLore(ItemStack itemStack, Collection<Message> lore, ColorTheme theme) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException;
+    public abstract void setDisplayName(ItemStack itemStack, Message title, ColorTheme theme) throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException;
     //fancyMessage
-    
-    //NBT tags
-    public abstract Object /*NBTTagCompound*/ getNBTTag(Object nmsStackObject) throws InvocationTargetException, IllegalAccessException;
-    public abstract Object /*NBTTagCompound*/ getCompound(Object tagObject, String name);
-    public abstract void putString(Object tagObject, String name, String data);
-    public abstract void putBoolean(Object tagObject, String name, boolean data);
-    public abstract Object put(Object tagObject, String name, Object tagData);
-    public abstract Object new_NBTTagList();
-    public abstract Object stringTag_valueOf(String value);
-    public abstract boolean listTag_addTag(Object tagListObject, int index, Object toAdd);
-    //NBT tags
     
     //biomeTP
     public abstract List<String> availableBiomes() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, ClassNotFoundException;

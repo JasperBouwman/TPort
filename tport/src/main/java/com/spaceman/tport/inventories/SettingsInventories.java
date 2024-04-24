@@ -179,15 +179,17 @@ public class SettingsInventories {
     public static final InventoryModel settings_features_bluemap_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_bluemap_model, "settings/features");
     public static final InventoryModel settings_features_metrics_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_bluemap_grayed_model, "settings/features");
     public static final InventoryModel settings_features_metrics_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_metrics_model, "settings/features");
-    public static final InventoryModel settings_features_permissions_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_metrics_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_companion_tp_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_metrics_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_companion_tp_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_companion_tp_model, "settings/features");
+    public static final InventoryModel settings_features_permissions_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_companion_tp_grayed_model, "settings/features");
     public static final InventoryModel settings_features_permissions_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_permissions_model, "settings/features");
     public static final InventoryModel settings_features_particle_animation_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_permissions_grayed_model, "settings/features");
     public static final InventoryModel settings_features_particle_animation_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_particle_animation_model, "settings/features");
     public static final InventoryModel settings_features_redirects_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_particle_animation_grayed_model, "settings/features");
     public static final InventoryModel settings_features_redirects_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_redirects_model, "settings/features");
-//    public static final InventoryModel settings_features_history_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_redirects_grayed_model, "settings/features");
-//    public static final InventoryModel settings_features_history_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_history_model, "settings/features");
-    public static final InventoryModel settings_features_preview_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_redirects_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_history_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_redirects_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_history_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_history_model, "settings/features");
+    public static final InventoryModel settings_features_preview_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_history_grayed_model, "settings/features");
     public static final InventoryModel settings_features_preview_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_preview_model, "settings/features");
     public static final InventoryModel settings_features_world_tp_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_preview_grayed_model, "settings/features");
     public static final InventoryModel settings_features_world_tp_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_world_tp_model, "settings/features");
@@ -205,20 +207,30 @@ public class SettingsInventories {
     public static final InventoryModel settings_features_print_errors_in_console_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_print_errors_in_console_model, "settings/features");
     public static final InventoryModel settings_features_feature_settings_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_print_errors_in_console_grayed_model, "settings/features");
     public static final InventoryModel settings_features_feature_settings_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_feature_settings_model, "settings/features");
-    public static final InventoryModel settings_redirect_model                 = new InventoryModel(Material.OAK_BUTTON, settings_features_feature_settings_grayed_model, "settings/redirect");
-    public static final InventoryModel settings_redirect_console_feedback_model             = new InventoryModel(Material.OAK_BUTTON, settings_redirect_model, "settings/redirect");
-    public static final InventoryModel settings_redirect_console_feedback_grayed_model      = new InventoryModel(Material.OAK_BUTTON, settings_redirect_console_feedback_model, "settings/redirect");
-    public static final InventoryModel settings_redirect_tp_pltp_model                      = new InventoryModel(Material.OAK_BUTTON, settings_redirect_console_feedback_grayed_model, "settings/redirect");
-    public static final InventoryModel settings_redirect_tp_pltp_grayed_model               = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tp_pltp_model, "settings/redirect");
-    public static final InventoryModel settings_redirect_locate_feature_tp_model            = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tp_pltp_grayed_model, "settings/redirect");
-    public static final InventoryModel settings_redirect_locate_feature_tp_grayed_model     = new InventoryModel(Material.OAK_BUTTON, settings_redirect_locate_feature_tp_model, "settings/redirect");
-    public static final InventoryModel settings_redirect_locate_biome_biome_tp_model        = new InventoryModel(Material.OAK_BUTTON, settings_redirect_locate_feature_tp_grayed_model, "settings/redirect");
-    public static final InventoryModel settings_redirect_locate_biome_biome_tp_grayed_model = new InventoryModel(Material.OAK_BUTTON, settings_redirect_locate_biome_biome_tp_model, "settings/redirect");
-    public static final InventoryModel settings_redirect_home_tport_home_model              = new InventoryModel(Material.OAK_BUTTON, settings_redirect_locate_biome_biome_tp_grayed_model, "settings/redirect");
-    public static final InventoryModel settings_redirect_home_tport_home_grayed_model       = new InventoryModel(Material.OAK_BUTTON, settings_redirect_home_tport_home_model, "settings/redirect");
-    public static final InventoryModel settings_redirect_back_tport_back_model              = new InventoryModel(Material.OAK_BUTTON, settings_redirect_home_tport_home_grayed_model, "settings/redirect");
-    public static final InventoryModel settings_redirect_back_tport_back_grayed_model       = new InventoryModel(Material.OAK_BUTTON, settings_redirect_back_tport_back_model, "settings/redirect");
-    public static final InventoryModel settings_remove_player_model            = new InventoryModel(Material.OAK_BUTTON, settings_redirect_back_tport_back_grayed_model, "settings/remove_player");
+    public static final InventoryModel settings_redirect_model                                 = new InventoryModel(Material.OAK_BUTTON, settings_features_feature_settings_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_console_feedback_model                = new InventoryModel(Material.OAK_BUTTON, settings_redirect_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_console_feedback_grayed_model         = new InventoryModel(Material.OAK_BUTTON, settings_redirect_console_feedback_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tp_pltp_model                         = new InventoryModel(Material.OAK_BUTTON, settings_redirect_console_feedback_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tp_pltp_grayed_model                  = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tp_pltp_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_locate_feature_tp_model               = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tp_pltp_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_locate_feature_tp_grayed_model        = new InventoryModel(Material.OAK_BUTTON, settings_redirect_locate_feature_tp_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_locate_biome_biome_tp_model           = new InventoryModel(Material.OAK_BUTTON, settings_redirect_locate_feature_tp_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_locate_biome_biome_tp_grayed_model    = new InventoryModel(Material.OAK_BUTTON, settings_redirect_locate_biome_biome_tp_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_home_tport_home_model                 = new InventoryModel(Material.OAK_BUTTON, settings_redirect_locate_biome_biome_tp_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_home_tport_home_grayed_model          = new InventoryModel(Material.OAK_BUTTON, settings_redirect_home_tport_home_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_back_tport_back_model                 = new InventoryModel(Material.OAK_BUTTON, settings_redirect_home_tport_home_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_back_tport_back_grayed_model          = new InventoryModel(Material.OAK_BUTTON, settings_redirect_back_tport_back_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tpa_pltp_tp_model                     = new InventoryModel(Material.OAK_BUTTON, settings_redirect_back_tport_back_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tpa_pltp_tp_grayed_model              = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tpa_pltp_tp_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tpaccept_requests_accept_model        = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tpa_pltp_tp_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tpaccept_requests_accept_grayed_model = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tpaccept_requests_accept_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tpdeny_requests_reject_model          = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tpaccept_requests_accept_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tpdeny_requests_reject_grayed_model   = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tpdeny_requests_reject_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tprevoke_requests_revoke_model        = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tpdeny_requests_reject_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tprevoke_requests_revoke_grayed_model = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tprevoke_requests_revoke_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tprandom_biome_tp_random_model        = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tprevoke_requests_revoke_grayed_model, "settings/redirect");
+    public static final InventoryModel settings_redirect_tprandom_biome_tp_random_grayed_model = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tprandom_biome_tp_random_model, "settings/redirect");
+    public static final InventoryModel settings_remove_player_model            = new InventoryModel(Material.OAK_BUTTON, settings_redirect_tprandom_biome_tp_random_grayed_model, "settings/remove_player");
     public static final InventoryModel settings_remove_player_confirm_model    = new InventoryModel(Material.OAK_BUTTON, settings_remove_player_model, "settings/remove_player");
     public static final InventoryModel settings_remove_player_cancel_model     = new InventoryModel(Material.OAK_BUTTON, settings_remove_player_confirm_model, "settings/remove_player");
     public static final InventoryModel settings_safety_check_model                     = new InventoryModel(Material.OAK_BUTTON, settings_remove_player_cancel_model, "settings/safety_check");
@@ -531,7 +543,6 @@ public class SettingsInventories {
             addFunction(blueRem, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) ->
                     changeColorRunnable(whoClicked, pdc, fancyInventory, (color) -> new Color(color.getRed(), color.getGreen(), Math.max(color.getBlue() - 100, 0)))));
             
-            //todo add dye color selection
             ItemStack builtInColorSelector = keyboard_chat_color_model.getItem(player);
             Message builtInColorSelectorTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortColorTheme_editTypeGUI.colorTypes.openBuiltInColorSelector");
             setCustomItemData(builtInColorSelector, colorTheme, builtInColorSelectorTitle,  null);
@@ -964,7 +975,6 @@ public class SettingsInventories {
         lore.add(currentStateMessage);
         if (Features.Feature.FeatureSettings.isEnabled()) {
             lore.add(formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortFeaturesGUI.feature.moreInfo", RIGHT));
-            lore.add(formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortFeaturesGUI.feature.moreInfo.hover"));
             lore.add(new Message());
             lore.add(clickMessage);
         }
@@ -973,7 +983,7 @@ public class SettingsInventories {
         
         addCommand(is, LEFT, "tport features " + feature.name() + " state " + newState);
         addFunction(is, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openFeaturesGUI(whoClicked, fancyInventory.getData(pageDataName), fancyInventory)));
-        addCommand(is, RIGHT, "tport features");
+        addCommand(is, RIGHT, "tport features " + feature.name());
         
         return is;
     }
@@ -1501,8 +1511,9 @@ public class SettingsInventories {
         for (Pair<InventoryModel, String> model : models) {
             ItemStack is = model.getLeft().getItem(player);
             Message title = formatInfoTranslation(playerLang, "tport.settingsInventories.openItemDebug.modelName", model.getRight());
+            Message customModelData = formatInfoTranslation(playerLang, "tport.settingsInventories.openItemDebug.customModelData", model.getLeft().getCustomModelData());
             Message subDir = formatInfoTranslation(playerLang, "tport.settingsInventories.openItemDebug.subDir", model.getLeft().getSubDir());
-            setCustomItemData(is, colorTheme, title, List.of(new Message(), subDir));
+            setCustomItemData(is, colorTheme, title, List.of(new Message(), customModelData, subDir));
             items.add(is);
         }
         
@@ -1895,6 +1906,7 @@ public class SettingsInventories {
     }
     private final static FancyInventory.DataName<SearchType> searchTypeDataName = new FancyInventory.DataName<>("searchType", SearchType.class, null);
     private final static FancyInventory.DataName<SearchMode> searchModeDataName = new FancyInventory.DataName<>("searchMode", SearchMode.class, null);
+    private final static FancyInventory.DataName<ArrayList> loopedQueryDataName = new FancyInventory.DataName<>("loopedQuery", ArrayList.class, new ArrayList<>());
     private static void openSearchModeGUI(Player player, SearchType searchType) {
         openSearchModeGUI(player, searchType, null);
     }
@@ -1960,12 +1972,12 @@ public class SettingsInventories {
         keyboard.setData(searchModeDataName, searchMode);
     }
     private static void openSearchCustomQuery(Player player, int page, FancyInventory prevWindow) {
-        openSearchCustomQuery(player, page, prevWindow.getData(searchTypeDataName), prevWindow.getData(searchModeDataName));
+        openSearchCustomQuery(player, page, prevWindow.getData(searchTypeDataName), prevWindow.getData(searchModeDataName), prevWindow.getData(loopedQueryDataName));
     }
     private static void openSearchCustomQuery(Player player, SearchType searchType, @Nullable SearchMode searchMode) {
-        openSearchCustomQuery(player, 0, searchType, searchMode);
+        openSearchCustomQuery(player, 0, searchType, searchMode, new ArrayList<>());
     }
-    private static void openSearchCustomQuery(Player player, int page, SearchType searchType, @Nullable SearchMode searchMode) {
+    private static void openSearchCustomQuery(Player player, int page, SearchType searchType, @Nullable SearchMode searchMode, ArrayList<String> looped) { //todo remove 'query' naming
         ColorTheme colorTheme = ColorTheme.getTheme(player);
         JsonObject playerLang = Language.getPlayerLang(player);
         
@@ -1977,30 +1989,50 @@ public class SettingsInventories {
             if (!MessageUtils.hasCustomName(is)) {
                 queryTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSearchCustomQuery.query.title", query);
             }
-            Message clickToQuery = formatInfoTranslation(playerLang, "tport.settingsInventories.openSearchCustomQuery.query.click", LEFT, query);
-            setCustomItemData(is, colorTheme, queryTitle, List.of(new Message(), clickToQuery));
+            ArrayList<Message> lore = new ArrayList<>();
+            lore.add(new Message());
+            lore.add(formatInfoTranslation(playerLang, "tport.settingsInventories.openSearchCustomQuery.query.click", LEFT, query));
             
             ItemMeta im = is.getItemMeta();
             removeAllFunctions(im);
             removeAllCommands(im);
             
             if (searchType.isLoopedQuery()) {
-                //todo
+                if (looped.contains(query)) {
+                    Glow.addGlow(im);
+                    lore.add(formatInfoTranslation(playerLang, "tport.settingsInventories.openSearchCustomQuery.query.remove", RIGHT, query));
+                } else {
+                    lore.add(formatInfoTranslation(playerLang, "tport.settingsInventories.openSearchCustomQuery.query.add", RIGHT, query));
+                }
+                addFunction(im, RIGHT, (whoClicked, clickType, pdc, fancyInventory) -> {
+                    SearchType innerSearchType = fancyInventory.getData(searchTypeDataName);
+                    SearchMode innerSearchMode = fancyInventory.getData(searchModeDataName);
+                    ArrayList<String> innerLooped = fancyInventory.getData(loopedQueryDataName);
+                    String innerQuery = pdc.get(new NamespacedKey(Main.getInstance(), "query"), STRING);
+                    if (innerLooped.contains(innerQuery)) innerLooped.remove(innerQuery);
+                    else innerLooped.add(innerQuery);
+                    openSearchCustomQuery(whoClicked, fancyInventory.getData(pageDataName), innerSearchType, innerSearchMode, innerLooped);
+                });
             }
-            addFunction(im, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            addFunction(im, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> {
                 SearchType innerSearchType = fancyInventory.getData(searchTypeDataName);
                 SearchMode innerSearchMode = fancyInventory.getData(searchModeDataName);
+                ArrayList<String> innerLooped = fancyInventory.getData(loopedQueryDataName);
                 String innerQuery = pdc.get(new NamespacedKey(Main.getInstance(), "query"), STRING);
-                TPortInventories.openSearchGUI(whoClicked, 0, innerSearchMode, innerSearchType.getSearchTypeName(), innerQuery);
-            }));
+                innerLooped.add(innerQuery);
+                TPortInventories.openSearchGUI(whoClicked, 0, innerSearchMode, innerSearchType.getSearchTypeName(), String.join(" ", innerLooped));
+            });
             
             is.setItemMeta(im);
+            
+            setCustomItemData(is, colorTheme, queryTitle, lore);
         }
         
         Message title = formatInfoTranslation("tport.settingsInventories.openSearchCustomQuery.title");
         FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openSearchCustomQuery, title, items, createBack(player, SEARCH, OWN, MAIN));
         inv.setData(searchTypeDataName, searchType);
         inv.setData(searchModeDataName, searchMode);
+        inv.setData(loopedQueryDataName, looped);
         
         inv.open(player);
     }
@@ -2354,6 +2386,7 @@ public class SettingsInventories {
         items.add(homeItem);            //DONE
         items.add(languageItem);
         items.add(searchItem);          //DONE
+//        items.add(requests);          //todo
         
         //useful for admins
         items.add(reloadItem);          //DONE
@@ -2364,8 +2397,9 @@ public class SettingsInventories {
         items.add(removePlayerItem);    //DONE
         items.add(redirectItem);        //DONE
         items.add(metricsItem);         //DONE
-        items.add(dynmapItem);
         items.add(cooldownItem);        //DONE
+        items.add(dynmapItem);
+        items.add(blueMapItem);
         items.add(publicItem);          //DONE
         items.add(adapterItem);         //DONE
         items.add(delayItem);

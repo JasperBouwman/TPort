@@ -29,7 +29,7 @@ public class Load extends SubCommand {
     }
     
     public static List<String> getBackups(boolean sortByModify) {
-        Stream<File> s = Arrays.stream(Objects.requireNonNull(new File(Main.getInstance().getDataFolder(), "/backup").listFiles()))
+        Stream<File> s = Arrays.stream(Objects.requireNonNull(new File(Main.getInstance().getDataFolder(), "backup").listFiles()))
                 .filter(f -> f.getName().endsWith(".yml") && !f.getName().contains(" "));
         if (sortByModify) {
             s = s.sorted((file1, file2) -> Long.compare(file2.lastModified(), file1.lastModified()));
@@ -59,12 +59,12 @@ public class Load extends SubCommand {
         }
         
         String fileName = args[2].split("\\.")[0];
-        File file = new File(Main.getInstance().getDataFolder(), "/backup/" + fileName + ".yml");
+        File file = new File(new File(Main.getInstance().getDataFolder(), "backup"), fileName + ".yml");
         if (!file.exists()) {
             sendErrorTranslation(player, "tport.command.backup.load.fileNotFound", fileName + ".yml");
             return;
         }
-        Files configFile = new Files(Main.getInstance(),"/backup/" + fileName);
+        Files configFile = new Files(Main.getInstance(), "backup", fileName);
         if (!configFile.getConfig().contains("tport")) {
             sendErrorTranslation(player, "tport.command.backup.load.error", file.getName());
             return;

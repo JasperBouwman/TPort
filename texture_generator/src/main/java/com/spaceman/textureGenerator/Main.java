@@ -36,6 +36,8 @@ public class Main {
     
     private static final String outputDir = path + "/../../texture_output";
     
+    private static final int pack_format = 32;
+    
     private static final HashMap<Color, Color> lightColorMap = com.spaceman.tport.Main.asMap(
             new Pair<>(
                     new Color(61, 61, 61),
@@ -250,7 +252,7 @@ public class Main {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         JsonObject pack_mcmeta = new JsonObject();
         JsonObject pack = new JsonObject();
-        pack.add("pack_format", new JsonPrimitive(22));
+        pack.add("pack_format", new JsonPrimitive(pack_format));
         String description = "";
         if (lightMode) {
             description = String.format("TPort %s (v%s) (light), made by The_Spaceman", packDir, plugin_yml.get("version"));

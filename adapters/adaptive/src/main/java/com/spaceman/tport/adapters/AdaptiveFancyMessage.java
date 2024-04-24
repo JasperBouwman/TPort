@@ -1,6 +1,7 @@
 package com.spaceman.tport.adapters;
 
 import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,21 +23,33 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.UUID;
 
 import static com.spaceman.tport.adapters.ReflectionManager.getField;
 import static com.spaceman.tport.adapters.ReflectionManager.getPrivateField;
 import static com.spaceman.tport.fancyMessage.inventories.keyboard.QuickType.onSignEdit;
 
-public abstract class AdaptiveFancyMessage extends AdaptiveNBTTags {
+public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
     
     private BlockPosition newBlockPosition(Location l) {
         return new BlockPosition(l.getBlockX(), l.getBlockY(), l.getBlockZ());
+    }
+    
+    @Override
+    public void setDisplayName(ItemStack itemStack, Message title, ColorTheme theme) throws NoSuchMethodException {
+        throw new NoSuchMethodException();
+    }
+    
+    @Override
+    public void setLore(ItemStack itemStack, Collection<Message> lore, ColorTheme theme) throws NoSuchMethodException {
+        throw new NoSuchMethodException();
     }
     
     @Override

@@ -21,7 +21,7 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTr
 
 public class SimpleAnimation extends ParticleAnimation {
     
-    private Particle particle = Particle.EXPLOSION_NORMAL;
+    private Particle particle = Particle.EXPLOSION;
     private int amount = 10;
     
     public SimpleAnimation() {
@@ -56,7 +56,7 @@ public class SimpleAnimation extends ParticleAnimation {
     @Override
     public boolean edit(Player player, String[] data) {
         if (data == null || data.length == 0) {
-            this.setParticle(Particle.EXPLOSION_NORMAL);
+            this.setParticle(Particle.EXPLOSION);
         } else {
             try {
                 KeyValueHelper.extendedConstructObject(data[0], this,
@@ -80,7 +80,7 @@ public class SimpleAnimation extends ParticleAnimation {
     
     @Override
     public void load(ConfigurationSection section) {
-        this.setParticle(Particle.valueOf(section.getString("p", Particle.EXPLOSION_NORMAL.name()).toUpperCase()));
+        this.setParticle(Particle.valueOf(section.getString("p", Particle.EXPLOSION.name()).toUpperCase()));
         this.setAmount(section.getInt("a", 10));
     }
     

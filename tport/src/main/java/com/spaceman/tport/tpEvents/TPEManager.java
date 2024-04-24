@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 import static com.spaceman.tport.commands.tport.Back.prevTPorts;
+import static com.spaceman.tport.commands.tport.Features.Feature.CompanionTP;
 import static com.spaceman.tport.commands.tport.Restriction.isPermissionBased;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varErrorColor;
@@ -272,38 +273,46 @@ public class TPEManager {
         if (player == null) return;
         
         ArrayList<LivingEntity> slaves = new ArrayList<>();
-        for (Entity e : player.getWorld().getEntities()) {
-            if (e instanceof LivingEntity livingEntity) {
-                if (livingEntity.isLeashed()) {
-                    if (livingEntity.getLeashHolder() instanceof Player) {
-                        if (livingEntity.getLeashHolder().getUniqueId().equals(player.getUniqueId())) {
-                            slaves.add(livingEntity);
-                            livingEntity.setLeashHolder(null);
-                        }
-                    }
+        if (CompanionTP.isEnabled()) {
+            for (Entity e : player.getWorld().getEntities()) {
+                if (!(e instanceof LivingEntity livingEntity)) {
+                    continue;
+                }
+                if (!livingEntity.isLeashed()) {
+                    continue;
+                }
+                if (!(livingEntity.getLeashHolder() instanceof Player)) {
+                    continue;
+                }
+                if (livingEntity.getLeashHolder().getUniqueId().equals(player.getUniqueId())) {
+                    slaves.add(livingEntity);
+                    livingEntity.setLeashHolder(null);
                 }
             }
         }
         
         LivingEntity horse = null;
-        Boat.Type boatType = null;
+        Entity boatEntity = null;
         Entity sailor = null;
-        if (player.getVehicle() instanceof LivingEntity) {
-            horse = (LivingEntity) player.getVehicle();
-        } else if (player.getVehicle() instanceof Boat b) {
-            boatType = b.getBoatType();
-            if (b.getPassengers().size() > 1) {
-                sailor = b.getPassengers().get(1);
-                sailor.leaveVehicle();
-                sailor.teleport(l);
+        if (CompanionTP.isEnabled()) {
+            if (player.getVehicle() instanceof LivingEntity) {
+                horse = (LivingEntity) player.getVehicle();
+            } else if (player.getVehicle() instanceof Boat b) {
+                boatEntity = b;
+                player.leaveVehicle();
+                if (!b.getPassengers().isEmpty()) {
+                    sailor = b.getPassengers().get(0);
+                    sailor.leaveVehicle();
+                    sailor.teleport(l);
+                }
+                b.getPassengers().forEach(b::removePassenger);
             }
-            b.remove();
         }
         
         boolean showAnimation = Features.Feature.ParticleAnimation.isEnabled();
         
         if (showAnimation) TPEManager.getOldLocAnimation(player.getUniqueId()).showIfEnabled(player, player.getLocation().clone());
-        if (!player.getWorld().equals(l.getWorld())) {
+        if (!player.getWorld().equals(l.getWorld())) { // why double teleporting? can't remember
             player.teleport(l);
         }
         player.teleport(l);
@@ -314,14 +323,14 @@ public class TPEManager {
             if (horse != null) {
                 horse.teleport(player);
                 horse.addPassenger(player);
-            } else if (boatType != null) {
-                Boat b = player.getWorld().spawn(player.getLocation(), Boat.class);
-                b.setBoatType(boatType);
-                b.teleport(player);
-                b.addPassenger(player);
+            } else if (boatEntity != null) {
+                Location boatL = boatEntity.getLocation().clone().add(1000, 0, 1000);
+                boatEntity.teleport(boatL);
+                boatEntity.teleport(player);
+                boatEntity.addPassenger(player);
                 if (sailor != null) {
                     sailor.teleport(player);
-                    b.addPassenger(sailor);
+                    boatEntity.addPassenger(sailor);
                 }
             }
         } catch (Exception ex) {
