@@ -137,7 +137,7 @@ In the quick edit you can only offer and revoke an offer of a TPort.
 
 To add your TPort to the publicTP list you can use this quick edit or command.
 
-#### Dynmap: `/tport edit <TPort name> dynmap [show|icon]` <img height="32" src="https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/quick_edit_dynmap_show_on.pngg?raw=true" title="TPort is shown on Dynmap" width="32"/><img height="32" src="https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/quick_edit_dynmap_show_off.png?raw=true" title="TPort is hidden on Dynmap" width="32"/><img height="32" src="https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/quick_edit_dynmap_show_grayed.png?raw=true" title="Dynmap support is not enabled" width="32"/><br />
+#### Dynmap: `/tport edit <TPort name> dynmap [show|icon]` <img height="32" src="https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/quick_edit_dynmap_show_on.png?raw=true" title="TPort is shown on Dynmap" width="32"/><img height="32" src="https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/quick_edit_dynmap_show_off.png?raw=true" title="TPort is hidden on Dynmap" width="32"/><img height="32" src="https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/quick_edit_dynmap_show_grayed.png?raw=true" title="Dynmap support is not enabled" width="32"/><br />
 
 When Dynmap support is enabled your TPort will be shown at the Dynmap map. If you do not want this you can disable this via the `show` option.
 All loaded Dynmap icons can be used for your TPort Dynmap icon.
