@@ -112,7 +112,7 @@ public class ExplosionAnimation extends ParticleAnimation {
     
     @Override
     public void load(ConfigurationSection section) {
-        this.particle = (Particle.valueOf(section.getString("p", Particle.EXPLOSION.name()).toUpperCase()));
+        this.particle = (Particle.valueOf(section.getString("p", getDefaultParticle().name()).toUpperCase()));
         this.explosion = (section.getBoolean("e", true));
         this.radius = (section.getDouble("ra", 5));
         this.resolution = (section.getDouble("re", 50));

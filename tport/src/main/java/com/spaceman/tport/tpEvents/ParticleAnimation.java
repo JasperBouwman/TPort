@@ -3,6 +3,7 @@ package com.spaceman.tport.tpEvents;
 import com.spaceman.tport.fancyMessage.Message;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -14,6 +15,14 @@ import java.util.Set;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatErrorTranslation;
 
 public abstract class ParticleAnimation {
+    
+    protected Particle getDefaultParticle() {
+        try {
+            return Particle.valueOf("EXPLOSION");
+        } catch (IllegalArgumentException iae) {
+            return Particle.valueOf("EXPLOSION_NORMAL");
+        }
+    }
     
     private static final HashMap<String, AnimationCreator> animations = new HashMap<>();
     private boolean enabled = true;

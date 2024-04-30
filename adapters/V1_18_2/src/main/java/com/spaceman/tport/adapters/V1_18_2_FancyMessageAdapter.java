@@ -48,7 +48,7 @@ public abstract class V1_18_2_FancyMessageAdapter extends V1_18_2_BiomeTPAdapter
     }
     
     @Override
-    public void setDisplayName(ItemStack itemStack, Message title, ColorTheme theme) throws IllegalAccessException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException {
+    public void setDisplayName(ItemStack itemStack, @Nonnull Message title, ColorTheme theme) throws IllegalAccessException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException {
         String version = ReflectionManager.getServerClassesVersion();
         Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
         
@@ -59,7 +59,7 @@ public abstract class V1_18_2_FancyMessageAdapter extends V1_18_2_BiomeTPAdapter
         NBTTagCompound tag = this.getNBTTag(nmsStack);
         
         NBTTagCompound display = this.getCompound(tag, "display");
-        if (title != null) this.putString(display, "Name", title.translateJSON(theme));
+        this.putString(display, "Name", title.translateJSON(theme));
 
         this.put(tag, "display", display);
         
@@ -69,7 +69,7 @@ public abstract class V1_18_2_FancyMessageAdapter extends V1_18_2_BiomeTPAdapter
     }
     
     @Override
-    public void setLore(ItemStack itemStack, Collection<Message> lore, ColorTheme theme) throws ClassNotFoundException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+    public void setLore(ItemStack itemStack, @Nonnull Collection<Message> lore, ColorTheme theme) throws ClassNotFoundException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         String version = ReflectionManager.getServerClassesVersion();
         Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
         
@@ -81,17 +81,15 @@ public abstract class V1_18_2_FancyMessageAdapter extends V1_18_2_BiomeTPAdapter
         
         NBTTagCompound display = this.getCompound(tag, "display");
         
-        if (lore != null) {
-            NBTTagList loreT = new NBTTagList();
-            int id = 0;
-            for (Message line : lore) {
-                if (line != null) {
-                    this.listTag_addTag(loreT, id++, NBTTagString.a(line.translateJSON(theme)));
-                    
-                }
+        NBTTagList loreT = new NBTTagList();
+        int id = 0;
+        for (Message line : lore) {
+            if (line != null) {
+                this.listTag_addTag(loreT, id++, NBTTagString.a(line.translateJSON(theme)));
+                
             }
-            this.put(display, "Lore", loreT);
         }
+        this.put(display, "Lore", loreT);
         
         this.put(tag, "display", display);
         

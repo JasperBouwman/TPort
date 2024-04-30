@@ -34,7 +34,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class V1_20_5_BiomeTPAdapter extends V1_20_5_FeatureTPAdapter {
+public abstract class V1_20_6_BiomeTPAdapter extends V1_20_6_FeatureTPAdapter {
     
     private IRegistry<BiomeBase> getBiomeRegistry(WorldServer worldServer) {
         return worldServer.H_().d(Registries.az);

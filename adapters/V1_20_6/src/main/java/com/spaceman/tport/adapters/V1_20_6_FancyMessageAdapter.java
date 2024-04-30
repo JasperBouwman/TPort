@@ -29,24 +29,23 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.spaceman.tport.adapters.ReflectionManager.getPrivateField;
 import static com.spaceman.tport.fancyMessage.inventories.keyboard.QuickType.onSignEdit;
 
-public abstract class V1_20_5_FancyMessageAdapter extends V1_20_5_BiomeTPAdapter {
+public abstract class V1_20_6_FancyMessageAdapter extends V1_20_6_BiomeTPAdapter {
     
     private BlockPosition newBlockPosition(Location l) {
         return new BlockPosition(l.getBlockX(), l.getBlockY(), l.getBlockZ());
     }
     
     @Override
-    public void setDisplayName(org.bukkit.inventory.ItemStack itemStack, Message title, ColorTheme theme) throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
+    public void setDisplayName(org.bukkit.inventory.ItemStack itemStack, @Nonnull Message title, ColorTheme theme) throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException {
         ItemMeta im = itemStack.getItemMeta();
         
+        // reflection because CraftMetaItem is package private
         Field displayNameField = Class.forName("org.bukkit.craftbukkit.v1_20_R4.inventory.CraftMetaItem").getDeclaredField("displayName");
         displayNameField.setAccessible(true);
         
@@ -55,15 +54,18 @@ public abstract class V1_20_5_FancyMessageAdapter extends V1_20_5_BiomeTPAdapter
     }
     
     @Override
-    public void setLore(org.bukkit.inventory.ItemStack itemStack, Collection<Message> lore, ColorTheme theme) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
+    public void setLore(org.bukkit.inventory.ItemStack itemStack, @Nonnull Collection<Message> lore, ColorTheme theme) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         
         ItemMeta im = itemStack.getItemMeta();
         
+        // reflection because CraftMetaItem is package private
         Field loreField = Class.forName("org.bukkit.craftbukkit.v1_20_R4.inventory.CraftMetaItem").getDeclaredField("lore");
         loreField.setAccessible(true);
         
-        List<IChatBaseComponent> l = new ArrayList<>();
-        lore.forEach(line -> l.add(CraftChatMessage.fromJSON(line.translateJSON(theme))));
+        List<IChatBaseComponent> l = lore.stream()
+                .filter(Objects::nonNull)
+                .map(line -> CraftChatMessage.fromJSON(line.translateJSON(theme)))
+                .collect(Collectors.toList());
         loreField.set(im, l);
         
         itemStack.setItemMeta(im);

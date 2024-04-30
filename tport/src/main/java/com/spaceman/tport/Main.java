@@ -262,7 +262,8 @@ public class Main extends JavaPlugin {
         Adapter.registerAdapter("1.18.2", "com.spaceman.tport.adapters.V1_18_2_Adapter");
         Adapter.registerAdapter("1.19.4", "com.spaceman.tport.adapters.V1_19_4_Adapter");
         Adapter.registerAdapter("1.20.4", "com.spaceman.tport.adapters.V1_20_4_Adapter");
-        Adapter.registerAdapter("1.20.5", "com.spaceman.tport.adapters.V1_20_5_Adapter");
+        Adapter.registerAdapter("1.20.5", "com.spaceman.tport.adapters.V1_20_6_Adapter");
+        Adapter.registerAdapter("1.20.6", "com.spaceman.tport.adapters.V1_20_6_Adapter");
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");

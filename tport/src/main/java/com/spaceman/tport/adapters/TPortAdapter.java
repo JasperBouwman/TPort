@@ -2,7 +2,6 @@ package com.spaceman.tport.adapters;
 
 import com.spaceman.tport.Pair;
 import com.spaceman.tport.biomeTP.BiomePreset;
-import com.spaceman.tport.commands.tport.BiomeTP;
 import com.spaceman.tport.commands.tport.biomeTP.Accuracy;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
@@ -48,8 +47,8 @@ public abstract class TPortAdapter {
     public abstract void removeQuickTypeSignHandler(Player player) throws IllegalAccessException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException;
     public abstract void sendBlockChange(Player player, Location blockLoc, Material material) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException;
     public abstract void sendBlockChange(Player player, Location blockLoc, Block block) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException;
-    public abstract void setLore(ItemStack itemStack, Collection<Message> lore, ColorTheme theme) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException;
-    public abstract void setDisplayName(ItemStack itemStack, Message title, ColorTheme theme) throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException;
+    public abstract void setLore(ItemStack itemStack, @Nonnull Collection<Message> lore, ColorTheme theme) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException, NoSuchMethodException, InvocationTargetException;
+    public abstract void setDisplayName(ItemStack itemStack, @Nonnull Message title, ColorTheme theme) throws NoSuchFieldException, IllegalAccessException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException;
     //fancyMessage
     
     //biomeTP

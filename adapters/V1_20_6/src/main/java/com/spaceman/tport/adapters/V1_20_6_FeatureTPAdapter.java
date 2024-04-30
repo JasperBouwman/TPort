@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
-public abstract class V1_20_5_FeatureTPAdapter extends TPortAdapter {
+public abstract class V1_20_6_FeatureTPAdapter extends TPortAdapter {
     
     private IRegistry<Structure> getStructureRegistry(WorldServer worldServer) {
         return worldServer.H_().d(Registries.aJ);
