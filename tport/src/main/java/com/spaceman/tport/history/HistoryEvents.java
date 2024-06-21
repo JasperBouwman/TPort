@@ -1,7 +1,12 @@
 package com.spaceman.tport.history;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.Pair;
 import com.spaceman.tport.commands.tport.Features;
+import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
+import com.spaceman.tport.history.locationSource.CraftLocationSource;
+import com.spaceman.tport.history.locationSource.IgnoreLocationSource;
+import com.spaceman.tport.history.locationSource.LocationSource;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -17,57 +22,17 @@ import org.bukkit.plugin.PluginDescriptionFile;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.UUID;
 
-import static com.spaceman.tport.fileHander.Files.tportConfig;
+import static com.spaceman.tport.history.TeleportHistory.addHistory;
+import static com.spaceman.tport.history.TeleportHistory.getTeleportData;
 
 public class HistoryEvents implements Listener {
     
     private static final HistoryEvents instance = new HistoryEvents();
     public static HistoryEvents getInstance() {
         return instance;
-    }
-    
-    private HistoryEvents() {
-        historySize = tportConfig.getConfig().getInt("history.size", 20);
-    }
-    
-    private static int historySize = 20;
-    public static void setHistorySize(int size) {
-        tportConfig.getConfig().set("history.size", size);
-        tportConfig.saveConfig();
-    }
-    public static int getHistorySize() {
-        return historySize;
-    }
-    
-    public static HashMap<UUID, ArrayList<HistoryElement>> teleportHistory = new HashMap<>();
-    
-    private static final HashMap<UUID, LocationSource> locationSources = new HashMap<>();
-    private static LocationSource getLocationSource(UUID uuid) {
-        return Main.getOrDefault(locationSources.remove(uuid), new CraftLocationSource());
-    }
-    public static void setLocationSource(UUID uuid, LocationSource data) {
-        locationSources.put(uuid, data);
-    }
-    public static void ignoreTeleport(UUID uuid) {
-        setLocationSource(uuid, new IgnoreLocationSource());
-    }
-    
-    private void addHistory(Player player, HistoryElement historyElement) {
-        Location newLoc = historyElement.newLocation().getLocation(player);
-        if (Objects.equals(historyElement.oldLocation().getWorld(), newLoc.getWorld())) {
-            if (historyElement.oldLocation().distance(newLoc) < 1) {
-                return;
-            }
-        }
-        ArrayList<HistoryElement> history = teleportHistory.getOrDefault(player.getUniqueId(), new ArrayList<>(historySize + 1));
-        history.add(historyElement);
-        while (history.size() > historySize) history.remove(0);
-        teleportHistory.put(player.getUniqueId(), history);
     }
     
     public static void load() {
@@ -107,7 +72,8 @@ public class HistoryEvents implements Listener {
         if (vehicleHistory != null) {
             Player player = (Player) e.getExited();
             
-            HistoryElement element = new HistoryElement(vehicleHistory, new CraftLocationSource(vehicle.getLocation()), vehicle.getType().name(), null);
+            HistoryElement element = new HistoryElement(vehicleHistory,
+                    new CraftLocationSource(vehicle.getLocation()), vehicle.getType().name(), null, null); //todo add vehicle inventory model
             addHistory(player, element);
         }
     }
@@ -115,16 +81,16 @@ public class HistoryEvents implements Listener {
     @EventHandler
     @SuppressWarnings("unused")
     public void onTeleport(PlayerTeleportEvent e) {
-        LocationSource locationSource = getLocationSource(e.getPlayer().getUniqueId());
-        if (locationSource instanceof IgnoreLocationSource) return;
-        locationSource.setLocation(e.getTo());
+        Pair<LocationSource, InventoryModel> teleportData = getTeleportData(e.getPlayer().getUniqueId());
+        if (teleportData.getLeft() instanceof IgnoreLocationSource) return;
+        teleportData.getLeft().setLocation(e.getTo());
         
         String plugin = null;
         if (e.getCause().equals(PlayerTeleportEvent.TeleportCause.PLUGIN)) {
             plugin = findPlugin(searchStack());
         }
-        
-        HistoryElement element = new HistoryElement(e.getFrom(), locationSource, e.getCause().name(), plugin);
+        InventoryModel inventoryModel = teleportData.getRight();
+        HistoryElement element = new HistoryElement(e.getFrom(), teleportData.getLeft(), e.getCause().name(), plugin, inventoryModel);
         addHistory(e.getPlayer(), element);
     }
     

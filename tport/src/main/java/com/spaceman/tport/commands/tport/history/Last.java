@@ -3,8 +3,8 @@ package com.spaceman.tport.commands.tport.history;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.history.TeleportHistory;
 import com.spaceman.tport.history.HistoryElement;
-import com.spaceman.tport.history.HistoryEvents;
 import com.spaceman.tport.history.HistoryFilter;
 import com.spaceman.tport.tpEvents.TPEManager;
 import org.bukkit.Bukkit;
@@ -13,9 +13,9 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static com.spaceman.tport.history.HistoryEvents.teleportHistory;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTranslation;
+import static com.spaceman.tport.history.TeleportHistory.teleportHistory;
 
 public class Last extends SubCommand {
     
@@ -44,7 +44,7 @@ public class Last extends SubCommand {
             
             HistoryElement element = history.get(history.size() - 1);
             
-            HistoryEvents.setLocationSource(player.getUniqueId(), element.newLocation());
+            TeleportHistory.setLocationSource(player.getUniqueId(), element.newLocation());
             TPEManager.requestTeleportPlayer(player, element.newLocation().getLocation(player),
                     () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "succeeded"),
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.biomeTP.randomTP.succeededRequested", delay, tickMessage, seconds, secondMessage));
@@ -75,7 +75,7 @@ public class Last extends SubCommand {
                 return;
             }
             
-            HistoryEvents.setLocationSource(player.getUniqueId(), element.newLocation());
+            TeleportHistory.setLocationSource(player.getUniqueId(), element.newLocation());
             TPEManager.requestTeleportPlayer(player, element.newLocation().getLocation(player),
                     () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "succeeded"),
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.biomeTP.randomTP.succeededRequested", delay, tickMessage, seconds, secondMessage));

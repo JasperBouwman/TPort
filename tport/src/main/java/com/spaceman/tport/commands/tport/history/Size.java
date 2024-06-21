@@ -3,7 +3,7 @@ package com.spaceman.tport.commands.tport.history;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.history.HistoryEvents;
+import com.spaceman.tport.history.TeleportHistory;
 import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -21,7 +21,7 @@ public class Size extends SubCommand {
         // tport history size [size]
         
         if (args.length == 2) {
-            sendInfoTranslation(player, "size %s", HistoryEvents.getHistorySize());
+            sendInfoTranslation(player, "size %s", TeleportHistory.getHistorySize());
         } else if (args.length == 3) {
             
             int size;
@@ -38,7 +38,7 @@ public class Size extends SubCommand {
                 sendErrorTranslation(player, "to disable use features");
             }
             
-            HistoryEvents.setHistorySize(size);
+            TeleportHistory.setHistorySize(size);
             sendSuccessTranslation(player, "success");
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport history size [size]");

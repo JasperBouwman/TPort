@@ -14,7 +14,7 @@ import java.util.Collection;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTranslation;
-import static com.spaceman.tport.history.HistoryEvents.teleportHistory;
+import static com.spaceman.tport.history.TeleportHistory.teleportHistory;
 
 public class Back extends SubCommand {
     
@@ -68,7 +68,7 @@ public class Back extends SubCommand {
             for (int i = history.size() - 1; i >= 0; i--) {
                 HistoryElement historyElement = history.get(i);
                 if (HistoryFilter.fits(historyElement, filter)) {
-                    element = historyElement;
+                   element = historyElement;
                    break;
                }
             }

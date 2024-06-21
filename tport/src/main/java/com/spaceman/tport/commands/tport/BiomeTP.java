@@ -11,7 +11,7 @@ import com.spaceman.tport.commands.tport.biomeTP.*;
 import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
-import com.spaceman.tport.history.HistoryEvents;
+import com.spaceman.tport.history.TeleportHistory;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -164,7 +164,7 @@ public class BiomeTP extends SubCommand {
             
             prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.BIOME, "biomeLoc", location,
                     "prevLoc", player.getLocation(), "biomeName", "Random"));
-            HistoryEvents.setLocationSource(player.getUniqueId(), new BiomeEncapsulation("random"));
+            TeleportHistory.setLocationSource(player.getUniqueId(), new BiomeEncapsulation("random"));
             
             requestTeleportPlayer(player, location, () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.biomeTP.random.succeeded"),
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.biomeTP.randomTP.succeededRequested", delay, tickMessage, seconds, secondMessage));
@@ -209,7 +209,7 @@ public class BiomeTP extends SubCommand {
             
             prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.BIOME, "biomeLoc", biomeLoc,
                     "prevLoc", player.getLocation(), "biomeName", biomeLocation.getRight()));
-            HistoryEvents.setLocationSource(player.getUniqueId(), new BiomeEncapsulation(biomeLocation.getRight()));
+            TeleportHistory.setLocationSource(player.getUniqueId(), new BiomeEncapsulation(biomeLocation.getRight()));
             
             Message biomeName = formatTranslation(varInfoColor, varInfoColor, "%s", new BiomeEncapsulation(biomeLocation.getRight()));
             requestTeleportPlayer(player, biomeLoc, () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.biomeTP.succeeded", biomeName),

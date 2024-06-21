@@ -226,7 +226,7 @@ public abstract class AdaptiveFeatureTP extends TPortAdapter {
         }).filter(Objects::nonNull).toList();
         
         for (String tagKeyName : tags) {
-            TagKey<Structure> tagKey = TagKey.a(getStructureResourceKey(), new MinecraftKey(tagKeyName)); //todo finish reflection
+            TagKey<Structure> tagKey = TagKey.a(getStructureResourceKey(), AdaptiveReflectionManager.getMinecraftKey(tagKeyName)); //todo finish reflection
             
             Optional<HolderSet.Named<Structure>> optional = getTag(structureRegistry, tagKey);
             if (optional.isPresent()) {

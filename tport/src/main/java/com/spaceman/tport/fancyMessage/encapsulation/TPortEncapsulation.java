@@ -5,9 +5,10 @@ import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import com.spaceman.tport.history.LocationSource;
+import com.spaceman.tport.history.locationSource.LocationSource;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPortManager;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -123,5 +124,6 @@ public class TPortEncapsulation extends LocationSource {
     @Override
     public void teleportToLocation(Player player, boolean safetyCheck) {
         this.tport.teleport(player, safetyCheck);
+        Bukkit.dispatchCommand(player, "/tport");
     }
 }

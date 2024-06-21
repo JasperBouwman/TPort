@@ -11,7 +11,7 @@ import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.encapsulation.FeatureEncapsulation;
-import com.spaceman.tport.history.HistoryEvents;
+import com.spaceman.tport.history.TeleportHistory;
 import com.spaceman.tport.metrics.FeatureSearchCounter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -204,7 +204,7 @@ public class Search extends SubCommand {
                 
                 prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.FEATURE, "featureLoc", loc,
                         "prevLoc", player.getLocation(), "featureName", featureLoc.getRight()));
-                HistoryEvents.setLocationSource(player.getUniqueId(), new FeatureEncapsulation(featureLoc.getRight()));
+                TeleportHistory.setLocationSource(player.getUniqueId(), new FeatureEncapsulation(featureLoc.getRight()));
                 
                 requestTeleportPlayer(player, loc,
                         () -> sendSuccessTranslation(player, "tport.command.featureTP.search.feature.succeeded", new FeatureEncapsulation(featureLoc.getRight())),

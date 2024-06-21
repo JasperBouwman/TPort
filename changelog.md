@@ -1,11 +1,13 @@
-# Version 1.20.7
+# Version 1.21.0
 
 #### In this version:
 
-### Fixed for older versions
+Added SafetyCheck to the Feature list.
+If enabled (default),
+players have the ability to turn of/off the safety check of a teleportation source
+(for more information about SafetyCheck, see [here](https://github.com/JasperBouwman/TPort/blob/master/quickStart.md#safety-check-tport-safetycheck-source-state-)).
+If the feature is disabled, the state of every safety check is disabled (nobody can use it).
 
-No longer getting the error on plugin load: java.lang.NoSuchFieldError: EXPLOSION.
+Added adapter for 1.21
 
-Adaptive adapter now works as normal
-
-Fixed an NMS error. If the lore of an item in a window was empty, the error did occur. This won't happen anymore
+Added copper grates for the structure icon

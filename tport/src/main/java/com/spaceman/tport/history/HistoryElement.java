@@ -1,18 +1,16 @@
 package com.spaceman.tport.history;
 
+import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
+import com.spaceman.tport.history.locationSource.LocationSource;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
-import static com.spaceman.tport.history.HistoryEvents.teleportHistory;
 
 public record HistoryElement(
         Location oldLocation,
         LocationSource newLocation,
         String cause,
-        @Nullable String application) {
+        @Nullable String application,
+        @Nullable InventoryModel inventoryModel) {
     
 }

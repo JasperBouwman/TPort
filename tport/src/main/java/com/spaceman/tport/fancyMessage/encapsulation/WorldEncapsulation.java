@@ -4,7 +4,7 @@ import com.spaceman.tport.commands.tport.FeatureTP;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import com.spaceman.tport.history.LocationSource;
+import com.spaceman.tport.history.locationSource.LocationSource;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -50,7 +50,10 @@ public class WorldEncapsulation extends LocationSource {
     }
     
     @Override
+    public void setLocation(Location location) { }
+    
+    @Override
     public void teleportToLocation(Player player, boolean safetyCheck) {
-        Bukkit.dispatchCommand(player, command());
+        Bukkit.dispatchCommand(player, command().substring(1)/* remove slash */);
     }
 }

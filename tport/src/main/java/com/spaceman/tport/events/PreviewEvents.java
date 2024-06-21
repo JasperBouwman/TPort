@@ -2,7 +2,7 @@ package com.spaceman.tport.events;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.commands.tport.pltp.Offset;
-import com.spaceman.tport.history.HistoryEvents;
+import com.spaceman.tport.history.TeleportHistory;
 import com.spaceman.tport.tport.TPort;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -114,7 +114,7 @@ public class PreviewEvents implements Listener {
     public static void preview(Player player, TPort tport) {
         createPreviewObject(player, tport, null);
         player.setGameMode(GameMode.SPECTATOR);
-        HistoryEvents.ignoreTeleport(player.getUniqueId());
+        TeleportHistory.ignoreTeleport(player.getUniqueId());
         player.teleport(tport.getLocation());
         
         sendSuccessTranslation(player, "tport.tport.tport.preview.succeeded.tport", asTPort(tport));
@@ -122,7 +122,7 @@ public class PreviewEvents implements Listener {
     public static void preview(Player player, Player preview) {
         createPreviewObject(player, null, preview.getUniqueId());
         player.setGameMode(GameMode.SPECTATOR);
-        HistoryEvents.ignoreTeleport(player.getUniqueId());
+        TeleportHistory.ignoreTeleport(player.getUniqueId());
         player.teleport(Offset.getPLTPOffset(preview).applyOffset(preview.getLocation()));
         
         sendSuccessTranslation(player, "tport.tport.tport.preview.succeeded.player", asPlayer(preview));

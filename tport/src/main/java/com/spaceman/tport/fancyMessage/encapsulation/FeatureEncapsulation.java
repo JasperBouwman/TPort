@@ -3,7 +3,7 @@ package com.spaceman.tport.fancyMessage.encapsulation;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import com.spaceman.tport.history.LocationSource;
+import com.spaceman.tport.history.locationSource.LocationSource;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 

@@ -399,7 +399,7 @@ The layout of the TPort Keyboard:
 The title of the window is the typed input. This is also shown in the accept button (![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_accept.png?raw=true "Accept")).
 In the title, there is a red `|`. This is the cursor. You can move this cursor via the cursor button (![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_cursor.png?raw=true "Cursor")). Left click moves the cursor left, right click moves the cursor right.
 
-QuickType is the _fast typing_ method. When clicking the button (![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_quick_type.png?raw=true "QuickType")), it opens a sign. In this sign you can type and past text.
+QuickType is the _fast typing_ method. When clicking the button (![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_quick_type.png?raw=true "QuickType")), it opens a sign. In this sign you can type and paste text.
 Each line of the sign is also a new line in the typed input. When closing the sign, your typed text will append to the already typed input.
 
 It is possible to change form _qwerty_ into _abcdef_. You do this via the Change keyboard layout button (![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_change_layout.png?raw=true "Change keyboard layout")).

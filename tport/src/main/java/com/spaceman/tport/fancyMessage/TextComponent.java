@@ -242,6 +242,9 @@ public class TextComponent implements Cloneable {
         if (pageNumber != null) {
             return text.replace(BookPage.getActivePageReplacer(), String.valueOf(pageNumber.getPageNumber()));
         }
+        if (text == null) {
+            return "null";
+        }
         return text;
     }
     
@@ -291,8 +294,9 @@ public class TextComponent implements Cloneable {
             this.addAttribute(attribute);
     }
     
-    public void addAttribute(Attribute attribute) {
+    public TextComponent addAttribute(Attribute attribute) {
         attributes.add(attribute);
+        return this;
     }
     
     public void removeAttribute(Attribute attribute) {

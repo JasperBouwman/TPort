@@ -31,8 +31,8 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.20.5-R0.1-SNAPSHOT</version>
-<!--            <version>${MainSpigotVersion}</version>-->
+<!--            <version>1.20.5-R0.1-SNAPSHOT</version>-->
+            <version>${MainSpigotVersion}</version>
 <!--            todo fix with MainSpigotVersion (1.20.5)-->
             <scope>provided</scope>
         </dependency>

@@ -10,7 +10,7 @@ import java.util.List;
 
 public class HistoryFilter {
     
-    private static final String pluginPrefix = "PLUGIN:";
+    public static final String pluginPrefix = "PLUGIN:";
     
     public static List<String> getFilters() {
         ArrayList<String> filters = new ArrayList<>();
@@ -31,7 +31,9 @@ public class HistoryFilter {
         return getFilters().stream().filter(f -> f.equalsIgnoreCase(filter)).findFirst().orElse(null);
     }
     
-    public static boolean fits(HistoryElement element, String filter) {
+    public static boolean fits(HistoryElement element, @Nullable String filter) {
+        if (filter == null) return true;
+        
         if (filter.startsWith(pluginPrefix)) {
             if (element.cause().equals("PLUGIN")) {
                 String plugin = filter.substring(pluginPrefix.length());

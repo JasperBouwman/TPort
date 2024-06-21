@@ -129,6 +129,7 @@ public class FeatureTP extends SubCommand {
             case "shipwreck", "shipwreck_beached" -> "OAK_BOAT";
             case "ancient_city" -> "SCULK";
             case "trail_ruins" -> "SUSPICIOUS_GRAVEL";
+            case "trial_chambers" -> "COPPER_GRATE";
             
             case "village_taiga", "village_snowy" -> "SPRUCE_DOOR";
             case "village_desert" -> "BIRCH_DOOR";
@@ -202,7 +203,7 @@ public class FeatureTP extends SubCommand {
             String m = switch (pair.getLeft().substring(1)) { //remove #
                 case "ruined_portal" -> "CRYING_OBSIDIAN";
                 case "dolphin_located" -> "DOLPHIN_SPAWN_EGG";
-                case "on_woodland_explorer_maps", "on_ocean_explorer_maps", "on_treasure_maps" -> "MAP";
+                case "on_woodland_explorer_maps", "on_ocean_explorer_maps", "on_treasure_maps", "on_trial_chambers_maps" -> "MAP";
                 case "ocean_ruin" -> "TRIDENT";
                 case "village" -> "EMERALD";
                 case "eye_of_ender_located" -> "ENDER_EYE";

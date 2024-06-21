@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.adapters.TPortAdapter;
+import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
@@ -13,6 +14,7 @@ import com.spaceman.tport.fancyMessage.encapsulation.Encapsulation;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fancyMessage.language.Language;
+import com.spaceman.tport.fancyMessage.markdown.FancyNodeRenderer;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
 import com.spaceman.tport.tpEvents.TPRestriction;
 import com.spaceman.tport.tport.TPort;
@@ -26,6 +28,8 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
 
 import javax.annotation.Nullable;
 import java.awt.*;
@@ -811,6 +815,45 @@ public class MessageUtils {
 //        if (!singleColorLine.isEmpty()) textElements.add(singleColorLine.toString());
         
         return textElements;
+    }
+    
+    public static Message fromMarkdown(String markdown) {
+        
+        /*
+        try (InputStream md = Main.class.getResourceAsStream("/testMarkdown.md")) {
+            
+            String mdText = IOUtils.toString(md, StandardCharsets.UTF_8);
+//                    MessageUtils.fromMarkdown(mdText).sendMessage(player);
+            
+            for (Message m : MessageUtils.fromSplitMarkdown(mdText)) {
+                m.sendMessage(player);
+            }
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        * */
+        
+        Parser markdownParser = Parser.builder().build();
+        Node node = markdownParser.parse(markdown);
+        
+        Message message = new Message();
+        FancyNodeRenderer fancyRenderer = new FancyNodeRenderer(message);
+        fancyRenderer.render(node);
+        
+        return message;
+    }
+    public static ArrayList<Message> fromSplitMarkdown(String markdown) {
+        Parser markdownParser = Parser.builder().build();
+        Node node = markdownParser.parse(markdown);
+        
+        ArrayList<Message> list = new ArrayList<>();
+        FancyNodeRenderer fancyRenderer = new FancyNodeRenderer(list);
+        fancyRenderer.addCommandLookup(TPortCommand.getInstance());
+        
+        fancyRenderer.render(node);
+        
+        return list;
     }
     
     public interface MessageDescription {

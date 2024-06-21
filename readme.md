@@ -148,6 +148,15 @@ When [BlueMap](https://bluemap.bluecolored.de/) is loaded in the server, it is p
 
 ***
 
+### Version naming
+
+TPort follows mostly the Minecraft versions. `TPort 1.X` is released for the `Minecraft 1.X` release cycle.
+The number after the TPort version are sequential of TPort versions, no relation with Minecraft self.  
+Example: `TPort 1.20.7` is released for `Minecraft 1.20.6`, `TPort 1.20.0` is released for `Minecraft 1.20`.  
+Since `TPort 1.20.0`, TPort does support older versions (up to `Minecraft 1.18`). It is recommended to use the latest version of Minecraft that version supports.
+
+### Misc
+
 There are over 200 commands that can be used. Don't worry, all commands have their own explanation which can be looked at in game.
 For help with TPort use `/tport help <command>`.
 Example: `/tport help TPort biomeTP`, this shows all the commands that start with `/tport biomeTP` with their command description.

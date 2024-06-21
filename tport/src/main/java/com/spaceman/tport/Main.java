@@ -5,20 +5,19 @@ import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
-import com.spaceman.tport.webMaps.BlueMapHandler;
-import com.spaceman.tport.webMaps.DynmapHandler;
 import com.spaceman.tport.events.*;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.QuickType;
+import com.spaceman.tport.history.TeleportHistory;
 import com.spaceman.tport.history.HistoryEvents;
+import com.spaceman.tport.inventories.TPortInventories;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
 import com.spaceman.tport.metrics.CommandCounter;
 import com.spaceman.tport.metrics.FeatureSearchCounter;
 import com.spaceman.tport.metrics.Metrics;
-import com.spaceman.tport.permissions.PermissionHandler;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
 import com.spaceman.tport.tpEvents.TPEManager;
 import com.spaceman.tport.tpEvents.TPRestriction;
@@ -29,6 +28,8 @@ import com.spaceman.tport.tpEvents.restrictions.InteractRestriction;
 import com.spaceman.tport.tpEvents.restrictions.NoneRestriction;
 import com.spaceman.tport.tpEvents.restrictions.WalkRestriction;
 import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.webMaps.BlueMapHandler;
+import com.spaceman.tport.webMaps.DynmapHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -47,7 +48,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -195,7 +195,17 @@ public class Main extends JavaPlugin {
          * add per player biome selection
          * do this also for FeatureTP
          *
+         * make markdown reader
+         * use readme.md and quickEdit.md for in-game wiki
+         * extend this wiki type
+         *
+         * /TPort tipOfTheDay state [state]
+         * /TPort tipOfTheDay next
+         * When enabled: when a player logs on the server, show a random tip
+         *
          * add preview state: whitelist
+         *
+         * Keyboard GUI -> color fade
          *
          * create a friend list. use this friend list as option for all whitelists
          * /tport friends [add|remove|list]
@@ -264,6 +274,7 @@ public class Main extends JavaPlugin {
         Adapter.registerAdapter("1.20.4", "com.spaceman.tport.adapters.V1_20_4_Adapter");
         Adapter.registerAdapter("1.20.5", "com.spaceman.tport.adapters.V1_20_6_Adapter");
         Adapter.registerAdapter("1.20.6", "com.spaceman.tport.adapters.V1_20_6_Adapter");
+        Adapter.registerAdapter("1.21", "com.spaceman.tport.adapters.V1_21_Adapter");
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");
@@ -279,6 +290,8 @@ public class Main extends JavaPlugin {
         TPRestriction.registerRestriction(DoSneakRestriction::new);
         
         Reload.reloadTPort();
+        
+        TeleportHistory.registerPluginFilterModel(this, TPortInventories.history_filter_plugin_tport_model);
         
         SafetyCheck.setSafetyCheck((feet, clearFeet) -> {
             

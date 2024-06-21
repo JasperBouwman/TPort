@@ -157,7 +157,7 @@ public abstract class AdaptiveBiomeTP extends AdaptiveFeatureTP {
         }).toList();
         
         for (String tagKeyName : tags) {
-            TagKey<BiomeBase> tagKey = TagKey.a(getBiomeResourceKey(), new MinecraftKey(tagKeyName)); //todo finish reflection
+            TagKey<BiomeBase> tagKey = TagKey.a(getBiomeResourceKey(), AdaptiveReflectionManager.getMinecraftKey(tagKeyName)); //todo finish reflection
             
             Optional<HolderSet.Named<BiomeBase>> optional = getTag(biomeRegistry, tagKey);
             if (optional.isPresent()) {

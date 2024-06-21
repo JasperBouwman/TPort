@@ -12,7 +12,7 @@
     },
     {
       "predicate": {
-        "custom_model_data": 5145682
+        "custom_model_data": 5145700
       },
       "model": "tport:item/settings_log_logdata_not_logged"
     }

@@ -18,11 +18,14 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
-import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
-import com.spaceman.tport.fancyMessage.language.Language;
+import com.spaceman.tport.history.TeleportHistory;
+import com.spaceman.tport.history.HistoryElement;
+import com.spaceman.tport.history.HistoryFilter;
+import com.spaceman.tport.history.locationSource.CraftLocationSource;
+import com.spaceman.tport.history.locationSource.LocationSource;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.search.SearchMode;
 import com.spaceman.tport.search.SearchType;
@@ -34,7 +37,6 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -51,12 +53,12 @@ import static com.spaceman.tport.fancyMessage.MessageUtils.setCustomItemData;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.addCommand;
-import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.addFunction;
+import static com.spaceman.tport.fancyMessage.inventories.FancyClickEvent.*;
 import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.getDynamicScrollableInventory;
 import static com.spaceman.tport.fancyMessage.inventories.FancyInventory.pageDataName;
 import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 import static com.spaceman.tport.fileHander.Files.tportData;
+import static com.spaceman.tport.history.TeleportHistory.teleportHistory;
 import static com.spaceman.tport.inventories.ItemFactory.BackType.*;
 import static com.spaceman.tport.inventories.ItemFactory.HeadAttributes.*;
 import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.*;
@@ -102,7 +104,28 @@ public class TPortInventories {
     public static final InventoryModel search_data_model                       = new InventoryModel(Material.OAK_BUTTON, sorting_grayed_model, "search");
     public static final InventoryModel home_model                              = new InventoryModel(Material.OAK_BUTTON, search_data_model, "home");
     public static final InventoryModel home_grayed_model                       = new InventoryModel(Material.OAK_BUTTON, home_model, "home");
-    public static final InventoryModel world_tp_model                          = new InventoryModel(Material.OAK_BUTTON, home_grayed_model, "world_tp");
+    
+    public static final InventoryModel history_model                           = new InventoryModel(Material.OAK_BUTTON, home_grayed_model, "history");
+    public static final InventoryModel history_grayed_model                    = new InventoryModel(Material.OAK_BUTTON, history_model, "history");
+    public static final InventoryModel history_element_model                   = new InventoryModel(Material.OAK_BUTTON, history_grayed_model, "history/models");
+    public static final InventoryModel history_element_world_tp_model          = new InventoryModel(Material.OAK_BUTTON, history_element_model, "history/models");
+    public static final InventoryModel history_filter_model                    = new InventoryModel(Material.OAK_BUTTON, history_element_world_tp_model, "history/filter");
+    public static final InventoryModel history_filter_ender_pearl_model        = new InventoryModel(Material.OAK_BUTTON, history_filter_model, "history/filter");
+    public static final InventoryModel history_filter_command_model            = new InventoryModel(Material.OAK_BUTTON, history_filter_ender_pearl_model, "history/filter");
+    public static final InventoryModel history_filter_plugin_model             = new InventoryModel(Material.OAK_BUTTON, history_filter_command_model, "history/filter");
+    public static final InventoryModel history_filter_nether_portal_model      = new InventoryModel(Material.OAK_BUTTON, history_filter_plugin_model, "history/filter");
+    public static final InventoryModel history_filter_end_portal_model         = new InventoryModel(Material.OAK_BUTTON, history_filter_nether_portal_model, "history/filter");
+    public static final InventoryModel history_filter_spectate_model           = new InventoryModel(Material.OAK_BUTTON, history_filter_end_portal_model, "history/filter");
+    public static final InventoryModel history_filter_end_gateway_model        = new InventoryModel(Material.OAK_BUTTON, history_filter_spectate_model, "history/filter");
+    public static final InventoryModel history_filter_chorus_fruit_model       = new InventoryModel(Material.OAK_BUTTON, history_filter_end_gateway_model, "history/filter");
+    public static final InventoryModel history_filter_dismount_model           = new InventoryModel(Material.OAK_BUTTON, history_filter_chorus_fruit_model, "history/filter");
+    public static final InventoryModel history_filter_exit_bed_model           = new InventoryModel(Material.OAK_BUTTON, history_filter_dismount_model, "history/filter");
+    public static final InventoryModel history_filter_unknown_model            = new InventoryModel(Material.OAK_BUTTON, history_filter_exit_bed_model, "history/filter");
+    public static final InventoryModel history_filter_none_model               = new InventoryModel(Material.OAK_BUTTON, history_filter_unknown_model, "history/filter");
+    public static final InventoryModel history_filter_plugin_tport_model       = new InventoryModel(Material.OAK_BUTTON, history_filter_none_model, "history/filter");
+    
+    
+    public static final InventoryModel world_tp_model                          = new InventoryModel(Material.OAK_BUTTON, history_filter_plugin_tport_model, "world_tp");
     public static final InventoryModel world_tp_grayed_model                   = new InventoryModel(Material.OAK_BUTTON, world_tp_model, "world_tp");
     public static final InventoryModel world_tp_overworld_model = new InventoryModel(Material.STONE,      world_tp_grayed_model, "world_tp");
     public static final InventoryModel world_tp_nether_model = new InventoryModel(Material.NETHERRACK, world_tp_overworld_model, "world_tp");
@@ -115,7 +138,7 @@ public class TPortInventories {
     }
     public static void openMainTPortGUI(Player player, int page, FancyInventory prevWindow) {
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
-        ColorTheme theme = ColorTheme.getTheme(player);
+        ColorTheme theme = getTheme(player);
         
         List<ItemStack> list;
         if (prevWindow == null) {
@@ -150,8 +173,7 @@ public class TPortInventories {
         FancyInventory inv = getDynamicScrollableInventory(player, page, TPortInventories::openMainTPortGUI, title, list, null);
         inv.setData("content", list);
         
-        InventoryModel biomeTP_model = (Features.Feature.BiomeTP.isEnabled() ? biome_tp_model : biome_tp_grayed_model);
-        ItemStack biomeTP = biomeTP_model.getItem(player);
+        ItemStack biomeTP = (Features.Feature.BiomeTP.isEnabled() ? biome_tp_model : biome_tp_grayed_model).getItem(player);
         Message biomeTPTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openMainGUI.biomeTP.title", "BiomeTP");
         Message biomeTPLeft = formatInfoTranslation("tport.tportInventories.openMainGUI.biomeTP.leftClick", LEFT);
         Message biomeTPRight = formatInfoTranslation("tport.tportInventories.openMainGUI.biomeTP.rightClick", RIGHT);
@@ -160,39 +182,41 @@ public class TPortInventories {
         biomeTPLeft.translateMessage(playerLang);
         biomeTPRight.translateMessage(playerLang);
         biomeTPShiftRight.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(biomeTP, theme, biomeTPTitle, Arrays.asList(biomeTPLeft, biomeTPRight, biomeTPShiftRight));
+        setCustomItemData(biomeTP, theme, biomeTPTitle, Arrays.asList(biomeTPLeft, biomeTPRight, biomeTPShiftRight));
         addCommand(biomeTP, LEFT, "tport biomeTP");
-        addCommand(biomeTP, ClickType.RIGHT, "tport biomeTP preset");
-        addCommand(biomeTP, ClickType.SHIFT_RIGHT, "tport biomeTP random");
+        addCommand(biomeTP, RIGHT, "tport biomeTP preset");
+        addCommand(biomeTP, SHIFT_RIGHT, "tport biomeTP random");
         
-        InventoryModel featureTP_model = Features.Feature.FeatureTP.isEnabled() ? feature_tp_model : feature_tp_grayed_model;
-        ItemStack featureTP = featureTP_model.getItem(player);
+        ItemStack featureTP = (Features.Feature.FeatureTP.isEnabled() ? feature_tp_model : feature_tp_grayed_model).getItem(player);
         Message featureTPTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openMainGUI.featureTP.title", "FeatureTP");
         featureTPTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(featureTP, theme, featureTPTitle, null);
+        setCustomItemData(featureTP, theme, featureTPTitle, null);
         addCommand(featureTP, LEFT, "tport featureTP");
         
-        InventoryModel worldTP_model = Features.Feature.WorldTP.isEnabled() ? world_tp_model : world_tp_grayed_model;
-        ItemStack worldTP = worldTP_model.getItem(player);
+        ItemStack worldTP = (Features.Feature.WorldTP.isEnabled() ? world_tp_model : world_tp_grayed_model).getItem(player);
         Message worldTPTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openMainGUI.worldTP.title", "WorldTP");
         worldTPTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(worldTP, theme, worldTPTitle, null);
+        setCustomItemData(worldTP, theme, worldTPTitle, null);
         addCommand(worldTP, LEFT, "tport world");
         
-        InventoryModel backTP_model = Back.hasBack(player) ? back_tp_model : back_tp_grayed_model;
-        ItemStack backTP = backTP_model.getItem(player);
+        ItemStack history = (Features.Feature.History.isEnabled() ? history_model : history_grayed_model).getItem(player);
+        Message historyTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openMainGUI.history.title", "History");
+        historyTitle.translateMessage(playerLang);
+        setCustomItemData(history, theme, historyTitle, null);
+        addCommand(history, LEFT, "tport history");
+        
+        ItemStack backTP = (Back.hasBack(player) ? back_tp_model : back_tp_grayed_model).getItem(player);
         Message backTPTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openMainGUI.backTP.title", "BackTP");
-        Message backTPLore = Back.getPrevLocName(player);
+        Message backTPLore = getPrevLocName(player);
         Message invertedBackTPLore = (backSafetyState == null ? null : formatInfoTranslation("tport.tportInventories.openMainGUI.backTP.inverted", SHIFT_LEFT, !backSafetyState));
         backTPTitle.translateMessage(playerLang);
         backTPLore.translateMessage(playerLang);
         invertedBackTPLore = MessageUtils.translateMessage(invertedBackTPLore, playerLang);
-        MessageUtils.setCustomItemData(backTP, theme, backTPTitle, Arrays.asList(backTPLore, invertedBackTPLore));
+        setCustomItemData(backTP, theme, backTPTitle, Arrays.asList(backTPLore, invertedBackTPLore));
         addCommand(backTP, LEFT, "tport back");
-        if (backSafetyState != null) addCommand(backTP, ClickType.SHIFT_LEFT, "tport back " + !backSafetyState);
+        if (backSafetyState != null) addCommand(backTP, SHIFT_LEFT, "tport back " + !backSafetyState);
         
-        InventoryModel home_modelData = Home.hasHome(player, true) ? home_model : home_grayed_model;
-        ItemStack home = home_modelData.getItem(player);
+        ItemStack home = (Home.hasHome(player, true) ? home_model : home_grayed_model).getItem(player);
         Message homeTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openMainGUI.home.title", "Home");
         TPort homeTPortObject = Home.getHome(player);
         List<Message> homeLore = new ArrayList<>();
@@ -210,22 +234,21 @@ public class TPortInventories {
         homeLore.add(formatInfoTranslation("tport.tportInventories.openMainGUI.home.setHome", RIGHT));
         homeTitle.translateMessage(playerLang);
         homeLore = MessageUtils.translateMessage(homeLore, playerLang);
-        MessageUtils.setCustomItemData(home, theme, homeTitle, homeLore);
+        setCustomItemData(home, theme, homeTitle, homeLore);
         addCommand(home, LEFT, "tport home");
-        if (homeSafetyState != null) addCommand(home, ClickType.SHIFT_LEFT, "tport home " + !homeSafetyState);
+        if (homeSafetyState != null) addCommand(home, SHIFT_LEFT, "tport home " + !homeSafetyState);
         addFunction(home, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> openHomeEditGUI(whoClicked)));
         
-        InventoryModel publicTP_model = Features.Feature.PublicTP.isEnabled() ? public_tp_model : public_tp_grayed_model;
-        ItemStack publicTP = publicTP_model.getItem(player);
+        ItemStack publicTP = (Features.Feature.PublicTP.isEnabled() ? public_tp_model : public_tp_grayed_model).getItem(player);
         Message publicTPTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openMainGUI.publicTP.title", "PublicTP");
         publicTPTitle.translateMessage(playerLang);
-        FancyClickEvent.addCommand(publicTP, ClickType.LEFT, "tport public");
-        MessageUtils.setCustomItemData(publicTP, theme, publicTPTitle, null);
+        addCommand(publicTP, LEFT, "tport public");
+        setCustomItemData(publicTP, theme, publicTPTitle, null);
         
         ItemStack settings = settings_model.getItem(player);
         Message settingsTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openMainGUI.settings.title");
         settingsTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(settings, theme, settingsTitle, null);
+        setCustomItemData(settings, theme, settingsTitle, null);
         addCommand(settings, LEFT, "tport settings");
         
         boolean pPermission = Players.getInstance().emptyPlayersState.hasPermissionToRun(player, false);
@@ -248,15 +271,16 @@ public class TPortInventories {
         }
         mainLayoutTitle.translateMessage(playerLang);
         layoutLore = MessageUtils.translateMessage(layoutLore, playerLang);
-        MessageUtils.setCustomItemData(mainLayout, theme, mainLayoutTitle, layoutLore);
+        setCustomItemData(mainLayout, theme, mainLayoutTitle, layoutLore);
         addCommand(mainLayout, LEFT, "tport mainLayout tports " + !MainLayout.showTPorts(player), "tport");
-        addCommand(mainLayout, ClickType.RIGHT, "tport mainLayout players " + !MainLayout.showPlayers(player), "tport");
+        addCommand(mainLayout, RIGHT, "tport mainLayout players " + !MainLayout.showPlayers(player), "tport");
         
         ItemStack sorting = ItemFactory.getSortingItem(player, playerLang, theme, ((whoClicked, clickType, pdc, fancyInventory) -> openMainTPortGUI(whoClicked)));
         
-        inv.setItem(2, biomeTP);
-        inv.setItem(4, featureTP);
-        inv.setItem(6, worldTP);
+        inv.setItem(1, biomeTP);
+        inv.setItem(3, featureTP);
+        inv.setItem(5, worldTP);
+        inv.setItem(7, history);
         inv.setItem(inv.getSize() - 8, home);
         inv.setItem(inv.getSize() - 6, backTP);
         inv.setItem(inv.getSize() - 4, publicTP);
@@ -283,7 +307,7 @@ public class TPortInventories {
         if (prevWindow != null) inv.setData(tportToMoveDataName, prevWindow.getData(tportToMoveDataName));
         if (prevWindow != null) inv.setData(whitelistCloneToDataName, prevWindow.getData(whitelistCloneToDataName));
         
-        ColorTheme theme = ColorTheme.getTheme(player);
+        ColorTheme theme = getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
         Message extraTPTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openTPortGUI.extraTP.title");
@@ -298,16 +322,16 @@ public class TPortInventories {
         if (Features.Feature.BackTP.isEnabled()) {
             extraTPLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.extraTP.format.leftClick", LEFT));
             extraTPLore.add(getPrevLocName(player));
-            if (backSafetyState != null) extraTPLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.extraTP.format.shift_leftClick", ClickType.SHIFT_LEFT, !backSafetyState));
+            if (backSafetyState != null) extraTPLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.extraTP.format.shift_leftClick", SHIFT_LEFT, !backSafetyState));
             extraTPLore.add(new Message());
         }
         if (Features.Feature.BiomeTP.isEnabled()) {
-            extraTPLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.extraTP.format.rightClick", ClickType.RIGHT));
+            extraTPLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.extraTP.format.rightClick", RIGHT));
             extraTPLore.add(new Message(textComponent("BiomeTP", varInfoColor)));
             extraTPLore.add(new Message());
         }
         if (Features.Feature.FeatureTP.isEnabled()) {
-            extraTPLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.extraTP.format.shiftRightClick", ClickType.SHIFT_RIGHT));
+            extraTPLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.extraTP.format.shiftRightClick", SHIFT_RIGHT));
             extraTPLore.add(new Message(textComponent("FeatureTP", varInfoColor)));
             extraTPLore.add(new Message());
         }
@@ -321,11 +345,11 @@ public class TPortInventories {
         ItemStack extraTP = (extraTPEmptyFlag ? extra_tp_grayed_model : extra_tp_model).getItem(player);
         extraTPTitle.translateMessage(playerLang);
         extraTPLore = MessageUtils.translateMessage(extraTPLore, playerLang);
-        MessageUtils.setCustomItemData(extraTP, theme, extraTPTitle, extraTPLore);
+        setCustomItemData(extraTP, theme, extraTPTitle, extraTPLore);
         addCommand(extraTP, LEFT, "tport back");
-        if (backSafetyState != null) addCommand(extraTP, ClickType.SHIFT_LEFT, "tport back " + !backSafetyState);
-        addCommand(extraTP, ClickType.RIGHT, "tport biomeTP");
-        addCommand(extraTP, ClickType.SHIFT_RIGHT, "tport featureTP");
+        if (backSafetyState != null) addCommand(extraTP, SHIFT_LEFT, "tport back " + !backSafetyState);
+        addCommand(extraTP, RIGHT, "tport biomeTP");
+        addCommand(extraTP, SHIFT_RIGHT, "tport featureTP");
         inv.setItem(17, extraTP);
         
         inv.setItem(26, createBack(player, MAIN, OWN, PUBLIC));
@@ -348,23 +372,23 @@ public class TPortInventories {
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.whenLeftClick",
                     LEFT, !pltpState));
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.whenRightClick",
-                    ClickType.RIGHT, !pltpConsent));
+                    RIGHT, !pltpConsent));
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.whenShiftLeftClick",
-                    ClickType.SHIFT_LEFT, previewState.getNext().name()));
+                    SHIFT_LEFT, previewState.getNext().name()));
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.whenShiftRightClick",
-                    ClickType.SHIFT_RIGHT, pltpOffset.getNext().name()));
+                    SHIFT_RIGHT, pltpOffset.getNext().name()));
             warpLore.add(formatInfoTranslation("tport.tportInventories.openTPortGUI.playerHead.own.format.whenDrop",
-                    ClickType.DROP));
+                    DROP));
             
             warpTitle.translateMessage(playerLang);
             warpLore = MessageUtils.translateMessage(warpLore, playerLang);
-            MessageUtils.setCustomItemData(warp, theme, warpTitle, warpLore);
+            setCustomItemData(warp, theme, warpTitle, warpLore);
             
             addCommand(warp, LEFT, "tport PLTP state " + !pltpState, "tport own");
-            addCommand(warp, ClickType.RIGHT, "tport PLTP consent " + !pltpConsent, "tport own");
-            addCommand(warp, ClickType.SHIFT_LEFT, "tport PLTP preview " + previewState.getNext(), "tport own");
-            addCommand(warp, ClickType.SHIFT_RIGHT, "tport PLTP offset " + pltpOffset.getNext(), "tport own");
-            FancyClickEvent.addFunction(warp, ClickType.DROP,
+            addCommand(warp, RIGHT, "tport PLTP consent " + !pltpConsent, "tport own");
+            addCommand(warp, SHIFT_LEFT, "tport PLTP preview " + previewState.getNext(), "tport own");
+            addCommand(warp, SHIFT_RIGHT, "tport PLTP offset " + pltpOffset.getNext(), "tport own");
+            addFunction(warp, DROP,
                     (whoClicked, clickType, innerPDC, fancyInventory) -> openPLTPWhitelistSelectorGUI(whoClicked, false));
             
             SkullMeta skin = (SkullMeta) warp.getItemMeta();
@@ -405,9 +429,9 @@ public class TPortInventories {
                 lore = Arrays.asList(new Message(), warpPreview);
             }
             
-            MessageUtils.setCustomItemData(warp, theme, warpTitle, lore);
+            setCustomItemData(warp, theme, warpTitle, lore);
             addCommand(warp, LEFT, "tport PLTP tp " + newPlayerName);
-            addCommand(warp, ClickType.RIGHT, "tport preview " + newPlayerName);
+            addCommand(warp, RIGHT, "tport preview " + newPlayerName);
             
             SkullMeta skin = (SkullMeta) warp.getItemMeta();
             if (skin != null) {
@@ -435,20 +459,20 @@ public class TPortInventories {
                     if (toMoveUUID != null) {
                         ItemStack empty = quick_edit_move_empty_slot_model.getItem(player);
                         
-                        TPort toMoveTPort = TPortManager.getTPort(ownerUUID, toMoveUUID);
-                        Message emptyTitle = formatInfoTranslation("tport.tportInventories.openTPortGUI.quickEditReplacement", ClickType.RIGHT, toMoveTPort);
-                        Message emptyLoreTPort = formatInfoTranslation("tport.tportInventories.openTPortGUI.quickEditReplacement.tport", ClickType.RIGHT);
-                        Message emptyLoreCancel = formatInfoTranslation("tport.tportInventories.openTPortGUI.quickEditReplacement.cancel", ClickType.RIGHT, toMoveTPort);
+                        TPort toMoveTPort = getTPort(ownerUUID, toMoveUUID);
+                        Message emptyTitle = formatInfoTranslation("tport.tportInventories.openTPortGUI.quickEditReplacement", RIGHT, toMoveTPort);
+                        Message emptyLoreTPort = formatInfoTranslation("tport.tportInventories.openTPortGUI.quickEditReplacement.tport", RIGHT);
+                        Message emptyLoreCancel = formatInfoTranslation("tport.tportInventories.openTPortGUI.quickEditReplacement.cancel", RIGHT, toMoveTPort);
                         emptyTitle.translateMessage(playerLang);
                         emptyLoreTPort.translateMessage(playerLang);
                         emptyLoreCancel.translateMessage(playerLang);
-                        MessageUtils.setCustomItemData(empty, theme, emptyTitle, Arrays.asList(emptyLoreTPort, emptyLoreCancel));
+                        setCustomItemData(empty, theme, emptyTitle, Arrays.asList(emptyLoreTPort, emptyLoreCancel));
                         
                         ItemMeta emptyMeta = empty.getItemMeta();
                         emptyMeta.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "TPortNameToMove"), PersistentDataType.STRING, toMoveTPort.getName());
                         emptyMeta.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "TPortSlot"), PersistentDataType.STRING, String.valueOf(i + 1));
                         
-                        FancyClickEvent.addFunction(emptyMeta, ClickType.RIGHT, (whoClicked, clickType, pdc, fancyInventory) -> {
+                        addFunction(emptyMeta, RIGHT, (whoClicked, clickType, pdc, fancyInventory) -> {
                             String tportNameToMove = pdc.get(new NamespacedKey(Main.getInstance(), "TPortNameToMove"), PersistentDataType.STRING);
                             String toSlot = pdc.get(new NamespacedKey(Main.getInstance(), "TPortSlot"), PersistentDataType.STRING);
                             TPortCommand.executeTPortCommand(whoClicked, new String[]{"edit", tportNameToMove, "move", toSlot});
@@ -470,7 +494,7 @@ public class TPortInventories {
     }
     public static void openBiomeTP(Player player, int page, @Nullable FancyInventory prevWindow) {
         List<ItemStack> list = new ArrayList<>();
-        ColorTheme theme = ColorTheme.getTheme(player);
+        ColorTheme theme = getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
         Set<String> biomeSelection;
@@ -497,15 +521,15 @@ public class TPortInventories {
             Message biomeTitle = formatTranslation(varInfoColor, varInfoColor, "%s", new BiomeEncapsulation(biome));
             biomeTitle.translateMessage(playerLang);
             Message biomeLClick = formatInfoTranslation(playerLang, "tport.tportInventories.openBiomeTP.biome.LClick", LEFT, selectedMessage);
-            Message biomeRClick = formatInfoTranslation(playerLang, "tport.tportInventories.openBiomeTP.biome.RClick", ClickType.RIGHT);
-            Message biomeSRClick = formatInfoTranslation(playerLang, "tport.tportInventories.openBiomeTP.biome.shift_RClick", ClickType.SHIFT_RIGHT);
-            MessageUtils.setCustomItemData(item, theme, biomeTitle, Arrays.asList(biomeLClick, biomeRClick, biomeSRClick));
+            Message biomeRClick = formatInfoTranslation(playerLang, "tport.tportInventories.openBiomeTP.biome.RClick", RIGHT);
+            Message biomeSRClick = formatInfoTranslation(playerLang, "tport.tportInventories.openBiomeTP.biome.shift_RClick", SHIFT_RIGHT);
+            setCustomItemData(item, theme, biomeTitle, Arrays.asList(biomeLClick, biomeRClick, biomeSRClick));
             
             ItemMeta im = item.getItemMeta();
             im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "biome"), PersistentDataType.STRING, biome);
             if (selected) Glow.addGlow(im);
             
-            FancyClickEvent.addFunction(im, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            addFunction(im, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
                 NamespacedKey biomeKey = new NamespacedKey(Main.getInstance(), "biome");
                 if (pdc.has(biomeKey, PersistentDataType.STRING)) {
                     Set<String> innerBiomeSelection = fancyInventory.getData(biomeSelectionDataName);
@@ -519,8 +543,8 @@ public class TPortInventories {
                     openBiomeTP(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
                 }
             }));
-            addCommand(im, ClickType.RIGHT, "tport biomeTP whitelist " + biome);
-            addCommand(im, ClickType.SHIFT_RIGHT, "tport biomeTP blacklist " + biome);
+            addCommand(im, RIGHT, "tport biomeTP whitelist " + biome);
+            addCommand(im, SHIFT_RIGHT, "tport biomeTP blacklist " + biome);
             
             item.setItemMeta(im);
             
@@ -531,15 +555,15 @@ public class TPortInventories {
         ItemStack random = (Random.getInstance().hasPermissionToRun(player, false) ? biome_tp_random_tp_model : biome_tp_random_tp_grayed_model).getItem(player);
         Message randomTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openBiomeTP.randomTP.title");
         randomTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(random, theme, randomTitle, null);
+        setCustomItemData(random, theme, randomTitle, null);
         addCommand(random, LEFT, "tport biomeTP random");
         list.add(0, random);
         
         ItemStack presets = (Preset.getInstance().hasPermissionToRun(player, false) ? biome_tp_presets_model : biome_tp_presets_grayed_model).getItem(player);
         Message presetsTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openBiomeTP.presets.title");
         presetsTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(presets, theme, presetsTitle, null);
-        FancyClickEvent.addFunction(presets, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+        setCustomItemData(presets, theme, presetsTitle, null);
+        addFunction(presets, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
             if (Preset.getInstance().hasPermissionToRun(whoClicked, true))
                 openBiomeTPPreset(whoClicked, 0, fancyInventory);
         }));
@@ -547,8 +571,8 @@ public class TPortInventories {
         ItemStack clearSelected = (biomeSelection.isEmpty() ? biome_tp_clear_grayed_model : biome_tp_clear_model).getItem(player);
         Message modeTitle = formatInfoTranslation("tport.tportInventories.openBiomeTP.clearSelected.title", LEFT);
         modeTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(clearSelected, theme, modeTitle, null);
-        FancyClickEvent.addFunction(clearSelected, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> {
+        setCustomItemData(clearSelected, theme, modeTitle, null);
+        addFunction(clearSelected, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> {
             if (fancyInventory.getData(biomeSelectionDataName).isEmpty()) {
                 sendErrorTranslation(whoClicked, "tport.tportInventories.openBiomeTP.clearSelected.noSelection");
             } else {
@@ -563,18 +587,18 @@ public class TPortInventories {
         runTitle.translateMessage(playerLang);
         Message runWhitelist = formatInfoTranslation("tport.tportInventories.openBiomeTP.run.whitelist", LEFT);
         runWhitelist.translateMessage(playerLang);
-        Message runBlacklist = formatInfoTranslation("tport.tportInventories.openBiomeTP.run.blacklist", ClickType.RIGHT);
+        Message runBlacklist = formatInfoTranslation("tport.tportInventories.openBiomeTP.run.blacklist", RIGHT);
         runBlacklist.translateMessage(playerLang);
         Message runCurrentMode = formatInfoTranslation("tport.tportInventories.openBiomeTP.run.currentMode", biomeTPMode.name());
         runCurrentMode.translateMessage(playerLang);
-        Message runChangeMode = formatInfoTranslation("tport.tportInventories.openBiomeTP.run.changeMode", ClickType.SHIFT_RIGHT, biomeTPMode.getNext());
+        Message runChangeMode = formatInfoTranslation("tport.tportInventories.openBiomeTP.run.changeMode", SHIFT_RIGHT, biomeTPMode.getNext());
         runChangeMode.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(run, theme, runTitle, Arrays.asList(runWhitelist, runBlacklist, new Message(), runCurrentMode, runChangeMode));
+        setCustomItemData(run, theme, runTitle, Arrays.asList(runWhitelist, runBlacklist, new Message(), runCurrentMode, runChangeMode));
         if (!biomeSelection.isEmpty()) {
             addCommand(run, LEFT, "tport biomeTP whitelist " + String.join(" ", biomeSelection));
-            addCommand(run, ClickType.RIGHT, "tport biomeTP blacklist " + String.join(" ", biomeSelection));
+            addCommand(run, RIGHT, "tport biomeTP blacklist " + String.join(" ", biomeSelection));
         }
-        addCommand(run, ClickType.SHIFT_RIGHT, "tport biomeTP mode " + biomeTPMode.getNext().name());
+        addCommand(run, SHIFT_RIGHT, "tport biomeTP mode " + biomeTPMode.getNext().name());
         addFunction(run, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> openBiomeTP(whoClicked, fancyInventory.getData(pageDataName), fancyInventory)));
         
         FancyInventory inv = getDynamicScrollableInventory(player, page, TPortInventories::openBiomeTP, "tport.tportInventories.openBiomeTP.title", list, createBack(player, MAIN, OWN, FEATURE_TP, BIOME_TP), 45);
@@ -598,7 +622,7 @@ public class TPortInventories {
         openFeatureTP(player, 0, null);
     }
     public static void openFeatureTP(Player player, int page, @Nullable FancyInventory prevWindow) {
-        ColorTheme theme = ColorTheme.getTheme(player);
+        ColorTheme theme = getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
         Set<String> featureSelection;
@@ -618,24 +642,24 @@ public class TPortInventories {
         runTitle.translateMessage(playerLang);
         Message runMode1 = formatInfoTranslation("tport.tportInventories.openFeatureTP.run.mode", LEFT, featureTPMode);
         runMode1.translateMessage(playerLang);
-        Message runMode2 = formatInfoTranslation("tport.tportInventories.openFeatureTP.run.mode", ClickType.RIGHT, featureTPMode.getNext());
+        Message runMode2 = formatInfoTranslation("tport.tportInventories.openFeatureTP.run.mode", RIGHT, featureTPMode.getNext());
         runMode2.translateMessage(playerLang);
         Message runCurrentMode = formatInfoTranslation("tport.tportInventories.openFeatureTP.run.currentMode", featureTPMode);
         runCurrentMode.translateMessage(playerLang);
-        Message runChangeMode = formatInfoTranslation("tport.tportInventories.openFeatureTP.run.changeMode", ClickType.SHIFT_RIGHT, featureTPMode.getNext());
+        Message runChangeMode = formatInfoTranslation("tport.tportInventories.openFeatureTP.run.changeMode", SHIFT_RIGHT, featureTPMode.getNext());
         runChangeMode.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(run, theme, runTitle, Arrays.asList(runMode1, runMode2, new Message(), runCurrentMode, runChangeMode));
+        setCustomItemData(run, theme, runTitle, Arrays.asList(runMode1, runMode2, new Message(), runCurrentMode, runChangeMode));
         if (!featureSelection.isEmpty()) {
             addCommand(run, LEFT, "tport featureTP search " + featureTPMode + " " + String.join(" ", featureSelection));
-            addCommand(run, ClickType.RIGHT, "tport featureTP search " + featureTPMode.getNext() + " " + String.join(" ", featureSelection));
+            addCommand(run, RIGHT, "tport featureTP search " + featureTPMode.getNext() + " " + String.join(" ", featureSelection));
         }
-        addCommand(run, ClickType.SHIFT_RIGHT, "tport featureTP mode " + featureTPMode.getNext().name(), "tport featureTP");
+        addCommand(run, SHIFT_RIGHT, "tport featureTP mode " + featureTPMode.getNext().name(), "tport featureTP");
         
         ItemStack clearSelected = (featureSelection.isEmpty() ? feature_tp_clear_grayed_model : feature_tp_clear_model).getItem(player);
         Message clearSelectedTitle = formatInfoTranslation("tport.tportInventories.openFeatureTP.clearSelected.title", LEFT);
         clearSelectedTitle.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(clearSelected, theme, clearSelectedTitle, null);
-        FancyClickEvent.addFunction(clearSelected, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+        setCustomItemData(clearSelected, theme, clearSelectedTitle, null);
+        addFunction(clearSelected, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
             if (fancyInventory.getData(featureSelectionDataName).isEmpty()) {
                 sendErrorTranslation(whoClicked, "tport.tportInventories.openFeatureTP.clearSelected.noSelection");
             } else {
@@ -653,7 +677,7 @@ public class TPortInventories {
         openWorldTP(player, 0, null);
     }
     public static void openWorldTP(Player player, int page, @Nullable FancyInventory prevWindow) {
-        ColorTheme theme = ColorTheme.getTheme(player);
+        ColorTheme theme = getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
         List<ItemStack> worlds = new ArrayList<>();
@@ -678,7 +702,7 @@ public class TPortInventories {
             title.translateMessage(playerLang);
             lore = MessageUtils.translateMessage(lore, playerLang);
             
-            MessageUtils.setCustomItemData(is, theme, title, lore);
+            setCustomItemData(is, theme, title, lore);
             addCommand(is, LEFT, "tport world " + world.getName());
             
             worlds.add(is);
@@ -696,8 +720,8 @@ public class TPortInventories {
     public static void openPublicTPortGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
         //public.tports.<publicTPortSlot>.<TPortID>
         
-        JsonObject playerLang = Language.getPlayerLang(player);
-        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = getPlayerLang(player);
+        ColorTheme colorTheme = getTheme(player);
         
         boolean filter = false;
         FancyInventory.DataName<Boolean> filterDataName = new FancyInventory.DataName<>("filter", Boolean.class, false);
@@ -790,7 +814,7 @@ public class TPortInventories {
         inv.setData("searcher", searcher);
         inv.setData("searchMode", searchMode);
         
-        ColorTheme theme = ColorTheme.getTheme(player);
+        ColorTheme theme = getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
         
         ItemStack searchData = search_data_model.getItem(player);
@@ -802,7 +826,7 @@ public class TPortInventories {
         if (!query.isEmpty()) searchQueryLore.translateMessage(playerLang);
         Message searchModeLore = searchMode == null ? null : formatInfoTranslation("tport.tportInventories.openSearchGUI.searchData.mode", searchMode);
         if (searchMode != null) searchModeLore.translateMessage(playerLang);
-        MessageUtils.setCustomItemData(searchData, theme, title, Arrays.asList(searchTypeLore, searchQueryLore, searchModeLore));
+        setCustomItemData(searchData, theme, title, Arrays.asList(searchTypeLore, searchQueryLore, searchModeLore));
         inv.setItem(0, searchData);
         
         inv.open(player);
@@ -823,7 +847,7 @@ public class TPortInventories {
         FancyInventory inv = getDynamicScrollableInventory(player, page, TPortInventories::openHomeEditGUI, "tport.tportInventories.openHomeEditGUI.title", list, createBack(player, MAIN, OWN, null, null));
         inv.setData("content", list);
         
-        inv.setItem(inv.getSize() / 18 * 9, ItemFactory.getSortingItem(player, getPlayerLang(player.getUniqueId()), ColorTheme.getTheme(player), ((whoClicked, clickType, pdc, fancyInventory) -> openHomeEditGUI(whoClicked))));
+        inv.setItem(inv.getSize() / 18 * 9, ItemFactory.getSortingItem(player, getPlayerLang(player.getUniqueId()), getTheme(player), ((whoClicked, clickType, pdc, fancyInventory) -> openHomeEditGUI(whoClicked))));
         
         inv.open(player);
     }
@@ -848,4 +872,147 @@ public class TPortInventories {
         inv.open(player);
     }
     
+    public static final FancyInventory.DataName<String> historyFilterDataName = new FancyInventory.DataName<>("historyFilter", String.class, null);
+    public static void openHistory(Player player) {
+        openHistory(player, null);
+    }
+    public static void openHistory(Player player, @Nullable String filter) {
+        openHistory(player, filter, 0, null);
+    }
+    private static void openHistory(Player player, @Nullable String filter, int page, @Nullable FancyInventory prevWindow) {
+        ColorTheme colorTheme = getTheme(player);
+        JsonObject playerLang = getPlayerLang(player);
+        
+        if (filter != null) {
+            filter = HistoryFilter.exist(filter);
+            if (filter == null) {
+                sendErrorTranslation(player, "no filter");
+                return;
+            }
+        }
+        
+        List<ItemStack> items;
+        if (prevWindow == null) {
+            items = new ArrayList<>();
+            
+            int index = 0;
+            ArrayList<HistoryElement> history = teleportHistory.getOrDefault(player.getUniqueId(), new ArrayList<>());
+            for (HistoryElement element : history) {
+                index++;
+                
+                if (!HistoryFilter.fits(element, filter)) {
+                    continue;
+                }
+                
+                ItemStack is = Main.getOrDefault(element.inventoryModel(), history_element_model).getItem(player);
+                
+                LocationSource newLocation = element.newLocation();
+                LocationSource newLocationLoc = null;
+                if (newLocation instanceof CraftLocationSource) {
+                    newLocationLoc = new CraftLocationSource();
+                    newLocationLoc.setLocation(newLocation.getLocation(player));
+                }
+                LocationSource oldLocation = new CraftLocationSource(element.oldLocation());
+                Message elementTitle = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.title", index, oldLocation, newLocation, element.cause(), element.application());
+                Message from = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.from", oldLocation);
+                Message to = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.to", newLocation);
+                Message to2 = null;
+                if (newLocationLoc != null) {
+                    to2 = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.to", newLocationLoc);
+                }
+                Message cause = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.cause", element.cause());
+                Message plugin = null;
+                if (element.application() != null) plugin = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.plugin", element.application());
+                
+                setCustomItemData(is, colorTheme, elementTitle, Arrays.asList(from, to, to2, cause, plugin));
+                
+                // todo on left click teleport to old
+                // todo on right click teleport to new
+                // todo on shift + left click preview to old
+                // todo on shift + right click preview to new
+                // todo safety check
+                
+                items.add(is);
+            }
+            
+        } else {
+            items = prevWindow.getData("historyItems", List.class);
+        }
+        
+        Message title = formatInfoTranslation("tport.tportInventories.openHistory.title");
+        FancyInventory inv = getDynamicScrollableInventory(player, page, TPortInventories::openHistory, title, items, createBack(player, MAIN, OWN, null));
+        inv.setData("historyItems", items);
+        inv.setData(historyFilterDataName, filter);
+        
+        ItemStack filterSelection = history_filter_model.getItem(player);
+        Message filterTitle = filter == null ? formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.filter.title") : formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.filter.selection", filter);
+        Message filterClick = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.filter.click", LEFT);
+        setCustomItemData(filterSelection, colorTheme, filterTitle, List.of(new Message(), filterClick));
+        addFunction(filterSelection, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            openHistoryFilter(whoClicked, 0, fancyInventory);
+        }));
+        inv.setItem(inv.getSize() - 9, filterSelection);
+        
+        inv.open(player);
+    }
+    public static void openHistory(Player player, int page, FancyInventory prevWindow) {
+        openHistory(player, prevWindow.getData(historyFilterDataName), page, prevWindow);
+    }
+    
+    private static void openHistoryFilter(Player player, int page, FancyInventory prevWindow) {
+        ColorTheme colorTheme = getTheme(player);
+        JsonObject playerLang = getPlayerLang(player);
+        
+        List<ItemStack> items = new ArrayList<>();
+        
+        ItemStack noFilter = history_filter_none_model.getItem(player);
+        Message NoFilterTitle = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.filter.none.title");
+        Message clickToSelect = formatInfoTranslation(playerLang, "tport.tportInventories.openHistoryFilter.filter.select", LEFT);
+        setCustomItemData(noFilter, colorTheme, NoFilterTitle, List.of(new Message(), clickToSelect));
+        addFunction(noFilter, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            openHistory(whoClicked, null);
+        }));
+        items.add(noFilter);
+        
+        for (String filter : HistoryFilter.getFilters()) {
+            ItemStack is;
+            if (filter.startsWith(HistoryFilter.pluginPrefix)) {
+                String plugin = filter.substring(HistoryFilter.pluginPrefix.length());
+                is = TeleportHistory.pluginFilterModels.getOrDefault(plugin, history_filter_unknown_model).getItem(player);
+            } else {
+                is = (switch (filter) {
+                    case "ENDER_PEARL" -> history_filter_ender_pearl_model;
+                    case "COMMAND" -> history_filter_command_model;
+                    case "PLUGIN" -> history_filter_plugin_model;
+                    case "NETHER_PORTAL" -> history_filter_nether_portal_model;
+                    case "END_PORTAL" -> history_filter_end_portal_model;
+                    case "SPECTATE" -> history_filter_spectate_model;
+                    case "END_GATEWAY" -> history_filter_end_gateway_model;
+                    case "CHORUS_FRUIT" -> history_filter_chorus_fruit_model;
+                    case "DISMOUNT" -> history_filter_dismount_model;
+                    case "EXIT_BED" -> history_filter_exit_bed_model;
+                    case "UNKNOWN" -> history_filter_unknown_model;
+                    // in case a new cause gets made
+                    default -> history_filter_unknown_model;
+                }).getItem(player);
+            }
+            
+            Message filterTitle = formatInfoTranslation(playerLang, "tport.tportInventories.openHistoryFilter.filter.title", filter);
+            setCustomItemData(is, colorTheme, filterTitle, List.of(new Message(), clickToSelect));
+            
+            setStringData(is, new NamespacedKey(Main.getInstance(), "filter"), filter);
+            addFunction(is, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                String innerFilter = pdc.get(new NamespacedKey(Main.getInstance(), "filter"), PersistentDataType.STRING);
+                openHistory(whoClicked, innerFilter);
+            }));
+            
+            items.add(is);
+        }
+        
+        Message title = formatInfoTranslation("tport.tportInventories.openHistoryFilter.title");
+        FancyInventory inv = getDynamicScrollableInventory(player, page, TPortInventories::openHistoryFilter, title, items, createBack(player, HISTORY, OWN, MAIN));
+        inv.setData(historyFilterDataName, prevWindow.getData(historyFilterDataName));
+        
+        inv.open(player);
+    }
 }

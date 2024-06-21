@@ -155,7 +155,7 @@ public class HelpCommand extends SubCommand {
             Message commands = new Message();
             boolean color = true;
             for (String tmpCommand : commandMap.keySet()) {
-                if (commandMatches(tmpCommand, searchedCommand, "/" + template.getName())) {
+                if (commandMatches(tmpCommand, searchedCommand, "/" + template.getName(), false)) {
                     SubCommand subCommand = commandMap.get(tmpCommand);
                     TextComponent commandComponent = commandToComponent(tmpCommand, subCommand, player, color);
                     commands.addText(commandComponent);
@@ -198,7 +198,7 @@ public class HelpCommand extends SubCommand {
         addAction(commandHelp);
     }
     
-    private boolean commandMatches(String command, String searchedCommand, String mainCommandName) {
+    public static boolean commandMatches(String command, String searchedCommand, String mainCommandName, boolean exact) {
         if (searchedCommand.length() != mainCommandName.length()) {
             if (command.equalsIgnoreCase(mainCommandName)) {
                 return false;
@@ -229,20 +229,34 @@ public class HelpCommand extends SubCommand {
         int forSize = Math.max(commandSplit.size(), searchedSplit.size());
         for (int i = 0; i < forSize; i++) {
             if (i >= searchedSplit.size()) { // if command accepts more arguments
-                return true;
+                return !exact;
             }
             if (i >= commandSplit.size()) { // if command is shorter (back propagation)
-                return true;
+                return !exact;
             }
             
             String commandArgument = commandSplit.get(i);
             String searchArgument = searchedSplit.get(i);
             
-            if (commandArgument != null) {
-                if (!searchArgument.equalsIgnoreCase(commandArgument) && !commandArgument.contains(searchArgument)) {
-                    return false;
+            if (exact) {
+                if (searchArgument == null && commandArgument != null) {
+                    return false; // when searched has var, the command can not have var
+                }
+                if (commandArgument != null) { // can only compare if command has no var, otherwise it can always fit
+                    //noinspection DuplicateExpressions
+                    if (!searchArgument.equalsIgnoreCase(commandArgument) && !commandArgument.contains(searchArgument)) {
+                        return false;
+                    }
+                }
+            } else {
+                if (commandArgument != null && searchArgument != null) { // can only compare if both are not var
+                    //noinspection DuplicateExpressions
+                    if (!searchArgument.equalsIgnoreCase(commandArgument) && !commandArgument.contains(searchArgument)) {
+                        return false;
+                    }
                 }
             }
+            
         }
         return true;
     }
@@ -343,6 +357,6 @@ public class HelpCommand extends SubCommand {
         }
         sendErrorTranslation(player, "tport.command.wrongUsage",
                 "/" + template.getName() + " help " + (commandMessage == null ? "<" : "[") + "page|" + template.getName() + " command..." +
-                extraHelp.stream().collect(Collectors.joining("|", (extraHelp.size() == 0 ? "" : "|"), "")) + (commandMessage == null ? ">" : "]"));
+                extraHelp.stream().collect(Collectors.joining("|", (extraHelp.isEmpty() ? "" : "|"), "")) + (commandMessage == null ? ">" : "]"));
     }
 }

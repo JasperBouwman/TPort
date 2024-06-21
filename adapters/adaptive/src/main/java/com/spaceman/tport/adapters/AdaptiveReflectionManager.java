@@ -134,7 +134,7 @@ public class AdaptiveReflectionManager {
     }
     public static <T> T getFromRegistry(IRegistry<T> registry, String value) throws InvocationTargetException, IllegalAccessException {
         //searching for IRegistry#get(MinecraftKey)
-        MinecraftKey key = new MinecraftKey(value);
+        MinecraftKey key = AdaptiveReflectionManager.getMinecraftKey(value);
         return getFromRegistry(registry, key);
     }
     public static <T> T getFromRegistry(IRegistry<T> biomeRegistry, MinecraftKey key) throws InvocationTargetException, IllegalAccessException {
@@ -270,6 +270,10 @@ public class AdaptiveReflectionManager {
         int z = Integer.parseInt(split[7]);
         
         return new int[]{x, y, z};
+    }
+    
+    public static MinecraftKey getMinecraftKey(String key) {
+        return MinecraftKey.b(key);
     }
     
     public static Class<?> getRegistryClass() throws ClassNotFoundException {

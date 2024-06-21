@@ -10,7 +10,7 @@ public class V1_20_6_Adapter extends V1_20_6_FancyMessageAdapter {
     
     @Override
     public String getAdapterName() {
-        return "1.20.5";
+        return "1.20.6";
     }
     
     @Override

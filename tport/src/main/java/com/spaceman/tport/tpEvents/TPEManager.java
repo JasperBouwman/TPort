@@ -12,7 +12,7 @@ import com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fileHander.Files;
-import com.spaceman.tport.history.HistoryEvents;
+import com.spaceman.tport.history.TeleportHistory;
 import com.spaceman.tport.tpEvents.animations.SimpleAnimation;
 import com.spaceman.tport.tpEvents.restrictions.NoneRestriction;
 import com.spaceman.tport.tport.TPort;
@@ -203,13 +203,13 @@ public class TPEManager {
     
     public static void tpPlayerToPlayer(Player player, Player toPlayer, Runnable postRestrictionMessage, RequestedRunnable requestedRunnable) {
         prevTPorts.put(player.getUniqueId(), new Back.PrevTPort(Back.PrevType.PLAYER, "playerUUID", toPlayer.getUniqueId().toString(), "prevLoc", player.getLocation()));
-        HistoryEvents.setLocationSource(player.getUniqueId(), new PlayerEncapsulation(toPlayer));
+        TeleportHistory.setLocationSource(player.getUniqueId(), new PlayerEncapsulation(toPlayer));
         requestTeleportPlayer(player, Offset.getPLTPOffset(toPlayer).applyOffset(toPlayer.getLocation()), postRestrictionMessage, requestedRunnable);
     }
     
     public static void tpPlayerToTPort(Player player, TPort tport, Runnable postRestrictionMessage, RequestedRunnable requestedRunnable) {
         prevTPorts.put(player.getUniqueId(), new Back.PrevTPort("TPORT", "tportName", tport.getName(), "tportUUID", tport.getTportID(), "tportOwner", tport.getOwner(), "prevLoc", player.getLocation()));
-        HistoryEvents.setLocationSource(player.getUniqueId(), new TPortEncapsulation(tport));
+        TeleportHistory.setLocationSource(player.getUniqueId(), new TPortEncapsulation(tport));
         requestTeleportPlayer(player, tport.getLocation(), postRestrictionMessage, requestedRunnable);
     }
     

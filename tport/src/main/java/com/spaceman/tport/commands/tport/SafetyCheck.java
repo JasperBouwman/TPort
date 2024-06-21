@@ -86,6 +86,11 @@ public class SafetyCheck extends SubCommand {
         // tport safetyCheck <source> [state]
         // tport safetyCheck check
         
+        if (Features.Feature.SafetyCheck.isDisabled()) {
+            Features.Feature.SafetyCheck.sendDisabledMessage(player);
+            return;
+        }
+        
         if (args.length == 1) {
             Message list = new Message();
             Message delimiter = formatInfoTranslation("tport.command.safetyCheck.delimiter");
@@ -184,6 +189,11 @@ public class SafetyCheck extends SubCommand {
             return "TPort.safetyCheck." + this.name();
         }
         public boolean hasPermission(Player player, boolean sendMessage) {
+            // todo add Feature.SafetyCheck.isEnabled
+            if (Features.Feature.SafetyCheck.isDisabled()) {
+                if (sendMessage) Features.Feature.SafetyCheck.sendDisabledMessage(player);
+                return false;
+            }
             return PermissionHandler.hasPermission(player, sendMessage, true, this.getPermission(), "TPort.basic");
         }
         

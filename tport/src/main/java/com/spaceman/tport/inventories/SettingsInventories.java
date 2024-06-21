@@ -185,7 +185,9 @@ public class SettingsInventories {
     public static final InventoryModel settings_features_permissions_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_permissions_model, "settings/features");
     public static final InventoryModel settings_features_particle_animation_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_permissions_grayed_model, "settings/features");
     public static final InventoryModel settings_features_particle_animation_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_particle_animation_model, "settings/features");
-    public static final InventoryModel settings_features_redirects_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_particle_animation_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_safety_check_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_particle_animation_grayed_model, "settings/features");
+    public static final InventoryModel settings_features_safety_check_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_safety_check_model, "settings/features");
+    public static final InventoryModel settings_features_redirects_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_safety_check_grayed_model, "settings/features");
     public static final InventoryModel settings_features_redirects_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_redirects_model, "settings/features");
     public static final InventoryModel settings_features_history_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_redirects_grayed_model, "settings/features");
     public static final InventoryModel settings_features_history_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_history_model, "settings/features");

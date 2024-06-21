@@ -6,8 +6,8 @@ import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.cooldown.CooldownManager;
-import com.spaceman.tport.history.HistoryEvents;
-import com.spaceman.tport.history.LookLocationSource;
+import com.spaceman.tport.history.TeleportHistory;
+import com.spaceman.tport.history.locationSource.LookLocationSource;
 import com.spaceman.tport.tpEvents.TPEManager;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Location;
@@ -98,7 +98,7 @@ public class Look extends SubCommand {
                     sendInfoTranslation(player, "tport.command.look.pltp");
                     TPortCommand.executeTPortCommand(player, new String[]{"PLTP", "tp", p.getName()});
                 } else {
-                    HistoryEvents.setLocationSource(player.getUniqueId(), new LookLocationSource(entity.getType()));
+                    TeleportHistory.setLocationSource(player.getUniqueId(), new LookLocationSource(entity.getType()));
                     TPEManager.requestTeleportPlayer(player, entity.getLocation(), () -> sendSuccessTranslation(player, "tport.command.look.entityTP", entity.getType().toString()),
                             (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.entityTP.tpRequested", entity.getType().toString(), delay, tickMessage, seconds, secondMessage));
                 }
@@ -114,7 +114,7 @@ public class Look extends SubCommand {
                     blockLocation.setPitch(player.getLocation().getPitch());
                     blockLocation.setYaw(player.getLocation().getYaw());
                     
-                    HistoryEvents.setLocationSource(player.getUniqueId(), new LookLocationSource(block.getType()));
+                    TeleportHistory.setLocationSource(player.getUniqueId(), new LookLocationSource(block.getType()));
                     TPEManager.requestTeleportPlayer(player, blockLocation, () -> sendSuccessTranslation(player, "tport.command.look.blockTP", block.getType().toString()),
                             (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.blockTP.tpRequested", block.getType().toString(), delay, tickMessage, seconds, secondMessage));
                 } else { //fluid TP
@@ -122,7 +122,7 @@ public class Look extends SubCommand {
                     location.setPitch(player.getLocation().getPitch());
                     location.setYaw(player.getLocation().getYaw());
                     
-                    HistoryEvents.setLocationSource(player.getUniqueId(), new LookLocationSource(block.getType()));
+                    TeleportHistory.setLocationSource(player.getUniqueId(), new LookLocationSource(block.getType()));
                     TPEManager.requestTeleportPlayer(player, location, () -> sendSuccessTranslation(player, "tport.command.look.fluidTP", block.getType().toString()),
                             (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.fluidTP.tpRequested", block.getType().toString(), delay, tickMessage, seconds, secondMessage));
                 }
@@ -149,7 +149,7 @@ public class Look extends SubCommand {
                 sendInfoTranslation(player, "tport.command.look.type.entity.pltp");
                 TPortCommand.executeTPortCommand(player, new String[]{"PLTP", "tp", lookedAtPlayer.getName()});
             } else {
-                HistoryEvents.setLocationSource(player.getUniqueId(), new LookLocationSource(entity.getType()));
+                TeleportHistory.setLocationSource(player.getUniqueId(), new LookLocationSource(entity.getType()));
                 TPEManager.requestTeleportPlayer(player, entity.getLocation(), () -> sendSuccessTranslation(player, "tport.command.look.type.entity.succeeded", entity.getType().toString()),
                         (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.type.entity.tpRequested", entity.getType().toString(), delay, tickMessage, seconds, secondMessage));
             }
@@ -177,7 +177,7 @@ public class Look extends SubCommand {
             blockLocation.setPitch(player.getLocation().getPitch());
             blockLocation.setYaw(player.getLocation().getYaw());
             
-            HistoryEvents.setLocationSource(player.getUniqueId(), new LookLocationSource(block.getType()));
+            TeleportHistory.setLocationSource(player.getUniqueId(), new LookLocationSource(block.getType()));
             TPEManager.requestTeleportPlayer(player, blockLocation, () -> sendSuccessTranslation(player, "tport.command.look.type.block.succeeded", block.getType().toString()),
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.type.block.tpRequested", block.getType().toString(), delay, tickMessage, seconds, secondMessage));
         }));
@@ -201,7 +201,7 @@ public class Look extends SubCommand {
             Location location = fluid.getLocation().add(0.5, 1.1, 0.5);
             location.setPitch(player.getLocation().getPitch());
             location.setYaw(player.getLocation().getYaw());
-            HistoryEvents.setLocationSource(player.getUniqueId(), new LookLocationSource(fluid.getType()));
+            TeleportHistory.setLocationSource(player.getUniqueId(), new LookLocationSource(fluid.getType()));
             TPEManager.requestTeleportPlayer(player, location, () -> sendSuccessTranslation(player, "tport.command.look.type.fluid.succeeded", fluid.getType().toString()),
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.type.fluid.tpRequested", fluid.getType().toString(), delay, tickMessage, seconds, secondMessage));
         }));

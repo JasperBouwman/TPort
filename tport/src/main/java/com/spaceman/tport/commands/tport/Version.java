@@ -60,15 +60,17 @@ public class Version extends SubCommand {
     
     private static boolean isLatest(String[] latestVersion, String[] currentVersion, int index) {
         if (latestVersion.length == index && currentVersion.length == index) {
-            return true;
+            return true; // if both have no sub version listed. this version equals latest version
         }
         
-        int latest  = latestVersion.length == index  ? 0 : Integer.parseInt( latestVersion[index]);
+        int latest  = latestVersion.length  == index ? 0 : Integer.parseInt( latestVersion[index]);
         int current = currentVersion.length == index ? 0 : Integer.parseInt(currentVersion[index]);
-        if (latest > current) {
-            return false;
-        } else {
+        if (current > latest) { // if current version is greater than latest version, this version is running future version (dev build)
+            return true;
+        } else if (current == latest) { // if current version equals latest version, check sub version
             return isLatest(latestVersion, currentVersion, index + 1);
+        } else { // current version is smaller than latest, this version is older
+            return false;
         }
     }
     //return true if current version is the latest version
@@ -88,7 +90,7 @@ public class Version extends SubCommand {
     }
     
     public static void checkForLatestVersion() {
-        Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
             Boolean isLatest = isLatestVersion();
             
             if (isLatest == null) {
