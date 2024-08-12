@@ -75,10 +75,8 @@ public class Last extends SubCommand {
                 return;
             }
             
-            TeleportHistory.setLocationSource(player.getUniqueId(), element.newLocation());
-            TPEManager.requestTeleportPlayer(player, element.newLocation().getLocation(player),
-                    () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "succeeded"),
-                    (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.biomeTP.randomTP.succeededRequested", delay, tickMessage, seconds, secondMessage));
+            element.newLocation().teleportToLocation(player, false);
+            
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport history last [filter]");
         }

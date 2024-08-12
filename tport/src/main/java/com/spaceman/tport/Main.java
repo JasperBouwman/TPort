@@ -215,6 +215,11 @@ public class Main extends JavaPlugin {
          *
          * unify EmptyCommand names
          *
+         * add safetyCheck to /tport world <world> [safetyCheck]
+         *
+         * store server online/offline state
+         * show error when state changed
+         *
          * add POI
          * bring featureTP and biomeTP closer together, feature/usage wise
          *
@@ -223,6 +228,8 @@ public class Main extends JavaPlugin {
          * /tport bed
          *
          * Feature: disableRandomWorldSearch
+         *
+         * make certain command terminal friendly
          *
          * add TPort advancements
          *
@@ -275,6 +282,7 @@ public class Main extends JavaPlugin {
         Adapter.registerAdapter("1.20.5", "com.spaceman.tport.adapters.V1_20_6_Adapter");
         Adapter.registerAdapter("1.20.6", "com.spaceman.tport.adapters.V1_20_6_Adapter");
         Adapter.registerAdapter("1.21", "com.spaceman.tport.adapters.V1_21_Adapter");
+        Adapter.registerAdapter("1.21.1", "com.spaceman.tport.adapters.V1_21_Adapter");
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");

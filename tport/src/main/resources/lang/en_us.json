@@ -1359,6 +1359,7 @@
   "tport.tportInventories.openHistory.element.line.to": "To: %s",
   "tport.tportInventories.openHistory.element.line.cause": "Cause: %s",
   "tport.tportInventories.openHistory.element.line.plugin": "Plugin: %s",
+  "tport.tportInventories.openHistory.element.line.type": "Type: %s",
   "tport.tportInventories.openHistory.filter.title": "Select filter",
   "tport.tportInventories.openHistory.filter.none.title": "No filter",
   "tport.tportInventories.openHistory.filter.selection": "Filter: %s",

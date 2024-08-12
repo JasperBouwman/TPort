@@ -1,28 +1,32 @@
 package com.spaceman.tport.fancyMessage.encapsulation;
 
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 
-public abstract class Encapsulation {
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+public interface Encapsulation {
     
-    public abstract String asString();
+    String asString();
     
-    public Message toMessage(String color, String varColor) {
-        return new Message(new TextComponent(asString(), varColor));
-    }
+    @Nonnull
+    Message toMessage(String color, String varColor);
+//    {
+//        return new Message(new TextComponent(asString(), varColor));
+//    }
     
-    public HoverEvent getHoverEvent() {
-        return null;
-    }
+    @Nullable
+    HoverEvent getHoverEvent();
     
-    public ClickEvent getClickEvent() {
-        return null;
-    }
+    @Nullable
+    ClickEvent getClickEvent();
     
-    public String getInsertion() {
-        return asString();
-    }
+    @Nullable
+    String getInsertion();
+//    {
+//        return asString();
+//    }
     
 }

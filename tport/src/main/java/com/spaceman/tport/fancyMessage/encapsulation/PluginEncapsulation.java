@@ -2,16 +2,19 @@ package com.spaceman.tport.fancyMessage.encapsulation;
 
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 
-public class PluginEncapsulation extends Encapsulation {
+public class PluginEncapsulation implements Encapsulation {
     
     private final String plugin;
     
@@ -23,6 +26,12 @@ public class PluginEncapsulation extends Encapsulation {
     @Override
     public String asString() {
         return plugin;
+    }
+    
+    @Nonnull
+    @Override
+    public Message toMessage(String color, String varColor) {
+        return new Message(new TextComponent(asString(), varColor));
     }
     
     @Override
@@ -58,5 +67,17 @@ public class PluginEncapsulation extends Encapsulation {
         }
         
         return new HoverEvent(hoverMessage);
+    }
+    
+    @Nullable
+    @Override
+    public ClickEvent getClickEvent() {
+        return null;
+    }
+    
+    @Nullable
+    @Override
+    public String getInsertion() {
+        return asString();
     }
 }

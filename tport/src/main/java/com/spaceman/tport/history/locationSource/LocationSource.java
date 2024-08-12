@@ -1,7 +1,6 @@
 package com.spaceman.tport.history.locationSource;
 
 import com.spaceman.tport.fancyMessage.encapsulation.Encapsulation;
-import com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -9,9 +8,7 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nullable;
 
 /** Information about the location */
-public abstract class LocationSource extends Encapsulation {
-    
-    public Location location = null;
+public interface LocationSource extends Encapsulation {
     
     /**
      * Get the location to teleport to. If the location is dynamic
@@ -19,13 +16,15 @@ public abstract class LocationSource extends Encapsulation {
      * example: When the location is a TPort and the player needs to ask for consent
     * */
     @Nullable
-    public Location getLocation(Player player) {
-        return location;
-    }
+    Location getLocation(Player player);
     
-    public abstract void teleportToLocation(Player player, boolean safetyCheck);
+    void setLocation(Location location);
     
-    public void setLocation(Location location) {
-        this.location = location;
-    }
+    void teleportToLocation(Player player, boolean safetyCheck);
+    
+    @Nullable
+    InventoryModel getInventoryModel();
+    
+    @Nullable
+    String getType();
 }

@@ -53,6 +53,13 @@
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
             </resource>
+            <resource>
+                <directory>../</directory>
+                <includes>
+                    <include>*.md</include>
+                </includes>
+                <targetPath>/docs</targetPath>
+            </resource>
         </resources>
     </build>
 
@@ -73,6 +80,11 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>maven_central</id>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -88,7 +100,7 @@
         <dependency>
             <groupId>org.commonmark</groupId>
             <artifactId>commonmark</artifactId>
-            <version>0.21.0</version>
+            <version>0.22.0</version>
         </dependency>
 
         <dependency>

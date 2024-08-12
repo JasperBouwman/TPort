@@ -41,12 +41,12 @@
             <groupId>com.spaceman</groupId>
             <artifactId>TPort</artifactId>
             <version>${TPortVersion}</version>
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.spigotmc</groupId>-->
-<!--                    <artifactId>spigot</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.spigotmc</groupId>
+                    <artifactId>spigot-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
 <!--        <dependency>-->

@@ -11,7 +11,14 @@ import java.lang.reflect.Method;
 public class ReflectionManager {
     
     public static String getServerClassesVersion() {
-        return Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
+        String pack = Bukkit.getServer().getClass().getPackage().getName();
+        
+        // org.bukkit.craftbukkit length == 22
+        if (pack.length() == 22) {
+            return "";
+        } else {
+            return pack.replace(".", ",").split(",")[3] + ".";
+        }
     }
     
     public static String getServerVersion() {

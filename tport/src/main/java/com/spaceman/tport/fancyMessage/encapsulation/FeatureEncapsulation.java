@@ -1,29 +1,32 @@
 package com.spaceman.tport.fancyMessage.encapsulation;
 
+import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import com.spaceman.tport.history.locationSource.LocationSource;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 
-public class FeatureEncapsulation extends LocationSource {
+public class FeatureEncapsulation implements Encapsulation {
     
-    private final String feature;
+    protected final String feature;
     
-    private Location featureLoc = null;
-    
-    public FeatureEncapsulation(String biome) {
-        this.feature = biome;
+    public FeatureEncapsulation(String feature) {
+        this.feature = feature;
     }
     
     @Override
     public String asString() {
         return feature;
+    }
+    
+    @Nonnull
+    @Override
+    public Message toMessage(String color, String varColor) {
+        return new Message(new TextComponent(asString(), varColor));
     }
     
     @Override
@@ -41,19 +44,4 @@ public class FeatureEncapsulation extends LocationSource {
         return feature;
     }
     
-    @Override
-    @Nullable
-    public Location getLocation(Player player) {
-        return featureLoc;
-    }
-    
-    @Override
-    public void teleportToLocation(Player player, boolean safetyCheck) {
-    
-    }
-    
-    @Override
-    public void setLocation(Location location) {
-        this.featureLoc = location;
-    }
 }

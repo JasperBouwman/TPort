@@ -45,12 +45,12 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
     @Override
     public void setDisplayName(ItemStack itemStack, @Nonnull Message title, ColorTheme theme) throws ClassNotFoundException, NoSuchFieldException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         String version = ReflectionManager.getServerClassesVersion();
-        Field displayNameField = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftMetaItem").getDeclaredField("displayName");
+        Field displayNameField = Class.forName("org.bukkit.craftbukkit." + version + "inventory.CraftMetaItem").getDeclaredField("displayName");
         displayNameField.setAccessible(true);
         
         ItemMeta im = itemStack.getItemMeta();
         if (displayNameField.getType().equals(IChatBaseComponent.class)) { // components
-            Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + ".util.CraftChatMessage");
+            Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + "util.CraftChatMessage");
             IChatBaseComponent chatComponent = (IChatBaseComponent) craftChatMessageClass.getMethod("fromJSON", String.class).invoke(null, title.translateJSON(theme));
             displayNameField.set(im, chatComponent);
         } else if (displayNameField.getType().equals(String.class)) { // nbt
@@ -62,13 +62,13 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
     @Override
     public void setLore(ItemStack itemStack, @Nonnull Collection<Message> lore, ColorTheme theme) throws NoSuchMethodException, ClassNotFoundException, NoSuchFieldException, InvocationTargetException, IllegalAccessException {
         String version = ReflectionManager.getServerClassesVersion();
-        Field displayNameField = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftMetaItem").getDeclaredField("displayName");
-        Field loreField = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftMetaItem").getDeclaredField("lore");
+        Field displayNameField = Class.forName("org.bukkit.craftbukkit." + version + "inventory.CraftMetaItem").getDeclaredField("displayName");
+        Field loreField = Class.forName("org.bukkit.craftbukkit." + version + "inventory.CraftMetaItem").getDeclaredField("lore");
         loreField.setAccessible(true);
         
         ItemMeta im = itemStack.getItemMeta();
         if (displayNameField.getType().equals(IChatBaseComponent.class)) { // components
-            Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + ".util.CraftChatMessage");
+            Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + "util.CraftChatMessage");
             Method fromJSONMethod = craftChatMessageClass.getMethod("fromJSON", String.class);
             List<IChatBaseComponent> l = new ArrayList<>();
             for (Message line : lore) {
@@ -90,7 +90,7 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
     @Override
     public void sendMessage(Player player, String message) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException, NoSuchFieldException {
         String version = ReflectionManager.getServerClassesVersion();
-        Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + ".util.CraftChatMessage");
+        Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + "util.CraftChatMessage");
         IChatBaseComponent chatComponent = (IChatBaseComponent) craftChatMessageClass.getMethod("fromJSON", String.class).invoke(null, message);
 //      @Nullable IChatMutableComponent chatComponent = IChatBaseComponent.ChatSerializer.a(message);
         
@@ -109,7 +109,7 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
     @Override
     public void sendTitle(Player player, String message, Message.TitleTypes titleType, int fadeIn, int displayTime, int fadeOut) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         String version = ReflectionManager.getServerClassesVersion();
-        Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + ".util.CraftChatMessage");
+        Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + "util.CraftChatMessage");
         IChatBaseComponent text = (IChatBaseComponent) craftChatMessageClass.getMethod("fromJSON", String.class).invoke(null, message);
 //      @Nullable IChatMutableComponent text = IChatBaseComponent.ChatSerializer.a(message);
         
@@ -128,14 +128,14 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
     public void sendInventory(Player player, String stringTitle, Inventory inventory) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, ClassNotFoundException, InstantiationException {
         
         String version = ReflectionManager.getServerClassesVersion();
-        Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + ".util.CraftChatMessage");
+        Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + "util.CraftChatMessage");
         IChatBaseComponent chatSerializer = (IChatBaseComponent) craftChatMessageClass.getMethod("fromJSON", String.class).invoke(null, stringTitle);
 //      IChatMutableComponent chatSerializer = IChatBaseComponent.ChatSerializer.a(stringTitle);
         
         EntityPlayer entityPlayer = (EntityPlayer) getEntityPlayer(player);
         
 //      Container c = new CraftContainer(inventory, entityPlayer, entityPlayer.nextContainerCounter());
-        Class<?> craftContainer = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftContainer");
+        Class<?> craftContainer = Class.forName("org.bukkit.craftbukkit." + version + "inventory.CraftContainer");
         Container container = (Container) craftContainer
                 .getConstructor(Class.forName("org.bukkit.inventory.Inventory"), entityPlayer.getClass().getSuperclass(), int.class)
                 .newInstance(inventory, entityPlayer, entityPlayer.nextContainerCounter());

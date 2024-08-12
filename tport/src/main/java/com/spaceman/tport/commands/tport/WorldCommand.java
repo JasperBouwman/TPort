@@ -3,8 +3,8 @@ package com.spaceman.tport.commands.tport;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.fancyMessage.encapsulation.WorldEncapsulation;
 import com.spaceman.tport.history.TeleportHistory;
+import com.spaceman.tport.history.locationSource.WorldLocationSource;
 import com.spaceman.tport.inventories.TPortInventories;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -77,7 +77,7 @@ public class WorldCommand extends SubCommand {
             }
             location.add(0.5, 0.1, 0.5);
             
-            TeleportHistory.setLocationSource(player.getUniqueId(), new WorldEncapsulation(world), history_element_world_tp_model);
+            TeleportHistory.setLocationSource(player.getUniqueId(), new WorldLocationSource(world));
             requestTeleportPlayer(player, location, true, () -> sendSuccessTranslation(player, "tport.command.worldCommand.world.world.succeeded", world),
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.worldCommand.world.world.tpRequested", world, delay, tickMessage, seconds, secondMessage));
         } else {

@@ -5,21 +5,18 @@ import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import com.spaceman.tport.history.locationSource.LocationSource;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tport.TPortManager;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.UUID;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 
-public class TPortEncapsulation extends LocationSource {
+public class TPortEncapsulation implements Encapsulation {
     
-    private com.spaceman.tport.tport.TPort tport = null;
+    protected com.spaceman.tport.tport.TPort tport = null;
     private String tportName = null;
     
     public static TPortEncapsulation asTPort(UUID tportUUID) {
@@ -79,6 +76,12 @@ public class TPortEncapsulation extends LocationSource {
         return tport.getName();
     }
     
+    @Nonnull
+    @Override
+    public Message toMessage(String color, String varColor) {
+        return new Message(new TextComponent(asString(), varColor));
+    }
+    
     private String getCommand() {
         String command;
         if (tport.parseAsPublic()) command = "/tport public open " + tport.getName();
@@ -112,18 +115,4 @@ public class TPortEncapsulation extends LocationSource {
         return tport.getName();
     }
     
-    @Override
-    @Nullable
-    public Location getLocation(Player player) {
-        if (this.tport.canTeleport(player, false, false, false)) {
-            return tport.getLocation();
-        }
-        return null;
-    }
-    
-    @Override
-    public void teleportToLocation(Player player, boolean safetyCheck) {
-        this.tport.teleport(player, safetyCheck);
-        Bukkit.dispatchCommand(player, "/tport");
-    }
 }

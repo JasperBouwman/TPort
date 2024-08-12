@@ -48,7 +48,7 @@ public abstract class V1_20_4_FancyMessageAdapter extends V1_20_4_BiomeTPAdapter
     @Override
     public void setDisplayName(ItemStack itemStack, @Nonnull Message title, ColorTheme theme) throws IllegalAccessException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException {
         String version = ReflectionManager.getServerClassesVersion();
-        Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
+        Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + "inventory.CraftItemStack");
         
         Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
         net.minecraft.world.item.ItemStack nmsStack = (net.minecraft.world.item.ItemStack) craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, itemStack);
@@ -69,7 +69,7 @@ public abstract class V1_20_4_FancyMessageAdapter extends V1_20_4_BiomeTPAdapter
     @Override
     public void setLore(ItemStack itemStack, @Nonnull Collection<Message> lore, ColorTheme theme) throws ClassNotFoundException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         String version = ReflectionManager.getServerClassesVersion();
-        Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
+        Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + "inventory.CraftItemStack");
         
         Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
         net.minecraft.world.item.ItemStack nmsStack = (net.minecraft.world.item.ItemStack) craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, itemStack);

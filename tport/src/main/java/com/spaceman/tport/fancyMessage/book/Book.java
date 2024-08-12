@@ -114,38 +114,38 @@ public class Book {
 //                ((CraftPlayer)player).getHandle().a(new net.minecraft.server.v1_14_R1.ItemStack(Items.WRITTEN_BOOK), EnumHand.MAIN_HAND);
 //                ((CraftPlayer)player).getHandle().playerConnection.sendPacket(new PacketPlayOutOpenBook(EnumHand.MAIN_HAND));
                 
-                Field mainHand = Class.forName("net.minecraft.server." + version + ".EnumHand").getDeclaredField("MAIN_HAND");
+                Field mainHand = Class.forName("net.minecraft.server." + version + "EnumHand").getDeclaredField("MAIN_HAND");
                 mainHand.setAccessible(true);
                 
-                Object openBook = Class.forName("net.minecraft.server." + version + ".PacketPlayOutOpenBook")
-                        .getConstructor(Class.forName("net.minecraft.server." + version + ".EnumHand"))
+                Object openBook = Class.forName("net.minecraft.server." + version + "PacketPlayOutOpenBook")
+                        .getConstructor(Class.forName("net.minecraft.server." + version + "EnumHand"))
                         .newInstance(mainHand.get(null));
                 
-                connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + version + ".Packet"))
+                connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + version + "Packet"))
                         .invoke(connection, openBook);
                 
             } else if (Integer.parseInt(version.split("_")[1]) > 12) {
-                Class<?> packetDataSerializer = Class.forName("net.minecraft.server." + version + ".PacketDataSerializer");
+                Class<?> packetDataSerializer = Class.forName("net.minecraft.server." + version + "PacketDataSerializer");
                 Constructor<?> packetDataSerializerConstructor = packetDataSerializer.getConstructor(ByteBuf.class);
-                Class<?> packetPlayOutCustomPayload = Class.forName("net.minecraft.server." + version + ".PacketPlayOutCustomPayload");
+                Class<?> packetPlayOutCustomPayload = Class.forName("net.minecraft.server." + version + "PacketPlayOutCustomPayload");
                 
-                Constructor<?> minecraftKeyConstructor = Class.forName("net.minecraft.server." + version + ".MinecraftKey").getConstructor(String.class);
+                Constructor<?> minecraftKeyConstructor = Class.forName("net.minecraft.server." + version + "MinecraftKey").getConstructor(String.class);
                 
                 Constructor packetPlayOutCustomPayloadConstructor = packetPlayOutCustomPayload.getConstructor(
-                        Class.forName("net.minecraft.server." + version + ".MinecraftKey"), Class.forName("net.minecraft.server." + version + ".PacketDataSerializer"));
+                        Class.forName("net.minecraft.server." + version + "MinecraftKey"), Class.forName("net.minecraft.server." + version + "PacketDataSerializer"));
                 
-                connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + version + ".Packet"))
+                connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + version + "Packet"))
                         .invoke(connection, packetPlayOutCustomPayloadConstructor.newInstance(minecraftKeyConstructor.newInstance("minecraft:book_open"),
                                 packetDataSerializerConstructor.newInstance(buf)));
             } else {
-                Class<?> packetDataSerializer = Class.forName("net.minecraft.server." + version + ".PacketDataSerializer");
+                Class<?> packetDataSerializer = Class.forName("net.minecraft.server." + version + "PacketDataSerializer");
                 Constructor<?> packetDataSerializerConstructor = packetDataSerializer.getConstructor(ByteBuf.class);
-                Class<?> packetPlayOutCustomPayload = Class.forName("net.minecraft.server." + version + ".PacketPlayOutCustomPayload");
+                Class<?> packetPlayOutCustomPayload = Class.forName("net.minecraft.server." + version + "PacketPlayOutCustomPayload");
                 
                 Constructor packetPlayOutCustomPayloadConstructor = packetPlayOutCustomPayload.getConstructor(String.class,
-                        Class.forName("net.minecraft.server." + version + ".PacketDataSerializer"));
+                        Class.forName("net.minecraft.server." + version + "PacketDataSerializer"));
                 
-                connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + version + ".Packet"))
+                connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + version + "Packet"))
                         .invoke(connection, packetPlayOutCustomPayloadConstructor.newInstance("MC|BOpen", packetDataSerializerConstructor.newInstance(buf)));
             }
         } catch (Exception ex) {

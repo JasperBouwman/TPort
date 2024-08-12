@@ -6,24 +6,24 @@ import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import com.spaceman.tport.history.locationSource.LocationSource;
 import com.spaceman.tport.playerUUID.PlayerUUID;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
+import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-import static com.spaceman.tport.commands.TPortCommand.getPlayerData;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 
-public class PlayerEncapsulation extends LocationSource {
+public class PlayerEncapsulation implements Encapsulation {
     
     private final UUID uuid;
-    private final String name;
+    protected final String name;
     
     public static PlayerEncapsulation asPlayer(@Nonnull UUID uuid) {
         return new PlayerEncapsulation(uuid);
@@ -77,6 +77,12 @@ public class PlayerEncapsulation extends LocationSource {
         return name;
     }
     
+    @Nonnull
+    @Override
+    public Message toMessage(String color, String varColor) {
+        return new Message(new TextComponent(asString(), varColor));
+    }
+    
     @Override
     public String getInsertion() {
         return name;
@@ -85,6 +91,14 @@ public class PlayerEncapsulation extends LocationSource {
     @Override
     public ClickEvent getClickEvent() {
         return ClickEvent.runCommand("/tport pltp tp " + name);
+    }
+    
+    public static List<Message> getPlayerData(UUID uuid) {
+        List<Message> hoverData = new ArrayList<>();
+        
+        hoverData.add(formatInfoTranslation("tport.command.getPlayerData.tportAmount", TPortManager.getTPortList(uuid).size()));
+        
+        return hoverData;
     }
     
     @Override
@@ -105,18 +119,4 @@ public class PlayerEncapsulation extends LocationSource {
         return name;
     }
     
-    @Override
-    @Nullable
-    public Location getLocation(Player player) {
-        Player toPlayer = Bukkit.getPlayer(name);
-        if (toPlayer == null) {
-            return null;
-        }
-        return toPlayer.getLocation();
-    }
-    
-    @Override
-    public void teleportToLocation(Player player, boolean safetyCheck) {
-        Bukkit.dispatchCommand(player, "tport pltp tp " + player);
-    }
 }

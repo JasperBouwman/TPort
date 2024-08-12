@@ -57,7 +57,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.spigotmc</groupId>
-                    <artifactId>spigot</artifactId>
+                    <artifactId>spigot-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

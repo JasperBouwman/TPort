@@ -45,7 +45,7 @@ public class TeleportHistory {
         return Main.getOrDefault(locationSources.remove(uuid), new Pair<>(new CraftLocationSource(), null));
     }
     public static void setLocationSource(UUID uuid, LocationSource data) {
-        setLocationSource(uuid, data, null);
+        setLocationSource(uuid, data, data.getInventoryModel());
     }
     public static void setLocationSource(UUID uuid, LocationSource data, @Nullable InventoryModel inventoryModel) {
         locationSources.put(uuid, new Pair<>(data, inventoryModel));

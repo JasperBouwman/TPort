@@ -383,41 +383,19 @@ public class Main {
     
     public static void main(String[] args) {
         
-        if (false) {
-            System.out.println("running");
-            
-            System.out.println(path);
-            
-            File file1 = new File("/classes/model_json/hopper.json");
-            File file2 = new File(path + "/../../texture_output");
-            file2.mkdir();
-            URL url1 = ClassLoader.getSystemResource("/model_json/hopper.json");
-            URL url2 = ClassLoader.getSystemResource("/src/main/resources/model_json/hopper.json");
-            
-            System.out.println(file1.exists());
-            System.out.println(file1);
-            System.out.println(file2.exists());
-            System.out.println(file2.getPath());
-            System.out.println(url1);
-            System.out.println(url2);
-            
-            return;
-        }
-        
         ArrayList<Model> models = collectModels(FancyInventory.class);
         models.addAll( collectModels(KeyboardGUI.class) );
         models.addAll( collectModels(TPortInventories.class) );
         models.addAll( collectModels(QuickEditInventories.class) );
         models.addAll( collectModels(SettingsInventories.class) );
-//        models.addAll( collectDynmapModels() );
         
         createMinecraftModels(models);
         createTPortModels(models);
         
-        createPack(models, "x32", "..\\resource pack\\src (32x)_dark", false);
-        createPack(models, "x32", "..\\resource pack\\src (32x)_light", true);
-        createPack(models, "x16", "..\\resource pack\\src (16x)_dark", false);
-        createPack(models, "x16", "..\\resource pack\\src (16x)_light", true);
+        createPack(models, "x32", "../resource pack/src (32x)_dark", false);
+        createPack(models, "x32", "../resource pack/src (32x)_light", true);
+        createPack(models, "x16", "../resource pack/src (16x)_dark", false);
+        createPack(models, "x16", "../resource pack/src (16x)_light", true);
         
         //delete texture_output
         try {

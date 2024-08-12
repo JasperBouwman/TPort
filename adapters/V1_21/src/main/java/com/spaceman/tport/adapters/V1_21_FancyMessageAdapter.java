@@ -48,7 +48,7 @@ public abstract class V1_21_FancyMessageAdapter extends V1_21_BiomeTPAdapter {
         
         String version = getServerClassesVersion();
         // reflection because CraftMetaItem is package private
-        Field displayNameField = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftMetaItem").getDeclaredField("displayName");
+        Field displayNameField = Class.forName("org.bukkit.craftbukkit." + version + "inventory.CraftMetaItem").getDeclaredField("displayName");
         displayNameField.setAccessible(true);
         
         displayNameField.set(im, CraftChatMessage.fromJSON(title.translateJSON(theme)));
@@ -62,7 +62,7 @@ public abstract class V1_21_FancyMessageAdapter extends V1_21_BiomeTPAdapter {
         
         String version = getServerClassesVersion();
         // reflection because CraftMetaItem is package private
-        Field loreField = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftMetaItem").getDeclaredField("lore");
+        Field loreField = Class.forName("org.bukkit.craftbukkit." + version + "inventory.CraftMetaItem").getDeclaredField("lore");
         loreField.setAccessible(true);
         
         List<IChatBaseComponent> l = lore.stream()

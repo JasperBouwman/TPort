@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "tport:item/history/models/history_element_biome_tp"
+  }
+}

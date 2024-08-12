@@ -9,9 +9,7 @@ import com.spaceman.tport.history.locationSource.IgnoreLocationSource;
 import com.spaceman.tport.history.locationSource.LocationSource;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -27,6 +25,7 @@ import java.util.UUID;
 
 import static com.spaceman.tport.history.TeleportHistory.addHistory;
 import static com.spaceman.tport.history.TeleportHistory.getTeleportData;
+import static com.spaceman.tport.inventories.TPortInventories.*;
 
 public class HistoryEvents implements Listener {
     
@@ -51,7 +50,7 @@ public class HistoryEvents implements Listener {
     private final HashMap<UUID, Location> vehicleHistories = new HashMap<>();
     @EventHandler
     @SuppressWarnings("unused")
-    public void minecraftEvent(VehicleEnterEvent e) {
+    public void vehicleEnterEvent(VehicleEnterEvent e) {
         if (!e.getEntered().getType().equals(EntityType.PLAYER)) {
             return;
         }
@@ -62,18 +61,25 @@ public class HistoryEvents implements Listener {
     
     @EventHandler
     @SuppressWarnings("unused")
-    public void minecraftEvent(VehicleExitEvent e) {
+    public void vehicleExitEvent(VehicleExitEvent e) {
         if (!e.getExited().getType().equals(EntityType.PLAYER)) {
             return;
         }
         Entity vehicle = e.getVehicle();
+        
+        InventoryModel inventoryModel = null;
+        if (vehicle instanceof Boat) {
+            inventoryModel = history_element_boat_model;
+        } else if (vehicle instanceof Minecart) {
+            inventoryModel = history_element_minecart_model;
+        }
         
         Location vehicleHistory = vehicleHistories.remove(e.getExited().getUniqueId());
         if (vehicleHistory != null) {
             Player player = (Player) e.getExited();
             
             HistoryElement element = new HistoryElement(vehicleHistory,
-                    new CraftLocationSource(vehicle.getLocation()), vehicle.getType().name(), null, null); //todo add vehicle inventory model
+                    new CraftLocationSource(vehicle.getLocation()), vehicle.getType().name(), null, inventoryModel); //todo add vehicle inventory model
             addHistory(player, element);
         }
     }
@@ -89,7 +95,24 @@ public class HistoryEvents implements Listener {
         if (e.getCause().equals(PlayerTeleportEvent.TeleportCause.PLUGIN)) {
             plugin = findPlugin(searchStack());
         }
-        InventoryModel inventoryModel = teleportData.getRight();
+        
+        @Nullable InventoryModel inventoryModel = teleportData.getRight();
+        if (inventoryModel == null) {
+            inventoryModel = switch (e.getCause()) {
+                case ENDER_PEARL -> history_element_ender_pearl_model;
+                case COMMAND -> history_element_command_model;
+                case PLUGIN -> history_element_plugin_model;
+                case NETHER_PORTAL -> history_element_nether_portal_model;
+                case END_PORTAL -> history_element_end_portal_model;
+                case SPECTATE -> history_element_spectate_model;
+                case END_GATEWAY -> history_element_end_gateway_model;
+                case CHORUS_FRUIT -> history_element_chorus_fruit_model;
+                case DISMOUNT -> history_element_dismount_model;
+                case EXIT_BED -> history_element_exit_bed_model;
+                case UNKNOWN -> history_element_model;
+            };
+        }
+        
         HistoryElement element = new HistoryElement(e.getFrom(), teleportData.getLeft(), e.getCause().name(), plugin, inventoryModel);
         addHistory(e.getPlayer(), element);
     }

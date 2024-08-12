@@ -1,22 +1,20 @@
 package com.spaceman.tport.fancyMessage.encapsulation;
 
-import com.spaceman.tport.commands.tport.FeatureTP;
+import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import com.spaceman.tport.history.locationSource.LocationSource;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 
-public class WorldEncapsulation extends LocationSource {
+public class WorldEncapsulation implements Encapsulation {
     
-    private final World world;
+    protected final World world;
     
     public WorldEncapsulation(World world) {
         this.world = world;
@@ -27,33 +25,30 @@ public class WorldEncapsulation extends LocationSource {
         return world.getName();
     }
     
-    private String command() {
-        return "/tport world " + world.getName();
+    @Nonnull
+    @Override
+    public Message toMessage(String color, String varColor) {
+        return new Message(new TextComponent(asString(), varColor));
+    }
+    
+    protected String command(boolean withSlash) {
+        return (withSlash ? "/" : "") + "tport world " + world.getName();
     }
     
     @Override
     public HoverEvent getHoverEvent() {
-        return hoverEvent(command(), ColorTheme.ColorType.infoColor);
+        return hoverEvent(command(true), ColorTheme.ColorType.infoColor);
     }
     
     @Override
     public ClickEvent getClickEvent() {
-        return ClickEvent.runCommand(command());
+        return ClickEvent.runCommand(command(true));
     }
     
-    @Override
     @Nullable
-    public Location getLocation(Player player) {
-        Location location = FeatureTP.setSafeY(world, world.getSpawnLocation().getBlockX(), world.getSpawnLocation().getBlockZ());
-        if (location != null) location.add(0.5, 0.1, 0.5);
-        return location;
+    @Override
+    public String getInsertion() {
+        return asString();
     }
     
-    @Override
-    public void setLocation(Location location) { }
-    
-    @Override
-    public void teleportToLocation(Player player, boolean safetyCheck) {
-        Bukkit.dispatchCommand(player, command().substring(1)/* remove slash */);
-    }
 }

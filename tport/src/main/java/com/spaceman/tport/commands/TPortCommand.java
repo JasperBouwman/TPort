@@ -14,14 +14,10 @@ import com.spaceman.tport.fancyMessage.colorTheme.ColorThemeCommand;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fancyMessage.language.Language;
 import com.spaceman.tport.metrics.CommandCounter;
-import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
@@ -39,14 +35,6 @@ public class TPortCommand extends CommandTemplate {
     
     private TPortCommand() {
         super(Main.getInstance(), false, new CommandDescription("tport", Main.getInstance().getDescription().getName(), "The command to teleport to saved locations and more", "/TPort <args...>"));
-    }
-    
-    public static List<Message> getPlayerData(UUID uuid) {
-        List<Message> hoverData = new ArrayList<>();
-        
-        hoverData.add(formatInfoTranslation("tport.command.getPlayerData.tportAmount", TPortManager.getTPortList(uuid).size()));
-        
-        return hoverData;
     }
     
     public static boolean executeTPortCommand(CommandSender sender, String args) {
@@ -128,6 +116,7 @@ public class TPortCommand extends CommandTemplate {
         addAction(new Look());
         addAction(new Adapter());
         addAction(new HistoryCommand());
+//        addAction(new Docs(this));
         
         TextComponent discordServer = new TextComponent("Discord Server", varInfoColor)
                 .addTextEvent(new HoverEvent(new TextComponent(Main.discordLink, infoColor)))

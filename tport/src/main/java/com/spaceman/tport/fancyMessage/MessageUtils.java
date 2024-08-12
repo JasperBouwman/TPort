@@ -4,7 +4,9 @@ import com.google.common.base.CharMatcher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
+import com.spaceman.tport.Pair;
 import com.spaceman.tport.adapters.TPortAdapter;
+import com.spaceman.tport.commandHandler.CommandTemplate;
 import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
@@ -41,6 +43,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
@@ -432,7 +435,7 @@ public class MessageUtils {
 //        try {
 //            TPortAdapter adapter = Main.getInstance().adapter;
 //            String version = ReflectionManager.getServerClassesVersion();
-//            Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
+//            Class<?> craftItemStack = Class.forName("org.bukkit.craftbukkit." + version + "inventory.CraftItemStack");
 //
 //            Class<?> isClass = Class.forName("org.bukkit.inventory.ItemStack");
 //            Object nmsStack = craftItemStack.getMethod("asNMSCopy", isClass).invoke(craftItemStack, itemStack);
@@ -818,22 +821,6 @@ public class MessageUtils {
     }
     
     public static Message fromMarkdown(String markdown) {
-        
-        /*
-        try (InputStream md = Main.class.getResourceAsStream("/testMarkdown.md")) {
-            
-            String mdText = IOUtils.toString(md, StandardCharsets.UTF_8);
-//                    MessageUtils.fromMarkdown(mdText).sendMessage(player);
-            
-            for (Message m : MessageUtils.fromSplitMarkdown(mdText)) {
-                m.sendMessage(player);
-            }
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        * */
-        
         Parser markdownParser = Parser.builder().build();
         Node node = markdownParser.parse(markdown);
         
@@ -843,17 +830,18 @@ public class MessageUtils {
         
         return message;
     }
-    public static ArrayList<Message> fromSplitMarkdown(String markdown) {
+    public static Pair<ArrayList<String>, ArrayList<Message>> fromSplitMarkdown(String markdown, CommandTemplate... templates) {
         Parser markdownParser = Parser.builder().build();
         Node node = markdownParser.parse(markdown);
         
-        ArrayList<Message> list = new ArrayList<>();
-        FancyNodeRenderer fancyRenderer = new FancyNodeRenderer(list);
-        fancyRenderer.addCommandLookup(TPortCommand.getInstance());
+        ArrayList<String> chapterTitles = new ArrayList<>();
+        ArrayList<Message> chapters = new ArrayList<>();
+        FancyNodeRenderer fancyRenderer = new FancyNodeRenderer(chapterTitles, chapters);
+        Stream.of(templates).forEach(fancyRenderer::addCommandLookup);
         
         fancyRenderer.render(node);
         
-        return list;
+        return new Pair<>(chapterTitles, chapters);
     }
     
     public interface MessageDescription {

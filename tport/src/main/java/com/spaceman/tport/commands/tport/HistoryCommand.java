@@ -18,12 +18,12 @@ public class HistoryCommand extends SubCommand {
     }
     
     public HistoryCommand() {
-        addAction(new Back());
-        addAction(new Last());
-        addAction(new SecondLast());
-        addAction(new Chat());
-        addAction(new Clear());
-        addAction(new Size());
+//        addAction(new Back());
+//        addAction(new Last());
+//        addAction(new SecondLast());
+//        addAction(new Chat());
+//        addAction(new Clear());
+//        addAction(new Size());
     }
     
     @Override
@@ -38,10 +38,10 @@ public class HistoryCommand extends SubCommand {
             return;
         }
         
+        TPortInventories.openHistory(player);
         if (args.length == 1) {
-            
-            TPortInventories.openHistory(player);
-            
+        
+        
         } else {
             if (!runCommands(getActions(), args[1], args, player)) {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport history " + CommandTemplate.convertToArgs(getActions(), true));

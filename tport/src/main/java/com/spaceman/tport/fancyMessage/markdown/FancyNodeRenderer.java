@@ -11,6 +11,7 @@ import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import org.commonmark.node.*;
 import org.commonmark.renderer.NodeRenderer;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
@@ -20,20 +21,24 @@ public class FancyNodeRenderer extends AbstractVisitor implements NodeRenderer {
     
     /* if list is non-null, split headers into sub messages */
     private ArrayList<Message> list = null;
+    private ArrayList<String> chapters = null;
     /* the message that all new text components should be added to */
     private Message message;
+    private String chapterTitle;
     
     public FancyNodeRenderer(Message output) {
         this.message = output;
+        this.chapterTitle = "";
     }
-    public FancyNodeRenderer(ArrayList<Message> output) {
-        this.list = output;
+    public FancyNodeRenderer(ArrayList<String> chapterOutput, ArrayList<Message> messagesOutput) {
+        this.chapters = chapterOutput;
+        this.list = messagesOutput;
         this.message = new Message();
         list.add(message);
     }
     
     private final ArrayList<CommandTemplate> templates = new ArrayList<>();
-    public void addCommandLookup(CommandTemplate commandTemplate) {
+    public void addCommandLookup(@Nonnull CommandTemplate commandTemplate) {
         this.templates.add(commandTemplate);
     }
     
@@ -69,6 +74,7 @@ public class FancyNodeRenderer extends AbstractVisitor implements NodeRenderer {
         if (isHeading) {
             component.setColor(titleColor);
             component.addAttribute(Attribute.BOLD);
+            chapterTitle += component.getText();
         }
         if (isItalic) {
             component.addAttribute(Attribute.ITALIC);
@@ -103,6 +109,9 @@ public class FancyNodeRenderer extends AbstractVisitor implements NodeRenderer {
         if (this.list != null && !this.message.isEmpty()) {
             this.message = new Message();
             this.list.add(message);
+            
+            this.chapters.add(chapterTitle);
+            chapterTitle = "";
         }
         
         if (!this.message.isEmpty()) this.message.addNewLine();

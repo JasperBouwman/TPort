@@ -21,9 +21,9 @@ import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
-import com.spaceman.tport.history.TeleportHistory;
 import com.spaceman.tport.history.HistoryElement;
 import com.spaceman.tport.history.HistoryFilter;
+import com.spaceman.tport.history.TeleportHistory;
 import com.spaceman.tport.history.locationSource.CraftLocationSource;
 import com.spaceman.tport.history.locationSource.LocationSource;
 import com.spaceman.tport.playerUUID.PlayerUUID;
@@ -108,8 +108,27 @@ public class TPortInventories {
     public static final InventoryModel history_model                           = new InventoryModel(Material.OAK_BUTTON, home_grayed_model, "history");
     public static final InventoryModel history_grayed_model                    = new InventoryModel(Material.OAK_BUTTON, history_model, "history");
     public static final InventoryModel history_element_model                   = new InventoryModel(Material.OAK_BUTTON, history_grayed_model, "history/models");
-    public static final InventoryModel history_element_world_tp_model          = new InventoryModel(Material.OAK_BUTTON, history_element_model, "history/models");
-    public static final InventoryModel history_filter_model                    = new InventoryModel(Material.OAK_BUTTON, history_element_world_tp_model, "history/filter");
+    public static final InventoryModel history_element_ender_pearl_model       = new InventoryModel(Material.OAK_BUTTON, history_element_model, "history/models");
+    public static final InventoryModel history_element_command_model           = new InventoryModel(Material.OAK_BUTTON, history_element_ender_pearl_model, "history/models");
+    public static final InventoryModel history_element_plugin_model            = new InventoryModel(Material.OAK_BUTTON, history_element_command_model, "history/models");
+    public static final InventoryModel history_element_nether_portal_model     = new InventoryModel(Material.OAK_BUTTON, history_element_plugin_model, "history/models");
+    public static final InventoryModel history_element_end_portal_model        = new InventoryModel(Material.OAK_BUTTON, history_element_nether_portal_model, "history/models");
+    public static final InventoryModel history_element_spectate_model          = new InventoryModel(Material.OAK_BUTTON, history_element_end_portal_model, "history/models");
+    public static final InventoryModel history_element_end_gateway_model       = new InventoryModel(Material.OAK_BUTTON, history_element_spectate_model, "history/models");
+    public static final InventoryModel history_element_chorus_fruit_model      = new InventoryModel(Material.OAK_BUTTON, history_element_end_gateway_model, "history/models");
+    public static final InventoryModel history_element_dismount_model          = new InventoryModel(Material.OAK_BUTTON, history_element_chorus_fruit_model, "history/models");
+    public static final InventoryModel history_element_exit_bed_model          = new InventoryModel(Material.OAK_BUTTON, history_element_dismount_model, "history/models");
+    public static final InventoryModel history_element_boat_model              = new InventoryModel(Material.OAK_BUTTON, history_element_exit_bed_model, "history/models");
+    public static final InventoryModel history_element_minecart_model          = new InventoryModel(Material.OAK_BUTTON, history_element_boat_model, "history/models");
+    public static final InventoryModel history_element_world_tp_model          = new InventoryModel(Material.OAK_BUTTON, history_element_minecart_model, "history/models");
+    public static final InventoryModel history_element_biome_tp_model          = new InventoryModel(Material.OAK_BUTTON, history_element_world_tp_model, "history/models");
+    public static final InventoryModel history_element_feature_tp_model        = new InventoryModel(Material.OAK_BUTTON, history_element_biome_tp_model, "history/models");
+    public static final InventoryModel history_element_tport_model             = new InventoryModel(Material.OAK_BUTTON, history_element_feature_tp_model, "history/models");
+    public static final InventoryModel history_element_player_model            = new InventoryModel(Material.OAK_BUTTON, history_element_tport_model, "history/models");
+    public static final InventoryModel history_element_look_model              = new InventoryModel(Material.OAK_BUTTON, history_element_player_model, "history/models");
+    public static final InventoryModel history_element_death_model             = new InventoryModel(Material.OAK_BUTTON, history_element_look_model, "history/models");
+    
+    public static final InventoryModel history_filter_model                    = new InventoryModel(Material.OAK_BUTTON, history_element_death_model, "history/filter");
     public static final InventoryModel history_filter_ender_pearl_model        = new InventoryModel(Material.OAK_BUTTON, history_filter_model, "history/filter");
     public static final InventoryModel history_filter_command_model            = new InventoryModel(Material.OAK_BUTTON, history_filter_ender_pearl_model, "history/filter");
     public static final InventoryModel history_filter_plugin_model             = new InventoryModel(Material.OAK_BUTTON, history_filter_command_model, "history/filter");
@@ -127,10 +146,10 @@ public class TPortInventories {
     
     public static final InventoryModel world_tp_model                          = new InventoryModel(Material.OAK_BUTTON, history_filter_plugin_tport_model, "world_tp");
     public static final InventoryModel world_tp_grayed_model                   = new InventoryModel(Material.OAK_BUTTON, world_tp_model, "world_tp");
-    public static final InventoryModel world_tp_overworld_model = new InventoryModel(Material.STONE,      world_tp_grayed_model, "world_tp");
-    public static final InventoryModel world_tp_nether_model = new InventoryModel(Material.NETHERRACK, world_tp_overworld_model, "world_tp");
-    public static final InventoryModel world_tp_the_end_model = new InventoryModel(Material.END_STONE, world_tp_nether_model, "world_tp");
-    public static final InventoryModel world_tp_other_environments_model = new InventoryModel(Material.GLOWSTONE, world_tp_the_end_model, "world_tp");
+    public static final InventoryModel world_tp_overworld_model                = new InventoryModel(Material.STONE,      world_tp_grayed_model, "world_tp");
+    public static final InventoryModel world_tp_nether_model                   = new InventoryModel(Material.NETHERRACK, world_tp_overworld_model, "world_tp");
+    public static final InventoryModel world_tp_the_end_model                  = new InventoryModel(Material.END_STONE, world_tp_nether_model, "world_tp");
+    public static final InventoryModel world_tp_other_environments_model       = new InventoryModel(Material.GLOWSTONE, world_tp_the_end_model, "world_tp");
     public static final int last_model_id = world_tp_other_environments_model.getCustomModelData();
     
     public static void openMainTPortGUI(Player player) {
@@ -893,10 +912,11 @@ public class TPortInventories {
         
         List<ItemStack> items;
         if (prevWindow == null) {
-            items = new ArrayList<>();
-            
-            int index = 0;
             ArrayList<HistoryElement> history = teleportHistory.getOrDefault(player.getUniqueId(), new ArrayList<>());
+            
+            items = new ArrayList<>(history.size());
+            int index = 0;
+            
             for (HistoryElement element : history) {
                 index++;
                 
@@ -908,7 +928,7 @@ public class TPortInventories {
                 
                 LocationSource newLocation = element.newLocation();
                 LocationSource newLocationLoc = null;
-                if (newLocation instanceof CraftLocationSource) {
+                if (!(newLocation instanceof CraftLocationSource)) {
                     newLocationLoc = new CraftLocationSource();
                     newLocationLoc.setLocation(newLocation.getLocation(player));
                 }
@@ -923,8 +943,43 @@ public class TPortInventories {
                 Message cause = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.cause", element.cause());
                 Message plugin = null;
                 if (element.application() != null) plugin = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.plugin", element.application());
+                Message type = null;
+                if (newLocation.getType() != null) type = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.type", newLocation.getType());
                 
-                setCustomItemData(is, colorTheme, elementTitle, Arrays.asList(from, to, to2, cause, plugin));
+                setCustomItemData(is, colorTheme, elementTitle, Arrays.asList(from, to, to2, cause, plugin, type));
+                
+//                ItemMeta im = is.getItemMeta();
+//                im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "historyIndex"), PersistentDataType.INTEGER, index -1);
+//
+//                addFunction(im, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+//                    ArrayList<HistoryElement> innerHistory = teleportHistory.getOrDefault(player.getUniqueId(), new ArrayList<>());
+//                    int innerIndex = pdc.get(new NamespacedKey(Main.getInstance(), "historyIndex"), PersistentDataType.INTEGER);
+//                    HistoryElement historyElement = innerHistory.get(innerIndex);
+//
+//                    boolean safetyCheck = false;
+//                    Location loc = historyElement.oldLocation();
+//                    if (!safetyCheck || SafetyCheck.isSafe(loc)) {//todo fix message
+//                        requestTeleportPlayer(whoClicked, loc,
+//                                () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.back.FEATURE.to.succeeded"),
+//                                (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.back.FEATURE.to.tpRequested", delay, tickMessage, seconds, secondMessage));
+//                    } else {
+//                        sendErrorTranslation(whoClicked, "tport.command.back.FEATURE.to.notSafe");
+//                    }
+//                }));
+//                addFunction(im, SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+//
+//                }));
+//                addFunction(im, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+//                    ArrayList<HistoryElement> innerHistory = teleportHistory.getOrDefault(player.getUniqueId(), new ArrayList<>());
+//                    int innerIndex = pdc.get(new NamespacedKey(Main.getInstance(), "historyIndex"), PersistentDataType.INTEGER);
+//                    HistoryElement historyElement = innerHistory.get(innerIndex);
+//
+//                    historyElement.newLocation().teleportToLocation(whoClicked, false);
+//                }));
+//                addFunction(im, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+//
+//                }));
+//                is.setItemMeta(im);
                 
                 // todo on left click teleport to old
                 // todo on right click teleport to new
@@ -935,6 +990,7 @@ public class TPortInventories {
                 items.add(is);
             }
             
+            items = items.reversed();
         } else {
             items = prevWindow.getData("historyItems", List.class);
         }
@@ -976,8 +1032,8 @@ public class TPortInventories {
         
         for (String filter : HistoryFilter.getFilters()) {
             ItemStack is;
-            if (filter.startsWith(HistoryFilter.pluginPrefix)) {
-                String plugin = filter.substring(HistoryFilter.pluginPrefix.length());
+            if (filter.startsWith(HistoryFilter.PLUGIN_PREFIX)) {
+                String plugin = filter.substring(HistoryFilter.PLUGIN_PREFIX.length());
                 is = TeleportHistory.pluginFilterModels.getOrDefault(plugin, history_filter_unknown_model).getItem(player);
             } else {
                 is = (switch (filter) {

@@ -6,19 +6,14 @@ import com.spaceman.tport.fancyMessage.TextType;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
-import com.spaceman.tport.history.locationSource.LocationSource;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
 
-public class BiomeEncapsulation extends LocationSource {
+public class BiomeEncapsulation implements Encapsulation {
     
-    private final String biome;
-    
-    private Location biomeLoc = null;
+    protected final String biome;
     
     public BiomeEncapsulation(String biome) {
         this.biome = biome.toLowerCase();
@@ -29,6 +24,7 @@ public class BiomeEncapsulation extends LocationSource {
         return biome;
     }
     
+    @Nonnull
     public Message toMessage(String color, String varColor) {
         if (biome.equals("random")) {
             return new Message(new TextComponent("biome.minecraft.random", varColor).setType(TextType.TRANSLATE));
@@ -56,18 +52,7 @@ public class BiomeEncapsulation extends LocationSource {
     }
     
     @Override
-    @Nullable
-    public Location getLocation(Player player) {
-        return biomeLoc;
-    }
-    
-    @Override
-    public void setLocation(Location location) {
-        this.biomeLoc = location;
-    }
-    
-    @Override
-    public void teleportToLocation(Player player, boolean safetyCheck) {
-    
+    public String getInsertion() {
+        return biome;
     }
 }

@@ -6,7 +6,7 @@
   "overrides": [
     {
       "predicate": {
-        "custom_model_data": 5145618
+        "custom_model_data": 5145636
       },
       "model": "tport:item/quick_edit_move_empty_slot"
     }
