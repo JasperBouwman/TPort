@@ -217,32 +217,38 @@ public abstract class AdaptiveFeatureTP extends TPortAdapter {
         WorldServer worldServer = (WorldServer) getWorldServer(world);
         IRegistry<Structure> structureRegistry = getStructureRegistry(worldServer);
         
-        List<String> tags = getTags(structureRegistry).map((tagKey) -> {
-            try {
-                return getPathFromMinecraftKey(getMinecraftKeyFromTag(tagKey.getFirst()));
-            } catch (Throwable e) {
-                return null;
-            }
-        }).filter(Objects::nonNull).toList();
-        
-        for (String tagKeyName : tags) {
-            TagKey<Structure> tagKey = TagKey.a(getStructureResourceKey(), AdaptiveReflectionManager.getMinecraftKey(tagKeyName)); //todo finish reflection
+        AdaptiveReflectionManager.l(structureRegistry).forEach( (named) -> {
             
-            Optional<HolderSet.Named<Structure>> optional = getTag(structureRegistry, tagKey);
-            if (optional.isPresent()) {
-                HolderSet.Named<Structure> named = optional.get();
-                Stream<Holder<Structure>> values = ReflectionManager.get(Stream.class, named);
-                
-                List<String> features = values
-                        .map((holder) -> holder.a())
-                        .map(structureRegistry::b)
-                        .filter(Objects::nonNull)
-                        .map((key) -> key.a().toLowerCase())
-                        .toList();
-                
-                list.add(new com.spaceman.tport.Pair<>("#" + tagKeyName.toLowerCase(), features));
+            Stream<Holder<Structure>> values;
+            try {
+                values = ReflectionManager.get(Stream.class, named);
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
-        }
+            
+            List<String> features = values.map(holder -> {
+                MinecraftKey key;
+                try {
+                    key = getKeyFromRegistry(structureRegistry, holder);
+                } catch (InvocationTargetException | IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+                if (key != null) {
+                    return getPathFromMinecraftKey(key).toLowerCase();
+                }
+                return null;
+            }).filter(Objects::nonNull).toList();
+            
+            String tagKeyName;
+            try {
+                tagKeyName = getPathFromMinecraftKey(minecraftKey(key(named))).toLowerCase();
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+            
+            list.add(new com.spaceman.tport.Pair<>("#" + tagKeyName.toLowerCase(), features));
+            
+        });
         return list;
     }
 }

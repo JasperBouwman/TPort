@@ -98,6 +98,23 @@ public class AdaptiveReflectionManager {
     public static Set<Holder<BiomeBase>> getGeneratedBiomes(WorldChunkManager worldChunkManager) throws InvocationTargetException, IllegalAccessException {
         return ReflectionManager.get(Set.class, worldChunkManager);
     }
+    public static <T> Stream<HolderSet.Named<T>> l(IRegistry<T> registry) throws InvocationTargetException, IllegalAccessException {
+        for (Method m : registry.getClass().getMethods()) {
+            if (!m.getReturnType().equals(Stream.class)) continue;
+            if (!m.getGenericReturnType().getTypeName().contains("HolderSet")) continue;
+            
+            if (m.getParameterCount() == 0) {
+                return (Stream<HolderSet.Named<T>>) m.invoke(registry);
+            }
+        }
+        return Stream.empty();
+    }
+    public static <T> TagKey<T> key(HolderSet.Named<T> named) throws InvocationTargetException, IllegalAccessException {
+        return ReflectionManager.get(TagKey.class, named);
+    }
+    public static <T> MinecraftKey minecraftKey(TagKey<T> tagKey) throws InvocationTargetException, IllegalAccessException {
+        return ReflectionManager.get(MinecraftKey.class, tagKey);
+    }
     public static <T> Stream<Pair<TagKey<T>, HolderSet.Named<T>>> getTags(IRegistry<T> registry) throws InvocationTargetException, IllegalAccessException {
         for (Method m : registry.getClass().getMethods()) {
             if (!m.getReturnType().equals(Stream.class)) continue;

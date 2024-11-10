@@ -8,7 +8,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: |
+
+#      - name: setup java 21
+#        uses: actions/setup-java@v4
+#        with:
+#          java-version: '21'
+#          distribution: 'temurin'
+#      - name: compile TPort without adapters
+#        run: mvn -f .\tport\pom.xml clean compile
+#      - name: compile and execute texture pack generator
+#        run: mvn -f .\texture_generator\pom.xml clean compile exec:java
+
+      - name: zip packs
+        run: |
           cd 'resource pack/src (16x)_dark'
           zip -r TPort_16x_dark.zip .
           cd '../src (32x)_dark'

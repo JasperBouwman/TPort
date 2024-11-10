@@ -142,9 +142,10 @@ public class TPortInventories {
     public static final InventoryModel history_filter_unknown_model            = new InventoryModel(Material.OAK_BUTTON, history_filter_exit_bed_model, "history/filter");
     public static final InventoryModel history_filter_none_model               = new InventoryModel(Material.OAK_BUTTON, history_filter_unknown_model, "history/filter");
     public static final InventoryModel history_filter_plugin_tport_model       = new InventoryModel(Material.OAK_BUTTON, history_filter_none_model, "history/filter");
+    public static final InventoryModel history_clear_model                     = new InventoryModel(Material.OAK_BUTTON, history_filter_plugin_tport_model, "history/filter");
     
     
-    public static final InventoryModel world_tp_model                          = new InventoryModel(Material.OAK_BUTTON, history_filter_plugin_tport_model, "world_tp");
+    public static final InventoryModel world_tp_model                          = new InventoryModel(Material.OAK_BUTTON, history_clear_model, "world_tp");
     public static final InventoryModel world_tp_grayed_model                   = new InventoryModel(Material.OAK_BUTTON, world_tp_model, "world_tp");
     public static final InventoryModel world_tp_overworld_model                = new InventoryModel(Material.STONE,      world_tp_grayed_model, "world_tp");
     public static final InventoryModel world_tp_nether_model                   = new InventoryModel(Material.NETHERRACK, world_tp_overworld_model, "world_tp");
@@ -903,11 +904,12 @@ public class TPortInventories {
         JsonObject playerLang = getPlayerLang(player);
         
         if (filter != null) {
-            filter = HistoryFilter.exist(filter);
-            if (filter == null) {
-                sendErrorTranslation(player, "no filter");
+            String filter2 = HistoryFilter.exist(filter);
+            if (filter2 == null) {
+                sendErrorTranslation(player, "tport.tportInventories.openHistory.filterNotFound", filter);
                 return;
             }
+            filter = filter2;
         }
         
         List<ItemStack> items;
@@ -926,16 +928,16 @@ public class TPortInventories {
                 
                 ItemStack is = Main.getOrDefault(element.inventoryModel(), history_element_model).getItem(player);
                 
-                LocationSource newLocation = element.newLocation();
+                LocationSource newLocationSource = element.newLocation();
                 LocationSource newLocationLoc = null;
-                if (!(newLocation instanceof CraftLocationSource)) {
+                if (!(newLocationSource instanceof CraftLocationSource)) {
                     newLocationLoc = new CraftLocationSource();
-                    newLocationLoc.setLocation(newLocation.getLocation(player));
+                    newLocationLoc.setLocation(newLocationSource.getLocation(player));
                 }
                 LocationSource oldLocation = new CraftLocationSource(element.oldLocation());
-                Message elementTitle = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.title", index, oldLocation, newLocation, element.cause(), element.application());
+                Message elementTitle = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.title", index, oldLocation, newLocationSource, element.cause(), element.application());
                 Message from = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.from", oldLocation);
-                Message to = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.to", newLocation);
+                Message to = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.to", newLocationSource);
                 Message to2 = null;
                 if (newLocationLoc != null) {
                     to2 = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.to", newLocationLoc);
@@ -944,48 +946,37 @@ public class TPortInventories {
                 Message plugin = null;
                 if (element.application() != null) plugin = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.plugin", element.application());
                 Message type = null;
-                if (newLocation.getType() != null) type = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.type", newLocation.getType());
+                if (newLocationSource.getType() != null) type = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.type", newLocationSource.getType());
                 
-                setCustomItemData(is, colorTheme, elementTitle, Arrays.asList(from, to, to2, cause, plugin, type));
+                Message teleportNew = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.new", LEFT);
+                Message teleportNewInverted = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.new.inverted", SHIFT_LEFT, newLocationSource.getSafetyCheckState(player));
+                Message teleportOld = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.old", RIGHT);
+                Message teleportOldInverted = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.element.line.old.inverted", SHIFT_RIGHT, TPORT_BACK.getState(player));
                 
-//                ItemMeta im = is.getItemMeta();
-//                im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "historyIndex"), PersistentDataType.INTEGER, index -1);
-//
-//                addFunction(im, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
-//                    ArrayList<HistoryElement> innerHistory = teleportHistory.getOrDefault(player.getUniqueId(), new ArrayList<>());
-//                    int innerIndex = pdc.get(new NamespacedKey(Main.getInstance(), "historyIndex"), PersistentDataType.INTEGER);
-//                    HistoryElement historyElement = innerHistory.get(innerIndex);
-//
-//                    boolean safetyCheck = false;
-//                    Location loc = historyElement.oldLocation();
-//                    if (!safetyCheck || SafetyCheck.isSafe(loc)) {//todo fix message
-//                        requestTeleportPlayer(whoClicked, loc,
-//                                () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.back.FEATURE.to.succeeded"),
-//                                (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.back.FEATURE.to.tpRequested", delay, tickMessage, seconds, secondMessage));
-//                    } else {
-//                        sendErrorTranslation(whoClicked, "tport.command.back.FEATURE.to.notSafe");
-//                    }
-//                }));
-//                addFunction(im, SHIFT_LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
-//
-//                }));
-//                addFunction(im, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
-//                    ArrayList<HistoryElement> innerHistory = teleportHistory.getOrDefault(player.getUniqueId(), new ArrayList<>());
-//                    int innerIndex = pdc.get(new NamespacedKey(Main.getInstance(), "historyIndex"), PersistentDataType.INTEGER);
-//                    HistoryElement historyElement = innerHistory.get(innerIndex);
-//
-//                    historyElement.newLocation().teleportToLocation(whoClicked, false);
-//                }));
-//                addFunction(im, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
-//
-//                }));
-//                is.setItemMeta(im);
+                setCustomItemData(is, colorTheme, elementTitle, Arrays.asList(from, to, to2, cause, plugin, type, new Message(), teleportNew, teleportNewInverted, teleportOld, teleportOldInverted));
                 
-                // todo on left click teleport to old
-                // todo on right click teleport to new
-                // todo on shift + left click preview to old
-                // todo on shift + right click preview to new
-                // todo safety check
+                ItemMeta im = is.getItemMeta();
+                im.getPersistentDataContainer().set(new NamespacedKey(Main.getInstance(), "historyIndex"), PersistentDataType.INTEGER, index -1);
+                
+                addFunction(im, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                    ArrayList<HistoryElement> innerHistory = teleportHistory.getOrDefault(whoClicked.getUniqueId(), new ArrayList<>());
+                    int innerIndex = pdc.get(new NamespacedKey(Main.getInstance(), "historyIndex"), PersistentDataType.INTEGER);
+                    HistoryElement historyElement = innerHistory.get(innerIndex);
+                    
+                    com.spaceman.tport.commands.tport.history.Back.run(historyElement, whoClicked, clickType.isShiftClick());
+                }), RIGHT, SHIFT_RIGHT);
+                
+                addFunction(im, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                    ArrayList<HistoryElement> innerHistory = teleportHistory.getOrDefault(whoClicked.getUniqueId(), new ArrayList<>());
+                    int innerIndex = pdc.get(new NamespacedKey(Main.getInstance(), "historyIndex"), PersistentDataType.INTEGER);
+                    HistoryElement historyElement = innerHistory.get(innerIndex);
+                    
+                    com.spaceman.tport.commands.tport.history.TmpName.run(historyElement, whoClicked, clickType.isShiftClick());
+                }), LEFT, SHIFT_LEFT);
+                is.setItemMeta(im);
+                
+                // todo on drop preview to old
+                // todo on control+drop preview to new
                 
                 items.add(is);
             }
@@ -1008,6 +999,13 @@ public class TPortInventories {
             openHistoryFilter(whoClicked, 0, fancyInventory);
         }));
         inv.setItem(inv.getSize() - 9, filterSelection);
+        
+        ItemStack clearHistory = history_clear_model.getItem(player);
+        Message clearTitle = formatInfoTranslation(playerLang, "tport.tportInventories.openHistory.clearHistory.title");
+        setCustomItemData(clearHistory, colorTheme, clearTitle, null);
+        addCommand(clearHistory, LEFT, "tport history clear");
+        addFunction(clearHistory, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openHistory(whoClicked));
+        inv.setItem(0, clearHistory);
         
         inv.open(player);
     }

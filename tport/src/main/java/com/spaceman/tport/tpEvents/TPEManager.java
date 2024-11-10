@@ -269,7 +269,7 @@ public class TPEManager {
     }
     
     
-    private static void teleportPlayer(@Nullable Player player, Location l) {
+    public static void teleportPlayer(@Nullable Player player, Location l) {
         if (player == null) return;
         
         ArrayList<LivingEntity> slaves = new ArrayList<>();

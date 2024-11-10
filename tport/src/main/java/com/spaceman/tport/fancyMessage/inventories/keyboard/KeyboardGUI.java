@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.spaceman.tport.fancyMessage.MessageUtils.setCustomItemData;
@@ -58,6 +59,7 @@ public class KeyboardGUI {
     private static final FancyInventory.DataName<Color> colorDataType = new FancyInventory.DataName<>("color", Color.class, new Color(255, 255, 255));
     private static final FancyInventory.DataName<Boolean> editColorDataTye = new FancyInventory.DataName<>("editColor", Boolean.class);
     private static final FancyInventory.DataName<String> defColorDataType = new FancyInventory.DataName<>("defColor", String.class, "#ffffff");
+    private static final FancyInventory.DataName<ArrayList> colorFadeColorsDataType = new FancyInventory.DataName<>("colorFadeColors", ArrayList.class, new ArrayList<>());
     
     public static String getKeyboardOutput(FancyInventory inv) {
         return inv.getData(outputStorage);
@@ -923,7 +925,7 @@ public class KeyboardGUI {
                 thisMessage = translateMessage(thisMessage, playerLang);
                 
                 lore.add(formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.editColor.title", RIGHT, thisMessage));
-                addFunction(openColor, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                addFunction(openColor, RIGHT, (whoClicked, clickType, pdc, fancyInventory) -> {
                     String innerTypedString = getKeyboardOutput(fancyInventory);
                     ArrayList<String> innerTypedArray = MessageUtils.transformColoredTextToArray(innerTypedString);
                     
@@ -932,10 +934,10 @@ public class KeyboardGUI {
                     fancyInventory.setData(colorDataType, innerColor);
                     fancyInventory.setData(editColorDataTye, true);
                     openColorKeyboard(whoClicked, fancyInventory);
-                }));
+                });
                 
                 lore.add(formatInfoTranslation(playerLang, "tport.fancyMessage.inventories.KeyboardGUI.removeColor.title", SHIFT_RIGHT, thisMessage));
-                addFunction(openColor, SHIFT_RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                addFunction(openColor, SHIFT_RIGHT, (whoClicked, clickType, pdc, fancyInventory) -> {
                     String innerTypedString = getKeyboardOutput(fancyInventory);
                     ArrayList<String> innerTypedArray = MessageUtils.transformColoredTextToArray(innerTypedString);
                     
@@ -961,18 +963,74 @@ public class KeyboardGUI {
                     fancyInventory.setData(cursorIndexDataType, Math.max(0, cursorIndex - colorLength));
                     fancyInventory.setData(outputStorage, String.join("", innerTypedArray));
                     updateKeyboardTitle(whoClicked, fancyInventory);
-                }));
+                });
+                
+                addFunction(openColor, DROP, (whoClicked, clickType, pdc, fancyInventory) -> {
+                    String innerTypedString = getKeyboardOutput(fancyInventory);
+                    ArrayList<String> innerTypedArray = MessageUtils.transformColoredTextToArray(innerTypedString);
+                    
+                    StringBuilder typedText = new StringBuilder();
+                    for (String s : innerTypedArray) {
+                        if (!MultiColor.isColor(s)) {
+                            typedText.append(s);
+                        }
+                    }
+                    
+                    openColorFadeKeyboard(whoClicked, null, typedText.toString(), fancyInventory);
+                });
+//                addFunction(openColor, CONTROL_DROP, (whoClicked, clickType, pdc, fancyInventory) -> {
+//                    String innerTypedString = getKeyboardOutput(fancyInventory);
+//                    ArrayList<String> innerTypedArray = MessageUtils.transformColoredTextToArray(innerTypedString);
+//
+//                    ArrayList<MultiColor> colors = new ArrayList<>();
+//                    StringBuilder typedText = new StringBuilder();
+//                    for (String s : innerTypedArray) {
+//                        if (MultiColor.isColor(s)) {
+//                            colors.add(new MultiColor(s));
+//                        } else {
+//                            typedText.append(s);
+//                        }
+//                    }
+//
+//                    openColorFadeKeyboard(whoClicked, colors, typedText.toString(), fancyInventory);
+//                });
             }
             
-            addFunction(openColor, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            addFunction(openColor, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> {
                 fancyInventory.setData(editColorDataTye, false);
                 openColorKeyboard(whoClicked, fancyInventory);
-            }));
+            });
         }
         
         setCustomItemData(openColor, colorTheme, openColorTitle, lore);
         keyboard.setItem(48, openColor);
     }
+    
+    public static void openColorFadeKeyboard(Player player, ArrayList<MultiColor> colors, String typedText, @Nonnull FancyInventory keyboard) {
+        /*
+                ^
+         +-+-+-O
+         +-+-+-O
+         +-+-+-O
+        X      ✓˅
+        
+        O
+            LEFT    - open internal color selection
+            RIGHT   - remove color from list
+         */
+        
+//        ArrayList<MultiColor> colors = keyboard.getData(colorFadeColorsDataType);
+        
+        ItemStack accept = new ItemStack(Material.DIAMOND_BLOCK);
+        addFunction(accept, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> {
+            ArrayList<MultiColor> innerColors = fancyInventory.getData(colorFadeColorsDataType);
+            
+            Message newText = MessageUtils.createColorGradient("text", innerColors);
+            String s = newText.getText().stream().map(textComponent -> textComponent.getColor() + textComponent.getText()).collect(Collectors.joining());
+        });
+        
+    }
+    
     
     public static FancyInventory openKeyboard(Player player, @Nonnull FancyClickRunnable onAccept, @Nullable FancyClickRunnable onReject) {
         return openKeyboard(player, onAccept, onReject, ALL);

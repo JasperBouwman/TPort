@@ -10,17 +10,17 @@ import java.util.List;
 
 public class HistoryFilter {
     
-//    private static HashMap<String, Pair<InventoryModel, Filter>> historyFilters = new HashMap<>();
-//
-//    @FunctionalInterface
-//    public interface Filter {
-//        boolean matches(String cause);
-//    }
-//
-//    public static void registerFilter(String name, InventoryModel inventoryModel) {
-//
-//    }
-    
+    /*
+    * filters:
+    *
+    * collection of teleport causes
+    * boat
+    * chest boat
+    * minecart
+    * collection of plugins
+    * todo for each plugin, collection of types
+    *
+    * */
     
     
     public static final String PLUGIN_PREFIX = "PLUGIN:";

@@ -1,11 +1,12 @@
 package com.spaceman.tport.history.locationSource;
 
-import com.spaceman.tport.commands.tport.SafetyCheck;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
+import com.spaceman.tport.fancyMessage.language.Language;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -13,8 +14,8 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTranslation;
+import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_BACK;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.inventories.TPortInventories.history_element_death_model;
 import static com.spaceman.tport.tpEvents.TPEManager.requestTeleportPlayer;
 
@@ -65,14 +66,16 @@ public class DeathLocationSource implements LocationSource {
     public void setLocation(Location location) { }
     
     @Override
-    public void teleportToLocation(Player player, boolean safetyCheck) { //todo fix message
-        if (!safetyCheck || SafetyCheck.isSafe(location)) {
-            requestTeleportPlayer(player, location,
-                    () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.back.BIOME.to.succeeded", "super.biome"),
-                    (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.back.BIOME.to.tpRequested", "super.biome", delay, tickMessage, seconds, secondMessage));
-        } else {
-            sendErrorTranslation(player, "tport.command.back.BIOME.to.notSafe", "super.biome");
-        }
+    public void teleportToLocation(Player player) { //todo fix message
+        Message death = formatTranslation(ColorTheme.ColorType.varInfoColor, ColorTheme.ColorType.varInfoColor, "tport.history.locationSource.DeathLocationSource.teleportToLocation.death").translateMessage(Language.getPlayerLang(player));
+        requestTeleportPlayer(player, location,
+                () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.history.locationSource.DeathLocationSource.teleportToLocation.succeeded", death),
+                (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.history.locationSource.DeathLocationSource.teleportToLocation.tpRequested", death, delay, tickMessage, seconds, secondMessage));
+    }
+    
+    @Override
+    public void notSafeToTeleport(Player player) {
+        sendErrorTranslation(player, "tport.history.locationSource.DeathLocationSource.notSafeToTeleport");
     }
     
     @Override
@@ -84,6 +87,11 @@ public class DeathLocationSource implements LocationSource {
     @Nullable
     public String getType() {
         return "DeathTP";
+    }
+    
+    @Override
+    public boolean getSafetyCheckState(Player player) {
+        return TPORT_BACK.getState(player);
     }
 
 }

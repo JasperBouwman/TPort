@@ -818,9 +818,11 @@ public class QuickEditInventories {
                         if (innerItem.toString().equals(innerItemData)) {
                             Item.setTPortDisplayItem(whoClicked, fancyInventory.getData(tportDataName), innerItem, clickType == RIGHT);
                             openQuickEditSelection(whoClicked, 0, fancyInventory.getData(tportDataName).getTportID());
-                            break;
+                            return;
                         }
                     }
+                    sendErrorTranslation(whoClicked, "tport.quickEditInventories.openTPortItemGUI.itemNotFound");
+                    openTPortItemGUI(whoClicked, fancyInventory.getData(tportDataName));
                 }), LEFT, RIGHT);
                 
                 items.add(is);

@@ -6,7 +6,7 @@
   "overrides": [
     {
       "predicate": {
-        "custom_model_data": 5145621
+        "custom_model_data": 5145622
       },
       "model": "tport:item/world_tp_other_environments"
     }

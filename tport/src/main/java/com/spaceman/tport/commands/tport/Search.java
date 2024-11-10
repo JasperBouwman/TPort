@@ -229,7 +229,7 @@ public class Search extends SubCommand {
             searchType.setQuery("biome", true, false,
                     ((args, player) -> {
                         List<String> biomeList = Arrays.asList(args).subList(2, args.length).stream().map(String::toUpperCase).toList();
-                        return Arrays.stream(Biome.values()).map(Enum::name).filter(name -> !biomeList.contains(name)).collect(Collectors.toList());
+                        return Arrays.stream(Biome.values()).map(Biome::name).filter(name -> !biomeList.contains(name)).collect(Collectors.toList());
                     }),
                     ((player) -> {
                         ArrayList<ItemStack> items = new ArrayList<>();

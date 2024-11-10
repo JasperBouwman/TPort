@@ -51,9 +51,12 @@ public class IgnoreLocationSource implements LocationSource {
     public void setLocation(Location location) { }
     
     @Override
-    public void teleportToLocation(Player player, boolean safetyCheck) {
+    public void teleportToLocation(Player player) {
         // not used
     }
+    
+    @Override
+    public void notSafeToTeleport(Player player) { }
     
     @Nullable
     @Override
@@ -65,5 +68,10 @@ public class IgnoreLocationSource implements LocationSource {
     @Override
     public String getType() {
         return null;
+    }
+    
+    @Override
+    public boolean getSafetyCheckState(Player player) {
+        return false;
     }
 }

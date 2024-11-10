@@ -10,6 +10,8 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
 
+import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_BACK;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.inventories.TPortInventories.history_element_world_tp_model;
 
 public class WorldLocationSource extends WorldEncapsulation implements LocationSource {
@@ -30,9 +32,15 @@ public class WorldLocationSource extends WorldEncapsulation implements LocationS
     public void setLocation(Location location) { }
     
     @Override
-    public void teleportToLocation(Player player, boolean safetyCheck) { //todo add safetyCheck
-        Bukkit.dispatchCommand(player, "tport world " + world);
-//        Bukkit.dispatchCommand(player, "tport world " + world + " " + safetyCheck);
+    public void teleportToLocation(Player player) { //todo add safetyCheck
+        String command = "tport world " + this.world;
+//        if (safetyCheck != null) command += " " + safetyCheck;
+        Bukkit.dispatchCommand(player, command);
+    }
+    
+    @Override
+    public void notSafeToTeleport(Player player) {
+        sendErrorTranslation(player, "tport.history.locationSource.WorldLocationSource.notSafeToTeleport");
     }
     
     @Override
@@ -44,6 +52,11 @@ public class WorldLocationSource extends WorldEncapsulation implements LocationS
     @Nullable
     public String getType() {
         return "WorldTP";
+    }
+    
+    @Override
+    public boolean getSafetyCheckState(Player player) {
+        return TPORT_BACK.getState(player); // todo add safety check
     }
     
 }

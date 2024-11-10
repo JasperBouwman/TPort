@@ -62,7 +62,7 @@ public class Range extends SubCommand {
             try {
                 range = Integer.parseInt(args[3]);
             } catch (NumberFormatException nfe) {
-                sendErrorTranslation(player, "tport.command.edit.range.range.isOffered", args[3]);
+                sendErrorTranslation(player, "tport.command.edit.range.range.notANumber", args[3]);
                 return;
             }
             tport.setRange(range);

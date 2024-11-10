@@ -10,10 +10,16 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Size extends SubCommand {
     
+    private final EmptyCommand emptySize;
+    
     public Size() {
-        EmptyCommand emptySize = new EmptyCommand();
+        emptySize = new EmptyCommand();
         emptySize.setCommandName("size", ArgumentType.OPTIONAL);
+        emptySize.setCommandDescription(formatInfoTranslation("tport.command.history.size.size.commandDescription"));
+        emptySize.setPermissions("tport.history.size", "tport.admin");
         addAction(emptySize);
+        
+        setCommandDescription(formatInfoTranslation("tport.command.history.size.commandDescription"));
     }
     
     @Override
@@ -21,25 +27,29 @@ public class Size extends SubCommand {
         // tport history size [size]
         
         if (args.length == 2) {
-            sendInfoTranslation(player, "size %s", TeleportHistory.getHistorySize());
+            sendInfoTranslation(player, "tport.command.history.size.succeeded", TeleportHistory.getHistorySize());
         } else if (args.length == 3) {
+            
+            if (emptySize.hasPermissionToRun(player, true)) {
+                return;
+            }
             
             int size;
             try {
                 size = Integer.parseInt(args[2]);
             } catch (NumberFormatException nfe) {
-                sendErrorTranslation(player, "error");
+                sendErrorTranslation(player, "tport.command.history.size.size.notAValidNumber");
                 return;
             }
             
             if (size < 0) {
-                sendErrorTranslation(player, "too small");
+                sendErrorTranslation(player, "tport.command.history.size.size.smallerThan0");
             } else if (size == 0) {
-                sendErrorTranslation(player, "to disable use features");
+                sendErrorTranslation(player, "tport.command.history.size.size.disable", "/tport features History state false");
             }
             
             TeleportHistory.setHistorySize(size);
-            sendSuccessTranslation(player, "success");
+            sendSuccessTranslation(player, "tport.command.history.size.size.succeeded", TeleportHistory.getHistorySize());
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport history size [size]");
         }

@@ -189,7 +189,6 @@ public class SafetyCheck extends SubCommand {
             return "TPort.safetyCheck." + this.name();
         }
         public boolean hasPermission(Player player, boolean sendMessage) {
-            // todo add Feature.SafetyCheck.isEnabled
             if (Features.Feature.SafetyCheck.isDisabled()) {
                 if (sendMessage) Features.Feature.SafetyCheck.sendDisabledMessage(player);
                 return false;

@@ -1,6 +1,5 @@
 package com.spaceman.tport.history.locationSource;
 
-import com.spaceman.tport.commands.tport.SafetyCheck;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
@@ -15,6 +14,7 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_BACK;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTranslation;
 import static com.spaceman.tport.inventories.TPortInventories.history_element_look_model;
@@ -81,14 +81,15 @@ public class LookLocationSource implements LocationSource {
     }
     
     @Override
-    public void teleportToLocation(Player player, boolean safetyCheck) {//todo fix message
-        if (!safetyCheck || SafetyCheck.isSafe(location)) {
-            requestTeleportPlayer(player, location,
-                    () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.back.BIOME.to.succeeded", this.asString()),
-                    (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.back.BIOME.to.tpRequested", this.asString(), delay, tickMessage, seconds, secondMessage));
-        } else {
-            sendErrorTranslation(player, "tport.command.back.BIOME.to.notSafe", this.asString());
-        }
+    public void teleportToLocation(Player player) {//todo fix message
+        requestTeleportPlayer(player, location,
+                () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.history.locationSource.LookLocationSource.teleportToLocation.succeeded", this.asString()),
+                (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.history.locationSource.LookLocationSource.teleportToLocation.tpRequested", this.asString(), delay, tickMessage, seconds, secondMessage));
+    }
+    
+    @Override
+    public void notSafeToTeleport(Player player) {
+        sendErrorTranslation(player, "tport.history.locationSource.LookLocationSource.notSafeToTeleport", this.asString());
     }
     
     @Override
@@ -100,6 +101,11 @@ public class LookLocationSource implements LocationSource {
     @Nullable
     public String getType() {
         return "LookTP";
+    }
+    
+    @Override
+    public boolean getSafetyCheckState(Player player) {
+        return TPORT_BACK.getState(player);
     }
     
 }

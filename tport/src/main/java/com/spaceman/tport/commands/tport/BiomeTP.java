@@ -73,7 +73,7 @@ public class BiomeTP extends SubCommand {
                 legacyBiomeTP = true;
             }
         }
-        return Arrays.stream(Biome.values()).map(Enum::name).map(String::toLowerCase).collect(Collectors.toList());
+        return Arrays.stream(Biome.values()).map(Biome::name).map(String::toLowerCase).collect(Collectors.toList());
     }
     
     public static List<String> availableBiomes(World world) {

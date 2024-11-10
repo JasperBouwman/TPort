@@ -5,6 +5,8 @@
 /tport/target
 /texture_generator/target
 
+/adapters/*/target
+
 *.class
 
 # Mobile Tools for Java (J2ME)

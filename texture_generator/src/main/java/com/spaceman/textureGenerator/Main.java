@@ -304,6 +304,22 @@ public class Main {
                 System.out.println("Texture '" + texture.getName() + "' does not exist");
                 missingTextures = true;
             }
+            
+            File textureMCMeta = new File(path + "/icons/" + packDir + "/" + model.name + ".png.mcmeta");
+            if (textureMCMeta.exists()) {
+                try {
+                    File newFile;
+                    if (model.subDir == null) {
+                        newFile = new File(outputDirectory, model.name + ".png.mcmeta");
+                    } else {
+                        newFile = new File(outputDirectory, model.subDir + "/" + model.name + ".png.mcmeta");
+                    }
+                    FileUtils.copyFile(textureMCMeta, newFile);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            
         }
         
         File packPNG = new File(path + "/icons/" + packDir + "/pack.png");

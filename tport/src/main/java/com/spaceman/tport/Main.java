@@ -186,6 +186,8 @@ public class Main extends JavaPlugin {
          *
          * settings_features_permissions
          * settings_features_permissions_grayed
+         * settings_features_companion_tp
+         * settings_features_companion_tp_grayed
          * settings_features_tport_takes_item
          * settings_features_tport_takes_item_grayed
          * settings_search_owned_tports
@@ -255,6 +257,8 @@ public class Main extends JavaPlugin {
          *  - restriction
          *  - requests
          *
+         * unify how get/set commands handle permissions (logSize: tport.log.logSize, Delay: tport.delay.get.all)
+         *
          * Add minimalTPortBetweenTPortDistance. This helps owners protect their home, so no other can add a TPort and bypass the private state/range
          *
          * unify getPlayer in commands
@@ -283,6 +287,7 @@ public class Main extends JavaPlugin {
         Adapter.registerAdapter("1.20.6", "com.spaceman.tport.adapters.V1_20_6_Adapter");
         Adapter.registerAdapter("1.21", "com.spaceman.tport.adapters.V1_21_Adapter");
         Adapter.registerAdapter("1.21.1", "com.spaceman.tport.adapters.V1_21_Adapter");
+        Adapter.registerAdapter("1.21.3", "com.spaceman.tport.adapters.V1_21_3_Adapter");
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");

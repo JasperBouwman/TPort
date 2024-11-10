@@ -143,7 +143,7 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
 //      Containers<?> windowType = CraftContainer.getNotchInventoryType(inventory);
         Containers<?> windowType = (Containers<?>) craftContainer.getMethod("getNotchInventoryType", Inventory.class).invoke(null, inventory);
 //      getPlayerConnection(entityPlayer).a(new PacketPlayOutOpenWindow(container.j, windowType, chatSerializer));
-        sendPlayerPacket(player, new PacketPlayOutOpenWindow(container.j, windowType, chatSerializer));
+        sendPlayerPacket(player, new PacketPlayOutOpenWindow(container.l, windowType, chatSerializer));
 
 //      entityPlayer.bR = container;
         for (Field f : EntityHuman.class.getFields()) {
