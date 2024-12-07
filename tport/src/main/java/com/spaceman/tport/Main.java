@@ -3,6 +3,7 @@ package com.spaceman.tport;
 import com.spaceman.tport.adapters.TPortAdapter;
 import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.*;
+import com.spaceman.tport.commands.tport.Tag;
 import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
 import com.spaceman.tport.events.*;
@@ -30,10 +31,7 @@ import com.spaceman.tport.tpEvents.restrictions.WalkRestriction;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.webMaps.BlueMapHandler;
 import com.spaceman.tport.webMaps.DynmapHandler;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
@@ -195,6 +193,7 @@ public class Main extends JavaPlugin {
          * disabling biomes per player now is only by permissions
          * add server wide biome selection
          * add per player biome selection
+         * Add configurable mappings from Biome->Material
          * do this also for FeatureTP
          *
          * make markdown reader
@@ -207,8 +206,6 @@ public class Main extends JavaPlugin {
          *
          * add preview state: whitelist
          *
-         * Keyboard GUI -> color fade
-         *
          * create a friend list. use this friend list as option for all whitelists
          * /tport friends [add|remove|list]
          *
@@ -218,9 +215,6 @@ public class Main extends JavaPlugin {
          * unify EmptyCommand names
          *
          * add safetyCheck to /tport world <world> [safetyCheck]
-         *
-         * store server online/offline state
-         * show error when state changed
          *
          * add POI
          * bring featureTP and biomeTP closer together, feature/usage wise
@@ -236,10 +230,6 @@ public class Main extends JavaPlugin {
          * add TPort advancements
          *
          * Use World.locateNearestStructure as fallback for FeatureTP
-         *
-         * /tport history
-         * /tport history back
-         * /tport back -> tport history back ?
          *
          * redo the teleporter command
          * - use on items
@@ -288,6 +278,7 @@ public class Main extends JavaPlugin {
         Adapter.registerAdapter("1.21", "com.spaceman.tport.adapters.V1_21_Adapter");
         Adapter.registerAdapter("1.21.1", "com.spaceman.tport.adapters.V1_21_Adapter");
         Adapter.registerAdapter("1.21.3", "com.spaceman.tport.adapters.V1_21_3_Adapter");
+        Adapter.registerAdapter("1.21.4", "com.spaceman.tport.adapters.V1_21_4_Adapter");
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");
@@ -346,6 +337,20 @@ public class Main extends JavaPlugin {
         
         for (Player player : Bukkit.getOnlinePlayers()) {
             JoinEvent.setData(player);
+        }
+        
+        if (tportConfig.getConfig().contains("tport.onlineState")) {
+            if (tportConfig.getConfig().getBoolean("tport.onlineState") != Bukkit.getOnlineMode()) {
+                
+                if (Bukkit.getOnlineMode()) {
+                    this.getLogger().log(Level.WARNING, "When TPort was installed, the server was in offline mode. By changing this mode TPort will have unexpected behaviour. Players will lose their settings/TPorts");
+                } else {
+                    this.getLogger().log(Level.WARNING, "When TPort was installed, the server was in online mode. By changing this mode TPort will have unexpected behaviour. Players will lose their settings/TPorts");
+                }
+                
+            }
+        } else {
+            tportConfig.getConfig().set("tport.onlineState", Bukkit.getOnlineMode());
         }
         
         if (Features.Feature.Metrics.isEnabled()) {

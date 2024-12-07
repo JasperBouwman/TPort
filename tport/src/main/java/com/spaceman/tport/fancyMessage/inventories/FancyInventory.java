@@ -9,6 +9,7 @@ import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.language.Language;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -30,8 +31,8 @@ import static com.spaceman.tport.fancyMessage.language.Language.getPlayerLang;
 
 public class FancyInventory implements InventoryHolder {
     
-    public static final InventoryModel next_model = new InventoryModel(Material.HOPPER, 5145462, "navigation");
-    public static final InventoryModel previous_model = new InventoryModel(Material.FERN, 5145463, "navigation");
+    public static final InventoryModel next_model = new InventoryModel(Material.HOPPER, 5145462, "tport", "next", "navigation");
+    public static final InventoryModel previous_model = new InventoryModel(Material.FERN, 5145463, "tport", "previous", "navigation");
     
     public static final DataName<Integer> pageDataName = new DataName<>("page", Integer.class, 0);
     public static final DataName<Integer> totalPagesDataName = new DataName<>("totalPages", Integer.class, 0);

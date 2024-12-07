@@ -88,6 +88,9 @@ public class Adapter extends SubCommand {
             } else {
                 sendErrorTranslation(player, "tport.command.adapter.adapter.notLoading", adapterName, "adaptive");
             }
+            if (Features.Feature.PrintErrorsInConsole.isEnabled()) {
+                e.printStackTrace();
+            }
         }
         
         if (adapter == null) {

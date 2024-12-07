@@ -19,7 +19,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,14 +28,14 @@ import static com.google.gson.JsonParser.parseReader;
 
 public class Main {
     
-    private static final boolean deleteFolders = false;
+    private static final boolean deleteFolders = true;
     
     // .../texture_generator/target/classes/
     private static final String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
     
     private static final String outputDir = path + "/../../texture_output";
     
-    private static final int pack_format = 32;
+    private static final int pack_format = 46;
     
     private static final HashMap<Color, Color> lightColorMap = com.spaceman.tport.Main.asMap(
             new Pair<>(
@@ -66,14 +65,19 @@ public class Main {
                         Material material = inventoryModel.getMaterial();
                         String subDir = inventoryModel.getSubDir();
                         
+//                        String modelName = modelField.getName();
+                        System.out.println(modelField.getName());
+                        String modelName = inventoryModel.getNamespacedKey().getKey();
+                        if (modelName.endsWith(modelSuffix)) {
+                            modelName = modelName.substring(0, modelName.length() - modelSuffix.length());
+                        }
+                        
                         if (collectedModelData.contains(modelData)) {
-                            throw new IllegalArgumentException("Model data is already used: " + modelData + " (" + modelField.getName() + ")");
+                            throw new IllegalArgumentException("Model data is already used: " + modelData + " (" + modelName + ")");
                         }
                         collectedModelData.add(modelData);
-                        System.out.println(modelField.getName() + " " + modelData);
                         
-                        String modelName = modelField.getName();
-                        modelName = modelName.substring(0, modelName.length() - modelSuffix.length());
+                        System.out.println(modelField.getName() + " " + modelData);
                         
                         models.add( new Model(modelName.toLowerCase(), material, modelData, subDir));
                     } catch (IllegalAccessException e) {
@@ -194,6 +198,50 @@ public class Main {
         }
     }
     
+    private static void defineTPortModels(ArrayList<Model> models) {
+        HashMap<Model, JsonObject> tportJson = new HashMap<>();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        
+        for (Model model : models) {
+            JsonObject json = new JsonObject();
+            
+            JsonObject modelObject = new JsonObject();
+            modelObject.add("type", new JsonPrimitive("minecraft:model"));
+            modelObject.add("model", new JsonPrimitive("tport:item/" + model.name));
+            json.add("model", modelObject);
+            tportJson.put(model, json);
+        }
+        
+        File outputDirectory = new File(outputDir + "/assets/tport/items");
+        try {
+            if (deleteFolders) FileUtils.deleteDirectory(outputDirectory);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        outputDirectory.mkdirs();
+        
+        for (Map.Entry<Model, JsonObject> modelEntry : tportJson.entrySet()) {
+            
+            File outputFile = new File(outputDirectory.getAbsolutePath() + "/" + modelEntry.getKey().name + ".json");
+            try {
+                outputFile.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            
+            try {
+                FileWriter fileWriter = new FileWriter(outputFile);
+                try {
+                    fileWriter.write(gson.toJson(modelEntry.getValue()));
+                } finally {
+                    fileWriter.flush();
+                    fileWriter.close();
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+    }
     private static void createTPortModels(ArrayList<Model> models) {
         HashMap<Model, JsonObject> tportJson = new HashMap<>();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -406,6 +454,7 @@ public class Main {
         models.addAll( collectModels(SettingsInventories.class) );
         
         createMinecraftModels(models);
+        defineTPortModels(models);
         createTPortModels(models);
         
         createPack(models, "x32", "../resource pack/src (32x)_dark", false);

@@ -1,6 +1,7 @@
 package com.spaceman.tport.fancyMessage.inventories;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -12,26 +13,36 @@ import static com.spaceman.tport.commands.tport.ResourcePack.getResourcePackStat
 public class InventoryModel {
     
     private final Material material;
-    private final int customModelData;
     private String subDir = "";
     
-    public InventoryModel(Material material, int customModelData) {
+    private final int customModelData;
+    private NamespacedKey namespacedKey;
+    
+    public InventoryModel(Material material, int customModelData, String nameSpace, String key) {
         this.material = material;
         this.customModelData = customModelData;
+        createNameSpaceKey(nameSpace, key);
     }
-    public InventoryModel(Material material, InventoryModel previousModel) {
+    public InventoryModel(Material material, InventoryModel previousModel, String nameSpace, String key) {
         this.material = material;
         this.customModelData = previousModel.getCustomModelData() + 1;
+        createNameSpaceKey(nameSpace, key);
     }
-    public InventoryModel(Material material, int customModelData, String subDir) {
+    public InventoryModel(Material material, int customModelData, String nameSpace, String key, String subDir) {
         this.material = material;
         this.customModelData = customModelData;
+        createNameSpaceKey(nameSpace, key);
         this.subDir = subDir;
     }
-    public InventoryModel(Material material, InventoryModel previousModel, String subDir) {
+    public InventoryModel(Material material, InventoryModel previousModel, String nameSpace, String key, String subDir) {
         this.material = material;
         this.customModelData = previousModel.getCustomModelData() + 1;
+        createNameSpaceKey(nameSpace, key);
         this.subDir = subDir;
+    }
+    
+    private void createNameSpaceKey(String nameSpace, String key) {
+        this.namespacedKey = NamespacedKey.fromString( (nameSpace + ":" + key).toLowerCase() );
     }
     
     public ItemStack getItem(Player player) {
@@ -46,6 +57,10 @@ public class InventoryModel {
     public ItemStack setItem(Player player, ItemStack is) {
         applyModelData(is, this, player);
         return is;
+    }
+    
+    public NamespacedKey getNamespacedKey() {
+        return namespacedKey;
     }
     
     public Material getMaterial() {
@@ -76,7 +91,14 @@ public class InventoryModel {
         ItemMeta im = is.getItemMeta();
         if (im == null) return is;
         
-        im.setCustomModelData(modelData.getCustomModelData());
+        try {
+            im.setCustomModelData(modelData.getCustomModelData());
+        } catch (Exception ignore) { }
+        
+        try {
+            im.setItemModel(namespacedKey);
+        } catch (Exception ignore) { }
+        
         is.setItemMeta(im);
         
         return is;

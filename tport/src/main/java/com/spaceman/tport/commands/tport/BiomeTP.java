@@ -14,10 +14,7 @@ import com.spaceman.tport.fancyMessage.encapsulation.BiomeEncapsulation;
 import com.spaceman.tport.history.TeleportHistory;
 import com.spaceman.tport.history.locationSource.BiomeLocationSource;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.Player;
 
@@ -26,7 +23,7 @@ import javax.annotation.Nullable;
 import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.commands.tport.Back.prevTPorts;
@@ -73,7 +70,9 @@ public class BiomeTP extends SubCommand {
                 legacyBiomeTP = true;
             }
         }
-        return Arrays.stream(Biome.values()).map(Biome::name).map(String::toLowerCase).collect(Collectors.toList());
+        
+        return StreamSupport.stream(Registry.BIOME.spliterator(), false).map(b -> b.getKey().getKey().toLowerCase()).toList();
+//        return Arrays.stream(Biome.values()).map(Biome::name).map(String::toLowerCase).collect(Collectors.toList());
     }
     
     public static List<String> availableBiomes(World world) {
@@ -338,9 +337,11 @@ public class BiomeTP extends SubCommand {
             case "MANGROVE_SWAMP" -> "MANGROVE_LOG";
             case "DEEP_DARK" -> "SCULK";
             case "CHERRY_GROVE" -> "CHERRY_LOG";
+            case "PALE_GARDEN" -> "PALE_OAK";
             
             default -> "DIAMOND_BLOCK";
         };
+        
         return Main.getOrDefault(Material.getMaterial(materialName), Material.DIAMOND_BLOCK);
     }
     

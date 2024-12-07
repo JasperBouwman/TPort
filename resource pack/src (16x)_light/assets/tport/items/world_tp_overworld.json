@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "tport:item/world_tp_overworld"
+  }
+}

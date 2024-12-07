@@ -37,6 +37,7 @@ public class TextComponent implements Cloneable {
     public ArrayList<Message> translateWith = new ArrayList<>();
     public Message separator = new Message();
     private boolean ignoreTranslator = false;
+    private String shadowColor = null;
     
     public TextComponent() {
         this("", new MultiColor("#ffffff").getColorAsValue(), new ArrayList<>(), new ArrayList<>());
@@ -195,7 +196,7 @@ public class TextComponent implements Cloneable {
     public JsonObject translateJSON(ColorTheme theme) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty(type, getText());
-        jsonObject.addProperty("color", translateColor(theme));
+        jsonObject.addProperty("color", translateColor(theme, color));
         if (!Strings.isNullOrEmpty(insertion)) jsonObject.addProperty("insertion", insertion);
         
         Arrays.stream(Attribute.values()).forEach(attribute -> jsonObject.addProperty(attribute.name().toLowerCase(), (attributes.contains(attribute))));
@@ -217,9 +218,24 @@ public class TextComponent implements Cloneable {
             jsonObject.add("separator", separatorMessage);
         }
         
+        if (shadowColor != null) {
+            JsonArray colorsArray = new JsonArray();
+            MultiColor shadowMulti = new MultiColor(translateColor(theme, shadowColor));
+            colorsArray.add(shadowMulti.getColor().getAlpha());
+            colorsArray.add(shadowMulti.getColor().getRed());
+            colorsArray.add(shadowMulti.getColor().getGreen());
+            colorsArray.add(shadowMulti.getColor().getBlue());
+            jsonObject.add("shadow_color", colorsArray);
+        }
+        
         return jsonObject;
     }
     
+    public String translateColor(ColorTheme theme, String color) {
+        return Arrays.stream(ColorTheme.ColorType.values())
+                .filter(type -> type.name().equalsIgnoreCase(color))
+                .findFirst().map(type -> type.getColor(theme).getColorAsValue()).orElse(color);
+    }
     public String translateColor(ColorTheme theme) {
         return Arrays.stream(ColorTheme.ColorType.values())
                 .filter(type -> type.name().equalsIgnoreCase(color))
@@ -283,6 +299,35 @@ public class TextComponent implements Cloneable {
     
     public void setColor(ColorTheme.ColorType type) {
         this.color = type.name();
+    }
+    
+    
+    public String getShadowColor() {
+        return shadowColor;
+    }
+    
+    public void setShadowColor(ChatColor color) {
+        this.shadowColor = new MultiColor(color).getColorAsValue();
+    }
+    
+    public void setShadowColor(String color) {
+        if (Arrays.stream(ColorTheme.ColorType.values()).anyMatch(type -> type.name().equalsIgnoreCase(color))) {
+            this.shadowColor = color;
+        } else {
+            this.shadowColor = new MultiColor(color).getColorAsValue();
+        }
+    }
+    
+    public void setShadowColor(Color color) {
+        this.shadowColor = new MultiColor(color).getColorAsValue();
+    }
+    
+    public void setShadowColor(MultiColor color) {
+        this.shadowColor = color.getColorAsValue();
+    }
+    
+    public void setShadowColor(ColorTheme.ColorType type) {
+        this.shadowColor = type.name();
     }
     
     public List<Attribute> getAttributes() {
