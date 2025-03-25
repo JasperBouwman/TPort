@@ -17,6 +17,7 @@ import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.world.entity.player.EntityHuman;
 import net.minecraft.world.inventory.Container;
 import net.minecraft.world.inventory.Containers;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -40,6 +41,11 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
     
     private BlockPosition newBlockPosition(Location l) {
         return new BlockPosition(l.getBlockX(), l.getBlockY(), l.getBlockZ());
+    }
+    
+    @Override
+    public int JSONVersion() {
+        return -1;
     }
     
     @Override

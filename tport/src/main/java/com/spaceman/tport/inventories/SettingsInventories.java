@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.spaceman.tport.Glow;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
+import com.spaceman.tport.advancements.TPortAdvancementsModels;
 import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.*;
 import com.spaceman.tport.commands.tport.backup.Auto;
@@ -52,11 +53,12 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.*;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_PrettyColors;
 import static com.spaceman.tport.commands.tport.log.TimeFormat.defaultTimeFormat;
 import static com.spaceman.tport.fancyMessage.MessageUtils.setCustomItemData;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fancyMessage.events.ClickEvent.openUrl;
@@ -203,7 +205,9 @@ public class SettingsInventories {
     public static final InventoryModel settings_features_death_tp_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_death_tp_model, "tport", "settings_features_death_tp_grayed", "settings/features");
     public static final InventoryModel settings_features_look_tp_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_death_tp_grayed_model, "tport", "settings_features_look_tp", "settings/features");
     public static final InventoryModel settings_features_look_tp_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_look_tp_model, "tport", "settings_features_look_tp_grayed", "settings/features");
-    public static final InventoryModel settings_features_ensure_unique_uuid_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_look_tp_grayed_model, "tport", "settings_features_ensure_unique_uuid", "settings/features");
+    public static final InventoryModel settings_features_advancement_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_look_tp_grayed_model, "tport", "settings_features_advancement", "settings/features");
+    public static final InventoryModel settings_features_advancement_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_advancement_model, "tport", "settings_features_advancement_grayed", "settings/features");
+    public static final InventoryModel settings_features_ensure_unique_uuid_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_advancement_grayed_model, "tport", "settings_features_ensure_unique_uuid", "settings/features");
     public static final InventoryModel settings_features_ensure_unique_uuid_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_ensure_unique_uuid_model, "tport", "settings_features_ensure_unique_uuid_grayed", "settings/features");
     public static final InventoryModel settings_features_print_errors_in_console_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_ensure_unique_uuid_grayed_model, "tport", "settings_features_print_errors_in_console", "settings/features");
     public static final InventoryModel settings_features_print_errors_in_console_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_print_errors_in_console_model, "tport", "settings_features_print_errors_in_console_grayed", "settings/features");
@@ -301,7 +305,15 @@ public class SettingsInventories {
     public static final InventoryModel settings_search_world_other_worlds_model           = new InventoryModel(Material.OAK_BUTTON, settings_search_world_the_end_model, "tport", "settings_search_world_other_worlds", "settings/search");
     public static final InventoryModel settings_adapter_model                   = new InventoryModel(Material.OAK_BUTTON, settings_search_world_other_worlds_model, "tport", "settings_adapter", "settings/adapter");
     public static final InventoryModel settings_adapter_adapter_model           = new InventoryModel(Material.OAK_BUTTON, settings_adapter_model, "tport", "settings_adapter_adapter", "settings/adapter");
-    public static final int last_model_id = settings_adapter_adapter_model.getCustomModelData();
+    public static final InventoryModel settings_language_own_model          = new InventoryModel(Material.OAK_BUTTON, settings_adapter_adapter_model, "tport", "settings_language_own", "settings/language");
+    public static final InventoryModel settings_language_own_custom_model   = new InventoryModel(Material.OAK_BUTTON, settings_language_own_model, "tport", "settings_language_own_custom", "settings/language");
+    public static final InventoryModel settings_language_own_server_model   = new InventoryModel(Material.OAK_BUTTON, settings_language_own_custom_model, "tport", "settings_language_own_server", "settings/language");
+    public static final InventoryModel settings_language_own_language_model = new InventoryModel(Material.OAK_BUTTON, settings_language_own_server_model, "tport", "settings_language_own_language", "settings/language");
+    public static final InventoryModel settings_language_server_model       = new InventoryModel(Material.OAK_BUTTON, settings_language_own_language_model, "tport", "settings_language_server", "settings/language");
+    public static final InventoryModel settings_language_server_language_model = new InventoryModel(Material.OAK_BUTTON, settings_language_server_model, "tport", "settings_language_server_language", "settings/language");
+    public static final InventoryModel settings_language_repair_model       = new InventoryModel(Material.OAK_BUTTON, settings_language_server_language_model, "tport", "settings_language_repair", "settings/language");
+    
+    public static final int last_model_id = settings_language_repair_model.getCustomModelData();
     
     public static void openBackup_loadBackupGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
         ColorTheme colorTheme = ColorTheme.getTheme(player);
@@ -435,6 +447,7 @@ public class SettingsInventories {
             type.setColor(theme, new MultiColor(color));
             
             openTPortColorTheme_editTypeGUI(whoClicked, fancyInventory.getData("colorTypes", java.util.List.class));
+            Advancement_PrettyColors.grant(whoClicked);
         }
     }
     public static void openTPortColorTheme_editTypeGUI(Player player, List<ColorTheme.ColorType> colorTypes) {
@@ -614,6 +627,7 @@ public class SettingsInventories {
                 ColorTheme theme = fancyInventory.getData("colorTheme", ColorTheme.class);
                 type.setColor(theme, new MultiColor(c));
                 openTPortColorTheme_editTypeGUI(whoClicked, fancyInventory.getData("colorTypes", java.util.List.class));
+                Advancement_PrettyColors.grant(player);
             }));
             
             items.add(is);
@@ -636,8 +650,8 @@ public class SettingsInventories {
                 
                 ColorTheme theme = fancyInventory.getData("colorTheme", ColorTheme.class);
                 type.setColor(theme, new MultiColor(c));
-                
                 openTPortColorTheme_editTypeGUI(whoClicked, fancyInventory.getData("colorTypes", java.util.List.class));
+                Advancement_PrettyColors.grant(player);
             }));
             
             items.add(is);
@@ -1505,6 +1519,7 @@ public class SettingsInventories {
         models.addAll( collectModels(TPortInventories.class) );
         models.addAll( collectModels(QuickEditInventories.class) );
         models.addAll( collectModels(SettingsInventories.class) );
+        models.addAll( collectModels(TPortAdvancementsModels.class) );
         
         ColorTheme colorTheme = ColorTheme.getTheme(player);
         JsonObject playerLang = Language.getPlayerLang(player.getUniqueId());
@@ -2132,15 +2147,176 @@ public class SettingsInventories {
         inv.open(player);
     }
     
-    private static void openLanguageGUI(Player player) {
-        //todo create language setting
-        /*
-         * /tport language server [server]
-         * /tport language get
-         * /tport language set <custom|server|language>
-         * /tport language repair <language> [repair with]
-         */
+    private static void openLanguageSelectionGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
         
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player);
+        
+        ArrayList<ItemStack> items = new ArrayList<>();
+        
+        ItemStack followServerLang = settings_language_own_server_model.getItem(player);
+        Message serverTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageSelectionGUI.server.title");
+        setCustomItemData(followServerLang, colorTheme, serverTitle, null);
+        addCommand(followServerLang, LEFT, "tport language set server");
+        addFunction(followServerLang, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openLanguageGUI(whoClicked)));
+        items.add(followServerLang);
+        
+        ItemStack customLang = settings_language_own_custom_model.getItem(player);
+        Message customTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageSelectionGUI.custom.title");
+        setCustomItemData(customLang, colorTheme, customTitle, null);
+        addCommand(customLang, LEFT, "tport language set custom");
+        addFunction(customLang, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openLanguageGUI(whoClicked)));
+        items.add(customLang);
+        
+        for (String languageName : Language.getAvailableLang()) {
+            ItemStack language = settings_language_own_language_model.getItem(player);
+            
+            Message languageTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageSelectionGUI.language.title", languageName);
+            Message languageSelect = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageSelectionGUI.language.select", LEFT);
+            setCustomItemData(language, colorTheme, languageTitle, List.of(new Message(), languageSelect));
+            
+            addCommand(language, LEFT, "tport language set " + languageName);
+            addFunction(language, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openLanguageGUI(whoClicked)));
+            items.add(language);
+        }
+        
+        ItemStack backButton = createBack(player, LANGUAGE, OWN, MAIN);
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openLanguageSelectionGUI, "tport.settingsInventories.openLanguageSelectionGUI.title", items, backButton);
+        inv.open(player);
+    }
+    private static void openLanguageSelectionServerGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
+        
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player);
+        
+        ArrayList<ItemStack> items = new ArrayList<>();
+        
+        for (String languageName : Language.getAvailableLang()) {
+            ItemStack language = settings_language_server_language_model.getItem(player);
+            
+            Message languageTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageSelectionServerGUI.language.title", languageName);
+            Message languageSelect = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageSelectionServerGUI.language.select", LEFT);
+            setCustomItemData(language, colorTheme, languageTitle, List.of(new Message(), languageSelect));
+            
+            addCommand(language, LEFT, "tport language server " + languageName);
+            addFunction(language, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openLanguageGUI(whoClicked)));
+            items.add(language);
+        }
+        
+        ItemStack backButton = createBack(player, LANGUAGE, OWN, MAIN);
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openLanguageSelectionServerGUI, "tport.settingsInventories.openLanguageSelectionServerGUI.title", items, backButton);
+        inv.open(player);
+    }
+    public static FancyInventory.DataName<String> languageDataName = new FancyInventory.DataName<>("language", String.class);
+    private static void openLanguageRepairGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
+        
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player);
+        
+        ArrayList<ItemStack> items = new ArrayList<>();
+        
+        String selectedLanguage = null;
+        if (prevWindow != null && prevWindow.hasData(languageDataName)) {
+            selectedLanguage = prevWindow.getData(languageDataName);
+        }
+        
+        for (String languageName : Language.getAvailableLang()) {
+            ItemStack language = settings_language_server_language_model.getItem(player);
+            
+            if (selectedLanguage == null) {
+                Message languageTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageRepairGUI.language.title", languageName);
+                Message languageRepair = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageRepairGUI.language.repair", RIGHT, "English (US)");
+                Message languageRepairSelection = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageRepairGUI.language.repairSelection", LEFT);
+                setCustomItemData(language, colorTheme, languageTitle, List.of(new Message(), languageRepair, languageRepairSelection));
+                
+                addCommand(language, RIGHT, "tport language repair " + languageName);
+                addFunction(language, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> openLanguageGUI(whoClicked)));
+            } else {
+                
+                if (languageName.equals(selectedLanguage)) {
+                    Message languageTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageRepairGUI.language.title", languageName);
+                    Message languageUnselect = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageRepairGUI.language.unselect", LEFT);
+                    setCustomItemData(language, colorTheme, languageTitle, List.of(new Message(), languageUnselect));
+                } else {
+                    Message languageTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageRepairGUI.language.title", languageName);
+                    Message languageUnselect = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageRepairGUI.language.select", LEFT, selectedLanguage);
+                    setCustomItemData(language, colorTheme, languageTitle, List.of(new Message(), languageUnselect));
+                }
+            }
+            
+            if (languageName.equals(selectedLanguage)) {
+                Glow.addGlow(language);
+                
+                addFunction(language, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                    if (fancyInventory.hasData(languageDataName)) { // clear selection
+                        fancyInventory.setData(languageDataName, null);
+                        openLanguageRepairGUI(whoClicked, 0, fancyInventory);
+                    }
+                }));
+                
+            } else {
+                addFunction(language, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+                    if (fancyInventory.hasData(languageDataName)) { // repair language
+                        TPortCommand.executeTPortCommand(whoClicked, new String[]{"language", "repair", fancyInventory.getData(languageDataName), pdc.getOrDefault(new NamespacedKey(Main.getInstance(), "language"), STRING, "")});
+                        openLanguageGUI(whoClicked);
+                    } else { // first selection
+                        fancyInventory.setData(languageDataName, pdc.getOrDefault(new NamespacedKey(Main.getInstance(), "language"), STRING, ""));
+                        openLanguageRepairGUI(whoClicked, 0, fancyInventory);
+                    }
+                }));
+            }
+            
+            setStringData(language, new NamespacedKey(Main.getInstance(), "language"), languageName);
+
+            items.add(language);
+        }
+        
+        Message title;
+        if (selectedLanguage == null) {
+            title = formatInfoTranslation("tport.settingsInventories.openLanguageRepairGUI.title");
+        } else {
+            title = formatInfoTranslation("tport.settingsInventories.openLanguageRepairGUI.title.language", selectedLanguage);
+        }
+        
+        ItemStack backButton = createBack(player, LANGUAGE, OWN, MAIN);
+        
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openLanguageRepairGUI, title, items, backButton);
+        inv.setData(languageDataName, selectedLanguage);
+        inv.open(player);
+    }
+    public static void openLanguageGUI(Player player) {
+
+        ColorTheme colorTheme = ColorTheme.getTheme(player);
+        JsonObject playerLang = Language.getPlayerLang(player);
+        
+        Message title = formatInfoTranslation("tport.settingsInventories.openLanguageGUI.title");
+        FancyInventory inv = new FancyInventory(3, title);
+        
+        ItemStack ownLanguage = settings_language_own_model.getItem(player);
+        Message ownTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageGUI.own.title");
+        Message ownCurrent = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageGUI.own.current", Language.getPlayerLangName(player.getUniqueId()));
+        setCustomItemData(ownLanguage, colorTheme, ownTitle, List.of(new Message(), ownCurrent));
+        addFunction(ownLanguage, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openLanguageSelectionGUI(whoClicked, 0, null));
+        inv.setItem(11, ownLanguage);
+        
+        ItemStack serverLanguage = settings_language_server_model.getItem(player);
+        Message serverTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageGUI.server.title");
+        Message serverCurrent = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageGUI.server.current", Language.getServerLangName());
+        setCustomItemData(serverLanguage, colorTheme, serverTitle, List.of(new Message(), serverCurrent));
+        addFunction(serverLanguage, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openLanguageSelectionServerGUI(whoClicked, 0, null));
+        inv.setItem(13, serverLanguage);
+        
+        ItemStack repair = settings_language_repair_model.getItem(player);
+        Message repairTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openLanguageGUI.repair.title");
+        setCustomItemData(repair, colorTheme, repairTitle, null);
+        addFunction(repair, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openLanguageRepairGUI(whoClicked, 0, null));
+        inv.setItem(15, repair);
+        
+        inv.setItem(17, createBack(player, SETTINGS, OWN, MAIN));
+        
+        inv.open(player);
     }
     
     public static void openSettingsGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
@@ -2321,7 +2497,7 @@ public class SettingsInventories {
         
         ItemStack languageItem = settings_language_model.getItem(player);
         Message languageTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.language.title");
-        setCustomItemData(languageItem, colorTheme, languageTitle, List.of(new Message(), formatInfoTranslation(playerLang, "tport.comingSoon")));
+        setCustomItemData(languageItem, colorTheme, languageTitle, null);
         addFunction(languageItem, LEFT, (whoClicked, clickType, pdc, fancyInventory) -> openLanguageGUI(whoClicked));
         
         ItemStack colorThemeItem = settings_color_theme_model.getItem(player);
@@ -2386,7 +2562,7 @@ public class SettingsInventories {
         items.add(particleAnimationItem);
         items.add(safetyCheckItem);     //DONE
         items.add(homeItem);            //DONE
-        items.add(languageItem);
+        items.add(languageItem);        //DONE
         items.add(searchItem);          //DONE
 //        items.add(requests);          //todo
         
@@ -2394,6 +2570,7 @@ public class SettingsInventories {
         items.add(reloadItem);          //DONE
         items.add(featuresItem);        //DONE
         items.add(biomeTPItem);
+//        items.add(featureTPItem);
         items.add(tagItem);             //DONE
         items.add(backupItem);          //DONE
         items.add(removePlayerItem);    //DONE

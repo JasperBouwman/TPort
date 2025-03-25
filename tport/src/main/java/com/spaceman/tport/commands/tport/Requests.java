@@ -11,6 +11,8 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.TextType;
 import com.spaceman.tport.tpEvents.TPRequest;
+import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -58,7 +60,20 @@ public class Requests extends SubCommand {
                 return;
             }
             
-            if (sendRequest != null) sendInfoTranslation(player, "tport.command.requests.sendRequest", sendRequest.toInfo()); //todo show safety check info
+            if (sendRequest != null) {
+                sendInfoTranslation(player, "tport.command.requests.sendRequest", sendRequest.toInfo()); //todo show safety check info (maybe inventory?)
+                if (sendRequest.isTPortRequest()) {
+                    TPort tport = TPortManager.getTPort(sendRequest.getRequestToUUID(), sendRequest.getTPortUUID());
+                    if (tport != null) {
+//                        sendInfoTranslation(player, "", SafetyCheck.isSafe(tport.getLocation()));
+                    }
+                } else {
+                    Player p = Bukkit.getPlayer(sendRequest.getRequestToUUID());
+                    if (p != null) {
+//                        sendInfoTranslation(player, "", SafetyCheck.isSafe(p.getLocation()));
+                    }
+                }
+            }
             if (!requests.isEmpty()) {
                 
                 Message list = new Message();

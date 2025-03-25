@@ -1,5 +1,6 @@
 package com.spaceman.tport.commands.tport.publc;
 
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -11,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_whatsMineIsYours;
 import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
@@ -75,6 +77,7 @@ public class Add extends SubCommand {
                     tport.setPublicTPort(true, player);
                     tport.save();
                     sendSuccessTranslation(player, "tport.command.public.add.tport.succeeded", asTPort(tport.parseAsPublic(true)));
+                    Advancement_whatsMineIsYours.grant(player);
                     return;
                 } else {
                     String tportID = tportData.getConfig().getString("public.tports." + publicSlot, TPortManager.defUUID.toString());

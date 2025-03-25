@@ -1,5 +1,7 @@
 package com.spaceman.tport.commands.tport;
 
+import com.spaceman.tport.advancements.TPortAdvancement;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -16,7 +18,6 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.inventories.TPortInventories.history_element_world_tp_model;
 import static com.spaceman.tport.tpEvents.TPEManager.requestTeleportPlayer;
 
 public class WorldCommand extends SubCommand {
@@ -78,7 +79,10 @@ public class WorldCommand extends SubCommand {
             location.add(0.5, 0.1, 0.5);
             
             TeleportHistory.setLocationSource(player.getUniqueId(), new WorldLocationSource(world));
-            requestTeleportPlayer(player, location, true, () -> sendSuccessTranslation(player, "tport.command.worldCommand.world.world.succeeded", world),
+            requestTeleportPlayer(player, location, true, () -> {
+                        sendSuccessTranslation(player, "tport.command.worldCommand.world.world.succeeded", world);
+                        TPortAdvancement.Advancement_AWholeNewWorld.grant(player);
+                    },
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.worldCommand.world.world.tpRequested", world, delay, tickMessage, seconds, secondMessage));
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport world [world]");

@@ -87,7 +87,8 @@ public class TPRequest {
         
         if (isTPortRequest()) {
             TPort tport = TPortManager.getTPort(requestToUUID, tportUUID);
-            if (tport == null) {//todo tport could have been transferred to another player
+            if (tport == null) {
+                sendErrorTranslation(requester, "tport.tpEvents.TPRequest.accept.tport.tportNotFound");
                 //something went wrong
                 return;
             }
@@ -97,7 +98,7 @@ public class TPRequest {
             
             if (!tport.teleport(requester,
                     safetyCheck /*safetyCheck was already preformed before asking consent, but will be checked again*/,
-                    false, null, null)) {
+                    false, null, null, null)) {
                 sendErrorTranslation(requestTo, "tport.tpEvents.TPRequest.accept.tport.couldNotTP", asPlayer(requester, requesterUUID));
             }
         } else {

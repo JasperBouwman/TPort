@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_backToTheFuture;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_BACK;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.history.TeleportHistory.teleportHistory;
@@ -61,7 +62,10 @@ public class Back extends SubCommand {
         if (!innerSafetyCheck || SafetyCheck.isSafe(loc)) {
             
             requestTeleportPlayer(player, loc,
-                    () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.tportInventories.openHistory.teleportToOld.succeeded"),
+                    () -> {
+                        sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.tportInventories.openHistory.teleportToOld.succeeded");
+                        Advancement_backToTheFuture.grant(player);
+                    },
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.tportInventories.openHistory.teleportToOld.tpRequested", delay, tickMessage, seconds, secondMessage));
         } else {
             sendErrorTranslation(player, "tport.tportInventories.openHistory.teleportToOld.notSafeToTeleport");;

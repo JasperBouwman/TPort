@@ -23,6 +23,7 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_BiomeTP_OneIsNotEnough;
 import static com.spaceman.tport.commands.tport.BiomeTP.availableBiomes;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
@@ -197,6 +198,8 @@ public record BiomePreset(String name, List<String> biomes, boolean whitelist, M
                     }
                     fancyInventory.setData(biomeSelectionDataName, biomeSelection);
                     openBiomeTP(whoClicked, 0, fancyInventory);
+                    
+                    Advancement_BiomeTP_OneIsNotEnough.grant(whoClicked);
                 }
             }), LEFT, SHIFT_LEFT);
             is.setItemMeta(im);
@@ -238,6 +241,8 @@ public record BiomePreset(String name, List<String> biomes, boolean whitelist, M
             case "snow_golem_melts" -> "CARVED_PUMPKIN";
             case "spawns_snow_foxes" -> "FOX_SPAWN_EGG";
             case "increased_fire_burnout" -> "FLINT_AND_STEEL";
+            case "spawns_warm_variant_farm_animals" -> "COW_SPAWN_EGG";
+            case "spawns_cold_variant_farm_animals" -> "CHICKEN_SPAWN_EGG";
             
             default -> "DIAMOND_BLOCK";
         };

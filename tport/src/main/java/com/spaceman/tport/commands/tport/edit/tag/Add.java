@@ -1,5 +1,7 @@
 package com.spaceman.tport.commands.tport.edit.tag;
 
+import com.spaceman.tport.advancements.TPortAdvancement;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -66,6 +68,7 @@ public class Add extends SubCommand {
             
             if (tport.addTag(tag)) {
                 tport.save();
+                TPortAdvancement.Advancement_TaggedYoureIt.grant(player);
                 sendSuccessTranslation(player, "tport.command.edit.tag.add.succeeded", tag, tport);
             } else {
                 sendErrorTranslation(player, "tport.command.edit.tag.add.hasAlreadyTag", tag, tport);

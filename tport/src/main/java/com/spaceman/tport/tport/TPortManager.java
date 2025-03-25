@@ -1,6 +1,7 @@
 package com.spaceman.tport.tport;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.tpEvents.TPRequest;
 import org.bukkit.Bukkit;
@@ -14,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_saved;
 import static com.spaceman.tport.commands.tport.Features.Feature.EnsureUniqueUUID;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTranslation;
@@ -120,6 +122,9 @@ public class TPortManager {
             if (sendMessage) {
                 sendSuccessTranslation(owner, "tport.tport.tportManager.addTPort.succeeded", tport);
             }
+            
+            Advancement_saved.grant(owner);
+            
             return tport;
         }
     }

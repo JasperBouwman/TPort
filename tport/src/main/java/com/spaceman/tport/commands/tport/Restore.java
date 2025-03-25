@@ -1,5 +1,7 @@
 package com.spaceman.tport.commands.tport;
 
+import com.spaceman.tport.advancements.TPortAdvancement;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.tport.TPort;
@@ -63,6 +65,7 @@ public class Restore extends SubCommand {
         TPort addedTPort = TPortManager.addTPort(player, restoreTPort, true);
         if (addedTPort != null) { //tport is added
             tportBin.remove(player.getUniqueId());
+            TPortAdvancement.Advancement_whoops.grant(player);
             if (Features.Feature.TPortTakesItem.isEnabled()) {
                 player.getInventory().setItem(player.getInventory().getHeldItemSlot(), new ItemStack(Material.AIR));
                 addedTPort.setShouldReturnItem(true);

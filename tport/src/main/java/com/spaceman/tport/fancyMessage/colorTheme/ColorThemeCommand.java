@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_PrettyColors;
 import static com.spaceman.tport.commandHandler.CommandTemplate.convertToArgs;
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -71,12 +72,14 @@ public class ColorThemeCommand extends SubCommand {
                 Message message = formatTranslation(ColorType.valueOf(args[2]), ColorType.varInfo2Color, "tport.colorTheme.this");
                 message.getText().forEach(t -> t.setInsertion(ColorType.valueOf(args[2]).getColor(player).getColorAsValue()));
                 sendSuccessTranslation(player, "tport.colorTheme.set.type.chat.succeeded", ColorType.valueOf(args[2]).name(), message);
+                Advancement_PrettyColors.grant(player);
             } else if (args[3].matches("#[0-9a-fA-F]{6}")) {//tport colorTheme set <type> <hex color>
                 ColorType.valueOf(args[2]).setColor(player, new MultiColor(args[3]));
                 
                 Message message = formatTranslation(ColorType.valueOf(args[2]), ColorType.varInfo2Color, "tport.colorTheme.this");
                 message.getText().forEach(t -> t.setInsertion(ColorType.valueOf(args[2]).getColor(player).getColorAsValue()));
                 sendSuccessTranslation(player, "tport.colorTheme.set.type.hex.succeeded", ColorType.valueOf(args[2]).name(), message);
+                Advancement_PrettyColors.grant(player);
             } else {
                 sendErrorTranslation(player, "tport.colorTheme.set.type.colorNotFound", args[3]);
             }
@@ -96,6 +99,7 @@ public class ColorThemeCommand extends SubCommand {
             if (args.length == 3) {
                 ColorTheme.setDefaultTheme(player, args[2]);
                 sendSuccessTranslation(player, "tport.colorTheme.set.theme.succeeded", args[2]);
+                Advancement_PrettyColors.grant(player);
             } else {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport colorTheme set <theme>");
             }

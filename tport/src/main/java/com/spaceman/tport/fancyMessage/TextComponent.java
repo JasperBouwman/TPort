@@ -200,7 +200,9 @@ public class TextComponent implements Cloneable {
         if (!Strings.isNullOrEmpty(insertion)) jsonObject.addProperty("insertion", insertion);
         
         Arrays.stream(Attribute.values()).forEach(attribute -> jsonObject.addProperty(attribute.name().toLowerCase(), (attributes.contains(attribute))));
-        textEvents.forEach(event -> jsonObject.add(event.name(), event.translateJSON(theme)));
+        
+//        textEvents.forEach(event -> jsonObject.add(event.name(), event.translateJSON(theme)));
+        textEvents.forEach(e -> Arrays.stream(e.name()).forEach(name -> jsonObject.add(name, e.translateJSON(theme))));
         
         if (!translateWith.isEmpty()) {
             JsonArray withMessages = new JsonArray();

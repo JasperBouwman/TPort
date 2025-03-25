@@ -180,8 +180,8 @@ public class FancyClickEvent implements Listener {
         
         NamespacedKey runCommandKey = new NamespacedKey(Main.getInstance(), "runCommand_" + clickType.name());
         if (pdc.has(runCommandKey, PersistentDataType.STRING)) {
-            NamespacedKey finalRunCommandKey = runCommandKey;
-            Bukkit.getScheduler().runTask(Main.getInstance(), () -> Bukkit.dispatchCommand(player, pdc.getOrDefault(finalRunCommandKey, PersistentDataType.STRING, "")));
+            //todo test if runnable is needed
+            Bukkit.dispatchCommand(player, pdc.getOrDefault(runCommandKey, PersistentDataType.STRING, ""));
             
             runCommandKey = new NamespacedKey(Main.getInstance(), "runCommand_" + clickType.name() + "_secondary");
             if (pdc.has(runCommandKey, PersistentDataType.STRING)) {

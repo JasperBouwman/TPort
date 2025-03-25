@@ -77,6 +77,13 @@ The over 400 custom icons (in x16 and x32 resolution, dark and light mode) helps
 TPort is fully translatable, even when the server does not have your preferred language.
 The language files have the same layout from Minecraft, so you can use them as a Resource Pack.
 
+### History ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/history.png?raw=true)
+
+The history feature keeps track of all player teleportations.
+Players can see this history and sort through it.
+There are filters that you can use to search your history.
+Using custom functionality inside TPort, History can even see that plugin issued the teleport.
+
 ### PLTP ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/settings_pltp.png?raw=true)
 
 **pl**ayer **t**ele**p**ortation, safely teleport to other players.

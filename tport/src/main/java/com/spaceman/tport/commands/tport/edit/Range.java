@@ -1,5 +1,6 @@
 package com.spaceman.tport.commands.tport.edit;
 
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -7,6 +8,7 @@ import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_safetyFirst;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
@@ -73,6 +75,8 @@ public class Range extends SubCommand {
             } else {
                 sendSuccessTranslation(player, "tport.command.edit.range.range.succeededRange", asTPort(tport), String.valueOf(range));
             }
+            
+            Advancement_safetyFirst.grant(player);
             
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> range [range]");

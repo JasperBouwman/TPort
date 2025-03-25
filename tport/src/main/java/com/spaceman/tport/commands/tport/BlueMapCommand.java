@@ -9,6 +9,7 @@ import com.spaceman.tport.commands.tport.blueMap.Search;
 import com.spaceman.tport.webMaps.BlueMapHandler;
 import org.bukkit.entity.Player;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_ICanSeeItAll;
 import static com.spaceman.tport.commandHandler.CommandTemplate.convertToArgs;
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -53,7 +54,7 @@ public class BlueMapCommand extends SubCommand {
     }
     
     @Override
-    public void run(String[] args, Player player) { //todo
+    public void run(String[] args, Player player) { //todo (why todo?)
         // tport blueMap
         // tport blueMap search <player> [TPort name]
         // tport blueMap IP [IP]
@@ -63,6 +64,8 @@ public class BlueMapCommand extends SubCommand {
         if (!checkBlueMapState(player))  {
             return;
         }
+        
+        Advancement_ICanSeeItAll.grant(player);
         
         if (args.length == 1) {
             sendInfoTranslation(player, "tport.command.blueMapCommand");

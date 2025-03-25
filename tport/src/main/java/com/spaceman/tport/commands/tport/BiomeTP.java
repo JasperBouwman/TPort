@@ -2,6 +2,8 @@ package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
+import com.spaceman.tport.advancements.TPortAdvancement;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.biomeTP.BiomePreset;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.CommandTemplate;
@@ -166,7 +168,10 @@ public class BiomeTP extends SubCommand {
                     "prevLoc", player.getLocation(), "biomeName", "Random"));
             TeleportHistory.setLocationSource(player.getUniqueId(), new BiomeLocationSource("random"));
             
-            requestTeleportPlayer(player, location, () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.biomeTP.random.succeeded"),
+            requestTeleportPlayer(player, location, () -> {
+                        sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.biomeTP.random.succeeded");
+                        TPortAdvancement.Advancement_BiomeTP_IDontCare.grant(player);
+                    },
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.biomeTP.randomTP.succeededRequested", delay, tickMessage, seconds, secondMessage));
             CooldownManager.BiomeTP.update(player);
             return;
@@ -212,7 +217,14 @@ public class BiomeTP extends SubCommand {
             TeleportHistory.setLocationSource(player.getUniqueId(), new BiomeLocationSource(biomeLocation.getRight()));
             
             Message biomeName = formatTranslation(varInfoColor, varInfoColor, "%s", new BiomeEncapsulation(biomeLocation.getRight()));
-            requestTeleportPlayer(player, biomeLoc, () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.biomeTP.succeeded", biomeName),
+            requestTeleportPlayer(player, biomeLoc, () -> {
+                        sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.command.biomeTP.succeeded", biomeName);
+                        if (biomes.size() == 1) {
+                            TPortAdvancement.Advancement_BiomeTP_Certainty.grant(player);
+                        } else {
+                            TPortAdvancement.Advancement_BiomeTP_Surprise.grant(player);
+                        }
+                    },
                     (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.biomeTP.succeededRequested", biomeName, delay, tickMessage, seconds, secondMessage));
         }
     }
@@ -337,7 +349,7 @@ public class BiomeTP extends SubCommand {
             case "MANGROVE_SWAMP" -> "MANGROVE_LOG";
             case "DEEP_DARK" -> "SCULK";
             case "CHERRY_GROVE" -> "CHERRY_LOG";
-            case "PALE_GARDEN" -> "PALE_OAK";
+            case "PALE_GARDEN" -> "PALE_OAK_LOG";
             
             default -> "DIAMOND_BLOCK";
         };

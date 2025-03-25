@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_safetyFirst;
 import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
@@ -111,6 +112,8 @@ public class Notify extends SubCommand {
             tport.save();
             
             sendSuccessTranslation(player, "tport.command.log.notify.tportName.state.succeeded", asTPort(tport), tport.getNotifyMode());
+            
+            Advancement_safetyFirst.grant(player);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport log notify [TPort name] [state]");
         }

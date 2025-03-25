@@ -2,6 +2,8 @@ package com.spaceman.textureGenerator;
 
 import com.google.gson.*;
 import com.spaceman.tport.Pair;
+import com.spaceman.tport.advancements.TPortAdvancement;
+import com.spaceman.tport.advancements.TPortAdvancementsModels;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
@@ -57,32 +59,28 @@ public class Main {
         
         for (Field modelField : clazz.getFields()) {
             if (modelField.getType() == InventoryModel.class) {
-                if (modelField.getName().endsWith(modelSuffix)) {
-                    try {
-                        InventoryModel inventoryModel = (InventoryModel) modelField.get(null);
-                        int modelData = inventoryModel.getCustomModelData();
-                        lastModelData = Math.max(lastModelData, modelData);
-                        Material material = inventoryModel.getMaterial();
-                        String subDir = inventoryModel.getSubDir();
-                        
-//                        String modelName = modelField.getName();
-                        System.out.println(modelField.getName());
-                        String modelName = inventoryModel.getNamespacedKey().getKey();
-                        if (modelName.endsWith(modelSuffix)) {
-                            modelName = modelName.substring(0, modelName.length() - modelSuffix.length());
-                        }
-                        
-                        if (collectedModelData.contains(modelData)) {
-                            throw new IllegalArgumentException("Model data is already used: " + modelData + " (" + modelName + ")");
-                        }
-                        collectedModelData.add(modelData);
-                        
-                        System.out.println(modelField.getName() + " " + modelData);
-                        
-                        models.add( new Model(modelName.toLowerCase(), material, modelData, subDir));
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                try {
+                    InventoryModel inventoryModel = (InventoryModel) modelField.get(null);
+                    int modelData = inventoryModel.getCustomModelData();
+                    lastModelData = Math.max(lastModelData, modelData);
+                    Material material = inventoryModel.getMaterial();
+                    String subDir = inventoryModel.getSubDir();
+                    
+                    String modelName = inventoryModel.getNamespacedKey().getKey();
+                    if (modelName.endsWith(modelSuffix)) {
+                        modelName = modelName.substring(0, modelName.length() - modelSuffix.length());
                     }
+                    
+                    if (collectedModelData.contains(modelData)) {
+                        throw new IllegalArgumentException("Model data is already used: " + modelData + " (" + modelName + ")");
+                    }
+                    collectedModelData.add(modelData);
+                    
+                    System.out.println(modelName + " " + modelData);
+                    
+                    models.add(new Model(modelName.toLowerCase(), material, modelData, subDir));
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -452,6 +450,7 @@ public class Main {
         models.addAll( collectModels(TPortInventories.class) );
         models.addAll( collectModels(QuickEditInventories.class) );
         models.addAll( collectModels(SettingsInventories.class) );
+        models.addAll( collectModels(TPortAdvancementsModels.class) );
         
         createMinecraftModels(models);
         defineTPortModels(models);

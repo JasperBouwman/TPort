@@ -12,9 +12,9 @@
     <properties>
         <author>The_Spaceman</author>
         <bukkitURL>https://dev.bukkit.org/projects/tport</bukkitURL>
-        <TPortVersion>1.21.3</TPortVersion>
-        <MainSpigotVersion>1.21.4-R0.1-SNAPSHOT</MainSpigotVersion>
-        <supportedVersions>'1.21.4','1.21.3','1.21.1','1.21','1.20.6','1.20.5','1.20.4','1.20.2','1.20.1','1.20','1.19.4','1.18.2'</supportedVersions>
+        <TPortVersion>1.21.4</TPortVersion>
+        <MainSpigotVersion>1.21.5-R0.1-SNAPSHOT</MainSpigotVersion>
+        <supportedVersions>'1.21.5','1.21.4','1.21.3','1.21.1','1.21','1.20.6','1.20.5','1.20.4','1.20.2','1.20.1','1.20','1.19.4','1.18.2'</supportedVersions>
     </properties>
 
     <modules>
@@ -29,5 +29,6 @@
         <module>adapters/V1_21</module>
         <module>adapters/V1_21_3</module>
         <module>adapters/V1_21_4</module>
+        <module>adapters/V1_21_5</module>
     </modules>
 </project>

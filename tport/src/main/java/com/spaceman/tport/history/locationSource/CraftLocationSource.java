@@ -79,8 +79,7 @@ public class CraftLocationSource implements LocationSource {
     }
     
     @Override
-    public void teleportToLocation(Player player) {//todo fix message
-        // todo set location source
+    public void teleportToLocation(Player player) {
         requestTeleportPlayer(player, location,
                 () -> sendSuccessTranslation(Bukkit.getPlayer(player.getUniqueId()), "tport.history.locationSource.CraftLocationSource.teleportToLocation.succeeded"),
                 (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.history.locationSource.CraftLocationSource.teleportToLocation.tpRequested", "null", delay, tickMessage, seconds, secondMessage));

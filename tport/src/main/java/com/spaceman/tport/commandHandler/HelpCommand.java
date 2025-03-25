@@ -1,5 +1,7 @@
 package com.spaceman.tport.commandHandler;
 
+import com.spaceman.tport.advancements.TPortAdvancement;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.customRunnables.RunRunnable;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.fancyMessage.Message;
@@ -352,6 +354,7 @@ public class HelpCommand extends SubCommand {
             }
         } else {
             if (runCommands(getActions(), args[1], args, player)) {
+                TPortAdvancement.Advancement_ImHelping.grant(player);
                 return;
             }
         }

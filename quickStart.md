@@ -253,6 +253,10 @@ Down here you can add the features to your selection (`left click`) or replace y
 If you want to teleport to the spawn of another world, WorldTP is the feature for you. The command is `/tport world <world>`. Via the main TPort window you can open the WorldTP window, in witch you can select the world to teleport to.
 The icons for the world are denoted by their dimension: ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/world_tp_overworld.png?raw=true "Over world")![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/world_tp_nether.png?raw=true "Nether")![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/world_tp_the_end.png?raw=true "The End")![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/world_tp_other_environments.png?raw=true "Other environments")
 
+#### History ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/history.png?raw=true "History")
+
+Description coming soon
+
 #### Transfer ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/settings_transfer.png?raw=true "TPort transfer")
 
 It is possible to give the ownership of a TPort away to another player. Via the transfer commands is this possible.
@@ -404,10 +408,12 @@ Each line of the sign is also a new line in the typed input. When closing the si
 
 It is possible to change form _qwerty_ into _abcdef_. You do this via the Change keyboard layout button (![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_change_layout.png?raw=true "Change keyboard layout")).
 
-There are two ways to add colors. The first one is adding it your self, by typing `#ff55ff` (hex value), `&d` (Chat color code) or `$255$85$255` (RGB values).
+There are three ways to add colors. The first one is adding it your self, by typing `#ff55ff` (hex value), `&d` (Chat color code) or `$255$85$255` (RGB values).
 The second way is using the Color Editor (![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color.png?raw=true "Color Editor")).
 When opening the Color Editor, 6 buttons will appear to create a color (![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color_red_add.png?raw=true "Add red"), ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color_red_remove.png?raw=true "Remove red"), ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color_green_add.png?raw=true "Add green"), ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color_green_remove.png?raw=true "Remove green"), ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color_blue_add.png?raw=true "Add blue"), ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_color_blue_remove.png?raw=true "Remove blue")),
 and the seventh button (![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/keyboard_chat_color.png?raw=true "Choose from Minecraft")) is to choose a color from Minecraft (chat colors & dye colors).
+The third way is to create a color fade. Using your `drop` key, the color fade editor will show.
+In here you can add/remove colors from the color fade. This is using a similar layout of the color editor.
 
 ***
 

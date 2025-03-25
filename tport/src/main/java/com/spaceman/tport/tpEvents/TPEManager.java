@@ -1,6 +1,8 @@
 package com.spaceman.tport.tpEvents;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancement;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commands.tport.Back;
 import com.spaceman.tport.commands.tport.Delay;
 import com.spaceman.tport.commands.tport.Features;
@@ -18,6 +20,7 @@ import com.spaceman.tport.tpEvents.restrictions.NoneRestriction;
 import com.spaceman.tport.tport.TPort;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -307,6 +310,11 @@ public class TPEManager {
                 }
                 b.getPassengers().forEach(b::removePassenger);
             }
+        }
+        
+        World world = player.getWorld();
+        if (player.getLocation().getY() > world.getMaxHeight() - 10 && l.getY() < world.getMinHeight() + 10) {
+            TPortAdvancement.Advancement_CavesAndCliffsPartIII.grant(player);
         }
         
         boolean showAnimation = Features.Feature.ParticleAnimation.isEnabled();

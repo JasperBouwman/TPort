@@ -1,5 +1,6 @@
 package com.spaceman.tport.commands.tport.edit;
 
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -13,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_safetyFirst;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
@@ -87,6 +89,9 @@ public class Preview extends SubCommand {
             tport.setPreviewState(previewState);
             tport.save();
             sendSuccessTranslation(player, "tport.command.edit.preview.state.succeeded", asTPort(tport), previewState);
+            
+            Advancement_safetyFirst.grant(player);
+            
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> preview [state]");
         }

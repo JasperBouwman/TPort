@@ -179,8 +179,9 @@ public abstract class V1_21_4_FeatureTPAdapter extends TPortAdapter {
         
         Method m = ChunkGenerator.class.getDeclaredMethod("a", Set.class, WorldServer.class, StructureManager.class, BlockPosition.class, boolean.class, ConcentricRingsStructurePlacement.class);
         m.setAccessible(true);
+        //noinspection unchecked
         com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>> p = (com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>>)
-                m.invoke(chunkGenerator, structureSet, worldServer, worldServer.a(), startPosition, false, concentricRingsStructurePlacement);
+                m.invoke(chunkGenerator, structureSet, worldServer, worldServer.b(), startPosition, false, concentricRingsStructurePlacement);
         if (p == null) return null;
         return new com.spaceman.tport.Pair<>(p.getFirst(), p.getSecond());
     }
@@ -191,8 +192,9 @@ public abstract class V1_21_4_FeatureTPAdapter extends TPortAdapter {
         
         Method m = ChunkGenerator.class.getDeclaredMethod("a", Set.class, IWorldReader.class, StructureManager.class, int.class, int.class, int.class, boolean.class, long.class, RandomSpreadStructurePlacement.class);
         m.setAccessible(true);
+        //noinspection unchecked
         com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>> p = (com.mojang.datafixers.util.Pair<BlockPosition, Holder<Structure>>)
-                m.invoke(chunkGenerator, structureSet, worldServer, worldServer.a(), sectionX, sectionZ, squareSize, false, seed, randomSpreadStructurePlacement);
+                m.invoke(chunkGenerator, structureSet, worldServer, worldServer.b(), sectionX, sectionZ, squareSize, false, seed, randomSpreadStructurePlacement);
         if (p == null) return null;
         return new com.spaceman.tport.Pair<>(p.getFirst(), p.getSecond());
     }

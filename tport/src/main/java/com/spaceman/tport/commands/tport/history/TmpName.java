@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_backToTheFuture;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.history.TeleportHistory.teleportHistory;
@@ -58,6 +59,7 @@ public class TmpName extends SubCommand {
         Location loc = element.newLocation().getLocation(player);
         if (!innerSafetyCheck || SafetyCheck.isSafe(loc)) {
             element.newLocation().teleportToLocation(player);
+            Advancement_backToTheFuture.grant(player);
         } else {
             element.newLocation().notSafeToTeleport(player);
         }

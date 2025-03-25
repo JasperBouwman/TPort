@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.function.Predicate;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_LookMeInTheEyes;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 
 public class Look extends SubCommand {
@@ -97,9 +98,13 @@ public class Look extends SubCommand {
                     Player p = (Player) entity;
                     sendInfoTranslation(player, "tport.command.look.pltp");
                     TPortCommand.executeTPortCommand(player, new String[]{"PLTP", "tp", p.getName()});
+                    Advancement_LookMeInTheEyes.grant(player);
                 } else {
                     TeleportHistory.setLocationSource(player.getUniqueId(), new LookLocationSource(entity.getType()));
-                    TPEManager.requestTeleportPlayer(player, entity.getLocation(), () -> sendSuccessTranslation(player, "tport.command.look.entityTP", entity.getType().toString()),
+                    TPEManager.requestTeleportPlayer(player, entity.getLocation(), () -> {
+                                sendSuccessTranslation(player, "tport.command.look.entityTP", entity.getType().toString());
+                                Advancement_LookMeInTheEyes.grant(player);
+                            },
                             (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.entityTP.tpRequested", entity.getType().toString(), delay, tickMessage, seconds, secondMessage));
                 }
             } else { //block TP
@@ -148,9 +153,13 @@ public class Look extends SubCommand {
                 Player lookedAtPlayer = (Player) entity;
                 sendInfoTranslation(player, "tport.command.look.type.entity.pltp");
                 TPortCommand.executeTPortCommand(player, new String[]{"PLTP", "tp", lookedAtPlayer.getName()});
+                Advancement_LookMeInTheEyes.grant(player);
             } else {
                 TeleportHistory.setLocationSource(player.getUniqueId(), new LookLocationSource(entity.getType()));
-                TPEManager.requestTeleportPlayer(player, entity.getLocation(), () -> sendSuccessTranslation(player, "tport.command.look.type.entity.succeeded", entity.getType().toString()),
+                TPEManager.requestTeleportPlayer(player, entity.getLocation(), () -> {
+                            sendSuccessTranslation(player, "tport.command.look.type.entity.succeeded", entity.getType().toString());
+                            Advancement_LookMeInTheEyes.grant(player);
+                        },
                         (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.look.type.entity.tpRequested", entity.getType().toString(), delay, tickMessage, seconds, secondMessage));
             }
         });

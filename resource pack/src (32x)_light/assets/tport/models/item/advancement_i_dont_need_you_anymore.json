@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "tport:item/advancement/advancement_i_dont_need_you_anymore"
+  }
+}

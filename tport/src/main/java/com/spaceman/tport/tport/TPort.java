@@ -2,12 +2,11 @@ package com.spaceman.tport.tport;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
+import com.spaceman.tport.advancements.TPortAdvancement;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.SafetyCheck;
 import com.spaceman.tport.commands.tport.log.LogSize;
 import com.spaceman.tport.cooldown.CooldownManager;
-import com.spaceman.tport.webMaps.BlueMapHandler;
-import com.spaceman.tport.webMaps.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
@@ -17,6 +16,8 @@ import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.TPRequest;
+import com.spaceman.tport.webMaps.BlueMapHandler;
+import com.spaceman.tport.webMaps.DynmapHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -693,10 +694,14 @@ public class TPort implements ConfigurationSerializable {
     }
     
     public boolean teleport(Player player, boolean safetyCheck) {
-        return teleport(player, safetyCheck, true, null, null);
+        return teleport(player, safetyCheck, true, null, null, null);
     }
     
-    public boolean teleport(Player player, boolean safetyCheck, boolean askConsent, @Nullable String successMessage, @Nullable String requestMessage) {
+    public boolean teleport(Player player, boolean safetyCheck, @Nullable TPortAdvancement advancement) {
+        return teleport(player, safetyCheck, true, advancement, null, null);
+    }
+    
+    public boolean teleport(Player player, boolean safetyCheck, boolean askConsent, @Nullable TPortAdvancement advancement, @Nullable String successMessage, @Nullable String requestMessage) {
         if (!CooldownManager.TPortTP.hasCooled(player, true)) {
             return false;
         }
@@ -710,6 +715,7 @@ public class TPort implements ConfigurationSerializable {
         tpPlayerToTPort(player, this, () -> {
                     TPort lambdaTPort = TPortManager.getTPort(this.getOwner(), this.getTportID());
                     sendSuccessTranslation(player, successMessage == null ? "tport.tport.tport.teleport.succeeded" : successMessage, asTPort(lambdaTPort, this.getName()));
+                    if (advancement != null) advancement.grant(player);
                     if (lambdaTPort != null) {
                         lambdaTPort.notifyOwner(player);
                         lambdaTPort.log(player.getUniqueId());

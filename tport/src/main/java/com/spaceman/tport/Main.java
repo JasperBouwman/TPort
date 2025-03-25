@@ -182,6 +182,9 @@ public class Main extends JavaPlugin {
         /*
          * //todo
          *
+         * /tport colorTheme copy <player>
+         *      set the color theme of the selected player as your own
+         *
          * settings_features_permissions
          * settings_features_permissions_grayed
          * settings_features_companion_tp
@@ -213,8 +216,6 @@ public class Main extends JavaPlugin {
          * If a player teleports, every other player in that party also teleports
          *
          * unify EmptyCommand names
-         *
-         * add safetyCheck to /tport world <world> [safetyCheck]
          *
          * add POI
          * bring featureTP and biomeTP closer together, feature/usage wise
@@ -279,6 +280,7 @@ public class Main extends JavaPlugin {
         Adapter.registerAdapter("1.21.1", "com.spaceman.tport.adapters.V1_21_Adapter");
         Adapter.registerAdapter("1.21.3", "com.spaceman.tport.adapters.V1_21_3_Adapter");
         Adapter.registerAdapter("1.21.4", "com.spaceman.tport.adapters.V1_21_4_Adapter");
+        Adapter.registerAdapter("1.21.5", "com.spaceman.tport.adapters.V1_21_5_Adapter");
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");
@@ -387,6 +389,7 @@ public class Main extends JavaPlugin {
             }));
             
         }
+        
     }
     
     @Override

@@ -1,6 +1,8 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancement;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.CommandTemplate;
 import com.spaceman.tport.commandHandler.EmptyCommand;
@@ -15,6 +17,7 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nullable;
 import java.util.*;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_movingTruckComingThrough;
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_HOME;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
@@ -46,6 +49,7 @@ public class Home extends SubCommand {
         return TPortManager.getTPort(UUID.fromString(homeID));
     }
     public static void setHome(Player player, TPort home) {
+        Advancement_movingTruckComingThrough.grant(player);
         tportData.getConfig().set("tport." + player.getUniqueId() + ".home", home.getTportID().toString());
         tportData.saveConfig();
     }
@@ -97,7 +101,7 @@ public class Home extends SubCommand {
                 safetyCheckState = TPORT_HOME.getState(player);
             }
             
-            tport.teleport(player, safetyCheckState);
+            tport.teleport(player, safetyCheckState, TPortAdvancement.Advancement_homeSweetHome);
         }));
         emptyHomeSafetyCheck.setPermissions("TPort.own", TPORT_HOME.getPermission(), "TPort.basic");
         
@@ -141,7 +145,7 @@ public class Home extends SubCommand {
                 return;
             }
             
-            tport.teleport(player, TPORT_HOME.getState(player));
+            tport.teleport(player, TPORT_HOME.getState(player), TPortAdvancement.Advancement_homeSweetHome);
         } else {
             if (!runCommands(getActions(), args[1], args, player)) {
                 sendErrorTranslation(player, "tport.command.wrongUsage", "/tport home " + CommandTemplate.convertToArgs(getActions(), true));

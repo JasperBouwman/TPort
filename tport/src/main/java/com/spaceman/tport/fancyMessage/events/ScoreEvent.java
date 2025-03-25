@@ -37,8 +37,8 @@ public class ScoreEvent implements TextEvent {
     }
     
     @Override
-    public String name() {
-        return "score";
+    public String[] name() {
+        return new String[]{"score"};
     }
     
     public String getName() {

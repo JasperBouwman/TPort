@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_BiomeTP_OneIsNotEnough;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
@@ -76,6 +77,8 @@ public class Preset extends SubCommand {
                 return;
             }
             TPortCommand.executeTPortCommand(player, command.toArray(new String[0]));
+            
+            Advancement_BiomeTP_OneIsNotEnough.grant(player);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport biomeTP preset [preset]");
         }

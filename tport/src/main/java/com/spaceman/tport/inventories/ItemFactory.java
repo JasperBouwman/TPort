@@ -626,6 +626,7 @@ public class ItemFactory {
         LOG_SETTINGS_READ(((whoClicked, clickType, pdc, fancyInventory) -> QuickEditInventories.openTPortLogReadGUI(whoClicked, fancyInventory.getData(tportDataName), fancyInventory.getData("filterUUID", UUID.class)))),
         SEARCH(((whoClicked, clickType, pdc, fancyInventory) -> SettingsInventories.openMainSearchGUI(whoClicked, 0))),
         HISTORY(((whoClicked, clickType, pdc, fancyInventory) -> TPortInventories.openHistory(whoClicked, fancyInventory.getData(historyFilterDataName)))),
+        LANGUAGE(((whoClicked, clickType, pdc, fancyInventory) -> SettingsInventories.openLanguageGUI(whoClicked))),
         PLTP(((whoClicked, clickType, pdc, fancyInventory) -> SettingsInventories.openPLTPGUI(whoClicked)));
         
         private final FancyClickEvent.FancyClickRunnable onClick;

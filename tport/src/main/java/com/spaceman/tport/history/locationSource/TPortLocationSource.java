@@ -39,7 +39,7 @@ public class TPortLocationSource extends TPortEncapsulation implements LocationS
         if (!Open.getInstance().emptyOpenPlayerTPort.hasPermissionToRun(player, true)) {
             return;
         }
-        tport.teleport(player, false, false,
+        tport.teleport(player, false, false, null,
                 "tport.history.locationSource.TPortLocationSource.teleportToLocation.succeeded",
                 "tport.history.locationSource.TPortLocationSource.teleportToLocation.tpRequested");
     }

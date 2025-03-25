@@ -65,7 +65,7 @@ public class State extends SubCommand {
             }
             
             setResourcePackState(player.getUniqueId(), newState);
-            updateResourcePack(player);
+            updateResourcePack(player, false);
             
             if (newState) {
                 Message stateMessage = formatTranslation(ColorType.varInfoColor, ColorType.varInfo2Color, "tport.command.resourcePack.state.state.enabled");

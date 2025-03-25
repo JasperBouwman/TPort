@@ -1,6 +1,7 @@
 package com.spaceman.tport.commands.tport.edit;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -10,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nullable;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_notMyStyle;
 import static com.spaceman.tport.commands.tport.Features.Feature.TPortTakesItem;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
@@ -39,29 +41,6 @@ public class Item extends SubCommand {
         boolean returnItem = tport.shouldReturnItem();
         boolean takeItem = TPortTakesItem.isEnabled();
         ItemStack oldItem = tport.getItem();
-        
-//        if (returnItem && takeItem && takeFromMainHand) {
-//            player.getInventory().setItemInMainHand(oldItem);
-//        } else {
-//            if (takeItem) {
-//                if (takeOne) {
-//                    for (ItemStack is : player.getInventory().getContents()) {
-//                        if (is == null) continue;
-//                        if (is.equals(item)) {
-//                            is.setAmount(is.getAmount() - 1);
-//                            item.setAmount(1);
-//                            break;
-//                        }
-//                    }
-//                } else {
-//                    player.getInventory().remove(item);
-//                }
-//            }
-//
-//            if (returnItem) {
-//                Main.giveItems(player, oldItem);
-//            }
-//        }
         
         if (returnItem && takeItem) {
 
@@ -107,6 +86,8 @@ public class Item extends SubCommand {
         tport.setItem(item);
         tport.setShouldReturnItem(takeItem);
         tport.save();
+        
+        Advancement_notMyStyle.grant(player);
         
         sendSuccessTranslation(player, "tport.command.edit.item.succeeded", asTPort(tport), item);
     }

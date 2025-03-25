@@ -1,6 +1,7 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancement;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -234,6 +235,7 @@ public class Features extends SubCommand {
         InterdimensionalTeleporting(false, true, settings_features_interdimensional_teleporting_model, settings_features_interdimensional_teleporting_grayed_model),
         DeathTP(false, true, settings_features_death_tp_model, settings_features_death_tp_grayed_model),
         LookTP(false, true, settings_features_look_tp_model, settings_features_look_tp_grayed_model),
+        Advancements(false, true, TPortAdvancement::onStateChange, settings_features_advancement_model, settings_features_advancement_grayed_model),
         EnsureUniqueUUID(false, false, settings_features_ensure_unique_uuid_model, settings_features_ensure_unique_uuid_grayed_model),
         PrintErrorsInConsole(false, false, settings_features_print_errors_in_console_model, settings_features_print_errors_in_console_grayed_model),
         FeatureSettings(false, true, settings_features_feature_settings_model, settings_features_feature_settings_grayed_model);

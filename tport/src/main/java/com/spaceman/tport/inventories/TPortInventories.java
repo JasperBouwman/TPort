@@ -3,6 +3,7 @@ package com.spaceman.tport.inventories;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Glow;
 import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancement;
 import com.spaceman.tport.biomeTP.BiomePreset;
 import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.*;
@@ -46,6 +47,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_LostAndFound;
 import static com.spaceman.tport.commands.tport.Back.getPrevLocName;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_BACK;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_HOME;
@@ -225,11 +227,11 @@ public class TPortInventories {
         ItemStack backTP = (Back.hasBack(player) ? back_tp_model : back_tp_grayed_model).getItem(player);
         Message backTPTitle = formatTranslation(titleColor, titleColor, "tport.tportInventories.openMainGUI.backTP.title", "BackTP");
         Message backTPLore = getPrevLocName(player);
-        Message invertedBackTPLore = (backSafetyState == null ? null : formatInfoTranslation("tport.tportInventories.openMainGUI.backTP.inverted", SHIFT_LEFT, !backSafetyState));
+        Message invertedBackTPLore = (backSafetyState == null ? null : formatInfoTranslation(playerLang, "tport.tportInventories.openMainGUI.backTP.inverted", SHIFT_LEFT, !backSafetyState));
         backTPTitle.translateMessage(playerLang);
         backTPLore.translateMessage(playerLang);
-        invertedBackTPLore = MessageUtils.translateMessage(invertedBackTPLore, playerLang);
-        setCustomItemData(backTP, theme, backTPTitle, Arrays.asList(backTPLore, invertedBackTPLore));
+        Message backTPDeprecated = formatErrorTranslation(playerLang, "tport.tportInventories.openMainGUI.backTP.deprecated");
+        setCustomItemData(backTP, theme, backTPTitle, Arrays.asList(backTPLore, invertedBackTPLore, new Message(), backTPDeprecated));
         addCommand(backTP, LEFT, "tport back");
         if (backSafetyState != null) addCommand(backTP, SHIFT_LEFT, "tport back " + !backSafetyState);
         
@@ -626,6 +628,7 @@ public class TPortInventories {
         inv.setItem(18, run);
         
         inv.open(player);
+        TPortAdvancement.Advancement_BiomeTP.grant(player);
     }
     public static void openBiomeTPPreset(Player player, int page, @Nullable FancyInventory prevWindow) {
         FancyInventory inv = getDynamicScrollableInventory(player, page, TPortInventories::openBiomeTPPreset, "tport.tportInventories.openBiomeTPPreset.title",
@@ -688,6 +691,7 @@ public class TPortInventories {
         inv.setItem(9, clearSelected);
         inv.setItem(18, run);
         inv.open(player);
+        TPortAdvancement.Advancement_FeatureTP.grant(player);
     }
     
     public static void openWorldTP(Player player) {
@@ -729,6 +733,7 @@ public class TPortInventories {
                 worlds, createBack(player, MAIN, OWN, PUBLIC, WORLD_TP));
         
         inv.open(player);
+        TPortAdvancement.Advancement_WorldTP.grant(player);
     }
     
     public static void openPublicTPortGUI(Player player) {
@@ -811,6 +816,7 @@ public class TPortInventories {
         }
         List<ItemStack> searched = searcher.search(searchMode, query, player);
         CooldownManager.Search.update(player);
+        Advancement_LostAndFound.grant(player);
         
         openSearchGUI(player, page, searched, query, searcherName, searchMode, true);
     }

@@ -3,7 +3,6 @@ package com.spaceman.tport.fancyMessage;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
-import com.spaceman.tport.adapters.TPortAdapter;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.fancyMessage.book.Book;
 import com.spaceman.tport.fancyMessage.book.BookPage;
@@ -385,6 +384,11 @@ public class Message implements Cloneable {
     public void broadcast() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             this.sendMessage(player);
+        }
+    }
+    public void broadcastTranslation() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            this.sendAndTranslateMessage(player);
         }
     }
     

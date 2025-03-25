@@ -1,15 +1,23 @@
 package com.spaceman.tport.events;
 
+import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancement;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commands.tport.ResourcePack;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.QuickType;
 import com.spaceman.tport.tpEvents.TPRequest;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
+import static com.spaceman.tport.advancements.TPortAdvancementManager.getOrCreateManager;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTranslation;
 import static com.spaceman.tport.fileHander.Files.tportData;
 
 public class JoinEvent implements Listener {
@@ -24,19 +32,47 @@ public class JoinEvent implements Listener {
         }
         
         QuickType.setQuickTypeSignHandler(player);
+        
+        if (TPortAdvancement.isActive()) {
+            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                // create manager after 10 ticks, after this delay the player should be fully joined and packets can be sent
+                getOrCreateManager(player);
+            }, 20);
+        }
     }
     
     @EventHandler(priority=EventPriority.MONITOR)
-    @SuppressWarnings("unused")
     public void join(PlayerJoinEvent e) {
         setData(e.getPlayer());
-        ResourcePack.updateResourcePack(e.getPlayer());
+        ResourcePack.updateResourcePack(e.getPlayer(), true);
     }
     
     @EventHandler
-    @SuppressWarnings("unused")
     public void leave(PlayerQuitEvent e) {
         TPRequest.playerLeft(e.getPlayer());
         QuickType.removeQuickTypeSignHandler(e.getPlayer());
+        
+        if (TPortAdvancement.isActive()) TPortAdvancementManager.removeAdvancementManager(e.getPlayer());
     }
+    
+//    @EventHandler
+    public void playerResourcePackStatusEvent(PlayerResourcePackStatusEvent e) {
+        // todo check if this status event comes from TPort
+        switch (e.getStatus()) {
+            case SUCCESSFULLY_LOADED -> {
+                sendSuccessTranslation(e.getPlayer(), "tport.events.JoinEvent.playerResourcePackStatusEvent.succeeded");
+            }
+            case DECLINED, DISCARDED -> {
+                sendErrorTranslation(e.getPlayer(), "tport.events.JoinEvent.playerResourcePackStatusEvent.denied");
+            }
+            case FAILED_DOWNLOAD, FAILED_RELOAD, INVALID_URL -> {
+                sendErrorTranslation(e.getPlayer(), "tport.events.JoinEvent.playerResourcePackStatusEvent.error");
+            }
+            case ACCEPTED, DOWNLOADED -> {
+                // still working...
+            }
+        }
+        
+    }
+    
 }

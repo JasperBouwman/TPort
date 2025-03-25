@@ -12,7 +12,7 @@ public interface TextEvent {
     
     JsonObject translateJSON(ColorTheme theme);
     
-    String name();
+    String[] name();
     
     @Target(ElementType.TYPE)
     @Retention(RetentionPolicy.RUNTIME)

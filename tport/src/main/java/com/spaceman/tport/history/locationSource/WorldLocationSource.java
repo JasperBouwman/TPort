@@ -10,7 +10,6 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
 
-import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_BACK;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.inventories.TPortInventories.history_element_world_tp_model;
 
@@ -32,9 +31,8 @@ public class WorldLocationSource extends WorldEncapsulation implements LocationS
     public void setLocation(Location location) { }
     
     @Override
-    public void teleportToLocation(Player player) { //todo add safetyCheck
-        String command = "tport world " + this.world;
-//        if (safetyCheck != null) command += " " + safetyCheck;
+    public void teleportToLocation(Player player) {
+        String command = "tport world " + this.world.getName();
         Bukkit.dispatchCommand(player, command);
     }
     
@@ -56,7 +54,7 @@ public class WorldLocationSource extends WorldEncapsulation implements LocationS
     
     @Override
     public boolean getSafetyCheckState(Player player) {
-        return TPORT_BACK.getState(player); // todo add safety check
+        return false;
     }
     
 }

@@ -4,10 +4,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
+import com.spaceman.tport.advancements.TPortAdvancement;
 import com.spaceman.tport.commandHandler.CommandTemplate;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.language.subCommands.*;
 import org.apache.commons.io.FilenameUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nonnull;
@@ -56,6 +58,7 @@ public class Language extends SubCommand {
         }
         tportConfig.getConfig().set("language.players." + uuid.toString(), lang);
         tportConfig.saveConfig();
+        TPortAdvancement.Advancement_Que.grant(Bukkit.getPlayer(uuid));
         return true;
     }
     

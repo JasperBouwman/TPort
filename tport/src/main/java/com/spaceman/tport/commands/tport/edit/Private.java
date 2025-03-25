@@ -1,5 +1,6 @@
 package com.spaceman.tport.commands.tport.edit;
 
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -14,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_safetyFirst;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
@@ -100,6 +102,9 @@ public class Private extends SubCommand {
             tport.setPrivateState(ps);
             tport.save();
             sendSuccessTranslation(player, "tport.command.edit.private.state.succeeded", asTPort(tport), ps);
+            
+            Advancement_safetyFirst.grant(player);
+            
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> private [state]");
         }

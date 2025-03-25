@@ -91,9 +91,27 @@
         <!--suppress VulnerableLibrariesLocal -->
         <dependency>
             <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
+<!--            <artifactId>spigot-api</artifactId>-->
+            <artifactId>spigot</artifactId>
             <version>${MainSpigotVersion}</version>
 <!--            <version>1.21-R0.1-SNAPSHOT</version>-->
+            <scope>provided</scope>
+        </dependency>
+
+        <!--suppress VulnerableLibrariesLocal -->
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+<!--            <artifactId>spigot</artifactId>-->
+            <version>${MainSpigotVersion}</version>
+<!--            <version>1.21-R0.1-SNAPSHOT</version>-->
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.ZockerAxel</groupId>
+            <artifactId>CrazyAdvancementsAPI</artifactId>
+            <version>v2.1.21</version>
             <scope>provided</scope>
         </dependency>
 
@@ -137,13 +155,13 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <version>2.13.0</version>
+            <version>2.17.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-buffer</artifactId>
-            <version>4.1.97.Final</version>
+            <version>4.1.115.Final</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

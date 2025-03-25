@@ -1,6 +1,7 @@
 package com.spaceman.tport.commands.tport.publc;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancement;
 import com.spaceman.tport.inventories.TPortInventories;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
@@ -137,7 +138,10 @@ public class Open extends SubCommand {
                 safetyCheckState = TPORT_PUBLIC.getState(player);
             }
             
-            publicTPort.teleport(player, safetyCheckState);
+            TPortAdvancement advancement = null; // only grant advancement when player is not the owner
+            if (!publicTPort.getOwner().equals(player.getUniqueId())) advancement = TPortAdvancement.Advancement_whatsYoursIsMine;
+            
+            publicTPort.teleport(player, safetyCheckState, advancement);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport public open <TPort name|page>");
         }

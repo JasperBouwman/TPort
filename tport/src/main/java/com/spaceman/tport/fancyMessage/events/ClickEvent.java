@@ -1,6 +1,7 @@
 package com.spaceman.tport.fancyMessage.events;
 
 import com.google.gson.JsonObject;
+import com.spaceman.tport.Main;
 import com.spaceman.tport.fancyMessage.book.BookPage;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 
@@ -106,12 +107,40 @@ public class ClickEvent implements TextEvent {
     public JsonObject translateJSON(ColorTheme theme) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("action", action);
-        jsonObject.addProperty("value", value.replace(getActivePageReplacer(), (pageNumber == null ? "" : String.valueOf(pageNumber.getPageNumber()))));
+        
+        if (Main.getInstance().adapter.JSONVersion() == 0 || Main.getInstance().adapter.JSONVersion() == -1) {
+            jsonObject.addProperty("value", value.replace(getActivePageReplacer(), (pageNumber == null ? "" : String.valueOf(pageNumber.getPageNumber()))));
+        }
+        
+        if (Main.getInstance().adapter.JSONVersion() == 1 || Main.getInstance().adapter.JSONVersion() == -1) {
+            switch (action) {
+                case OPEN_URL ->
+                        jsonObject.addProperty("url", value.replace(getActivePageReplacer(), (pageNumber == null ? "" : String.valueOf(pageNumber.getPageNumber()))));
+                case RUN_COMMAND, SUGGEST_COMMAND ->
+                        jsonObject.addProperty("command", value.replace(getActivePageReplacer(), (pageNumber == null ? "" : String.valueOf(pageNumber.getPageNumber()))));
+                case CHANGE_PAGE -> {
+                    if (value.equals(getActivePageReplacer())) {
+                        jsonObject.addProperty("page", pageNumber.getPageNumber());
+                    } else {
+                        try {
+                            jsonObject.addProperty("page", Integer.parseInt(value));
+                        } catch (NumberFormatException ignore) {
+                        }
+                    }
+                }
+            }
+        }
+        
         return jsonObject;
     }
     
     @Override
-    public String name() {
-        return "clickEvent";
+    public String[] name() {
+        return switch (Main.getInstance().adapter.JSONVersion()) {
+            case -1 -> new String[]{"clickEvent", "click_event"};
+            case 0 -> new String[]{"clickEvent"};
+            case 1 -> new String[]{"click_event"};
+            default -> throw new IllegalStateException("Unexpected value: " + Main.getInstance().adapter.JSONVersion());
+        };
     }
 }

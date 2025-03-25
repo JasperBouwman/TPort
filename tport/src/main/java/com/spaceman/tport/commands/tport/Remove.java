@@ -1,6 +1,8 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancement;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -38,6 +40,7 @@ public class Remove extends SubCommand {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport remove <TPort name>");
             return;
         }
+        
         TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
         if (tport == null) {
             sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
@@ -47,10 +50,14 @@ public class Remove extends SubCommand {
             sendErrorTranslation(player, "tport.command.remove.tportName.isOffered", tport.getName(), PlayerUUID.getPlayerName(tport.getOfferedTo()));
             return;
         }
+        
         removePublicTPort(tport.getName(), player, true);
         TPortManager.removeTPort(tport);
         Restore.setRestoreTPort(player.getUniqueId(), tport);
         sendSuccessTranslation(player, "tport.command.remove.tportName.succeeded", tport.getName());
+        
+        TPortAdvancement.Advancement_iDontNeedYouAnymore.grant(player);
+        
         if (tport.shouldReturnItem()) {
             Main.giveItems(player, tport.getItem());
         } else if (TPortTakesItem.isEnabled()) {

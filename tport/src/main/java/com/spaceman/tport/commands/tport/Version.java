@@ -58,7 +58,7 @@ public class Version extends SubCommand {
         return null;
     }
     
-    private static boolean isLatest(String[] latestVersion, String[] currentVersion, int index) {
+    public static boolean isLatest(String[] latestVersion, String[] currentVersion, int index) {
         if (latestVersion.length == index && currentVersion.length == index) {
             return true; // if both have no sub version listed. this version equals latest version
         }

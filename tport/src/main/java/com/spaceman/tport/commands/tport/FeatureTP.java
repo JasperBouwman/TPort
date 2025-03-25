@@ -27,6 +27,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_FeatureTP_OneIsNotEnough;
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
@@ -204,6 +205,7 @@ public class FeatureTP extends SubCommand {
                 case "ruined_portal" -> "CRYING_OBSIDIAN";
                 case "dolphin_located" -> "DOLPHIN_SPAWN_EGG";
                 case "on_woodland_explorer_maps", "on_ocean_explorer_maps", "on_treasure_maps", "on_trial_chambers_maps" -> "MAP";
+                case "on_snowy_village_maps", "on_taiga_village_maps", "on_swamp_village_maps", "on_savanna_village_maps", "on_desert_village_maps", "on_jungle_village_maps", "on_plains_village_maps" -> "MAP";
                 case "ocean_ruin" -> "TRIDENT";
                 case "village" -> "EMERALD";
                 case "eye_of_ender_located" -> "ENDER_EYE";
@@ -275,6 +277,8 @@ public class FeatureTP extends SubCommand {
                     
                     fancyInventory.setData(featureSelectionDataName, innerFeatureSelection);
                     openFeatureTP(whoClicked, fancyInventory.getData(pageDataName), fancyInventory);
+                    
+                    Advancement_FeatureTP_OneIsNotEnough.grant(whoClicked);
                 }
             }), LEFT, SHIFT_LEFT);
             FancyClickEvent.addCommand(im, ClickType.RIGHT, "tport featureTP search " + pair.getLeft());

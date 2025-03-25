@@ -1,6 +1,7 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancement;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -132,7 +133,10 @@ public class Open extends SubCommand {
                 }
             }
             
-            tport.teleport(player, safetyCheck);
+            TPortAdvancement advancement = null;
+            if (tport.getOwner().equals(player.getUniqueId())) advancement = TPortAdvancement.Advancement_familiar;
+            
+            tport.teleport(player, safetyCheck, advancement);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport open <player> [TPort name] [safetyCheck]");
         }

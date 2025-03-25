@@ -18,6 +18,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_backToTheFuture;
 import static com.spaceman.tport.commands.tport.SafetyCheck.SafetyCheckSource.TPORT_BACK;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
@@ -113,6 +114,7 @@ public class Back extends SubCommand {
             }
             if (prevTPorts.get(player.getUniqueId()).tpBack(player, safetyCheck)) {
                 CooldownManager.Back.update(player);
+                Advancement_backToTheFuture.grant(player);
             }
         } else {
             sendErrorTranslation(player, "tport.command.back.noLocationKnown");
@@ -137,7 +139,7 @@ public class Back extends SubCommand {
                     return false;
                 }
                 prevTPorts.put(player.getUniqueId(), new PrevTPort("TPORT", "tportName", tport.getName(), "tportUUID", tport.getTportID(), "tportOwner", tportOwner, "prevLoc", player.getLocation()));
-                if (tport.teleport(player, safetyCheck, false,
+                if (tport.teleport(player, safetyCheck, false, null,
                         "tport.command.back.TPORT.to.succeeded", "tport.command.back.TPORT.to.tpRequested")) {
                     return true;
                 } else {

@@ -1,7 +1,9 @@
 package com.spaceman.tport.fancyMessage.events;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.spaceman.tport.Main;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
@@ -12,6 +14,7 @@ import org.bukkit.Color;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
@@ -92,17 +95,39 @@ public class HoverEvent implements TextEvent {
         if (type.equals(SHOW_TEXT)) {
             JsonArray jsonArray = new JsonArray();
             text.stream().map(t -> t.translateJSON(theme)).forEach(jsonArray::add);
-            jsonObject.add("contents", jsonArray);
+            
+            if (Main.getInstance().adapter.JSONVersion() == 0 || Main.getInstance().adapter.JSONVersion() == -1) {
+                jsonObject.add("contents", jsonArray);
+            }
+            if (Main.getInstance().adapter.JSONVersion() == 1 || Main.getInstance().adapter.JSONVersion() == -1) {
+                jsonObject.add("value", jsonArray);
+            }
+            
         }
         if (type.equals(SHOW_ITEM)) {
-            jsonObject.addProperty("value", MessageUtils.toString(item).toString());
+            JsonObject jsonItem = MessageUtils.toString(item);
+            
+            if (Main.getInstance().adapter.JSONVersion() == 0 || Main.getInstance().adapter.JSONVersion() == -1) {
+                jsonObject.addProperty("value", jsonItem.toString());
+            }
+            if (Main.getInstance().adapter.JSONVersion() == 1 || Main.getInstance().adapter.JSONVersion() == -1) {
+                for (Map.Entry<String, JsonElement> entry : jsonItem.asMap().entrySet()) {
+                    jsonObject.add(entry.getKey(), entry.getValue());
+                }
+            }
+            
         }
         return jsonObject;
     }
     
     @Override
-    public String name() {
-        return "hoverEvent";
+    public String[] name() {
+        return switch (Main.getInstance().adapter.JSONVersion()) {
+            case -1 -> new String[]{"hoverEvent", "hover_event"};
+            case 0 -> new String[]{"hoverEvent"};
+            case 1 -> new String[]{"hover_event"};
+            default -> throw new IllegalStateException("Unexpected value: " + Main.getInstance().adapter.JSONVersion());
+        };
     }
     
     public void addMessage(Message message) {

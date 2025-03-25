@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "tport:item/advancement/advancement_quick_edit_not_my_style"
+  }
+}

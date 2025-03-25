@@ -2,6 +2,7 @@ package com.spaceman.tport.commands.tport.featureTP;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
+import com.spaceman.tport.advancements.TPortAdvancement;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -22,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_FeatureTP_OneIsNotEnough;
 import static com.spaceman.tport.commands.tport.Back.prevTPorts;
 import static com.spaceman.tport.commands.tport.featureTP.Mode.getDefMode;
 import static com.spaceman.tport.commands.tport.featureTP.Mode.worldSearchString;
@@ -111,6 +113,7 @@ public class Search extends SubCommand {
                         } else {
                             if (hasPermission(player, true, "TPort.featureTP.type." + feature)) {
                                 selectedFeatures.add(feature);
+                                Advancement_FeatureTP_OneIsNotEnough.grant(player);
                             }
                         }
                     }
@@ -208,7 +211,14 @@ public class Search extends SubCommand {
                 TeleportHistory.setLocationSource(player.getUniqueId(), new FeatureLocationSource(featureLoc.getRight()));
                 
                 requestTeleportPlayer(player, loc,
-                        () -> sendSuccessTranslation(player, "tport.command.featureTP.search.feature.succeeded", new FeatureEncapsulation(featureLoc.getRight())),
+                        () -> {
+                            sendSuccessTranslation(player, "tport.command.featureTP.search.feature.succeeded", new FeatureEncapsulation(featureLoc.getRight()));
+                            if (features.size() == 1) {
+                                TPortAdvancement.Advancement_FeatureTP_Certainty.grant(player);
+                            } else {
+                                TPortAdvancement.Advancement_FeatureTP_Surprise.grant(player);
+                            }
+                        },
                         (p, delay, tickMessage, seconds, secondMessage) -> sendSuccessTranslation(p, "tport.command.featureTP.search.feature.tpRequested", new FeatureEncapsulation(featureLoc.getRight()), delay, tickMessage, seconds, secondMessage));
             } else {
                 sendErrorTranslation(player, "tport.command.featureTP.search.feature.noSafeLocation");

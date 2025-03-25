@@ -1,6 +1,8 @@
 package com.spaceman.tport.cooldown;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancement;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -235,6 +237,7 @@ public enum CooldownManager {
                 sendErrorTranslation(player, "tport.cooldown.cooldownManager.delayTime", cooldownInSeconds,
                         (cooldownInSeconds == 1 ? formatTranslation(varErrorColor, varError2Color, "tport.command.second") :
                                 formatTranslation(varErrorColor, varError2Color, "tport.command.seconds")));
+                TPortAdvancement.Advancement_TooFast.grant(player);
             }
             return false;
         }

@@ -15,6 +15,8 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_ImWatchingMe;
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_ImWatchingYou;
 import static com.spaceman.tport.commands.tport.Own.getOwnTPorts;
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfoColor;
@@ -134,10 +136,13 @@ public class Add extends SubCommand {
                     tport.removeLogged(player.getUniqueId());
                     sendInfoTranslation(player, "tport.command.log.add.tportName.player.removeYourself");
                 }
+                Advancement_ImWatchingMe.grant(player);
                 continue;
             }
             tport.addLogged(playerUUID, logMode);
             sendSuccessTranslation(player, "tport.command.log.add.tportName.player.succeeded", asPlayer(playerUUID), logMode, asTPort(tport));
+            
+            Advancement_ImWatchingYou.grant(player);
             
             sendInfoTranslation(Bukkit.getPlayer(playerUUID), "tport.command.log.add.tportName.player.succeededOtherPlayer", asPlayer(player), asTPort(tport), logMode);
         }

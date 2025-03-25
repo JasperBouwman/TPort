@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.spaceman.tport.Glow;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
+import com.spaceman.tport.advancements.TPortAdvancement;
 import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.BlueMapCommand;
 import com.spaceman.tport.commands.tport.DynmapCommand;
@@ -12,8 +13,6 @@ import com.spaceman.tport.commands.tport.Tag;
 import com.spaceman.tport.commands.tport.edit.Item;
 import com.spaceman.tport.commands.tport.log.Read;
 import com.spaceman.tport.commands.tport.log.TimeFormat;
-import com.spaceman.tport.webMaps.BlueMapHandler;
-import com.spaceman.tport.webMaps.DynmapHandler;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
@@ -23,6 +22,8 @@ import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
 import com.spaceman.tport.fancyMessage.language.Language;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
+import com.spaceman.tport.webMaps.BlueMapHandler;
+import com.spaceman.tport.webMaps.DynmapHandler;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -37,7 +38,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static com.spaceman.tport.commands.TPortCommand.executeTPortCommand;
-import static com.spaceman.tport.webMaps.DynmapHandler.tport_dynmap_icon;
 import static com.spaceman.tport.fancyMessage.MessageUtils.setCustomItemData;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
@@ -54,6 +54,7 @@ import static com.spaceman.tport.inventories.ItemFactory.HeadAttributes.*;
 import static com.spaceman.tport.inventories.ItemFactory.*;
 import static com.spaceman.tport.inventories.TPortInventories.openTPortGUI;
 import static com.spaceman.tport.tport.TPort.*;
+import static com.spaceman.tport.webMaps.DynmapHandler.tport_dynmap_icon;
 import static org.bukkit.event.inventory.ClickType.*;
 import static org.bukkit.persistence.PersistentDataType.STRING;
 
@@ -128,6 +129,8 @@ public class QuickEditInventories {
     public static void openQuickEditSelection(Player player, int page, UUID tportUUID) {
         JsonObject playerLang = Language.getPlayerLang(player.getUniqueId());
         ColorTheme colorTheme = ColorTheme.getTheme(player);
+        
+        TPortAdvancement.Advancement_quickEdit.grant(player);
         
         QuickEditType currentType = QuickEditType.getForPlayer(player.getUniqueId());
         TPort tport = TPortManager.getTPort(player.getUniqueId(), tportUUID);

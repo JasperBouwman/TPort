@@ -1,5 +1,6 @@
 package com.spaceman.tport.commands.tport.edit.whitelist;
 
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player;
 import java.util.List;
 import java.util.*;
 
+import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_safetyFirst;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 
@@ -85,6 +87,8 @@ public class Add extends SubCommand {
             if (tport.addWhitelist(newPlayerUUID)) {
                 sendSuccessTranslation(player, "tport.command.edit.whitelist.add.succeeded", asPlayer(newPlayer, newPlayerUUID), tport);
                 sendInfoTranslation(newPlayer, "tport.command.edit.whitelist.add.succeededOtherPlayer", player, tport);
+                
+                Advancement_safetyFirst.grant(player);
             } else {
                 sendErrorTranslation(player, "tport.command.edit.whitelist.add.alreadyInList", asPlayer(newPlayer, newPlayerUUID), tport);
             }

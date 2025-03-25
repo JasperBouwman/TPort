@@ -1,6 +1,7 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancement;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -96,7 +97,7 @@ public class Own extends SubCommand {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
                 return;
             }
-            tport.teleport(player, safetyCheckState);
+            tport.teleport(player, safetyCheckState, TPortAdvancement.Advancement_familiar);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport own [TPort name] [safetyCheck]");
         }

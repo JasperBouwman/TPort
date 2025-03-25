@@ -1,12 +1,15 @@
 package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
+import com.spaceman.tport.advancements.TPortAdvancement;
+import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
 import com.spaceman.tport.commands.tport.resourcePack.State;
 import com.spaceman.tport.fancyMessage.Message;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
@@ -78,13 +81,21 @@ public class ResourcePack extends SubCommand {
         tportConfig.saveConfig();
     }
     
-    public static void updateResourcePack(Player player) {
+    public static void updateResourcePack(Player player, boolean delayAdvancement) {
         if (getResourcePackState(player.getUniqueId())) {
             ResolutionCommand.Resolution res = getResourcePackResolution(player.getUniqueId());
             String resourcePath = res.getUrl();
             if (resourcePath != null) {
                 player.setResourcePack(resourcePath, null, "For a best experience with TPort you should enable the TPort Resource Pack", false);
             }
+        }
+        
+        if (TPortAdvancement.isActive()) {
+            int time = delayAdvancement ? 30 : 0;
+            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                TPortAdvancement.Advancement_OhNoMyButtons.grant(player);
+                TPortAdvancementManager.reInitAdvancements(player);
+            }, time);
         }
     }
     
