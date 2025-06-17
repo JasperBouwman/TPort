@@ -805,6 +805,10 @@ public class TPortInventories {
         inv.open(player);
     }
     
+    private static final FancyInventory.DataName<List> searchResultDataName = new FancyInventory.DataName<>("searchResult", List.class, new ArrayList<>());
+    private static final FancyInventory.DataName<String> queryDataName = new FancyInventory.DataName<>("query", String.class, "");
+    private static final FancyInventory.DataName<String> searcherNameDataName = new FancyInventory.DataName<>("searcherName", String.class, "");
+    private static final FancyInventory.DataName<SearchMode> searchModeDataName = new FancyInventory.DataName<>("searchMode", SearchMode.class, null);
     public static void openSearchGUI(Player player, int page, SearchMode searchMode, String searcherName, @Nonnull String query) {
         SearchType searcher = Search.Searchers.getSearcher(searcherName);
         if (searcher == null) {
@@ -814,28 +818,27 @@ public class TPortInventories {
         if (!searcher.hasPermission(player, true)) {
             return;
         }
-        List<ItemStack> searched = searcher.search(searchMode, query, player);
+        List<ItemStack> searchResult = searcher.search(searchMode, query, player);
         CooldownManager.Search.update(player);
         Advancement_LostAndFound.grant(player);
         
-        openSearchGUI(player, page, searched, query, searcherName, searchMode, true);
+        openSearchGUI(player, page, searchResult, query, searcherName, searchMode);
     }
-    private static void openSearchGUI(Player player, int page, FancyInventory fancyInventory) { //todo remove 'query' naming
+    private static void openSearchGUI(Player player, int page, FancyInventory fancyInventory) {
         openSearchGUI(player, page,
-                fancyInventory.getData("content", List.class),
-                fancyInventory.getData("query", String.class),
-                fancyInventory.getData("searcher", String.class),
-                fancyInventory.getData("searchMode", SearchMode.class),
-                false);
+                fancyInventory.getData(searchResultDataName),
+                fancyInventory.getData(queryDataName),
+                fancyInventory.getData(searcherNameDataName),
+                fancyInventory.getData(searchModeDataName));
     }
-    private static void openSearchGUI(Player player, int page, List<ItemStack> searched, String query, String searcher, SearchMode searchMode, boolean updateCooldown) { //todo remove 'query' naming
+    private static void openSearchGUI(Player player, int page, List<ItemStack> searchResult, String query, String searcherName, SearchMode searchMode) {
         FancyInventory inv = getDynamicScrollableInventory(player, page, TPortInventories::openSearchGUI, "tport.tportInventories.openSearchGUI.title",
-                searched, createBack(player, SEARCH, OWN, MAIN));
+                searchResult, createBack(player, SEARCH, OWN, MAIN));
         
-        inv.setData("content", searched);
-        inv.setData("query", query);
-        inv.setData("searcher", searcher);
-        inv.setData("searchMode", searchMode);
+        inv.setData(searchResultDataName, searchResult);
+        inv.setData(queryDataName, query);
+        inv.setData(searcherNameDataName, searcherName);
+        inv.setData(searchModeDataName, searchMode);
         
         ColorTheme theme = getTheme(player);
         JsonObject playerLang = getPlayerLang(player.getUniqueId());
@@ -843,7 +846,7 @@ public class TPortInventories {
         ItemStack searchData = search_data_model.getItem(player);
         Message title = formatTranslation(titleColor, titleColor, "tport.tportInventories.openSearchGUI.searchData.title");
         title.translateMessage(playerLang);
-        Message searchTypeLore = formatInfoTranslation("tport.tportInventories.openSearchGUI.searchData.type", searcher);
+        Message searchTypeLore = formatInfoTranslation("tport.tportInventories.openSearchGUI.searchData.type", searcherName);
         searchTypeLore.translateMessage(playerLang);
         Message searchQueryLore = query.isEmpty() ? null : formatInfoTranslation("tport.tportInventories.openSearchGUI.searchData.query", query);
         if (!query.isEmpty()) searchQueryLore.translateMessage(playerLang);

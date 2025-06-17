@@ -76,6 +76,7 @@ public class ItemFactory {
         TPORT_LOG_SELECTION, //used for TPort logging selection
         TPORT_LOG_READ, //used for TPort read log
         TPORT_LOG_READ_FILTER, //used for TPort read log, filter selection
+        SELECT_COLOR_THEME,
         REMOVE_PLAYER; //shows the message to remove this Player (used for Remove Player)
     }
     public static ItemStack getHead(UUID head, Player player, List<HeadAttributes> attributes, @Nullable Object headData) {
@@ -125,6 +126,65 @@ public class ItemFactory {
                     FancyClickEvent.addCommand(item, ClickType.CONTROL_DROP, "tport dynmap search " + headOwner.getName());
                 }
             }
+        }
+        
+        if (attributes.contains(HeadAttributes.SELECT_COLOR_THEME)) {
+            
+            addCommand(item, LEFT, "tport colorTheme copy " + displayTitle);
+            addFunction(item, LEFT, ((whoClicked, clickType, pdc, fancyInventory) ->
+                    openTPortColorThemeGUI(whoClicked)));
+            
+            ColorTheme ownerTheme = ColorTheme.getTheme(headOwner.getUniqueId());
+            
+            Message infoMessage = formatTranslation(ownerTheme.getVarInfoColor(), ownerTheme.getVarInfoColor(), "tport.settingsInventories.openTPortColorTheme_selectThemeFromPlayer.theme.info");
+            Message infoList = formatTranslation(ownerTheme.getInfoColor(), ownerTheme.getVarInfoColor(), "tport.settingsInventories.openTPortColorTheme_selectThemeFromPlayer.theme.info.list", infoMessage);
+            Message infoTheme = formatTranslation(ownerTheme.getInfoColor(), ownerTheme.getVarInfoColor(), "tport.settingsInventories.openTPortColorTheme_selectThemeFromPlayer.theme.info.theme", infoMessage);
+            Message infoArray = new Message();
+            boolean color = true;
+            for (String s : Arrays.asList("TPort", "BiomeTP", "FeatureTP", player.getName())) {
+                infoArray.addMessage(formatTranslation(ownerTheme.getInfoColor(), (color ? ownerTheme.getVarInfoColor() : ownerTheme.getVarInfo2Color()), "%s", s));
+                infoArray.addText(textComponent(", ", ownerTheme.getInfoColor()));
+                color = !color;
+            }
+            infoArray.removeLast();
+            
+            Message successMessage = formatTranslation(ownerTheme.getVarSuccessColor(), ownerTheme.getVarSuccessColor(), "tport.settingsInventories.openTPortColorTheme_selectThemeFromPlayer.theme.success");
+            Message successList = formatTranslation(ownerTheme.getSuccessColor(), ownerTheme.getVarSuccessColor(), "tport.settingsInventories.openTPortColorTheme_selectThemeFromPlayer.theme.success.list", successMessage);
+            Message successTheme = formatTranslation(ownerTheme.getSuccessColor(), ownerTheme.getVarSuccessColor(), "tport.settingsInventories.openTPortColorTheme_selectThemeFromPlayer.theme.success.theme", successMessage);
+            Message successArray = new Message();
+            color = true;
+            for (String s : Arrays.asList("TPort", "BiomeTP", "FeatureTP", player.getName())) {
+                successArray.addMessage(formatTranslation(ownerTheme.getSuccessColor(), (color ? ownerTheme.getVarSuccessColor() : ownerTheme.getVarSuccess2Color()), "%s", s));
+                successArray.addText(textComponent(", ", ownerTheme.getSuccessColor()));
+                color = !color;
+            }
+            successArray.removeLast();
+            
+            Message errorMessage = formatTranslation(ownerTheme.getVarErrorColor(), ownerTheme.getVarErrorColor(), "tport.settingsInventories.openTPortColorTheme_selectThemeFromPlayer.theme.error");
+            Message errorList = formatTranslation(ownerTheme.getErrorColor(), ownerTheme.getVarErrorColor(), "tport.settingsInventories.openTPortColorTheme_selectThemeFromPlayer.theme.error.list", errorMessage);
+            Message errorTheme = formatTranslation(ownerTheme.getErrorColor(), ownerTheme.getVarErrorColor(), "tport.settingsInventories.openTPortColorTheme_selectThemeFromPlayer.theme.error.theme", errorMessage);
+            Message errorArray = new Message();
+            color = true;
+            for (String s : Arrays.asList("TPort", "BiomeTP", "FeatureTP", player.getName())) {
+                errorArray.addMessage(formatTranslation(ownerTheme.getErrorColor(), (color ? ownerTheme.getVarErrorColor() : ownerTheme.getVarError2Color()), "%s", s));
+                errorArray.addText(textComponent(", ", ownerTheme.getErrorColor()));
+                color = !color;
+            }
+            errorArray.removeLast();
+            
+            lore.add(new Message());
+            lore.add(infoTheme);
+            lore.add(infoList);
+            lore.add(infoArray);
+            lore.add(new Message());
+            lore.add(successTheme);
+            lore.add(successList);
+            lore.add(successArray);
+            lore.add(new Message());
+            lore.add(errorTheme);
+            lore.add(errorList);
+            lore.add(errorArray);
+            
         }
         
         if (attributes.contains(HeadAttributes.OFFER_TO_PLAYER) && headData instanceof Pair) {
@@ -359,6 +419,9 @@ public class ItemFactory {
         for (ItemFlag itemFlag : ItemFlag.values()) {
             im.addItemFlags(itemFlag);
         }
+        try {
+            im.removeItemFlags(ItemFlag.HIDE_LORE);
+        } catch (NoSuchFieldError ignore) {}
         
         Message title = formatTranslation(infoColor, varInfoColor, "tport.inventories.itemFactory.toTPortItem.title", tport.getName());
         List<Message> lore = tport.getHoverData(attributes.contains(TPortItemAttributes.ADD_OWNER));
@@ -644,7 +707,9 @@ public class ItemFactory {
         }
     }
     
-    public static List<ItemStack> getPlayerList(Player player, boolean hasOwn, boolean forceHeadsOnly, List<HeadAttributes> headAttributes, List<TPortItemAttributes> tportItemAttributes, @Nullable Object headData) {
+    public static List<ItemStack> getPlayerList(Player player, boolean hasOwn, boolean forceHeadsOnly,
+                                                List<HeadAttributes> headAttributes,
+                                                List<TPortItemAttributes> tportItemAttributes, @Nullable Object headData) {
         List<ItemStack> list = getSorter(player).sort(player, headAttributes, headData);
         
         ItemStack ownHead = null;

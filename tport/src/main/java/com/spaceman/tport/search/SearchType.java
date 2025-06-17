@@ -28,12 +28,12 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatInfoTr
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static org.bukkit.persistence.PersistentDataType.STRING;
 
-public class SearchType implements MessageUtils.MessageDescription { //todo remove 'query' naming
+public class SearchType implements MessageUtils.MessageDescription {
     
     private final String searchTypeName;
     
     private TabRunnable tabQuery = null;
-    private InventoryQuery inventoryQuery = null;
+    private QueryInventory queryInventory = null;
     private String queryName = null;
     private boolean loopedQuery = false;
     private boolean intSearch = false;
@@ -87,13 +87,13 @@ public class SearchType implements MessageUtils.MessageDescription { //todo remo
     }
     
     @FunctionalInterface
-    public interface InventoryQuery {
+    public interface QueryInventory {
         ArrayList<ItemStack> queryItems(Player player);
     }
     
     @FunctionalInterface
     public interface Searcher {
-        List<ItemStack> search(SearchMode searchMode, String searched, Player player);
+        List<ItemStack> search(SearchMode searchMode, String query, Player player);
     }
     
     public void setSearcher(Searcher searcher) {
@@ -109,25 +109,25 @@ public class SearchType implements MessageUtils.MessageDescription { //todo remo
     public void removeQuery() {
         this.queryName = null;
         this.tabQuery = null;
-        this.inventoryQuery = null;
+        this.queryInventory = null;
         this.loopedQuery = false;
         this.intSearch = false;
     }
-    public void setQuery(String name, boolean looped, boolean intSearch, @Nullable /*when null, free typing*/ TabRunnable tabQuery, @Nullable /*when null, use FancyKeyboard*/ InventoryQuery inventoryQuery) {
+    public void setQuery(String name, boolean looped, boolean intSearch, @Nullable /*when null, free typing*/ TabRunnable tabQuery, @Nullable /*when null, use FancyKeyboard*/ QueryInventory queryInventory) {
         this.queryName = name;
         this.loopedQuery = looped;
         this.intSearch = intSearch;
         this.tabQuery = Objects.requireNonNullElseGet(tabQuery, () -> ((args, player) -> List.of()));
-        this.inventoryQuery = inventoryQuery;
+        this.queryInventory = queryInventory;
     }
     public boolean hasQuery() {
         return queryName != null;
     }
     public boolean keyboardQuery() {
-        return inventoryQuery == null;
+        return queryInventory == null;
     }
     public ArrayList<ItemStack> queryItems(Player player) {
-        return inventoryQuery.queryItems(player);
+        return queryInventory.queryItems(player);
     }
     public boolean isLoopedQuery() {
         return loopedQuery;
@@ -218,8 +218,8 @@ public class SearchType implements MessageUtils.MessageDescription { //todo remo
                     }
                 }
                 
-                if (inventoryQuery != null) {
-                    ArrayList<String> accepted = inventoryQuery.queryItems(player).stream()
+                if (queryInventory != null) {
+                    ArrayList<String> accepted = queryInventory.queryItems(player).stream()
                             .map(is -> is.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(Main.getInstance(), "query"), STRING))
                             .collect(Collectors.toCollection(ArrayList::new));
                     for (int i = completeCommandLength - 1; i < args.length; i++) {

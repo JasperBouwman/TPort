@@ -811,6 +811,9 @@ public class QuickEditInventories {
                 FancyClickEvent.removeAllFunctions(im);
                 im.getEnchants().keySet().forEach(im::removeEnchant);
                 Arrays.stream(ItemFlag.values()).forEach(im::addItemFlags);
+                try {
+                    im.removeItemFlags(ItemFlag.HIDE_LORE);
+                } catch (NoSuchFieldError ignore) {}
                 is.setItemMeta(im);
                 
                 addFunction(is, ((whoClicked, clickType, pdc, fancyInventory) -> {

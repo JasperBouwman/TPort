@@ -10,7 +10,6 @@ import net.minecraft.core.IRegistry;
 import net.minecraft.resources.MinecraftKey;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.WorldServer;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.BiomeBase;
 import net.minecraft.world.level.biome.WorldChunkManager;
 import net.minecraft.world.level.chunk.ChunkGenerator;

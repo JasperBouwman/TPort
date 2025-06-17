@@ -2,10 +2,10 @@ package com.spaceman.textureGenerator;
 
 import com.google.gson.*;
 import com.spaceman.tport.Pair;
-import com.spaceman.tport.advancements.TPortAdvancement;
 import com.spaceman.tport.advancements.TPortAdvancementsModels;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
+import com.spaceman.tport.fancyMessage.inventories.WaypointModel;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
 import com.spaceman.tport.inventories.QuickEditInventories;
 import com.spaceman.tport.inventories.SettingsInventories;
@@ -50,11 +50,11 @@ public class Main {
             )
     );
     
-    record Model(String name, Material material, int model_data, String subDir) {}
+//    record Model(String name, Material material, int model_data, String subDir) {}
     private static final ArrayList<Integer> collectedModelData = new ArrayList<>();
     private static int lastModelData = 0;
-    private static ArrayList<Model> collectModels(Class<?> clazz) {
-        ArrayList<Model> models = new ArrayList<>();
+    private static ArrayList<InventoryModel> collectModels(Class<?> clazz) {
+        ArrayList<InventoryModel> models = new ArrayList<>();
         final String modelSuffix = "_model";
         
         for (Field modelField : clazz.getFields()) {
@@ -63,8 +63,6 @@ public class Main {
                     InventoryModel inventoryModel = (InventoryModel) modelField.get(null);
                     int modelData = inventoryModel.getCustomModelData();
                     lastModelData = Math.max(lastModelData, modelData);
-                    Material material = inventoryModel.getMaterial();
-                    String subDir = inventoryModel.getSubDir();
                     
                     String modelName = inventoryModel.getNamespacedKey().getKey();
                     if (modelName.endsWith(modelSuffix)) {
@@ -78,7 +76,33 @@ public class Main {
                     
                     System.out.println(modelName + " " + modelData);
                     
-                    models.add(new Model(modelName.toLowerCase(), material, modelData, subDir));
+                    models.add(inventoryModel);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return models;
+    }
+    
+    private static ArrayList<WaypointModel> collectWaypointModels(Class<?> clazz) {
+        ArrayList<WaypointModel> models = new ArrayList<>();
+        final String modelSuffix = "_model";
+        
+        for (Field modelField : clazz.getFields()) {
+            if (modelField.getType() == WaypointModel.class) {
+                try {
+                    WaypointModel waypointModel = (WaypointModel) modelField.get(null);
+                    
+                    String waypointName = waypointModel.getNamespacedKey().getKey();
+                    if (waypointName.endsWith(modelSuffix)) {
+                        waypointName = waypointName.substring(0, waypointName.length() - modelSuffix.length());
+                    }
+                    
+                    System.out.println(waypointName);
+                    
+                    models.add(waypointModel);
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
@@ -143,17 +167,18 @@ public class Main {
             return j;
         }
     }
-    private static void createMinecraftModels(ArrayList<Model> models) {
+    private static void createMinecraftModels(ArrayList<InventoryModel> models) {
         
-        for (Model model : models) {
-            JsonObject json = getJsonObject(model.material);
+        for (InventoryModel model : models) {
+            
+            JsonObject json = getJsonObject(model.getMaterial());
             
             JsonObject custom_model_data = new JsonObject();
-            custom_model_data.add("custom_model_data", new JsonPrimitive(model.model_data));
+            custom_model_data.add("custom_model_data", new JsonPrimitive(model.getCustomModelData()));
             
             JsonObject predicate = new JsonObject();
             predicate.add("predicate", custom_model_data);
-            predicate.add("model", new JsonPrimitive("tport:item/" + model.name));
+            predicate.add("model", new JsonPrimitive(model.getNamespacedKey().getNamespace() + ":item/" + model.getName()));
             
             JsonArray overrides = json.getAsJsonArray("overrides");
             if (overrides == null) {
@@ -196,19 +221,9 @@ public class Main {
         }
     }
     
-    private static void defineTPortModels(ArrayList<Model> models) {
-        HashMap<Model, JsonObject> tportJson = new HashMap<>();
+    private static void defineTPortModels(ArrayList<InventoryModel> models) {
+//        HashMap<InventoryModel, JsonObject> tportJson = new HashMap<>();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        
-        for (Model model : models) {
-            JsonObject json = new JsonObject();
-            
-            JsonObject modelObject = new JsonObject();
-            modelObject.add("type", new JsonPrimitive("minecraft:model"));
-            modelObject.add("model", new JsonPrimitive("tport:item/" + model.name));
-            json.add("model", modelObject);
-            tportJson.put(model, json);
-        }
         
         File outputDirectory = new File(outputDir + "/assets/tport/items");
         try {
@@ -218,9 +233,17 @@ public class Main {
         }
         outputDirectory.mkdirs();
         
-        for (Map.Entry<Model, JsonObject> modelEntry : tportJson.entrySet()) {
+        for (InventoryModel model : models) {
             
-            File outputFile = new File(outputDirectory.getAbsolutePath() + "/" + modelEntry.getKey().name + ".json");
+            JsonObject json = new JsonObject();
+            
+            JsonObject modelObject = new JsonObject();
+            modelObject.add("type", new JsonPrimitive("minecraft:model"));
+            modelObject.add("model", new JsonPrimitive(model.getNamespacedKey().getNamespace() + ":item/" + model.getName()));
+            json.add("model", modelObject);
+//            tportJson.put(model, json);
+            
+            File outputFile = new File(outputDirectory.getAbsolutePath() + "/" + model.getName() + ".json");
             try {
                 outputFile.createNewFile();
             } catch (IOException e) {
@@ -230,7 +253,7 @@ public class Main {
             try {
                 FileWriter fileWriter = new FileWriter(outputFile);
                 try {
-                    fileWriter.write(gson.toJson(modelEntry.getValue()));
+                    fileWriter.write(gson.toJson(json));
                 } finally {
                     fileWriter.flush();
                     fileWriter.close();
@@ -239,26 +262,33 @@ public class Main {
                 ioe.printStackTrace();
             }
         }
-    }
-    private static void createTPortModels(ArrayList<Model> models) {
-        HashMap<Model, JsonObject> tportJson = new HashMap<>();
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         
-        for (Model model : models) {
-            JsonObject json = new JsonObject();
-            
-            json.add("parent", new JsonPrimitive("minecraft:item/generated"));
-            
-            JsonObject textures = new JsonObject();
-            if (model.subDir == null) {
-                textures.add("layer0", new JsonPrimitive("tport:item/" + model.name));
-            } else {
-                textures.add("layer0", new JsonPrimitive("tport:item/" + model.subDir + "/" + model.name));
-            }
-            json.add("textures", textures);
-            
-            tportJson.put(model, json);
-        }
+        
+//        for (Map.Entry<InventoryModel, JsonObject> modelEntry : tportJson.entrySet()) {
+//
+//            File outputFile = new File(outputDirectory.getAbsolutePath() + "/" + modelEntry.getKey().getName() + ".json");
+//            try {
+//                outputFile.createNewFile();
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//
+//            try {
+//                FileWriter fileWriter = new FileWriter(outputFile);
+//                try {
+//                    fileWriter.write(gson.toJson(modelEntry.getValue()));
+//                } finally {
+//                    fileWriter.flush();
+//                    fileWriter.close();
+//                }
+//            } catch (IOException ioe) {
+//                ioe.printStackTrace();
+//            }
+//        }
+    }
+    private static void createTPortModels(ArrayList<InventoryModel> models) {
+//        HashMap<InventoryModel, JsonObject> tportJson = new HashMap<>();
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
         
         File outputDirectory = new File(outputDir + "/assets/tport/models/item");
         try {
@@ -268,9 +298,22 @@ public class Main {
         }
         outputDirectory.mkdirs();
         
-        for (Map.Entry<Model, JsonObject> modelEntry : tportJson.entrySet()) {
+        for (InventoryModel model : models) {
             
-            File outputFile = new File(outputDirectory.getAbsolutePath() + "/" + modelEntry.getKey().name + ".json");
+            JsonObject json = new JsonObject();
+            
+            json.add("parent", new JsonPrimitive("minecraft:item/generated"));
+            
+            JsonObject textures = new JsonObject();
+            if (model.hasSubDir()) {
+                textures.add("layer0", new JsonPrimitive(model.getNamespacedKey().getNamespace() + ":item/" + model.getSubDir() + "/" + model.getName()));
+            } else {
+                textures.add("layer0", new JsonPrimitive(model.getNamespacedKey().getNamespace() + ":item/" + model.getName()));
+            }
+            json.add("textures", textures);
+//            tportJson.put(model, json);
+            
+            File outputFile = new File(outputDirectory.getAbsolutePath() + "/" + model.getName() + ".json");
             try {
                 outputFile.createNewFile();
             } catch (IOException e) {
@@ -280,7 +323,74 @@ public class Main {
             try {
                 FileWriter fileWriter = new FileWriter(outputFile);
                 try {
-                    fileWriter.write(gson.toJson(modelEntry.getValue()));
+                    fileWriter.write(gson.toJson(json));
+                } finally {
+                    fileWriter.flush();
+                    fileWriter.close();
+                }
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+        
+        
+//        for (Map.Entry<InventoryModel, JsonObject> modelEntry : tportJson.entrySet()) {
+//
+//            File outputFile = new File(outputDirectory.getAbsolutePath() + "/" + modelEntry.getKey().getName() + ".json");
+//            try {
+//                outputFile.createNewFile();
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//
+//            try {
+//                FileWriter fileWriter = new FileWriter(outputFile);
+//                try {
+//                    fileWriter.write(gson.toJson(modelEntry.getValue()));
+//                } finally {
+//                    fileWriter.flush();
+//                    fileWriter.close();
+//                }
+//            } catch (IOException ioe) {
+//                ioe.printStackTrace();
+//            }
+//        }
+    }
+    
+    private static void createTPortWaypoints(ArrayList<WaypointModel> models) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        
+        File outputDirectory = new File(outputDir + "/assets/tport/waypoint_style");
+        try {
+            if (deleteFolders) FileUtils.deleteDirectory(outputDirectory);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        outputDirectory.mkdirs();
+        
+        for (WaypointModel model : models) {
+            
+            JsonObject json = new JsonObject();
+            
+            JsonArray jsonArray = new JsonArray();
+            if (model.hasSubDir()) {
+                jsonArray.add(model.getNamespacedKey().getNamespace() + ":" + model.getSubDir() + "/" + model.getName());
+            } else {
+                jsonArray.add(model.getNamespacedKey().getNamespace() + ":" + model.getName());
+            }
+            json.add("sprites", jsonArray);
+            
+            File outputFile = new File(outputDirectory.getAbsolutePath() + "/" + model.getName() + ".json");
+            try {
+                outputFile.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            
+            try {
+                FileWriter fileWriter = new FileWriter(outputFile);
+                try {
+                    fileWriter.write(gson.toJson(json));
                 } finally {
                     fileWriter.flush();
                     fileWriter.close();
@@ -319,29 +429,36 @@ public class Main {
             fileWriter.close();
         }
     }
-    private static void copyTextures(ArrayList<Model> models, String packDir, boolean lightMode) {
+    private static void copyTextures(ArrayList<InventoryModel> models, String packDir, boolean lightMode) {
         File outputDirectory = new File(outputDir + "/assets/tport/textures/item");
+        File waypointOutputDirectory = new File(outputDir + "/assets/tport/textures/gui/sprites/hud/locator_bar_dot");
         try {
-            if (deleteFolders) FileUtils.deleteDirectory(outputDirectory);
+            if (deleteFolders) {
+                FileUtils.deleteDirectory(outputDirectory);
+                FileUtils.deleteDirectory(waypointOutputDirectory);
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         outputDirectory.mkdirs();
+        waypointOutputDirectory.mkdir();
         boolean missingTextures = false;
         
-        for (Model model : models) {
+        for (InventoryModel model : models) {
             File texture;
-            texture = new File(path + "/icons/" + packDir + "/" + model.name + ".png");
+            texture = new File(path + "/icons/" + packDir + "/" + model.getName() + ".png");
             if (texture.exists()) {
                 try {
                     File newFile;
-                    if (model.subDir == null) {
-                        newFile = new File(outputDirectory, model.name + ".png");
+                    
+                    File output = false ? waypointOutputDirectory : outputDirectory;
+                    if (model.hasSubDir()) {
+                        newFile = new File(output, model.getSubDir() + "/" + model.getName() + ".png");
                     } else {
-                        newFile = new File(outputDirectory, model.subDir + "/" + model.name + ".png");
+                        newFile = new File(output, model.getName() + ".png");
                     }
                     FileUtils.copyFile(texture, newFile);
-                    if (lightMode) lightModeConverter(newFile);
+                    if (lightMode) colorConverter(newFile);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -351,14 +468,16 @@ public class Main {
                 missingTextures = true;
             }
             
-            File textureMCMeta = new File(path + "/icons/" + packDir + "/" + model.name + ".png.mcmeta");
+            File textureMCMeta = new File(path + "/icons/" + packDir + "/" + model.getName() + ".png.mcmeta");
             if (textureMCMeta.exists()) {
                 try {
                     File newFile;
-                    if (model.subDir == null) {
-                        newFile = new File(outputDirectory, model.name + ".png.mcmeta");
+                    File output = false ? waypointOutputDirectory : outputDirectory;
+//                    File output = model.isWaypoint() ? waypointOutputDirectory : outputDirectory;
+                    if (model.hasSubDir()) {
+                        newFile = new File(output, model.getSubDir() + "/" + model.getName() + ".png.mcmeta");
                     } else {
-                        newFile = new File(outputDirectory, model.subDir + "/" + model.name + ".png.mcmeta");
+                        newFile = new File(output, model.getName() + ".png.mcmeta");
                     }
                     FileUtils.copyFile(textureMCMeta, newFile);
                 } catch (IOException e) {
@@ -391,7 +510,7 @@ public class Main {
         }
     }
     
-    private static void lightModeConverter(File file) {
+    private static void colorConverter(File file) {
         try {
             BufferedImage img = ImageIO.read(file);
             boolean hasChanged = false;
@@ -432,7 +551,7 @@ public class Main {
         }
     }
     
-    private static void createPack(ArrayList<Model> models, String srcDir, String outputDir, boolean lightMode) {
+    private static void createPack(ArrayList<InventoryModel> models, String srcDir, String outputDir, boolean lightMode) {
         try {
             copyTextures(models, srcDir, lightMode);
             System.out.println(new File(outputDir).getAbsolutePath());
@@ -445,7 +564,7 @@ public class Main {
     
     public static void main(String[] args) {
         
-        ArrayList<Model> models = collectModels(FancyInventory.class);
+        ArrayList<InventoryModel> models = collectModels(FancyInventory.class);
         models.addAll( collectModels(KeyboardGUI.class) );
         models.addAll( collectModels(TPortInventories.class) );
         models.addAll( collectModels(QuickEditInventories.class) );
@@ -455,6 +574,9 @@ public class Main {
         createMinecraftModels(models);
         defineTPortModels(models);
         createTPortModels(models);
+        
+        ArrayList<WaypointModel> waypointModels = collectWaypointModels(SettingsInventories.class);
+        createTPortWaypoints(waypointModels);
         
         createPack(models, "x32", "../resource pack/src (32x)_dark", false);
         createPack(models, "x32", "../resource pack/src (32x)_light", true);

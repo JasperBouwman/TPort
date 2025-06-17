@@ -20,6 +20,15 @@ public class AdaptiveAdapter extends AdaptiveFancyMessage {
         PlayerConnection pc = (PlayerConnection) getPlayerConnection(player);
         
         try {
+            
+            for (Method m : pc.getClass().getMethods()) {
+                if (m.getParameterCount() != 1) continue;
+                Parameter parameter = m.getParameters()[0];
+                if (!parameter.getType().equals(Packet.class)) continue;
+                m.invoke(pc, packet);
+                break;
+            }
+            
             Class<?> packetSendListener = Class.forName("net.minecraft.network.PacketSendListener");
             for (Method m : pc.getClass().getMethods()) {
                 if (m.getParameterCount() != 2) continue;
@@ -29,7 +38,7 @@ public class AdaptiveAdapter extends AdaptiveFancyMessage {
                 if (!parameter2.getType().equals(packetSendListener))
                     continue; //todo in 1.18.2 PacketSendListener does not exist
                 m.invoke(pc, packet, null);
-                return;
+                break;
             }
         } catch (ClassNotFoundException cnfe) {
             for (Method m : pc.getClass().getMethods()) {

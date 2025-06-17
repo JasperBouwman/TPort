@@ -31,6 +31,7 @@ import com.spaceman.tport.tpEvents.restrictions.WalkRestriction;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.webMaps.BlueMapHandler;
 import com.spaceman.tport.webMaps.DynmapHandler;
+import net.minecraft.world.waypoints.WaypointTransmitter;
 import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -182,8 +183,19 @@ public class Main extends JavaPlugin {
         /*
          * //todo
          *
-         * /tport colorTheme copy <player>
-         *      set the color theme of the selected player as your own
+         * /tport location ~ ~ ~
+         * /tport location 0 0 0
+         * /tport location ~ 0 ~
+         * /tport location ^ ^ ^
+         *
+         * /tport admin
+         * /tport admin add <player...>
+         * /tport admin remove <player...>
+         * /tport admin list
+         * let admins teleport to any TPort (even without consent)
+         *
+         * /tport features display_disabled_features
+         * when disabled, disabled features wont show in inventories (or if player has no permission)
          *
          * settings_features_permissions
          * settings_features_permissions_grayed
@@ -227,8 +239,6 @@ public class Main extends JavaPlugin {
          * Feature: disableRandomWorldSearch
          *
          * make certain command terminal friendly
-         *
-         * add TPort advancements
          *
          * Use World.locateNearestStructure as fallback for FeatureTP
          *
@@ -281,6 +291,7 @@ public class Main extends JavaPlugin {
         Adapter.registerAdapter("1.21.3", "com.spaceman.tport.adapters.V1_21_3_Adapter");
         Adapter.registerAdapter("1.21.4", "com.spaceman.tport.adapters.V1_21_4_Adapter");
         Adapter.registerAdapter("1.21.5", "com.spaceman.tport.adapters.V1_21_5_Adapter");
+        Adapter.registerAdapter("1.21.6", "com.spaceman.tport.adapters.V1_21_6_Adapter");
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");

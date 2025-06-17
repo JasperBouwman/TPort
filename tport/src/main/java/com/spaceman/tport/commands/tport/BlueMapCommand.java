@@ -1,5 +1,6 @@
 package com.spaceman.tport.commands.tport;
 
+import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
@@ -8,6 +9,8 @@ import com.spaceman.tport.commands.tport.blueMap.IP;
 import com.spaceman.tport.commands.tport.blueMap.Search;
 import com.spaceman.tport.webMaps.BlueMapHandler;
 import org.bukkit.entity.Player;
+
+import java.util.logging.Level;
 
 import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_ICanSeeItAll;
 import static com.spaceman.tport.commandHandler.CommandTemplate.convertToArgs;
@@ -35,6 +38,20 @@ public class BlueMapCommand extends SubCommand {
     @Override
     public String getName(String arg) {
         return "blueMap";
+    }
+    
+    public static void onStateChange(boolean newState) {
+        if (newState)  {
+            try {
+                BlueMapHandler.enable();
+            } catch (Throwable e) {
+                Main.getInstance().getLogger().log(Level.SEVERE, "Tried to enable BlueMap support, BlueMap API was not found");
+            }
+        } else {
+            try {
+                BlueMapHandler.disable();
+            } catch (Throwable ignore) { }
+        }
     }
     
     public static boolean checkBlueMapState(Player player) {

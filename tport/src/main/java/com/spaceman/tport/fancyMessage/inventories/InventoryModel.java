@@ -78,6 +78,10 @@ public class InventoryModel {
         return subDir;
     }
     
+    public String getName() {
+        return this.namespacedKey.getKey();
+    }
+    
     private ItemStack applyModelData(ItemStack is, InventoryModel modelData, Player player) {
         return applyModelData(is, modelData, player.getUniqueId());
     }

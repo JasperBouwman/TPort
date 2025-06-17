@@ -1,7 +1,6 @@
 package com.spaceman.tport.tport;
 
 import com.spaceman.tport.Main;
-import com.spaceman.tport.advancements.TPortAdvancementManager;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.tpEvents.TPRequest;
 import org.bukkit.Bukkit;

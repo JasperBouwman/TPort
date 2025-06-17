@@ -35,11 +35,11 @@ import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 public class Create extends SubCommand {
     
     public Create() {
-        if (Features.Feature.BackTP.isEnabled()) addAction(new Back());
-        if (Features.Feature.BiomeTP.isEnabled()) addAction(new com.spaceman.tport.commands.tport.teleporter.create.BiomeTP());
-        if (Features.Feature.FeatureTP.isEnabled()) addAction(new com.spaceman.tport.commands.tport.teleporter.create.FeatureTP());
-        if (Features.Feature.PLTP.isEnabled()) addAction(new PLTP());
-        if (Features.Feature.PublicTP.isEnabled()) addAction(new Public());
+        addAction(new Back());
+        addAction(new com.spaceman.tport.commands.tport.teleporter.create.BiomeTP());
+        addAction(new com.spaceman.tport.commands.tport.teleporter.create.FeatureTP());
+        addAction(new PLTP());
+        addAction(new Public());
         addAction(new Home());
         addAction(new com.spaceman.tport.commands.tport.teleporter.create.TPort());
     }

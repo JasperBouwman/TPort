@@ -30,6 +30,14 @@ public class DynmapHandler {
     
     public static final String tport_dynmap_icon = "tport_icon";
     
+    public static void onStateChange(boolean newState) {
+        if (newState)  {
+            DynmapHandler.enable();
+        } else {
+            DynmapHandler.disable();
+        }
+    }
+    
     //only is true when shouldEnable is true AND when Dynmap API could be found/used
     private static boolean enabled = false;
     

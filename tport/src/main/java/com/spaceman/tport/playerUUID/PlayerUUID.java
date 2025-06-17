@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
@@ -50,6 +51,19 @@ public class PlayerUUID {
         // player never joined
         sendErrorTranslation(sender, "tport.command.playerNotFound", playerName);
         return new Pair<>(null, null);
+    }
+    
+    public static List<Pair<String, UUID>> getProfiles() {
+        ArrayList<Pair<String, UUID>> profiles = new ArrayList<>();
+        
+        for (OfflinePlayer op : Bukkit.getOfflinePlayers()) {
+            if ((op.hasPlayedBefore() || op.isOnline()) && op.getName() != null) {
+                if (tportData.getConfig().contains("tport." + op.getUniqueId())) {
+                    profiles.add(new Pair<>(op.getName(), op.getUniqueId()));
+                }
+            }
+        }
+        return profiles;
     }
     
     @Nullable

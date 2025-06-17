@@ -8,6 +8,7 @@ import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
 import com.spaceman.tport.commands.tport.resourcePack.State;
+import com.spaceman.tport.events.JoinEvent;
 import com.spaceman.tport.fancyMessage.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -87,6 +88,7 @@ public class ResourcePack extends SubCommand {
             String resourcePath = res.getUrl();
             if (resourcePath != null) {
                 player.setResourcePack(resourcePath, null, "For a best experience with TPort you should enable the TPort Resource Pack", false);
+                JoinEvent.playerResourceList.add(player.getUniqueId());
             }
         }
         

@@ -12,6 +12,7 @@ import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.TextType;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import com.spaceman.tport.history.HistoryEvents;
+import com.spaceman.tport.webMaps.DynmapHandler;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -214,23 +215,23 @@ public class Features extends SubCommand {
         }
     }
     
-    public enum Feature implements MessageUtils.MessageDescription {// todo reload command??? (onStateChange for Dynmap and BlueMap)
-        BiomeTP(true, true, settings_features_biome_tp_model, settings_features_biome_tp_grayed_model),
-        FeatureTP(true, true, settings_features_feature_tp_model, settings_features_feature_tp_grayed_model),
-        BackTP(true, true, settings_features_back_tp_model, settings_features_back_tp_grayed_model),
-        PublicTP(true, true, settings_features_public_tp_model, settings_features_public_tp_grayed_model),
-        PLTP(true, true, settings_features_pltp_model, settings_features_pltp_grayed_model),
-        Dynmap(true, true, settings_features_dynmap_model, settings_features_dynmap_grayed_model),
-        BlueMap(true, true, settings_features_bluemap_model, settings_features_bluemap_grayed_model),
-        Metrics(true, true, settings_features_metrics_model, settings_features_metrics_grayed_model),
+    public enum Feature implements MessageUtils.MessageDescription {
+        BiomeTP(false, true, settings_features_biome_tp_model, settings_features_biome_tp_grayed_model),
+        FeatureTP(false, true, settings_features_feature_tp_model, settings_features_feature_tp_grayed_model),
+        BackTP(false, true, settings_features_back_tp_model, settings_features_back_tp_grayed_model),
+        PublicTP(false, true, settings_features_public_tp_model, settings_features_public_tp_grayed_model),
+        PLTP(false, true, settings_features_pltp_model, settings_features_pltp_grayed_model),
+        Dynmap(false, true, DynmapHandler::onStateChange, settings_features_dynmap_model, settings_features_dynmap_grayed_model),
+        BlueMap(false, true, BlueMapCommand::onStateChange, settings_features_bluemap_model, settings_features_bluemap_grayed_model),
+        Metrics(false, true, settings_features_metrics_model, settings_features_metrics_grayed_model),
         CompanionTP(false, true, settings_features_companion_tp_model, settings_features_companion_tp_grayed_model),
         Permissions(false, false, settings_features_permissions_model, settings_features_permissions_grayed_model),
-        ParticleAnimation(true, true, settings_features_particle_animation_model, settings_features_particle_animation_grayed_model),
+        ParticleAnimation(false, true, settings_features_particle_animation_model, settings_features_particle_animation_grayed_model),
         SafetyCheck(false, true, settings_features_safety_check_model, settings_features_safety_check_grayed_model),
-        Redirects(true, true, settings_features_redirects_model, settings_features_redirects_grayed_model),
-        History(true, false, HistoryEvents::onStateChange, settings_features_history_model, settings_features_history_grayed_model),
-        Preview(true, true, settings_features_preview_model, settings_features_preview_grayed_model),
-        WorldTP(true, true, settings_features_world_tp_model, settings_features_world_tp_grayed_model),
+        Redirects(false, true, settings_features_redirects_model, settings_features_redirects_grayed_model),
+        History(false, false, HistoryEvents::onStateChange, settings_features_history_model, settings_features_history_grayed_model),
+        Preview(false, true, settings_features_preview_model, settings_features_preview_grayed_model),
+        WorldTP(false, true, settings_features_world_tp_model, settings_features_world_tp_grayed_model),
         TPortTakesItem(false, true, settings_features_tport_takes_item_model, settings_features_tport_takes_item_grayed_model),
         InterdimensionalTeleporting(false, true, settings_features_interdimensional_teleporting_model, settings_features_interdimensional_teleporting_grayed_model),
         DeathTP(false, true, settings_features_death_tp_model, settings_features_death_tp_grayed_model),
@@ -238,6 +239,7 @@ public class Features extends SubCommand {
         Advancements(false, true, TPortAdvancement::onStateChange, settings_features_advancement_model, settings_features_advancement_grayed_model),
         EnsureUniqueUUID(false, false, settings_features_ensure_unique_uuid_model, settings_features_ensure_unique_uuid_grayed_model),
         PrintErrorsInConsole(false, false, settings_features_print_errors_in_console_model, settings_features_print_errors_in_console_grayed_model),
+        DisplayDisabledFeatures(false, true, settings_features_display_disabled_features_model, settings_features_display_disabled_features_grayed_model),
         FeatureSettings(false, true, settings_features_feature_settings_model, settings_features_feature_settings_grayed_model);
         
         private final boolean reloadCommands;

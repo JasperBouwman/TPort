@@ -1,3 +1,57 @@
+# Version 1.21.5
+
+### Version command update
+
+The version command (`/tport version`) now displays more information,
+like the server/bukkit version and loaded TPort adapter.
+This should help with problem-solving.
+
+### Copy the color theme of a player
+
+Using `/tport colorTheme copy <player>` you can copy the color theme of the selected player.
+This is also available in the color theme inventory (accessible via `/tport settings` -> color theme -> right click the last button)
+
+### PlayerResourcePackStatusEvent
+
+TPort now listens to the PlayerResourcePackStatusEvent event.
+When the player declines or discards the download of the resource pack, 
+the state will automatically turn off.
+When there is an error during download/reload, the resource pack state will automatically turn off.
+When the resource pack is working correctly, the player will get a success message.
+
+### GeneratePermFile
+This is a new command (`/tport generatePermFile [filter none] [file type]`).
+With this command you can create a file containing all command with their permission(s).
+
+### DisplayDisabledFeatures
+This is a new feature that allows the server admin to have more control over what is shown in windows.
+When this feature is enabled (default) every button is always shown.
+When this feature is disabled, the button will only show if:
+- the feature is enabled
+- and
+- the player has permission
+
+Each button has their own permission:
+
+In the settings:
+- reload: tport.showInSettings.reload
+- Features: tport.showInSettings.features
+- Tag: tport.showInSettings.biomeTP
+- Backup: tport.showInSettings.backup
+- RemovePlayer: tport.showInSettings.removePlayer
+- Redirect: tport.showInSettings.redirect
+- Metrics: tport.showInSettings.metrics
+- Cooldown: tport.showInSettings.cooldown
+- Dynmap: tport.showInSettings.dynmap
+- BlueMap: tport.showInSettings.blueMap
+- Public: tport.showInSettings.public
+- Adapter: tport.showInSettings.adapter
+- Delay: tport.showInSettings.delay
+- Restriction: tport.showInSettings.restriction
+- Texture Debug: tport.showInSettings.textureDebug
+
+---
+
 # Version 1.21.4
 
 Fixed issue where teleporting to a world using History (with a World location source) would give an error showing that the world does not exist.

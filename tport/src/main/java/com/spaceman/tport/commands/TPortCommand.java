@@ -117,6 +117,7 @@ public class TPortCommand extends CommandTemplate {
         addAction(new Adapter());
         addAction(new HistoryCommand());
 //        addAction(new Docs(this));
+        addAction(new GeneratePermFile(this));
         
         TextComponent discordServer = new TextComponent("Discord Server", varInfoColor)
                 .addTextEvent(new HoverEvent(new TextComponent(Main.discordLink, infoColor)))

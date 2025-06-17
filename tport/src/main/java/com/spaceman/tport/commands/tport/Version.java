@@ -7,6 +7,8 @@ import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
+import com.spaceman.tport.fancyMessage.events.HoverEvent;
+import com.spaceman.tport.fancyMessage.language.Language;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -144,8 +146,16 @@ public class Version extends SubCommand {
                 versionsMessage = formatTranslation(varInfoColor, varInfoColor, "tport.command.version.succeeded.unknown");
             }
             
+            JsonObject playerLang = Language.getPlayerLang(player);
+            Message changelogMessage = formatInfoTranslation("tport.command.version.succeeded.changelog").translateMessage(playerLang);
+            
             sendInfoTranslation(player, translationID,
-                    getCurrentVersion(),
+                    textComponent(
+                            getCurrentVersion(),
+                            varInfoColor,
+                            new HoverEvent(changelogMessage),
+                            ClickEvent.openUrl("https://github.com/JasperBouwman/TPort/blob/master/changelog.md#version-" + getCurrentVersion().replace(".", ""))
+                    ),
                     versionsMessage,
                     textComponent(
                             "https://github.com/JasperBouwman/TPort",
@@ -164,7 +174,12 @@ public class Version extends SubCommand {
                             varInfoColor,
                             hoverEvent(textComponent(Main.discordLink, varInfoColor)),
                             ClickEvent.openUrl(Main.discordLink)
-                    ));
+                    ),
+                    Bukkit.getVersion(),
+                    Bukkit.getBukkitVersion(),
+                    Adapter.getLoadedAdapter(),
+                    Adapter.getSelectedAdapter()
+            );
             
             Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
                 Boolean isLatest = isLatestVersion();

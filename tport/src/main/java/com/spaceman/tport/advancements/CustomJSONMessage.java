@@ -4,8 +4,7 @@ import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import eu.endercentral.crazy_advancements.JSONMessage;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.minecraft.network.chat.IChatBaseComponent;
-import net.minecraft.server.MinecraftServer;
+import org.bukkit.craftbukkit.v1_21_R5.util.CraftChatMessage;
 
 public class CustomJSONMessage extends JSONMessage {
     
@@ -21,7 +20,7 @@ public class CustomJSONMessage extends JSONMessage {
     
     @Override
     public net.minecraft.network.chat.IChatBaseComponent getBaseComponent() {
-        return IChatBaseComponent.ChatSerializer.a(message.translateJSON(colorTheme), MinecraftServer.getDefaultRegistryAccess());
+        return CraftChatMessage.fromJSON(message.translateJSON(colorTheme));
     }
     
 }

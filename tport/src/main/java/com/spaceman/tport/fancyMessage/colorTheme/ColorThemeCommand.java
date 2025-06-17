@@ -5,12 +5,14 @@ import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.inventories.SettingsInventories;
+import com.spaceman.tport.playerUUID.PlayerUUID;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,6 +20,7 @@ import static com.spaceman.tport.advancements.TPortAdvancement.Advancement_Prett
 import static com.spaceman.tport.commandHandler.CommandTemplate.convertToArgs;
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
+import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 
 public class ColorThemeCommand extends SubCommand {
     
@@ -147,9 +150,39 @@ public class ColorThemeCommand extends SubCommand {
         }));
         emptyGet.addAction(emptyGetType);
         
+        EmptyCommand emptyCopyPlayer = new EmptyCommand();
+        emptyCopyPlayer.setCommandName("player", ArgumentType.REQUIRED);
+        emptyCopyPlayer.setCommandDescription(formatInfoTranslation("tport.colorTheme.copy.player.commandDescription"));
+        EmptyCommand emptyCopy = new EmptyCommand() {
+            @Override
+            public String getName(String argument) {
+                return getCommandName();
+            }
+        };
+        emptyCopy.setCommandName("copy", ArgumentType.FIXED);
+        emptyCopy.setTabRunnable((args, player) -> PlayerUUID.getPlayerNames());
+        emptyCopy.setRunnable(((args, player) -> {
+            if (args.length != 3) {
+                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport colorTheme copy <player>");
+                return;
+            }
+            
+            String newPlayerName = args[2];
+            UUID newPlayerUUID = PlayerUUID.getPlayerUUID(newPlayerName, player);
+            if (newPlayerUUID == null) {
+                return;
+            }
+            ColorTheme theme = ColorTheme.getTheme(newPlayerUUID);
+            ColorTheme.setTheme(player, theme);
+            
+            sendInfoTranslation(player, "tport.colorTheme.copy.player.succeeded", asPlayer(newPlayerUUID));
+        }));
+        emptyCopy.addAction(emptyCopyPlayer);
+        
         addAction(empty);
         addAction(emptySet);
         addAction(emptyGet);
+        addAction(emptyCopy);
     }
     
     @Override
@@ -164,6 +197,7 @@ public class ColorThemeCommand extends SubCommand {
         //tport colorTheme set <type> <chat color>
         //tport colorTheme set <type> <hex color>
         //tport colorTheme get <type>
+        //tport colorTheme copy <player>
         
         if (args.length == 1) {
             SettingsInventories.openTPortColorThemeGUI(player);

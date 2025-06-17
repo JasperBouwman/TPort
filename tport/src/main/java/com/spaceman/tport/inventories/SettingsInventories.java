@@ -28,6 +28,7 @@ import com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
+import com.spaceman.tport.fancyMessage.inventories.WaypointModel;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
 import com.spaceman.tport.fancyMessage.language.Language;
 import com.spaceman.tport.playerUUID.PlayerUUID;
@@ -75,6 +76,7 @@ import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.*;
 import static com.spaceman.tport.inventories.ItemFactory.*;
 import static com.spaceman.tport.inventories.QuickEditInventories.tportToMoveDataName;
 import static com.spaceman.tport.inventories.TPortInventories.openHomeEditGUI;
+import static com.spaceman.tport.permissions.PermissionHandler.hasPermission;
 import static com.spaceman.tport.tport.TPortManager.getTPort;
 import static org.bukkit.event.inventory.ClickType.*;
 import static org.bukkit.persistence.PersistentDataType.STRING;
@@ -211,7 +213,9 @@ public class SettingsInventories {
     public static final InventoryModel settings_features_ensure_unique_uuid_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_ensure_unique_uuid_model, "tport", "settings_features_ensure_unique_uuid_grayed", "settings/features");
     public static final InventoryModel settings_features_print_errors_in_console_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_ensure_unique_uuid_grayed_model, "tport", "settings_features_print_errors_in_console", "settings/features");
     public static final InventoryModel settings_features_print_errors_in_console_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_print_errors_in_console_model, "tport", "settings_features_print_errors_in_console_grayed", "settings/features");
-    public static final InventoryModel settings_features_feature_settings_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_print_errors_in_console_grayed_model, "tport", "settings_features_feature_settings", "settings/features");
+    public static final InventoryModel settings_features_display_disabled_features_model        = new InventoryModel(Material.OAK_BUTTON, settings_features_print_errors_in_console_grayed_model, "tport", "settings_features_display_disabled_features", "settings/features");
+    public static final InventoryModel settings_features_display_disabled_features_grayed_model = new InventoryModel(Material.OAK_BUTTON, settings_features_display_disabled_features_model, "tport", "settings_features_display_disabled_features_grayed", "settings/features");
+    public static final InventoryModel settings_features_feature_settings_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_display_disabled_features_grayed_model, "tport", "settings_features_feature_settings", "settings/features");
     public static final InventoryModel settings_features_feature_settings_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_feature_settings_model, "tport", "settings_features_feature_settings_grayed", "settings/features");
     public static final InventoryModel settings_redirect_model                                 = new InventoryModel(Material.OAK_BUTTON, settings_features_feature_settings_grayed_model, "tport", "settings_redirect", "settings/redirect");
     public static final InventoryModel settings_redirect_console_feedback_model                = new InventoryModel(Material.OAK_BUTTON, settings_redirect_model, "tport", "settings_redirect_console_feedback", "settings/redirect");
@@ -312,6 +316,8 @@ public class SettingsInventories {
     public static final InventoryModel settings_language_server_model       = new InventoryModel(Material.OAK_BUTTON, settings_language_own_language_model, "tport", "settings_language_server", "settings/language");
     public static final InventoryModel settings_language_server_language_model = new InventoryModel(Material.OAK_BUTTON, settings_language_server_model, "tport", "settings_language_server_language", "settings/language");
     public static final InventoryModel settings_language_repair_model       = new InventoryModel(Material.OAK_BUTTON, settings_language_server_language_model, "tport", "settings_language_repair", "settings/language");
+    
+    public static final WaypointModel waypoint_test_model = new WaypointModel("tport", "waypoint_test", "");
     
     public static final int last_model_id = settings_language_repair_model.getCustomModelData();
     
@@ -679,7 +685,7 @@ public class SettingsInventories {
             
             addCommand(themeItem, LEFT, "tport colorTheme set " + themeEntry.getKey());
             addFunction(themeItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) ->
-                    openTPortColorTheme_selectTheme(whoClicked, fancyInventory.getData(pageDataName), fancyInventory)));
+                    openTPortColorThemeGUI(whoClicked)));
             
             Message itemTitle = formatInfoTranslation("tport.settingsInventories.openTPortColorTheme_selectTheme.theme.name", themeEntry.getKey());
             itemTitle.translateMessage(playerLang);
@@ -742,6 +748,13 @@ public class SettingsInventories {
         
         FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openTPortColorTheme_selectTheme,
                 "tport.settingsInventories.openTPortColorTheme_selectTheme.title", items,
+                createBack(player, COLOR_THEME, OWN, MAIN));
+        inv.open(player);
+    }
+    public static void openTportColorTheme_selectThemeFromPlayer(Player player, int page, FancyInventory prevWindow) {
+        FancyInventory inv = getDynamicScrollableInventory(player, page, SettingsInventories::openTportColorTheme_selectThemeFromPlayer,
+                "tport.settingsInventories.openTPortColorTheme_selectThemeFromPlayer.title",
+                getPlayerList(player, true, true, List.of(HeadAttributes.SELECT_COLOR_THEME), List.of(), null),
                 createBack(player, COLOR_THEME, OWN, MAIN));
         inv.open(player);
     }
@@ -848,10 +861,11 @@ public class SettingsInventories {
         inv.setItem(15, title);
         
         ItemStack selectFromList = settings_color_theme_select_model.getItem(player);
-        Message selectFromListTitle = formatInfoTranslation("tport.settingsInventories.openTPortColorThemeGUI.selectFromList.title", LEFT);
-        selectFromListTitle.translateMessage(playerLang);
-        setCustomItemData(selectFromList, colorTheme, selectFromListTitle, null);
+        Message selectFromListTitle = formatInfoTranslation("tport.settingsInventories.openTPortColorThemeGUI.selectFromList.title", LEFT).translateMessage(playerLang);
+        Message selectFromPlayerTitle = formatInfoTranslation("tport.settingsInventories.openTPortColorThemeGUI.selectFromPlayer.title", RIGHT).translateMessage(playerLang);
+        setCustomItemData(selectFromList, colorTheme, selectFromListTitle, List.of(selectFromPlayerTitle));
         addFunction(selectFromList, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openTPortColorTheme_selectTheme(whoClicked, 0, null)));
+        addFunction(selectFromList, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> openTportColorTheme_selectThemeFromPlayer(whoClicked, 0, null)));
         inv.setItem(16, selectFromList);
         
         ItemStack back = createBack(player, SETTINGS, OWN, MAIN);
@@ -1905,11 +1919,15 @@ public class SettingsInventories {
             Message searchTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openMainSearchGUI.type.title", searchType);
             Message searchDescription = searchType.getDescription().translateMessage(playerLang);
             
-            Message searchPermissionState = (searchType.hasPermission(player, false) ?
-                    formatTranslation(goodColor, goodColor, "tport.settingsInventories.openMainSearchGUI.permission.do") :
-                    formatTranslation(badColor, badColor, "tport.settingsInventories.openMainSearchGUI.permission.dont")
-            );
-            Message searchPermission = formatInfoTranslation(playerLang, "tport.settingsInventories.openMainSearchGUI.permission", searchPermissionState);
+            Message searchPermission = null;
+            if (Features.Feature.Permissions.isEnabled()) {
+                Message searchPermissionState = (searchType.hasPermission(player, false) ?
+                        formatTranslation(goodColor, goodColor, "tport.settingsInventories.openMainSearchGUI.permission.do") :
+                        formatTranslation(badColor, badColor, "tport.settingsInventories.openMainSearchGUI.permission.dont")
+                );
+                searchPermission = formatInfoTranslation(playerLang, "tport.settingsInventories.openMainSearchGUI.permission", searchPermissionState);
+            }
+            
             setCustomItemData(is, colorTheme, searchTitle, Arrays.asList(new Message(), searchDescription, searchPermission));
             
             items.add(is);
@@ -2567,23 +2585,23 @@ public class SettingsInventories {
 //        items.add(requests);          //todo
         
         //useful for admins
-        items.add(reloadItem);          //DONE
-        items.add(featuresItem);        //DONE
-        items.add(biomeTPItem);
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (hasPermission(player, "tport.showInSettings.reload", false) )) items.add(reloadItem);          //DONE
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (Features.Feature.FeatureSettings.isEnabled() && hasPermission(player, "tport.showInSettings.features", false) )) items.add(featuresItem);        //DONE
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (Features.Feature.BiomeTP.isEnabled() && hasPermission(player, "tport.showInSettings.biomeTP", false) )) items.add(biomeTPItem);
 //        items.add(featureTPItem);
-        items.add(tagItem);             //DONE
-        items.add(backupItem);          //DONE
-        items.add(removePlayerItem);    //DONE
-        items.add(redirectItem);        //DONE
-        items.add(metricsItem);         //DONE
-        items.add(cooldownItem);        //DONE
-        items.add(dynmapItem);
-        items.add(blueMapItem);
-        items.add(publicItem);          //DONE
-        items.add(adapterItem);         //DONE
-        items.add(delayItem);
-        items.add(restrictionItem);
-        items.add(itemDebugItem);       //DONE
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (hasPermission(player, "tport.showInSettings.tag", false) )) items.add(tagItem);             //DONE
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (hasPermission(player, "tport.showInSettings.backup", false) )) items.add(backupItem);          //DONE
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (hasPermission(player, "tport.showInSettings.removePlayer", false) )) items.add(removePlayerItem);    //DONE
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (Features.Feature.Redirects.isEnabled() && hasPermission(player, "tport.showInSettings.redirect", false) )) items.add(redirectItem);        //DONE
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (hasPermission(player, "tport.showInSettings.metrics", false) )) items.add(metricsItem);         //DONE
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (hasPermission(player, "tport.showInSettings.cooldown", false) )) items.add(cooldownItem);        //DONE
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (Features.Feature.Dynmap.isEnabled() && hasPermission(player, "tport.showInSettings.dynmap", false) )) items.add(dynmapItem);
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (Features.Feature.BlueMap.isEnabled() && hasPermission(player, "tport.showInSettings.blueMap", false) )) items.add(blueMapItem);
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (Features.Feature.PublicTP.isEnabled() && hasPermission(player, "tport.showInSettings.public", false) )) items.add(publicItem);          //DONE
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (hasPermission(player, "tport.showInSettings.adapter", false) )) items.add(adapterItem);         //DONE
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (hasPermission(player, "tport.showInSettings.delay", false) )) items.add(delayItem);
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (hasPermission(player, "tport.showInSettings.restriction", false) )) items.add(restrictionItem);
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (hasPermission(player, "tport.showInSettings.textureDebug", false) )) items.add(itemDebugItem);       //DONE
         
         Message title = formatInfoTranslation("tport.settingsInventories.openSettingsGUI.title");
         FancyInventory inv = getDynamicScrollableInventory(player, page,

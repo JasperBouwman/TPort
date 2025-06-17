@@ -15,6 +15,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
+import java.util.ArrayList;
+import java.util.UUID;
+
 import static com.spaceman.tport.advancements.TPortAdvancementManager.getOrCreateManager;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendSuccessTranslation;
@@ -55,18 +58,27 @@ public class JoinEvent implements Listener {
         if (TPortAdvancement.isActive()) TPortAdvancementManager.removeAdvancementManager(e.getPlayer());
     }
     
-//    @EventHandler
+    public static ArrayList<UUID> playerResourceList = new ArrayList<>();
+    @EventHandler
     public void playerResourcePackStatusEvent(PlayerResourcePackStatusEvent e) {
-        // todo check if this status event comes from TPort
+        if (!playerResourceList.contains(e.getPlayer().getUniqueId())) {
+            return;
+        }
+        
         switch (e.getStatus()) {
             case SUCCESSFULLY_LOADED -> {
                 sendSuccessTranslation(e.getPlayer(), "tport.events.JoinEvent.playerResourcePackStatusEvent.succeeded");
+                playerResourceList.remove(e.getPlayer().getUniqueId());
             }
             case DECLINED, DISCARDED -> {
                 sendErrorTranslation(e.getPlayer(), "tport.events.JoinEvent.playerResourcePackStatusEvent.denied");
+                playerResourceList.remove(e.getPlayer().getUniqueId());
+                ResourcePack.setResourcePackState(e.getPlayer().getUniqueId(), false);
             }
             case FAILED_DOWNLOAD, FAILED_RELOAD, INVALID_URL -> {
                 sendErrorTranslation(e.getPlayer(), "tport.events.JoinEvent.playerResourcePackStatusEvent.error");
+                playerResourceList.remove(e.getPlayer().getUniqueId());
+                ResourcePack.setResourcePackState(e.getPlayer().getUniqueId(), false);
             }
             case ACCEPTED, DOWNLOADED -> {
                 // still working...

@@ -74,6 +74,11 @@
         </dependency>
         <dependency>
             <groupId>com.spaceman</groupId>
+            <artifactId>V1_21_6</artifactId>
+            <version>${TPortVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.spaceman</groupId>
             <artifactId>V1_21_4</artifactId>
             <version>${TPortVersion}</version>
         </dependency>

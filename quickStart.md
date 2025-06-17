@@ -303,7 +303,7 @@ Using search you can search for players and TPorts. The search types are:
   
   Search for players by their owned TPorts. This type is an integer search. You can use 4 search modes. (`ends with` and `starts with` not supported)
 
-There are 5 search modes. Not all search types use these modes. The 5 modes are:
+There are 6 search modes. Not all search types use these modes. The 6 modes are:
 
 * equals ![](https://github.com/JasperBouwman/TPort/blob/master/texture_generator/src/main/resources/icons/x32/settings_search_mode_equal.png?raw=true "Equals search mode")
 
