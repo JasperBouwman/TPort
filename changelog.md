@@ -1,4 +1,45 @@
+# Version 1.21.6
+
+### Adapters
+
+The Adaptive adapter should be working again.  
+Created an adapter for 1.21.9 / 1.21.10
+
+### Waypoints
+
+Added the beta for the waypoint.
+Since the release of the locator bar, TPorts now will show on the locator bar as waypoints.
+To configure this you can use the `/tport waypoints` command.
+
+For now the only argument is `type [type]`. You can select what TPorts will show on your locator bar, or turn it off.
+The available types are:
+- All  
+Showing all TPorts that show on the locator bar
+- CanTP  
+Showing only TPorts you can teleport to
+- None  
+Showing no TPorts
+- Own  
+Showing only own TPorts
+- Public  
+Showing all publicly available TPorts 
+- PublicTP  
+Showing all PublicTP TPorts
+
+You can customize the TPort on the locator bar by using `/tport edit <TPort name> waypoint`.  
+Use the command `/tport edit <TPort name> waypoint show [state]` to show/hide the TPort on the locator bar.
+Use the command `/tport edit <TPort name> waypoint color [chat color|hex color]` to edit the icon color.
+In the next update you can also change the icon that shows on the locator bar.
+
+
+
+---
+
 # Version 1.21.5
+
+### Adapter 1.21.6
+
+Created the adapter for Minecraft/Bukkit 1.21.6
 
 ### Version command update
 

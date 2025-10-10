@@ -5,6 +5,7 @@ import com.spaceman.tport.biomeTP.BiomePreset;
 import com.spaceman.tport.commands.tport.biomeTP.Accuracy;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
+import com.spaceman.tport.tport.TPort;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -65,5 +66,11 @@ public abstract class TPortAdapter {
     public abstract List<com.spaceman.tport.Pair<String, List<String>>> getFeatureTags(World world) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, ClassNotFoundException;
     public abstract Pair<Location, String> searchFeature(Player player, Location startLocation, List<String> features) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, ClassNotFoundException;
     //featureTP
+    
+    //waypoints
+    public boolean supportsWaypoints() { return false; }
+    public void sendWaypoint(Player player, TPort tport) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException { }
+    public void removeWaypoint(Player player, TPort tport) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException { }
+    //waypoints
     
 }

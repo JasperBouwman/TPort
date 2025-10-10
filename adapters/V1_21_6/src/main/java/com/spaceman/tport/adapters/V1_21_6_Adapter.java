@@ -5,7 +5,7 @@ import net.minecraft.server.network.PlayerConnection;
 import org.bukkit.craftbukkit.v1_21_R5.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
-public class V1_21_6_Adapter extends V1_21_6_FancyMessageAdapter {
+public class V1_21_6_Adapter extends V1_21_6_WaypointAdapter {
     
     @Override
     public String getAdapterName() {

@@ -10,6 +10,7 @@ import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
 import com.spaceman.tport.inventories.QuickEditInventories;
 import com.spaceman.tport.inventories.SettingsInventories;
 import com.spaceman.tport.inventories.TPortInventories;
+import com.spaceman.tport.waypoint.WaypointModels;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -429,7 +430,7 @@ public class Main {
             fileWriter.close();
         }
     }
-    private static void copyTextures(ArrayList<InventoryModel> models, String packDir, boolean lightMode) {
+    private static void copyTextures(ArrayList<InventoryModel> models, ArrayList<WaypointModel> waypointModels, String packDir, boolean lightMode) {
         File outputDirectory = new File(outputDir + "/assets/tport/textures/item");
         File waypointOutputDirectory = new File(outputDir + "/assets/tport/textures/gui/sprites/hud/locator_bar_dot");
         try {
@@ -451,11 +452,10 @@ public class Main {
                 try {
                     File newFile;
                     
-                    File output = false ? waypointOutputDirectory : outputDirectory;
                     if (model.hasSubDir()) {
-                        newFile = new File(output, model.getSubDir() + "/" + model.getName() + ".png");
+                        newFile = new File(outputDirectory, model.getSubDir() + "/" + model.getName() + ".png");
                     } else {
-                        newFile = new File(output, model.getName() + ".png");
+                        newFile = new File(outputDirectory, model.getName() + ".png");
                     }
                     FileUtils.copyFile(texture, newFile);
                     if (lightMode) colorConverter(newFile);
@@ -463,7 +463,6 @@ public class Main {
                     throw new RuntimeException(e);
                 }
             } else {
-//                throw new IllegalArgumentException("Texture '" + texture.getName() + "' does not exist");
                 System.out.println("Texture '" + texture.getName() + "' does not exist");
                 missingTextures = true;
             }
@@ -472,12 +471,49 @@ public class Main {
             if (textureMCMeta.exists()) {
                 try {
                     File newFile;
-                    File output = false ? waypointOutputDirectory : outputDirectory;
-//                    File output = model.isWaypoint() ? waypointOutputDirectory : outputDirectory;
                     if (model.hasSubDir()) {
-                        newFile = new File(output, model.getSubDir() + "/" + model.getName() + ".png.mcmeta");
+                        newFile = new File(outputDirectory, model.getSubDir() + "/" + model.getName() + ".png.mcmeta");
                     } else {
-                        newFile = new File(output, model.getName() + ".png.mcmeta");
+                        newFile = new File(outputDirectory, model.getName() + ".png.mcmeta");
+                    }
+                    FileUtils.copyFile(textureMCMeta, newFile);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            
+        }
+        
+        for (WaypointModel model : waypointModels) {
+            File texture;
+            texture = new File(path + "/icons/" + packDir + "/" + model.getName() + ".png");
+            if (texture.exists()) {
+                try {
+                    File newFile;
+                    
+                    if (model.hasSubDir()) {
+                        newFile = new File(waypointOutputDirectory, model.getSubDir() + "/" + model.getName() + ".png");
+                    } else {
+                        newFile = new File(waypointOutputDirectory, model.getName() + ".png");
+                    }
+                    FileUtils.copyFile(texture, newFile);
+                    if (lightMode) colorConverter(newFile);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                System.out.println("Texture '" + texture.getName() + "' does not exist");
+                missingTextures = true;
+            }
+            
+            File textureMCMeta = new File(path + "/icons/" + packDir + "/" + model.getName() + ".png.mcmeta");
+            if (textureMCMeta.exists()) {
+                try {
+                    File newFile;
+                    if (model.hasSubDir()) {
+                        newFile = new File(waypointOutputDirectory, model.getSubDir() + "/" + model.getName() + ".png.mcmeta");
+                    } else {
+                        newFile = new File(waypointOutputDirectory, model.getName() + ".png.mcmeta");
                     }
                     FileUtils.copyFile(textureMCMeta, newFile);
                 } catch (IOException e) {
@@ -551,9 +587,9 @@ public class Main {
         }
     }
     
-    private static void createPack(ArrayList<InventoryModel> models, String srcDir, String outputDir, boolean lightMode) {
+    private static void createPack(ArrayList<InventoryModel> models, ArrayList<WaypointModel> waypointModels, String srcDir, String outputDir, boolean lightMode) {
         try {
-            copyTextures(models, srcDir, lightMode);
+            copyTextures(models, waypointModels, srcDir, lightMode);
             System.out.println(new File(outputDir).getAbsolutePath());
             copyTexturePack(new File(outputDir));
         } catch (Exception e) {
@@ -575,13 +611,13 @@ public class Main {
         defineTPortModels(models);
         createTPortModels(models);
         
-        ArrayList<WaypointModel> waypointModels = collectWaypointModels(SettingsInventories.class);
+        ArrayList<WaypointModel> waypointModels = collectWaypointModels(WaypointModels.class);
         createTPortWaypoints(waypointModels);
         
-        createPack(models, "x32", "../resource pack/src (32x)_dark", false);
-        createPack(models, "x32", "../resource pack/src (32x)_light", true);
-        createPack(models, "x16", "../resource pack/src (16x)_dark", false);
-        createPack(models, "x16", "../resource pack/src (16x)_light", true);
+        createPack(models, waypointModels, "x32", "../resource pack/src (32x)_dark", false);
+        createPack(models, waypointModels, "x32", "../resource pack/src (32x)_light", true);
+        createPack(models, waypointModels, "x16", "../resource pack/src (16x)_dark", false);
+        createPack(models, waypointModels, "x16", "../resource pack/src (16x)_light", true);
         
         //delete texture_output
         try {

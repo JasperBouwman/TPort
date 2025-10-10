@@ -122,6 +122,7 @@ public class Features extends SubCommand {
     
     @Override
     public void run(String[] args, Player player) {
+        //tport features
         //tport features <feature> state [state]
         
         if (this.isDisabled)  {
@@ -232,6 +233,7 @@ public class Features extends SubCommand {
         History(false, false, HistoryEvents::onStateChange, settings_features_history_model, settings_features_history_grayed_model),
         Preview(false, true, settings_features_preview_model, settings_features_preview_grayed_model),
         WorldTP(false, true, settings_features_world_tp_model, settings_features_world_tp_grayed_model),
+        Waypoints(false, true, settings_features_waypoints_model, settings_features_waypoints_grayed_model),
         TPortTakesItem(false, true, settings_features_tport_takes_item_model, settings_features_tport_takes_item_grayed_model),
         InterdimensionalTeleporting(false, true, settings_features_interdimensional_teleporting_model, settings_features_interdimensional_teleporting_grayed_model),
         DeathTP(false, true, settings_features_death_tp_model, settings_features_death_tp_grayed_model),

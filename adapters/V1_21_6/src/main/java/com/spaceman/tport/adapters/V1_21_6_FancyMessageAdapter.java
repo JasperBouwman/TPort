@@ -38,7 +38,7 @@ import static com.spaceman.tport.fancyMessage.inventories.keyboard.QuickType.onS
 
 public abstract class V1_21_6_FancyMessageAdapter extends V1_21_6_BiomeTPAdapter {
     
-    private BlockPosition newBlockPosition(Location l) {
+    BlockPosition newBlockPosition(Location l) {
         return new BlockPosition(l.getBlockX(), l.getBlockY(), l.getBlockZ());
     }
     

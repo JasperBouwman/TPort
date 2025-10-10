@@ -1,5 +1,6 @@
 package com.spaceman.tport;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
@@ -14,6 +15,10 @@ public class Pair<L, R> implements ConfigurationSerializable {
     public Pair(L l, R r) {
         this.left = l;
         this.right = r;
+    }
+    
+    public static Pair<String, String> fromNamespacedKey(NamespacedKey namespacedKey) {
+        return new Pair<>(namespacedKey.getNamespace(), namespacedKey.getKey());
     }
     
     @SuppressWarnings("unused")

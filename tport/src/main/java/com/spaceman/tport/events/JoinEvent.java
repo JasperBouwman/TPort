@@ -40,7 +40,7 @@ public class JoinEvent implements Listener {
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
                 // create manager after 10 ticks, after this delay the player should be fully joined and packets can be sent
                 getOrCreateManager(player);
-            }, 20);
+            }, 40);
         }
     }
     

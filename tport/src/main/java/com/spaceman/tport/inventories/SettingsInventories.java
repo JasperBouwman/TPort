@@ -199,7 +199,9 @@ public class SettingsInventories {
     public static final InventoryModel settings_features_preview_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_preview_model, "tport", "settings_features_preview_grayed", "settings/features");
     public static final InventoryModel settings_features_world_tp_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_preview_grayed_model, "tport", "settings_features_world_tp", "settings/features");
     public static final InventoryModel settings_features_world_tp_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_world_tp_model, "tport", "settings_features_world_tp_grayed", "settings/features");
-    public static final InventoryModel settings_features_tport_takes_item_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_world_tp_grayed_model, "tport", "settings_features_tport_takes_item", "settings/features");
+    public static final InventoryModel settings_features_waypoints_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_world_tp_grayed_model, "tport", "settings_features_waypoints", "settings/features");
+    public static final InventoryModel settings_features_waypoints_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_waypoints_model, "tport", "settings_features_waypoints_grayed", "settings/features");
+    public static final InventoryModel settings_features_tport_takes_item_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_waypoints_grayed_model, "tport", "settings_features_tport_takes_item", "settings/features");
     public static final InventoryModel settings_features_tport_takes_item_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_tport_takes_item_model, "tport", "settings_features_tport_takes_item_grayed", "settings/features");
     public static final InventoryModel settings_features_interdimensional_teleporting_model         = new InventoryModel(Material.OAK_BUTTON, settings_features_tport_takes_item_grayed_model, "tport", "settings_features_interdimensional_teleporting", "settings/features");
     public static final InventoryModel settings_features_interdimensional_teleporting_grayed_model  = new InventoryModel(Material.OAK_BUTTON, settings_features_interdimensional_teleporting_model, "tport", "settings_features_interdimensional_teleporting_grayed", "settings/features");
@@ -316,8 +318,6 @@ public class SettingsInventories {
     public static final InventoryModel settings_language_server_model       = new InventoryModel(Material.OAK_BUTTON, settings_language_own_language_model, "tport", "settings_language_server", "settings/language");
     public static final InventoryModel settings_language_server_language_model = new InventoryModel(Material.OAK_BUTTON, settings_language_server_model, "tport", "settings_language_server_language", "settings/language");
     public static final InventoryModel settings_language_repair_model       = new InventoryModel(Material.OAK_BUTTON, settings_language_server_language_model, "tport", "settings_language_repair", "settings/language");
-    
-    public static final WaypointModel waypoint_test_model = new WaypointModel("tport", "waypoint_test", "");
     
     public static final int last_model_id = settings_language_repair_model.getCustomModelData();
     

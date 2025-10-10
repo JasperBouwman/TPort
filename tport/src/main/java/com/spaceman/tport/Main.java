@@ -12,13 +12,15 @@ import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.QuickType;
-import com.spaceman.tport.history.TeleportHistory;
 import com.spaceman.tport.history.HistoryEvents;
+import com.spaceman.tport.history.TeleportHistory;
+import com.spaceman.tport.inventories.ItemFactory;
 import com.spaceman.tport.inventories.TPortInventories;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
 import com.spaceman.tport.metrics.CommandCounter;
 import com.spaceman.tport.metrics.FeatureSearchCounter;
 import com.spaceman.tport.metrics.Metrics;
+import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
 import com.spaceman.tport.tpEvents.TPEManager;
 import com.spaceman.tport.tpEvents.TPRestriction;
@@ -29,9 +31,10 @@ import com.spaceman.tport.tpEvents.restrictions.InteractRestriction;
 import com.spaceman.tport.tpEvents.restrictions.NoneRestriction;
 import com.spaceman.tport.tpEvents.restrictions.WalkRestriction;
 import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.tport.TPortManager;
+import com.spaceman.tport.waypoint.WaypointManager;
 import com.spaceman.tport.webMaps.BlueMapHandler;
 import com.spaceman.tport.webMaps.DynmapHandler;
-import net.minecraft.world.waypoints.WaypointTransmitter;
 import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -54,6 +57,9 @@ import java.util.regex.Pattern;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTranslation;
 import static com.spaceman.tport.fileHander.Files.tportConfig;
+import static com.spaceman.tport.fileHander.Files.tportData;
+import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.ADD_OWNER;
+import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.CLICK_TO_OPEN;
 
 public class Main extends JavaPlugin {
     
@@ -183,6 +189,21 @@ public class Main extends JavaPlugin {
         /*
          * //todo
          *
+         * add Defaults.yml
+         * In here are all defaults stored, so that admins can change the defaults
+         *
+         * Feature: waypoints
+         * /tport waypoints type [type]
+         *   - PublicTP (shows all PublicTP TPorts)
+         *   - public (shows all public TPorts, using private state: open, online)
+         *   - canTP (shows all TPorts you can teleport to)
+         *   - own (shows only own TPorts)
+         * / tport edit <TPort> waypoint show [state]
+         * / tport edit <TPort> waypoint icon [icon]
+         * / tport edit <TPort> waypoint color [chat color]
+         * / tport edit <TPort> waypoint color [hex color]
+         *
+         *
          * /tport location ~ ~ ~
          * /tport location 0 0 0
          * /tport location ~ 0 ~
@@ -292,6 +313,10 @@ public class Main extends JavaPlugin {
         Adapter.registerAdapter("1.21.4", "com.spaceman.tport.adapters.V1_21_4_Adapter");
         Adapter.registerAdapter("1.21.5", "com.spaceman.tport.adapters.V1_21_5_Adapter");
         Adapter.registerAdapter("1.21.6", "com.spaceman.tport.adapters.V1_21_6_Adapter");
+        Adapter.registerAdapter("1.21.7", "com.spaceman.tport.adapters.V1_21_6_Adapter");
+        Adapter.registerAdapter("1.21.8", "com.spaceman.tport.adapters.V1_21_6_Adapter");
+        Adapter.registerAdapter("1.21.9", "com.spaceman.tport.adapters.V1_21_10_Adapter");
+        Adapter.registerAdapter("1.21.10", "com.spaceman.tport.adapters.V1_21_10_Adapter");
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");
@@ -346,7 +371,15 @@ public class Main extends JavaPlugin {
         pm.registerEvents(new RespawnEvent(), this);
         pm.registerEvents(new CommandEvent(), this);
         pm.registerEvents(new FancyClickEvent(), this);
+        pm.registerEvents(new WaypointManager(), this);
         HistoryEvents.load();
+        
+        // generate waypoint register
+        for (String uuid : tportData.getKeys("tport")) {
+            for (TPort tport : TPortManager.getTPortList(UUID.fromString(uuid))) {
+                WaypointManager.registerTPort(tport);
+            }
+        }
         
         for (Player player : Bukkit.getOnlinePlayers()) {
             JoinEvent.setData(player);

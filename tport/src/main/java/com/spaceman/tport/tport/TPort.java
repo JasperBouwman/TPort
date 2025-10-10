@@ -10,12 +10,14 @@ import com.spaceman.tport.cooldown.CooldownManager;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
+import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.TPRequest;
+import com.spaceman.tport.waypoint.WaypointManager;
 import com.spaceman.tport.webMaps.BlueMapHandler;
 import com.spaceman.tport.webMaps.DynmapHandler;
 import org.bukkit.Bukkit;
@@ -41,6 +43,7 @@ import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.inventories.QuickEditInventories.*;
 import static com.spaceman.tport.tpEvents.TPEManager.tpPlayerToTPort;
+import static com.spaceman.tport.waypoint.WaypointModels.tport_waypoint_model;
 
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "FieldMayBeFinal"})
 public class TPort implements ConfigurationSerializable {
@@ -73,6 +76,11 @@ public class TPort implements ConfigurationSerializable {
     private boolean showOnBlueMap = true;
     private String blueMapIcon = "";
     private boolean shouldReturnItem = true;
+    
+    private boolean showWaypoint = true;
+    private Pair<String, String> waypointIcon = Pair.fromNamespacedKey(tport_waypoint_model.getNamespacedKey());
+    private MultiColor waypointColor = new MultiColor("#ffffff");
+    
     
     private boolean active;
     private String inactiveWorldName = null;
@@ -142,6 +150,7 @@ public class TPort implements ConfigurationSerializable {
             tport.setLogBook(log);
         }
         if (args.containsKey("logBook_v2")) {
+            //noinspection unchecked
             ArrayList<LogEntry> log = (ArrayList<LogEntry>) args.get("logBook_v2");
             tport.setLogBook(log);
         }
@@ -167,6 +176,11 @@ public class TPort implements ConfigurationSerializable {
         tport.showOnBlueMap((Boolean) args.getOrDefault("showOnBlueMap", true));
         tport.setBlueMapIcon((String) args.getOrDefault("blueMapIcon", ""));
         tport.setShouldReturnItem((Boolean) args.getOrDefault("shouldReturnItem", true));
+        
+        tport.setShowWaypoint((Boolean) args.getOrDefault("showWaypoint", true));
+        //noinspection unchecked
+        tport.setWaypointIcon((Pair<String, String>) args.getOrDefault("waypointIcon", new Pair<>("tport", "tport")));
+        tport.setWaypointColor((MultiColor) args.getOrDefault("waypointColor", new MultiColor("#ffffff")));
         
         return tport;
     }
@@ -217,6 +231,10 @@ public class TPort implements ConfigurationSerializable {
         map.put("blueMapIcon", blueMapIcon);
         map.put("shouldReturnItem", shouldReturnItem);
         
+        map.put("showWaypoint", showWaypoint);
+        map.put("waypointIcon", waypointIcon);
+        map.put("waypointColor", waypointColor);
+        
         return map;
     }
     
@@ -241,6 +259,7 @@ public class TPort implements ConfigurationSerializable {
     
     public void setLocation(Location location) {
         if (this.location != null && !Objects.equals(location.getWorld(), this.location.getWorld())) {
+            WaypointManager.removeFromWorld(this, this.location.getWorld());
             try {
                 BlueMapHandler.forceRemoveTPort(this);
             } catch (Exception ignore) { }
@@ -470,6 +489,30 @@ public class TPort implements ConfigurationSerializable {
         return false;
     }
     
+    public boolean isShowWaypoint() {
+        return showWaypoint;
+    }
+    
+    public void setShowWaypoint(boolean showWaypoint) {
+        this.showWaypoint = showWaypoint;
+    }
+    
+    public MultiColor getWaypointColor() {
+        return waypointColor;
+    }
+    
+    public void setWaypointColor(MultiColor waypointColor) {
+        this.waypointColor = waypointColor;
+    }
+    
+    public Pair<String, String> getWaypointIcon() {
+        return waypointIcon;
+    }
+    
+    public void setWaypointIcon(Pair<String, String> waypointIcon) {
+        this.waypointIcon = waypointIcon;
+    }
+    
     public boolean setPublicTPort(boolean publicTPort) {
         return setPublicTPort(publicTPort, null);
     }
@@ -612,6 +655,8 @@ public class TPort implements ConfigurationSerializable {
         TPortManager.saveTPort(this);
         DynmapHandler.updateTPort(this);
         try { BlueMapHandler.updateTPort(this); } catch (Throwable ignored) { }
+        
+        WaypointManager.updateTPort(this);
     }
     
     public void setInactiveWorldName(String inactiveWorldName) {

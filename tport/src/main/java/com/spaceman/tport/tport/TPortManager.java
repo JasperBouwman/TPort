@@ -3,6 +3,7 @@ package com.spaceman.tport.tport;
 import com.spaceman.tport.Main;
 import com.spaceman.tport.fileHander.Files;
 import com.spaceman.tport.tpEvents.TPRequest;
+import com.spaceman.tport.waypoint.WaypointManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -123,6 +124,7 @@ public class TPortManager {
             }
             
             Advancement_saved.grant(owner);
+            WaypointManager.registerTPort(tport);
             
             return tport;
         }

@@ -93,7 +93,7 @@ public class ResourcePack extends SubCommand {
         }
         
         if (TPortAdvancement.isActive()) {
-            int time = delayAdvancement ? 30 : 0;
+            int time = delayAdvancement ? 50 : 0;
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
                 TPortAdvancement.Advancement_OhNoMyButtons.grant(player);
                 TPortAdvancementManager.reInitAdvancements(player);

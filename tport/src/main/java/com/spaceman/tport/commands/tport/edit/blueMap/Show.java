@@ -13,9 +13,9 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.infoColor;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.varInfo2Color;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
+import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
 public class Show extends SubCommand {
     
@@ -50,7 +50,7 @@ public class Show extends SubCommand {
                 return;
             }
             sendInfoTranslation(player, "tport.command.edit.blueMap.show.succeeded",
-                    tport, formatTranslation(infoColor, varInfo2Color, "tport.command.edit.blueMap." + (tport.showOnBlueMap() ? "shown" : "hidden")));
+                    tport, formatTranslation(varInfoColor, varInfoColor, "tport.command.edit.blueMap." + (tport.showOnBlueMap() ? "shown" : "hidden")));
         } else if (args.length == 5) {
             if (!emptyState.hasPermissionToRun(player, true)) {
                 return;
@@ -62,7 +62,7 @@ public class Show extends SubCommand {
             }
             if (tport.isOffered()) {
                 sendErrorTranslation(player, "tport.command.edit.blueMap.show.state.isOffered",
-                        tport, asPlayer(tport.getOfferedTo()));
+                        asTPort(tport), asPlayer(tport.getOfferedTo()));
                 return;
             }
             
@@ -75,7 +75,7 @@ public class Show extends SubCommand {
             tport.showOnBlueMap(show);
             tport.save();
             sendInfoTranslation(player, "tport.command.edit.blueMap.show.state.succeeded",
-                    tport, formatTranslation(infoColor, varInfo2Color, "tport.command.edit.blueMap." + (tport.showOnBlueMap() ? "shown" : "hidden")));
+                    asTPort(tport), formatTranslation(varInfoColor, varInfoColor, "tport.command.edit.blueMap." + (tport.showOnBlueMap() ? "shown" : "hidden")));
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> blueMap show [state]");
         }

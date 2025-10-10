@@ -33,6 +33,7 @@ public class Edit extends SubCommand {
         emptyOwnTPort.addAction(new Preview());
         emptyOwnTPort.addAction(new Dynmap());
         emptyOwnTPort.addAction(new BlueMap());
+        emptyOwnTPort.addAction(new Waypoint());
         addAction(emptyOwnTPort);
     }
     
@@ -59,6 +60,10 @@ public class Edit extends SubCommand {
         // tport edit <TPort name> tag remove <tag>
         // tport edit <TPort name> dynmap show [state]
         // tport edit <TPort name> dynmap icon [icon]
+        // tport edit <TPort> waypoint show [state]
+        // tport edit <TPort> waypoint icon [icon]
+        // tport edit <TPort> waypoint color [chat color]
+        // tport edit <TPort> waypoint color [hex color]
         
         if (args.length > 2) {
             if (runCommands(emptyOwnTPort.getActions(), args[2], args, player)) {
