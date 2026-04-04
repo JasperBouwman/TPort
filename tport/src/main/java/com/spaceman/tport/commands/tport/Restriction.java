@@ -41,6 +41,6 @@ public class Restriction extends SubCommand {
                 return;
             }
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport restriction <handler|set|get>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport restriction <handler | set | get>");
     }
 }

@@ -82,7 +82,7 @@ public class Own extends SubCommand {
                 if (TPORT_OWN.hasPermission(player, true)) {
                     safetyCheckState = Main.toBoolean(args[2]);
                     if (safetyCheckState == null) {
-                        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport own [TPort name] [true|false]");
+                        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport own [TPort name] [true | false]");
                         return;
                     }
                 } else {

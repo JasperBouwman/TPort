@@ -13,7 +13,7 @@ import static com.spaceman.tport.commands.tport.ResourcePack.getResourcePackStat
 public class InventoryModel {
     
     private final Material material;
-    private String subDir = "";
+    String subDir = "";
     
     private final int customModelData;
     private NamespacedKey namespacedKey;

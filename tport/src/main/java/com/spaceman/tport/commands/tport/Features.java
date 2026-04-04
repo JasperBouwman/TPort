@@ -198,7 +198,7 @@ public class Features extends SubCommand {
             
             Boolean newState = Main.toBoolean(args[3]);
             if (newState == null) {
-                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport features <feature> state [true|false]");
+                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport features <feature> state [true | false]");
                 return;
             }
             

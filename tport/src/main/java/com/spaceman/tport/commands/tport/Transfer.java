@@ -47,7 +47,7 @@ public class Transfer extends SubCommand {
                 return;
             }
         } else {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport transfer <offer|accept|reject|list>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport transfer <offer | accept | reject | list>");
         }
     }
 }

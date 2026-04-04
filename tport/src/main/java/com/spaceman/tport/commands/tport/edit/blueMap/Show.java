@@ -68,7 +68,7 @@ public class Show extends SubCommand {
             
             Boolean show = Main.toBoolean(args[4]);
             if (show == null) {
-                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> blueMap show [true|false]");
+                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> blueMap show [true | false]");
                 return;
             }
             

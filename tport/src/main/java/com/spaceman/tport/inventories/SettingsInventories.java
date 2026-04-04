@@ -28,7 +28,6 @@ import com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation;
 import com.spaceman.tport.fancyMessage.inventories.FancyClickEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
-import com.spaceman.tport.fancyMessage.inventories.WaypointModel;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.KeyboardGUI;
 import com.spaceman.tport.fancyMessage.language.Language;
 import com.spaceman.tport.playerUUID.PlayerUUID;
@@ -36,6 +35,7 @@ import com.spaceman.tport.search.SearchMode;
 import com.spaceman.tport.search.SearchType;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
+import com.spaceman.tport.waypoint.WaypointShowType;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
@@ -319,7 +319,14 @@ public class SettingsInventories {
     public static final InventoryModel settings_language_server_language_model = new InventoryModel(Material.OAK_BUTTON, settings_language_server_model, "tport", "settings_language_server_language", "settings/language");
     public static final InventoryModel settings_language_repair_model       = new InventoryModel(Material.OAK_BUTTON, settings_language_server_language_model, "tport", "settings_language_repair", "settings/language");
     
-    public static final int last_model_id = settings_language_repair_model.getCustomModelData();
+    public static final InventoryModel settings_waypoints_show_type_public_tp_model = new InventoryModel(Material.OAK_BUTTON, settings_language_repair_model, "tport", "settings_waypoints_show_type_public_tp", "settings/waypoints");
+    public static final InventoryModel settings_waypoints_show_type_public_model = new InventoryModel(Material.OAK_BUTTON, settings_waypoints_show_type_public_tp_model, "tport", "settings_waypoints_show_type_public", "settings/waypoints");
+    public static final InventoryModel settings_waypoints_show_type_can_tp_model = new InventoryModel(Material.OAK_BUTTON, settings_waypoints_show_type_public_model, "tport", "settings_waypoints_show_type_can_tp", "settings/waypoints");
+    public static final InventoryModel settings_waypoints_show_type_own_model = new InventoryModel(Material.OAK_BUTTON, settings_waypoints_show_type_can_tp_model, "tport", "settings_waypoints_show_type_own", "settings/waypoints");
+    public static final InventoryModel settings_waypoints_show_type_all_model = new InventoryModel(Material.OAK_BUTTON, settings_waypoints_show_type_own_model, "tport", "settings_waypoints_show_type_all", "settings/waypoints");
+    public static final InventoryModel settings_waypoints_show_type_none_model = new InventoryModel(Material.OAK_BUTTON, settings_waypoints_show_type_all_model, "tport", "settings_waypoints_show_type_none", "settings/waypoints");
+    
+    public static final int last_model_id = settings_waypoints_show_type_none_model.getCustomModelData();
     
     public static void openBackup_loadBackupGUI(Player player, int page, @Nullable FancyInventory prevWindow) {
         ColorTheme colorTheme = ColorTheme.getTheme(player);
@@ -2563,6 +2570,17 @@ public class SettingsInventories {
         setCustomItemData(searchItem, colorTheme, searchTitle, null);
         addFunction(searchItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> openMainSearchGUI(whoClicked, 0)));
         
+        WaypointShowType waypointShowType = Waypoints.getWaypointShowType(player.getUniqueId());
+        ItemStack waypointItem = waypointShowType.getInventoryModel().getItem(player);
+        Message waypointTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.waypoint.title");
+        Message waypointCurrentState = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.waypoint.currentState", waypointShowType);
+        Message waypointNextState = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.waypoint.nextState", LEFT, waypointShowType.getNext());
+        setCustomItemData(waypointItem, colorTheme, waypointTitle, List.of(new Message(), waypointCurrentState, waypointNextState));
+        addCommand(waypointItem, LEFT, "tport waypoints type " + waypointShowType.getNext().name());
+        addFunction(waypointItem, LEFT, ((whoClicked, clickType, pdc, fancyInventory) -> {
+            openSettingsGUI(whoClicked, fancyInventory.getData(pageDataName), null);
+        }));
+        
         ItemStack itemDebugItem = new ItemStack(Material.DIAMOND_BLOCK);
         Message itemDebugTitle = formatInfoTranslation(playerLang, "tport.settingsInventories.openSettingsGUI.itemDebug.title");
         setCustomItemData(itemDebugItem, colorTheme, itemDebugTitle, null);
@@ -2583,6 +2601,7 @@ public class SettingsInventories {
         items.add(languageItem);        //DONE
         items.add(searchItem);          //DONE
 //        items.add(requests);          //todo
+        if (Features.Feature.DisplayDisabledFeatures.isEnabled() || Features.Feature.Waypoints.isEnabled()) items.add(waypointItem);
         
         //useful for admins
         if (Features.Feature.DisplayDisabledFeatures.isEnabled() || (hasPermission(player, "tport.showInSettings.reload", false) )) items.add(reloadItem);          //DONE

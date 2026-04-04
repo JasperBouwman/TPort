@@ -1,3 +1,22 @@
+# Version 26.1
+
+### Adapters
+
+Created the adapter for Minecraft 26.1 and 26.1.1
+
+### TPort edit command
+
+Now when using `/tport edit <tport name>` it opens the quick edit window.
+
+### Waypoints
+
+You can now change the icon of a waypoint by using `/tport edit <TPort name> waypoint icon <icon>`. 
+For now only the default waypoint icon and TPort logo are available.
+
+You can edit the waypoint settings of a TPort in the Quick Edit menu.
+
+You can edit your waypoint show type (`/tport waypoints type [type]`) in the settings menu.
+
 # Version 1.21.7
 
 ### Adapters

@@ -29,6 +29,6 @@ public class Whitelist extends SubCommand {
                 return;
             }
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> whitelist <add|remove|list|clone|visibility>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> whitelist <add | remove | list | clone | visibility>");
     }
 }

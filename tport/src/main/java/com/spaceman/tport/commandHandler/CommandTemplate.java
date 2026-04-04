@@ -112,7 +112,7 @@ public abstract class CommandTemplate extends Command implements CommandExecutor
     }
     
     public static String convertToArgs(List<SubCommand> commands, boolean optional) {
-        return (optional ? "[" : "<") + commands.stream().map(SubCommand::getCommandName).filter(StringUtils::isNotEmpty).collect(Collectors.joining("|")) + (optional ? "]" : ">");
+        return (optional ? "[" : "<") + commands.stream().map(SubCommand::getCommandName).filter(StringUtils::isNotEmpty).collect(Collectors.joining(" | ")) + (optional ? "]" : ">");
     }
     
     private void setDescription(CommandDescription description) {

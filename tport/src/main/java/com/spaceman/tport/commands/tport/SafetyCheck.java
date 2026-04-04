@@ -147,7 +147,7 @@ public class SafetyCheck extends SubCommand {
             } else { //set source
                 Boolean newState = Main.toBoolean(args[2]);
                 if (newState == null) {
-                    sendErrorTranslation(player, "tport.command.wrongUsage", "/tport safetyCheck <source> <true|false>");
+                    sendErrorTranslation(player, "tport.command.wrongUsage", "/tport safetyCheck <source> <true | false>");
                     return;
                 }
                 
@@ -157,7 +157,7 @@ public class SafetyCheck extends SubCommand {
             }
             return;
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport safetyCheck [source|state]");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport safetyCheck [source | state]");
     }
     
     @FunctionalInterface

@@ -54,6 +54,6 @@ public class ParticleAnimationCommand extends SubCommand {
                 return;
             }
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport particleAnimation <new|old|list>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport particleAnimation <new | old | list>");
     }
 }

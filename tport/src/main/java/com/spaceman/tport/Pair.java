@@ -21,6 +21,10 @@ public class Pair<L, R> implements ConfigurationSerializable {
         return new Pair<>(namespacedKey.getNamespace(), namespacedKey.getKey());
     }
     
+    public NamespacedKey toNamespacedKey() {
+        return NamespacedKey.fromString((left.toString() + ":" + right.toString()).toLowerCase());
+    }
+    
     @SuppressWarnings("unused")
     public static <L, R> Pair<L, R> deserialize(Map<String, Object> args) {
         //noinspection unchecked

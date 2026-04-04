@@ -15,9 +15,12 @@ import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
+import com.spaceman.tport.fancyMessage.inventories.WaypointModel;
 import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.TPRequest;
 import com.spaceman.tport.waypoint.WaypointManager;
+import com.spaceman.tport.waypoint.WaypointModels;
+import com.spaceman.tport.waypoint.WaypointSpecificShowType;
 import com.spaceman.tport.webMaps.BlueMapHandler;
 import com.spaceman.tport.webMaps.DynmapHandler;
 import org.bukkit.Bukkit;
@@ -77,8 +80,8 @@ public class TPort implements ConfigurationSerializable {
     private String blueMapIcon = "";
     private boolean shouldReturnItem = true;
     
-    private boolean showWaypoint = true;
-    private Pair<String, String> waypointIcon = Pair.fromNamespacedKey(tport_waypoint_model.getNamespacedKey());
+    private WaypointSpecificShowType showWaypoint = WaypointSpecificShowType.SHOW;
+    private WaypointModel waypointIcon = tport_waypoint_model;
     private MultiColor waypointColor = new MultiColor("#ffffff");
     
     
@@ -177,9 +180,9 @@ public class TPort implements ConfigurationSerializable {
         tport.setBlueMapIcon((String) args.getOrDefault("blueMapIcon", ""));
         tport.setShouldReturnItem((Boolean) args.getOrDefault("shouldReturnItem", true));
         
-        tport.setShowWaypoint((Boolean) args.getOrDefault("showWaypoint", true));
+        tport.setShowWaypoint(WaypointSpecificShowType.get((String) args.get("showWaypointType"), WaypointSpecificShowType.SHOW));
         //noinspection unchecked
-        tport.setWaypointIcon((Pair<String, String>) args.getOrDefault("waypointIcon", new Pair<>("tport", "tport")));
+        tport.setWaypointIcon((Pair<String, String>) args.getOrDefault("waypointIcon", null));
         tport.setWaypointColor((MultiColor) args.getOrDefault("waypointColor", new MultiColor("#ffffff")));
         
         return tport;
@@ -231,8 +234,8 @@ public class TPort implements ConfigurationSerializable {
         map.put("blueMapIcon", blueMapIcon);
         map.put("shouldReturnItem", shouldReturnItem);
         
-        map.put("showWaypoint", showWaypoint);
-        map.put("waypointIcon", waypointIcon);
+        map.put("showWaypointType", showWaypoint.name());
+        if (waypointIcon != null) map.put("waypointIcon", Pair.fromNamespacedKey(waypointIcon.getNamespacedKey()));
         map.put("waypointColor", waypointColor);
         
         return map;
@@ -489,11 +492,11 @@ public class TPort implements ConfigurationSerializable {
         return false;
     }
     
-    public boolean isShowWaypoint() {
+    public WaypointSpecificShowType getShowWaypoint() {
         return showWaypoint;
     }
     
-    public void setShowWaypoint(boolean showWaypoint) {
+    public void setShowWaypoint(WaypointSpecificShowType showWaypoint) {
         this.showWaypoint = showWaypoint;
     }
     
@@ -505,12 +508,19 @@ public class TPort implements ConfigurationSerializable {
         this.waypointColor = waypointColor;
     }
     
-    public Pair<String, String> getWaypointIcon() {
+    @Nullable
+    public WaypointModel getWaypointIcon() {
         return waypointIcon;
     }
     
-    public void setWaypointIcon(Pair<String, String> waypointIcon) {
+    public void setWaypointIcon(@Nullable WaypointModel waypointIcon) {
         this.waypointIcon = waypointIcon;
+    }
+    
+    public void setWaypointIcon(@Nullable Pair<String, String> waypointIcon) {
+        if (waypointIcon != null) {
+            this.waypointIcon = WaypointModels.getWaypointModel(waypointIcon.toNamespacedKey());
+        }
     }
     
     public boolean setPublicTPort(boolean publicTPort) {

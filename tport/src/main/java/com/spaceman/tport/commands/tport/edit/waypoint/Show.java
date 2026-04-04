@@ -1,11 +1,11 @@
 package com.spaceman.tport.commands.tport.edit.waypoint;
 
-import com.spaceman.tport.Main;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
+import com.spaceman.tport.waypoint.WaypointSpecificShowType;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -13,10 +13,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.formatTranslation;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
-import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTranslation;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 
@@ -39,7 +35,7 @@ public class Show extends SubCommand {
         if (!emptyState.hasPermissionToRun(player, false)) {
             return Collections.emptyList();
         }
-        return Arrays.asList("true", "false");
+        return Arrays.stream(WaypointSpecificShowType.values()).map(Enum::name).toList();
     }
     
     @Override
@@ -52,8 +48,7 @@ public class Show extends SubCommand {
                 sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
                 return;
             }
-            sendInfoTranslation(player, "tport.command.edit.waypoint.show.succeeded",
-                    asTPort(tport), formatTranslation(varInfoColor, varInfoColor, "tport.command.edit.waypoint." + (tport.isShowWaypoint() ? "shown" : "hidden")));
+            sendInfoTranslation(player, "tport.command.edit.waypoint.show.succeeded", asTPort(tport), tport.getShowWaypoint());
         } else if (args.length == 5) {
             if (!emptyState.hasPermissionToRun(player, true)) {
                 return;
@@ -69,22 +64,22 @@ public class Show extends SubCommand {
                 return;
             }
             
-            Boolean show = Main.toBoolean(args[4]);
-            if (show == null) {
-                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> waypoint show [true|false]");
+            WaypointSpecificShowType showType = WaypointSpecificShowType.get(args[4], null);
+            if (showType == null) {
+                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> waypoint show [true | false]");
                 return;
             }
             
-            if (tport.isShowWaypoint() == show) {
+            if (tport.getShowWaypoint() == showType) {
                 sendErrorTranslation(player, "tport.command.edit.waypoint.show.state.alreadyInState",
-                        asTPort(tport), formatTranslation(varErrorColor, varErrorColor, "tport.command.edit.waypoint." + (tport.isShowWaypoint() ? "shown" : "hidden")));
+                        asTPort(tport), showType);
                 return;
             }
             
-            tport.setShowWaypoint(show);
+            tport.setShowWaypoint(showType);
             tport.save();
-            sendInfoTranslation(player, "tport.command.edit.waypoint.show.state.succeeded",
-                    asTPort(tport), formatTranslation(varInfoColor, varInfoColor, "tport.command.edit.waypoint." + (tport.isShowWaypoint() ? "shown" : "hidden")));
+            sendSuccessTranslation(player, "tport.command.edit.waypoint.show.state.succeeded",
+                    asTPort(tport), showType);
         } else {
             sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> waypoint show [state]");
         }

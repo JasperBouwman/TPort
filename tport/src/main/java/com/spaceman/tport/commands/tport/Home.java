@@ -91,7 +91,7 @@ public class Home extends SubCommand {
                 if (TPORT_HOME.hasPermission(player, true)) {
                     safetyCheckState = Main.toBoolean(args[1]);
                     if (safetyCheckState == null) {
-                        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport home [true|false]");
+                        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport home [true | false]");
                         return;
                     }
                 } else {

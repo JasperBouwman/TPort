@@ -88,7 +88,7 @@ public class GeneratePermFile extends SubCommand {
                 fileType = ".json";
                 fileID = 2;
             } else {
-                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport generatePermFile [filter none] [csv|json]");
+                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport generatePermFile [filter none] [csv | json]");
                 return;
             }
         }
@@ -110,7 +110,7 @@ public class GeneratePermFile extends SubCommand {
                 }
                 break;
             default:
-                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport generatePermFile [filter none] [csv|json]");
+                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport generatePermFile [filter none] [csv | json]");
                 return;
         }
         

@@ -28,6 +28,6 @@ public class Description extends SubCommand {
                 return;
             }
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> description <set|remove|get>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> description <set | remove | get>");
     }
 }

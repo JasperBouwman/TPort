@@ -10,6 +10,7 @@ import org.bukkit.permissions.PermissionAttachmentInfo;
 
 import java.util.UUID;
 
+import static com.spaceman.tport.commandHandler.CommandTemplate.convertToArgs;
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 import static com.spaceman.tport.fileHander.Files.tportConfig;
@@ -80,6 +81,6 @@ public class Delay extends SubCommand {
                 return;
             }
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport delay <handler|set|get>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport delay " + convertToArgs(getActions(), false));
     }
 }

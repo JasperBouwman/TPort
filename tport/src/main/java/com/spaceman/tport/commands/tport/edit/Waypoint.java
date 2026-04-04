@@ -8,7 +8,6 @@ import com.spaceman.tport.commands.tport.edit.waypoint.Show;
 import org.bukkit.entity.Player;
 
 import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
-import static com.spaceman.tport.commands.tport.BlueMapCommand.checkBlueMapState;
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
 public class Waypoint extends SubCommand {
@@ -16,7 +15,7 @@ public class Waypoint extends SubCommand {
     public Waypoint() {
         
         addAction(new Show());
-    //    addAction(new Icon());
+        addAction(new Icon());
         addAction(new Color());
         
     }
@@ -38,6 +37,6 @@ public class Waypoint extends SubCommand {
                 return;
             }
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> waypoint <show|icon|color>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> waypoint <show | icon | color>");
     }
 }

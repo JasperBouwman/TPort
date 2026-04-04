@@ -4,7 +4,6 @@ import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.fancyMessage.Message;
-import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.tport.TPort;
 import com.spaceman.tport.tport.TPortManager;
@@ -98,7 +97,7 @@ public class Color extends SubCommand {
                 sendErrorTranslation(player, "tport.colorTheme.set.type.colorNotFound", args[4]);
             }
         } else {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> waypoint color [chat color|hex color]");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> waypoint color [chat color | hex color]");
         }
     }
 }

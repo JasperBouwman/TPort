@@ -40,6 +40,8 @@ public class Main {
     
     private static final int pack_format = 46;
     
+    private static final boolean flatmapImages = false;
+    
     private static final HashMap<Color, Color> lightColorMap = com.spaceman.tport.Main.asMap(
             new Pair<>(
                     new Color(61, 61, 61),
@@ -59,7 +61,7 @@ public class Main {
         final String modelSuffix = "_model";
         
         for (Field modelField : clazz.getFields()) {
-            if (modelField.getType() == InventoryModel.class) {
+            if (modelField.getType() == InventoryModel.class || modelField.getType() == WaypointModel.class) {
                 try {
                     InventoryModel inventoryModel = (InventoryModel) modelField.get(null);
                     int modelData = inventoryModel.getCustomModelData();
@@ -606,6 +608,7 @@ public class Main {
         models.addAll( collectModels(QuickEditInventories.class) );
         models.addAll( collectModels(SettingsInventories.class) );
         models.addAll( collectModels(TPortAdvancementsModels.class) );
+        models.addAll( collectModels(WaypointModels.class) );
         
         createMinecraftModels(models);
         defineTPortModels(models);

@@ -112,7 +112,7 @@ public class Open extends SubCommand {
                     }
                     safetyCheck = Main.toBoolean(args[3]);
                     if (safetyCheck == null) {
-                        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport open <player> [TPort name] [true|false]");
+                        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport open <player> [TPort name] [true | false]");
                         return;
                     }
                 } else {
@@ -125,7 +125,7 @@ public class Open extends SubCommand {
                     }
                     safetyCheck = Main.toBoolean(args[3]);
                     if (safetyCheck == null) {
-                        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport open <player> [TPort name] [true|false]");
+                        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport open <player> [TPort name] [true | false]");
                         return;
                     }
                 } else {

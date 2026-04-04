@@ -66,7 +66,7 @@ public class WaypointManager implements Listener {
             return;
         }
         
-        if (!tport.isShowWaypoint()) {
+        if (!tport.getShowWaypoint().showForPlayer(player, tport)) {
             try {
                 tportAdapter.removeWaypoint(player, tport);
             } catch (Throwable ex) {

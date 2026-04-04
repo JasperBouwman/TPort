@@ -53,7 +53,7 @@ public class Move extends SubCommand {
         // tport edit <TPort name> move <slot|TPort name>
         
         if (args.length != 4) {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> move <slot|TPort name>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> move <slot | TPort name>");
             return;
         }
         if (!emptySlot.hasPermissionToRun(player, true)) {

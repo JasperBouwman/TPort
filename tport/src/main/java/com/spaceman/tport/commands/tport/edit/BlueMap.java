@@ -30,6 +30,6 @@ public class BlueMap extends SubCommand {
                 return;
             }
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> blueMap <show|icon>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> blueMap <show | icon>");
     }
 }

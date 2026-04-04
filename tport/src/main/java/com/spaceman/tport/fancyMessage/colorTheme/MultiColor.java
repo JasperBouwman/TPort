@@ -11,6 +11,7 @@ import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class MultiColor implements ConfigurationSerializable, Serializable {
     
@@ -26,6 +27,11 @@ public class MultiColor implements ConfigurationSerializable, Serializable {
         
         multiColor.hexColor = color;
         return multiColor;
+    }
+    
+    public static MultiColor fromRandom() {
+        Random random = new Random();
+        return new MultiColor(new java.awt.Color(random.nextInt(256), random.nextInt(256), random.nextInt(256)));
     }
     
     public static boolean isColor(String color) {

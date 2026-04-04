@@ -74,7 +74,7 @@ public class Enable extends SubCommand {
             
             Boolean state = Main.toBoolean(args[3]);
             if (state == null) {
-                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport particleAnimation " + this.type + " enable [true|false]");
+                sendErrorTranslation(player, "tport.command.wrongUsage", "/tport particleAnimation " + this.type + " enable [true | false]");
                 return;
             }
             pa.setEnabled(state);

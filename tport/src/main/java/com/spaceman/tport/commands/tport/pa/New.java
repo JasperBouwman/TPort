@@ -32,6 +32,6 @@ public class New extends SubCommand {
                 return;
             }
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport particleAnimation new <set|edit|test|enable>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport particleAnimation new <set | edit | test | enable>");
     }
 }

@@ -6,6 +6,9 @@ import com.spaceman.tport.commandHandler.SubCommand;
 import com.spaceman.tport.commands.tport.edit.Preview;
 import com.spaceman.tport.commands.tport.edit.Tag;
 import com.spaceman.tport.commands.tport.edit.*;
+import com.spaceman.tport.inventories.QuickEditInventories;
+import com.spaceman.tport.tport.TPort;
+import com.spaceman.tport.tport.TPortManager;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -69,6 +72,15 @@ public class Edit extends SubCommand {
             if (runCommands(emptyOwnTPort.getActions(), args[2], args, player)) {
                 return;
             }
+        } else if (args.length == 2) {
+            
+            TPort tport = TPortManager.getTPort(player.getUniqueId(), args[1]);
+            if (tport == null) {
+                sendErrorTranslation(player, "tport.command.noTPortFound", args[1]);
+                return;
+            }
+            QuickEditInventories.openQuickEditSelection(player, 0, tport.getTportID());
+            return;
         }
         sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> " + convertToArgs(getActions().get(0).getActions(), false));
     }

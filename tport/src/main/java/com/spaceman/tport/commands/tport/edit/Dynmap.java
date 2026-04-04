@@ -30,6 +30,6 @@ public class Dynmap extends SubCommand {
                 return;
             }
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> dynmap <show|icon>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> dynmap <show | icon>");
     }
 }
