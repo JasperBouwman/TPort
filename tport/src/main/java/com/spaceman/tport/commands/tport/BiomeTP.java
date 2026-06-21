@@ -350,6 +350,7 @@ public class BiomeTP extends SubCommand {
             case "DEEP_DARK" -> "SCULK";
             case "CHERRY_GROVE" -> "CHERRY_LOG";
             case "PALE_GARDEN" -> "PALE_OAK_LOG";
+            case "SULFUR_CAVES" -> "SULFUR";
             
             default -> "DIAMOND_BLOCK";
         };

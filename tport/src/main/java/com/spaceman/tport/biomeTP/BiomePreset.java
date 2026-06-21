@@ -243,6 +243,7 @@ public record BiomePreset(String name, List<String> biomes, boolean whitelist, M
             case "increased_fire_burnout" -> "FLINT_AND_STEEL";
             case "spawns_warm_variant_farm_animals" -> "COW_SPAWN_EGG";
             case "spawns_cold_variant_farm_animals" -> "CHICKEN_SPAWN_EGG";
+            case "spawns_coral_variant_zombie_nautilus" -> "NAUTILUS_SPAWN_EGG";
             
             default -> "DIAMOND_BLOCK";
         };

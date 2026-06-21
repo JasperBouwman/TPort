@@ -192,16 +192,6 @@ public class Main extends JavaPlugin {
          * add Defaults.yml
          * In here are all defaults stored, so that admins can change the defaults
          *
-         * Feature: waypoints
-         * /tport waypoints type [type]
-         *   - PublicTP (shows all PublicTP TPorts)
-         *   - public (shows all public TPorts, using private state: open, online)
-         *   - canTP (shows all TPorts you can teleport to)
-         *   - own (shows only own TPorts)
-         * / tport edit <TPort> waypoint show [state]
-         * / tport edit <TPort> waypoint icon [icon]
-         * / tport edit <TPort> waypoint color [chat color]
-         * / tport edit <TPort> waypoint color [hex color]
          *
          *
          * /tport location ~ ~ ~
@@ -320,6 +310,8 @@ public class Main extends JavaPlugin {
         Adapter.registerAdapter("1.21.11", "com.spaceman.tport.adapters.V1_21_11_Adapter");
         Adapter.registerAdapter("26.1", "com.spaceman.tport.adapters.V26_1_Adapter");
         Adapter.registerAdapter("26.1.1", "com.spaceman.tport.adapters.V26_1_Adapter");
+        Adapter.registerAdapter("26.1.2", "com.spaceman.tport.adapters.V26_1_Adapter");
+        Adapter.registerAdapter("26.2", "com.spaceman.tport.adapters.V26_1_Adapter");
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");

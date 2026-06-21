@@ -1,3 +1,25 @@
+# Version 26.2
+
+### Cooldown
+
+Fixed an issue where it as possible to create a cooldown loop, where Permission A was linked to Permission B, and B was linked to A.
+This looping is still possible (and can not be removed, because permissions are set outside this plugin), but TPort now catches this looping correctly.
+
+Further fixed that an OP don't have the permissions as default, this helps admins configure this better.
+
+Lastly, TPort will now better show what your cooldown is when using permissions. 
+It shows the player what their permission is set to, and finally shows the calculated cooldown time.
+
+### Items
+
+- Added the nautilus spawn egg for the #spawns_coral_variant_zombie_nautilus biome preset
+- Added the sulfur block for the new sulfur caves biome
+- Added the map item for the #on_jungle_explorer_maps & #on_swamp_explorer_maps featureTP preset
+
+### Adapter
+
+Created the adapter for MC 26.1.2 and MC 26.2. Both adapters are the same as 26.1, so older TPort versions that have the 26.1 adapter should work on these later MC versions.
+
 # Version 26.1
 
 ### Adapters

@@ -1584,13 +1584,21 @@ public class SettingsInventories {
             setStringData(item, new NamespacedKey(Main.getInstance(), "value"), cooldown.value());
             setStringData(item, new NamespacedKey(Main.getInstance(), "name"), cooldown.name());
             
-            Message title = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortCooldownGUI.cooldown.title", cooldown.name(), cooldown.value());
+            List<Message> lore = MessageUtils.translateMessage(cooldown.getPrintValues(player), playerLang);
+            Message title;
+            if (lore.isEmpty()) {
+                title = formatErrorTranslation(playerLang, "tport.settingsInventories.openTPortCooldownGUI.cooldown.error.title");
+            } else {
+                title = lore.get(0);
+                lore.remove(0);
+            }
             
             if (selectedCooldown == null) {
                 Message clickLeft = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortCooldownGUI.cooldown.left", LEFT);
                 Message clickRight = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortCooldownGUI.cooldown.right.start", RIGHT);
                 Message clickShiftRight = formatInfoTranslation(playerLang, "tport.settingsInventories.openTPortCooldownGUI.cooldown.shift_right", SHIFT_RIGHT);
-                setCustomItemData(item, colorTheme, title, List.of(new Message(), clickLeft, clickRight, clickShiftRight));
+                lore.addAll(List.of(new Message(), clickLeft, clickRight, clickShiftRight));
+                setCustomItemData(item, colorTheme, title, lore);
                 
                 addFunction(item, RIGHT, ((whoClicked, clickType, pdc, fancyInventory) -> {
                     fancyInventory.setData("selectedCooldown", pdc.get(new NamespacedKey(Main.getInstance(), "name"), STRING));

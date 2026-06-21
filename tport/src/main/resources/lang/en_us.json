@@ -17,6 +17,7 @@
   "tport.cooldown.cooldownManager.delayTime": "You must wait another %1$s %2$s to use this again",
   "tport.cooldown.cooldownManager.printValue": "Cooldown value of %s is set to %s",
   "tport.cooldown.cooldownManager.printPermissionValue": "Your permission is set to %s",
+  "tport.cooldown.cooldownManager.PermissionValueMissing": "You don't have a permission set for %s",
   "tport.cooldown.cooldownManager.cooldownLoopError.user": "There is an error in the cooldown configuration. The configuration is looping",
   "tport.cooldown.cooldownManager.cooldownLoopError.admin": "There is a loop in the cooldown configuration. This was triggered with player %s. Check their permissions when using permissions, and check the Cooldown configuration in 'TPortConfig.yml'. Cooldown now disabled",
   "tport.cooldown.cooldownCommand.commandDescription": "This command is used to get the cooldown value of the given cooldown",
@@ -1718,7 +1719,7 @@
   "tport.quickEditInventories.quickEditType.WAYPOINT.description": "Edit the waypoint settings for this TPort (opens new inventory)",
 
   "tport.settingsInventories.openTPortCooldownGUI.title": "Cooldown settings",
-  "tport.settingsInventories.openTPortCooldownGUI.cooldown.title": "Cooldown %s is set to %s",
+  "tport.settingsInventories.openTPortCooldownGUI.cooldown.error.title": "There is an error with this cooldown",
   "tport.settingsInventories.openTPortCooldownGUI.cooldown.left": "Click %s to edit numerical",
   "tport.settingsInventories.openTPortCooldownGUI.cooldown.right.start": "Click %s to link to another cooldown",
   "tport.settingsInventories.openTPortCooldownGUI.cooldown.right.set": "Click %s to link to %s to %s",

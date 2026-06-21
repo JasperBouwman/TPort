@@ -465,6 +465,12 @@ public class MessageUtils {
         return itemStack;
     }
     
+    public static void sendMessageArray(List<Message> list, Player player) {
+        for (Message message : list) {
+            message.sendMessage(player);
+        }
+    }
+    
     public static Message setIgnoreTranslator(Message message, boolean ignore) {
         message.getText().forEach(t -> t.ignoreTranslator(ignore));
         return message;

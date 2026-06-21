@@ -2,15 +2,16 @@ package com.spaceman.tport.cooldown;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.advancements.TPortAdvancement;
-import com.spaceman.tport.advancements.TPortAdvancementManager;
+import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.inventories.InventoryModel;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.plugin.PluginManager;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -32,7 +33,6 @@ public enum CooldownManager {
     LookTP("3000", settings_cooldown_look_tp_model);
     
     public static boolean loopCooldown = false;
-    private static String errorOccurredWith = "null";
     private static final HashMap<UUID, HashMap<CooldownManager, Long>> cooldownTime = new HashMap<>();
     
     private final String defaultValue;
@@ -55,14 +55,14 @@ public enum CooldownManager {
                 cooldown.edit(cooldown.defaultValue);
             }
             
-            //registering the permissions in Bukkit
-            for (CooldownManager innerCooldown : CooldownManager.values()) {
-                if (cooldown != innerCooldown) {
-                    try {
-                        pm.addPermission(new Permission("TPort.cooldown." + cooldown.name() + "." + innerCooldown.name()));
-                    } catch (Exception ignore) { }
-                }
-            }
+//            //registering the permissions in Bukkit
+//            for (CooldownManager innerCooldown : CooldownManager.values()) {
+//                if (cooldown != innerCooldown) {
+//                    try {
+//                        pm.addPermission(new Permission("TPort.cooldown." + cooldown.name() + "." + innerCooldown.name()));
+//                    } catch (Exception ignore) { }
+//                }
+//            }
         }
     }
     
@@ -91,32 +91,30 @@ public enum CooldownManager {
         return null;
     }
     
-    public void printValue(Player player) {
-        printValue(player, null);
+    public ArrayList<Message> getPrintValues(Player player) {
+        return getPrintValues(player, new ArrayList<>(), new ArrayList<>());
     }
-    private void printValue(Player player, CooldownManager start) {
-        if (this.name().equals((start == null ? "" : start.name())) || loopCooldown) {
-            Main.getInstance().getLogger().log(Level.WARNING, "There is a loop in the cooldown configuration. This was triggered with player " + errorOccurredWith +
+    private ArrayList<Message> getPrintValues(Player player, ArrayList<Message> startArray, @Nonnull ArrayList<CooldownManager> checkedList) {
+        if (checkedList.contains(this) || loopCooldown) {
+            Main.getInstance().getLogger().log(Level.WARNING, "There is a loop in the cooldown configuration. This was triggered with player " + player.getName() +
                     ". Check their permissions when using permissions, and check the Cooldown configuration in 'TPortConfig.yml'. Cooldown now disabled");
             loopCooldown = true;
             sendErrorTranslation(player, "tport.cooldown.cooldownManager.cooldownLoopError.user");
             for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
                 if (CooldownCommand.getInstance().emptyCooldownCooldownValue.hasPermissionToRun(player, false)) {
-                    sendErrorTranslation(onlinePlayer, "tport.cooldown.cooldownManager.cooldownLoopError.admin", errorOccurredWith);
+                    sendErrorTranslation(onlinePlayer, "tport.cooldown.cooldownManager.cooldownLoopError.admin", player.getName());
                 }
             }
-            return;
+            return new ArrayList<>();
         }
         
-        sendInfoTranslation(player, "tport.cooldown.cooldownManager.printValue", this.name(), this.value());
+        startArray.add(formatInfoTranslation("tport.cooldown.cooldownManager.printValue", this.name(), this.value()));
+        
         
         CooldownManager linkingTo = CooldownManager.get(this.value());
         if (linkingTo != null) {
-            if (start == null) {
-                start = this;
-                errorOccurredWith = player.getName();
-            }
-            linkingTo.printValue(player, start);
+            checkedList.add(this);
+            return linkingTo.getPrintValues(player, startArray, checkedList);
         }
         if (this.value().equalsIgnoreCase("permission")) {
             for (PermissionAttachmentInfo permissionInfo : player.getEffectivePermissions()) {
@@ -126,17 +124,15 @@ public enum CooldownManager {
                     String valueFromPermission = permissionInfo.getPermission().substring(permissionString.length());
                     linkingTo = CooldownManager.get(valueFromPermission);
                     if (linkingTo != null) {
-                        if (start == null) {
-                            start = this;
-                            errorOccurredWith = player.getName();
-                        }
-                        sendInfoTranslation(player, "tport.cooldown.cooldownManager.printPermissionValue", valueFromPermission);
-                        linkingTo.printValue(player, start);
-                        return;
+                        checkedList.add(this);
+                        startArray.add(formatInfoTranslation("tport.cooldown.cooldownManager.printPermissionValue", valueFromPermission));
+                        return linkingTo.getPrintValues(player, startArray, checkedList);
                     }
                 }
             }
+            startArray.add(formatInfoTranslation("tport.cooldown.cooldownManager.PermissionValueMissing", this.name()));
         }
+        return startArray;
     }
     
     public void update(Player player) {
@@ -167,11 +163,11 @@ public enum CooldownManager {
     }
     
     public long getTime(Player player) {
-        return getTime(player, null);
+        return getTime(player, new ArrayList<>());
     }
-    private long getTime(Player player, CooldownManager start) {
-        if (this.name().equals((start == null ? "" : start.name())) || loopCooldown) {
-            Main.getInstance().getLogger().log(Level.WARNING, "There is a loop in the cooldown configuration. This was triggered with player " + errorOccurredWith +
+    private long getTime(Player player, @Nonnull ArrayList<CooldownManager> checkedList) {
+        if (checkedList.contains(this) || loopCooldown) {
+            Main.getInstance().getLogger().log(Level.WARNING, "There is a loop in the cooldown configuration. This was triggered with player " + player.getName() +
                     ". Check their permissions when using permissions, and check the Cooldown configuration in 'TPortConfig.yml'. Cooldown now disabled");
             loopCooldown = true;
             return 0;
@@ -181,11 +177,8 @@ public enum CooldownManager {
         } else {
             CooldownManager linkingTo = CooldownManager.get(this.value());
             if (linkingTo != null) {
-                if (start == null) {
-                    start = this;
-                    errorOccurredWith = player.getName();
-                }
-                return linkingTo.getTime(player, start);
+                checkedList.add(this);
+                return linkingTo.getTime(player, checkedList);
             }
             if (this.value().equals("permission")) {
                 for (PermissionAttachmentInfo permissionInfo : player.getEffectivePermissions()) {
@@ -195,11 +188,8 @@ public enum CooldownManager {
                         String valueFromPermission = permissionInfo.getPermission().substring(permissionString.length());
                         linkingTo = CooldownManager.get(valueFromPermission);
                         if (linkingTo != null) {
-                            if (start == null) {
-                                start = this;
-                                errorOccurredWith = player.getName();
-                            }
-                            return linkingTo.getTime(player, start);
+                            checkedList.add(this);
+                            return linkingTo.getTime(player, checkedList);
                         }
                         try {
                             long longValue = Long.parseLong(valueFromPermission);

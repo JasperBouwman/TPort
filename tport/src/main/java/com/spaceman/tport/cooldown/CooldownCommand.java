@@ -1,8 +1,11 @@
 package com.spaceman.tport.cooldown;
 
+import com.google.gson.JsonObject;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
+import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.language.Language;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -64,8 +67,10 @@ public class CooldownCommand extends SubCommand {
         
         if (args.length == 2) {
             if (CooldownManager.contains(args[1])) {
+                JsonObject playerLang = Language.getPlayerLang(player);
+//                CooldownManager.get(args[1]).printValue(player);
                 //noinspection ConstantConditions -> CooldownManager#get should not return 'null' because of the CooldownManager#contains
-                CooldownManager.get(args[1]).printValue(player);
+                MessageUtils.sendMessageArray(MessageUtils.translateMessage(CooldownManager.get(args[1]).getPrintValues(player), playerLang), player);
             } else {
                 sendErrorTranslation(player, "tport.cooldown.cooldownCommand.get.error", args[1]);
             }

@@ -204,8 +204,10 @@ public class FeatureTP extends SubCommand {
             String m = switch (pair.getLeft().substring(1)) { //remove #
                 case "ruined_portal" -> "CRYING_OBSIDIAN";
                 case "dolphin_located" -> "DOLPHIN_SPAWN_EGG";
-                case "on_woodland_explorer_maps", "on_ocean_explorer_maps", "on_treasure_maps", "on_trial_chambers_maps" -> "MAP";
-                case "on_snowy_village_maps", "on_taiga_village_maps", "on_swamp_village_maps", "on_savanna_village_maps", "on_desert_village_maps", "on_jungle_village_maps", "on_plains_village_maps" -> "MAP";
+                case "on_woodland_explorer_maps", "on_ocean_explorer_maps", "on_treasure_maps", "on_trial_chambers_maps",
+                     "on_snowy_village_maps", "on_taiga_village_maps", "on_swamp_village_maps",
+                     "on_savanna_village_maps", "on_desert_village_maps", "on_jungle_village_maps",
+                     "on_plains_village_maps", "on_jungle_explorer_maps", "on_swamp_explorer_maps" -> "MAP";
                 case "ocean_ruin" -> "TRIDENT";
                 case "village" -> "EMERALD";
                 case "eye_of_ender_located" -> "ENDER_EYE";
