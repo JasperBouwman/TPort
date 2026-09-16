@@ -1840,7 +1840,7 @@
   "tport.command.search.world.commandDescription": "This command is used to search TPorts by their world",
   "tport.search.SearchType.tag.description": "Search for TPorts by their tags",
   "tport.command.search.tag.commandDescription": "This command is used to search TPorts by their tag",
-  "tport.search.SearchType.ownedTPorts.description": "Search for players by their owned TPorts",
+  "tport.search.SearchType.ownedTPorts.description": "Search for players by their amount of owned TPorts",
   "tport.command.search.ownedTPorts.commandDescription": "This command is used to search players by their owned TPort amount",
   "tport.settingsInventories.openSearchModeGUI.title": "Select a search mode",
   "tport.settingsInventories.openSearchModeGUI.mode.title": "%s",

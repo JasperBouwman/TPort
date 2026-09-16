@@ -17,6 +17,7 @@ import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.block.entity.SignTextSlot;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -40,7 +41,7 @@ import static com.spaceman.tport.adapters.ReflectionManager.getPrivateField;
 import static com.spaceman.tport.adapters.ReflectionManager.getServerClassesVersion;
 import static com.spaceman.tport.fancyMessage.inventories.keyboard.QuickType.onSignEdit;
 
-public abstract class V26_1_FancyMessageAdapter extends V26_1_BiomeTPAdapter {
+public abstract class V26_3_FancyMessageAdapter extends V26_3_BiomeTPAdapter {
     
     BlockPos newBlockPosition(Location l) {
         return new BlockPos(l.getBlockX(), l.getBlockY(), l.getBlockZ());
@@ -119,7 +120,7 @@ public abstract class V26_1_FancyMessageAdapter extends V26_1_BiomeTPAdapter {
     
     @Override
     public void sendSignEditor(Player player, Location loc) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        this.sendPlayerPacket(player, new ClientboundOpenSignEditorPacket(newBlockPosition(loc), false));
+        this.sendPlayerPacket(player, new ClientboundOpenSignEditorPacket(newBlockPosition(loc), SignTextSlot.BACK));
     }
     
     @Override
@@ -143,7 +144,7 @@ public abstract class V26_1_FancyMessageAdapter extends V26_1_BiomeTPAdapter {
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
                 if (packet instanceof ServerboundSignUpdatePacket inUpdateSign) {
-                    String[] lines = inUpdateSign.getLines();
+                    String[] lines = inUpdateSign.lines().toArray(new String[0]);
                     if (onSignEdit(lines, uuid)) {
                         return;
                     }

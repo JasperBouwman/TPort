@@ -1,6 +1,5 @@
 package com.spaceman.tport.waypoint;
 
-import com.spaceman.tport.commands.tport.pltp.Offset;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;

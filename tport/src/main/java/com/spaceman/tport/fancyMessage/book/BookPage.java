@@ -1,10 +1,13 @@
 package com.spaceman.tport.fancyMessage.book;
 
+import com.google.gson.JsonObject;
+import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.Message;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import org.bukkit.ChatColor;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 
 public class BookPage {
@@ -77,4 +80,14 @@ public class BookPage {
     public String translateJSON(ColorTheme theme) {
         return message.translateJSON(theme).replace(getActivePageReplacer(), String.valueOf(pageNumber));
     }
+    
+    public BookPage translatePage(@Nullable JsonObject playerLang) {
+        if (playerLang == null)
+          return this;
+        
+        this.message = MessageUtils.translateMessage(message, playerLang);
+        
+        return this;
+    }
+    
 }

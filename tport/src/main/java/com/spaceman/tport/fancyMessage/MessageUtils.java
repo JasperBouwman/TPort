@@ -4,19 +4,22 @@ import com.google.common.base.CharMatcher;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Main;
-import com.spaceman.tport.Pair;
 import com.spaceman.tport.adapters.TPortAdapter;
 import com.spaceman.tport.commandHandler.CommandTemplate;
-import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.Features;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
+import com.spaceman.tport.fancyMessage.book.Book;
+import com.spaceman.tport.fancyMessage.book.BookPage;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
 import com.spaceman.tport.fancyMessage.colorTheme.MultiColor;
 import com.spaceman.tport.fancyMessage.encapsulation.Encapsulation;
 import com.spaceman.tport.fancyMessage.events.ClickEvent;
 import com.spaceman.tport.fancyMessage.events.HoverEvent;
 import com.spaceman.tport.fancyMessage.language.Language;
+import com.spaceman.tport.fancyMessage.markdown.Chapter;
+import com.spaceman.tport.fancyMessage.markdown.ChapterFiller;
 import com.spaceman.tport.fancyMessage.markdown.FancyNodeRenderer;
+import com.spaceman.tport.fancyMessage.markdown.Volume;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
 import com.spaceman.tport.tpEvents.TPRestriction;
 import com.spaceman.tport.tport.TPort;
@@ -40,12 +43,14 @@ import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.List;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static com.spaceman.tport.fancyMessage.TextComponent.textComponent;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.ColorType.*;
 import static com.spaceman.tport.fancyMessage.encapsulation.PlayerEncapsulation.asPlayer;
 import static com.spaceman.tport.fancyMessage.encapsulation.TPortEncapsulation.asTPort;
 import static com.spaceman.tport.fancyMessage.events.HoverEvent.hoverEvent;
@@ -836,18 +841,325 @@ public class MessageUtils {
         
         return message;
     }
-    public static Pair<ArrayList<String>, ArrayList<Message>> fromSplitMarkdown(String markdown, CommandTemplate... templates) {
+    public static FancyNodeRenderer fromSplitMarkdown(String markdown, CommandTemplate... templates) {
         Parser markdownParser = Parser.builder().build();
         Node node = markdownParser.parse(markdown);
         
-        ArrayList<String> chapterTitles = new ArrayList<>();
-        ArrayList<Message> chapters = new ArrayList<>();
-        FancyNodeRenderer fancyRenderer = new FancyNodeRenderer(chapterTitles, chapters);
+        FancyNodeRenderer fancyRenderer = new FancyNodeRenderer();
         Stream.of(templates).forEach(fancyRenderer::addCommandLookup);
         
         fancyRenderer.render(node);
         
-        return new Pair<>(chapterTitles, chapters);
+        return fancyRenderer;
+    }
+    public static Book renderChatPages(FancyNodeRenderer nodeRenderer) {
+        
+        String bookTitle = nodeRenderer.storage.getOrDefault("bookTitle", "<title>, volume <volume>/<volumes>");
+        Book book = new Book(getBookName(bookTitle, nodeRenderer.markdownName, 0, nodeRenderer.getVolumeList().size()), nodeRenderer.storage.get("Author"));
+        book.addBook(renderChatTOC(nodeRenderer));
+        
+        for (Volume volume : nodeRenderer.getVolumeList()) {
+            
+            
+            
+            LinkedList<Chapter> chapterTree = new LinkedList<>();
+            
+            for (Chapter chapter : volume.getChapters()) {
+                if (chapter instanceof ChapterFiller) continue;
+                
+                chapterTree.removeIf(c -> c.getChapterLevel() >= chapter.getChapterLevel());
+                chapterTree.add(chapter);
+                
+                BookPage firstPage = new BookPage();
+                
+                TextComponent dashedHeader = new TextComponent();
+                dashedHeader.setText(nodeRenderer.getChapterDashes().repeat(chapter.getChapterLevel()));
+                dashedHeader.setColor(varInfoColor);
+                HoverEvent dashedHover = new HoverEvent();
+                for (Chapter c : chapterTree) {
+                    dashedHover.addText(new TextComponent(nodeRenderer.getChapterDashes().repeat(c.getChapterLevel()), varInfoColor));
+                    dashedHover.addText(new TextComponent(c.getChapterName(), infoColor));
+                    dashedHover.addText("\n");
+                }
+                dashedHover.removeLast();
+                dashedHeader.addTextEvent(dashedHover);
+                ClickEvent clickEvent = new ClickEvent(ClickEvent.CHANGE_PAGE, String.valueOf(chapter.getTocPageNumber()));
+                dashedHeader.addTextEvent(clickEvent);
+                firstPage.addText(dashedHeader);
+                
+                firstPage.addMessage(chapter.getChapterHeader());
+                
+                ArrayList<Message> chapterBody = chapter.getChapterBody();
+                firstPage.addMessage(chapterBody.get(0));
+                
+                book.addPage(firstPage);
+                
+                for (int i = 1; i < chapterBody.size(); i++) {
+                    BookPage page2 = new BookPage();
+                    page2.addMessage(chapterBody.get(i));
+                    book.addPage(page2);
+                }
+                
+            }
+            
+        }
+        
+        return book;
+    }
+    public static Book renderChatTOC(FancyNodeRenderer nodeRenderer) {
+        
+        List<Volume> volumes = nodeRenderer.getVolumeList();
+        
+        Book tocBook = new Book("toc", "TOCRenderer");
+        BookPage tableOfContent = new BookPage();
+        
+        if (nodeRenderer.storage.get("tocTitle") != null && nodeRenderer.storage.get("Title") != null) {
+            tableOfContent.addMessage(getTOCChatTitle(nodeRenderer.storage.get("tocTitle"), nodeRenderer.storage.get("Title"), nodeRenderer.markdownName));
+        }
+        
+        for (Volume volume : volumes) {
+            for (Chapter chapter : volume.getChapters()) {
+                if (chapter instanceof ChapterFiller) {
+                    tableOfContent.getMessage().removeLast();
+                    tocBook.addPage(tableOfContent);
+                    tableOfContent = new BookPage();
+                    continue;
+                }
+                
+                TextComponent chapterDashes = TextComponent.textComponent(nodeRenderer.getChapterDashes().repeat(chapter.getChapterLevel()), varInfoColor);
+                
+                HoverEvent hoverEvent = new HoverEvent(HoverEvent.SHOW_TEXT);
+                hoverEvent.addMessage(getChapterHover(nodeRenderer.storage.getOrDefault("ChapterHover", "<page> - <volume>"), volume.getVolumeNumber(), chapter.getPageNumber() + nodeRenderer.getTOCPages()));
+                
+                ClickEvent clickEvent;
+                clickEvent = new ClickEvent(ClickEvent.RUN_COMMAND, "tport docs " + nodeRenderer.markdownName + " chat " + nodeRenderer.getTOCPages() + chapter.getPageNumber());
+                
+                chapterDashes.addTextEvent(hoverEvent);
+                chapterDashes.addTextEvent(clickEvent);
+                tableOfContent.addText(chapterDashes);
+                
+                TextComponent chapterName = TextComponent.textComponent(chapter.getChapterName(), infoColor);
+                chapterName.addTextEvent(clickEvent);
+                chapterName.addTextEvent(hoverEvent);
+                tableOfContent.addText(chapterName);
+                
+                tableOfContent.getMessage().addNewLine();
+            }
+            
+        }
+        tableOfContent.getMessage().removeLast();
+        tocBook.addPage(tableOfContent);
+        
+        return tocBook;
+    }
+    public static List<Book> renderVolumes(FancyNodeRenderer nodeRenderer) {
+        
+        ArrayList<Book> books = new ArrayList<>();
+        
+        for (Volume volume : nodeRenderer.getVolumeList()) {
+            
+            String bookTitle = nodeRenderer.storage.getOrDefault("bookTitle", "<title>, volume <volume>/<volumes>");
+            Book book = new Book(getBookName(bookTitle, nodeRenderer.markdownName, volume.getVolumeNumber(), nodeRenderer.getVolumeList().size()), nodeRenderer.storage.get("Author"));
+            books.add(book);
+            
+            book.addBook(renderTOC(nodeRenderer, volume));
+            
+            LinkedList<Chapter> chapterTree = new LinkedList<>();
+            
+            for (Chapter chapter : volume.getChapters()) {
+                if (chapter instanceof ChapterFiller) continue;
+                
+                chapterTree.removeIf(c -> c.getChapterLevel() >= chapter.getChapterLevel());
+                chapterTree.add(chapter);
+                
+                BookPage firstPage = new BookPage();
+                
+
+                firstPage.addMessage(getChapterDashes(nodeRenderer, chapter, chapterTree));
+                
+                firstPage.addMessage(chapter.getChapterHeader());
+                
+                ArrayList<Message> chapterBody = chapter.getChapterBody();
+                firstPage.addMessage(chapterBody.get(0));
+                
+                book.addPage(firstPage);
+                
+                for (int i = 1; i < chapterBody.size(); i++) {
+                    BookPage page = new BookPage();
+                    page.addMessage(chapterBody.get(i));
+                    book.addPage(page);
+                }
+                
+            }
+            
+        }
+        
+        return books;
+    }
+    private static Message getChapterDashes(FancyNodeRenderer nodeRenderer, Chapter currentChapter, List<Chapter> chapterTree) {
+        Message message = new Message();
+        
+        for (Chapter c1 : chapterTree) {
+            TextComponent dashedHeader = new TextComponent();
+            dashedHeader.setText(nodeRenderer.getChapterDashes());
+            dashedHeader.setColor(varInfoColor);
+            HoverEvent dashedHover = new HoverEvent();
+            for (Chapter c : chapterTree) {
+                if (c.equals(c1)) {
+                    dashedHover.addText(new TextComponent(nodeRenderer.getChapterDashes().repeat(c.getChapterLevel()), varInfo2Color));
+                } else {
+                    dashedHover.addText(new TextComponent(nodeRenderer.getChapterDashes().repeat(c.getChapterLevel()), varInfoColor));
+                }
+                dashedHover.addText(new TextComponent(c.getChapterName(), infoColor));
+                dashedHover.addText("\n");
+            }
+            dashedHover.removeLast();
+            dashedHeader.addTextEvent(dashedHover);
+            
+            ClickEvent clickEvent;
+            if (c1.equals(currentChapter)) {
+                clickEvent = new ClickEvent(ClickEvent.CHANGE_PAGE, String.valueOf(currentChapter.getTocPageNumber()));
+            } else if (c1.getVolume() == currentChapter.getVolume()) {
+                clickEvent = new ClickEvent(ClickEvent.CHANGE_PAGE, String.valueOf(nodeRenderer.getTOCPages() + c1.getPageNumber()));
+            } else {
+                clickEvent = new ClickEvent(ClickEvent.RUN_COMMAND, "tport docs " + nodeRenderer.markdownName + " book " + c1.getVolume());
+            }
+            
+            dashedHeader.addTextEvent(clickEvent);
+            
+            message.addText(dashedHeader);
+        }
+        
+        return message;
+    }
+    public static Book renderTOC(FancyNodeRenderer nodeRenderer, Volume currentRender) {
+        
+        List<Volume> volumes = nodeRenderer.getVolumeList();
+        
+        Book tocBook = new Book("toc", "TOCRenderer");
+        BookPage tableOfContent = new BookPage();
+        
+        if (nodeRenderer.storage.get("tocTitle") != null && nodeRenderer.storage.get("Title") != null) {
+            tableOfContent.addMessage(getTOCTitle(nodeRenderer.storage.get("tocTitle"), nodeRenderer.storage.get("Title"), nodeRenderer.markdownName, currentRender.getVolumeNumber(), nodeRenderer.getVolumeList().size()));
+        }
+        
+        for (Volume volume : volumes) {
+            for (Chapter chapter : volume.getChapters()) {
+                if (chapter instanceof ChapterFiller) {
+                    tableOfContent.getMessage().removeLast();
+                    tocBook.addPage(tableOfContent);
+                    tableOfContent = new BookPage();
+                    continue;
+                }
+                
+                TextComponent chapterDashes = TextComponent.textComponent(nodeRenderer.getChapterDashes().repeat(chapter.getChapterLevel()), varInfoColor);
+                
+                HoverEvent hoverEvent = new HoverEvent(HoverEvent.SHOW_TEXT);
+                hoverEvent.addMessage(getChapterHover(nodeRenderer.storage.getOrDefault("ChapterHover", "<page> - <volume>"), volume.getVolumeNumber(), chapter.getPageNumber() + nodeRenderer.getTOCPages()));
+                
+                ClickEvent clickEvent;
+                if (volume.equals(currentRender)) {
+                    clickEvent = new ClickEvent(ClickEvent.CHANGE_PAGE, String.valueOf(nodeRenderer.getTOCPages() + chapter.getPageNumber()));
+                } else {
+                    clickEvent = new ClickEvent(ClickEvent.RUN_COMMAND, "tport docs " + nodeRenderer.markdownName + " book " + volume.getVolumeNumber());
+                }
+                
+                chapterDashes.addTextEvent(hoverEvent);
+                chapterDashes.addTextEvent(clickEvent);
+                tableOfContent.addText(chapterDashes);
+                
+                TextComponent chapterName = TextComponent.textComponent(chapter.getChapterName(), infoColor);
+                chapterName.addTextEvent(clickEvent);
+                chapterName.addTextEvent(hoverEvent);
+                tableOfContent.addText(chapterName);
+                
+                tableOfContent.getMessage().addNewLine();
+            }
+            
+        }
+        tableOfContent.getMessage().removeLast();
+        tocBook.addPage(tableOfContent);
+        
+        return tocBook;
+    }
+    private static String getBookName(String bookTitle, String title, int currentVolume, int totalVolumes) {
+        return bookTitle
+                .replaceAll("<title>", title)
+                .replaceAll("<volume>", String.valueOf(currentVolume))
+                .replaceAll("<volumes>", String.valueOf(totalVolumes));
+    }
+    private static Message getTOCTitle(String tocTitle, String title, String markdownName, int currentVolume, int totalVolumes) {
+        Message m = new Message();
+        Matcher matcher = Pattern.compile("<[^>]+>|[^<]+").matcher(tocTitle);
+        while (matcher.find()) {
+            String group = matcher.group();
+            switch (group) {
+                case "<title>":
+                    if (title.equalsIgnoreCase(markdownName)) {
+                        m.addText(title, varInfoColor);
+                    } else {
+                        TextComponent t = new TextComponent(title, varInfoColor);
+                        HoverEvent h = new HoverEvent();
+                        h.addText(new TextComponent(markdownName, varInfoColor));
+                        t.addTextEvent(h);
+                        m.addText(t);
+                    }
+                    break;
+                case "<volume>":
+                    m.addText(String.valueOf(currentVolume), varInfoColor);
+                    break;
+                case "<volumes>":
+                    m.addText(String.valueOf(totalVolumes), varInfoColor);
+                    break;
+                default:
+                    m.addText(group, infoColor);
+            }
+        }
+        
+        m.addNewLine();
+        return m;
+    }
+    private static Message getChapterHover(String chapterHover, int volume, int page) {
+        Message m = new Message();
+        Matcher matcher = Pattern.compile("<[^>]+>|[^<]+").matcher(chapterHover);
+        while (matcher.find()) {
+            String group = matcher.group();
+            switch (group) {
+                case "<volume>":
+                    m.addText(String.valueOf(volume), varInfoColor);
+                    break;
+                case "<page>":
+                    m.addText(String.valueOf(page), varInfoColor);
+                    break;
+                default:
+                    m.addText(group, infoColor);
+            }
+        }
+        return m;
+    }
+    
+    private static Message getTOCChatTitle(String tocTitle, String title, String markdownName) {
+        Message m = new Message();
+        Matcher matcher = Pattern.compile("<[^>]+>|[^<]+").matcher(tocTitle);
+        while (matcher.find()) {
+            String group = matcher.group();
+            if (group.equals("<title>")) {
+                if (title.equalsIgnoreCase(markdownName)) {
+                    m.addText(title, varInfoColor);
+                } else {
+                    TextComponent t = new TextComponent(title, varInfoColor);
+                    HoverEvent h = new HoverEvent();
+                    h.addText(new TextComponent(markdownName, varInfoColor));
+                    t.addTextEvent(h);
+                    m.addText(t);
+                }
+            } else {
+                m.addText(group, infoColor);
+            }
+        }
+        
+        m.addNewLine();
+        return m;
     }
     
     public interface MessageDescription {

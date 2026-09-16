@@ -6,13 +6,15 @@ import com.spaceman.tport.biomeTP.BiomePreset;
 import com.spaceman.tport.commands.tport.FeatureTP;
 import com.spaceman.tport.commands.tport.biomeTP.Accuracy;
 import net.minecraft.core.Holder;
-import net.minecraft.core.IRegistry;
-import net.minecraft.resources.MinecraftKey;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.world.level.biome.BiomeBase;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeResolver;
+import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.biome.Climate;
-import net.minecraft.world.level.biome.WorldChunkManager;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.RandomState;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -35,11 +37,11 @@ public abstract class AdaptiveBiomeTP extends AdaptiveFeatureTP {
     @Override
     public List<String> availableBiomes() throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, ClassNotFoundException {
         World world = Bukkit.getWorlds().get(0);
-        WorldServer worldServer = (WorldServer) getWorldServer(world);
+        ServerLevel worldServer = (ServerLevel) getWorldServer(world);
+        Registry<Biome> biomeRegistry = getBiomeRegistry(worldServer);
         
-        IRegistry<BiomeBase> biomeRegistry = getBiomeRegistry(worldServer);
         List<String> list = new ArrayList<>();
-        for (MinecraftKey key : keySet_fromRegistry(biomeRegistry)) {
+        for (Identifier key : keySet_fromRegistry(biomeRegistry)) {
             String lowerCase = getPathFromMinecraftKey(key).toLowerCase();
             list.add(lowerCase);
         }
@@ -48,15 +50,15 @@ public abstract class AdaptiveBiomeTP extends AdaptiveFeatureTP {
     
     @Override
     public List<String> availableBiomes(World world) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        WorldServer worldServer = (WorldServer) getWorldServer(world);
+        ServerLevel worldServer = (ServerLevel) getWorldServer(world);
         
-        IRegistry<BiomeBase> biomeRegistry = getBiomeRegistry(worldServer);
+        Registry<Biome> biomeRegistry = getBiomeRegistry(worldServer);
         ChunkGenerator chunkGenerator = getChunkGenerator(worldServer);
-        WorldChunkManager worldChunkManager = getWorldChunkManager(chunkGenerator);
+        BiomeSource worldChunkManager = getWorldChunkManager(chunkGenerator);
         
         List<String> list = new ArrayList<>();
-        for (Holder<BiomeBase> biomeHolder : getGeneratedBiomes(worldChunkManager)) {
-            MinecraftKey key = getKeyFromRegistry(biomeRegistry, biomeHolder);
+        for (Holder<Biome> biomeHolder : getGeneratedBiomes(worldChunkManager)) {
+            Identifier key = getKeyFromRegistry(biomeRegistry, biomeHolder);
             if (key != null) {
                 list.add(getPathFromMinecraftKey(key).toLowerCase());
             }
@@ -81,18 +83,18 @@ public abstract class AdaptiveBiomeTP extends AdaptiveFeatureTP {
         int quartX = startX >> 2;
         int quartZ = startZ >> 2;
         
-        WorldServer worldServer = (WorldServer) getWorldServer(world);
+        ServerLevel worldServer = (ServerLevel) getWorldServer(world);
         ChunkGenerator chunkGenerator = getChunkGenerator(worldServer);
-        WorldChunkManager worldChunkManager = getWorldChunkManager(chunkGenerator);
-        IRegistry<BiomeBase> biomeRegistry = getBiomeRegistry(worldServer);
-        List<BiomeBase> baseList = new ArrayList<>();
+        BiomeSource worldChunkManager = getWorldChunkManager(chunkGenerator);
+        Registry<Biome> biomeRegistry = getBiomeRegistry(worldServer);
+        List<Biome> baseList = new ArrayList<>();
         for (String biome : biomes) {
-            BiomeBase biomeBase = getFromRegistry(biomeRegistry, biome.toLowerCase());
+            Biome biomeBase = getFromRegistry(biomeRegistry, biome.toLowerCase());
             if (biomeBase != null) baseList.add(biomeBase);
         }
         
-        Predicate<Holder<BiomeBase>> predicate = (holder) -> {
-            for (BiomeBase biomeBase : baseList) {
+        Predicate<Holder<Biome>> predicate = (holder) -> {
+            for (Biome biomeBase : baseList) {
                 try {
                     if (biomeBase.equals(getValueFromHolder(holder))) {
                         return true;
@@ -105,7 +107,7 @@ public abstract class AdaptiveBiomeTP extends AdaptiveFeatureTP {
         };
         
         Location blockPos;
-        Climate.Sampler climateSampler = getClimateSampler(worldServer);
+        BiomeResolver resolver = worldChunkManager.createCachingResolver(getRandomState(worldServer));
         
         for (int squareSize = 0; squareSize <= quartSize; squareSize += increment) {
             for (int zOffset = -squareSize; zOffset <= squareSize; zOffset += increment) {
@@ -125,11 +127,11 @@ public abstract class AdaptiveBiomeTP extends AdaptiveFeatureTP {
                     for (int y : yLevels) {
                         int newY = y >> 2;
                         
-                        Holder<BiomeBase> currentBiome = worldChunkManager.getNoiseBiome(newX, newY, newZ, climateSampler);
+                        Holder<Biome> currentBiome = resolver.getNoiseBiome(newX, newY, newZ);
                         
                         if (predicate.test(currentBiome)) {
                             blockPos = new Location(player.getWorld(), newX << 2, startY, newZ << 2);
-                            MinecraftKey k = getKeyFromRegistry(biomeRegistry, currentBiome);
+                            Identifier k = getKeyFromRegistry(biomeRegistry, currentBiome);
                             return new Pair<>(blockPos, getPathFromMinecraftKey(k));
                         }
                     }
@@ -141,14 +143,14 @@ public abstract class AdaptiveBiomeTP extends AdaptiveFeatureTP {
     
     @Override
     public ArrayList<BiomePreset> loadPresetsFromWorld(World world) throws InvocationTargetException, NoSuchMethodException, IllegalAccessException, ClassNotFoundException {
-        WorldServer worldServer = (WorldServer) getWorldServer(world);
-        IRegistry<BiomeBase> biomeRegistry = getBiomeRegistry(worldServer);
+        ServerLevel worldServer = (ServerLevel) getWorldServer(world);
+        Registry<Biome> biomeRegistry = getBiomeRegistry(worldServer);
         ArrayList<BiomePreset> presets = new ArrayList<>();
         
         
         AdaptiveReflectionManager.l(biomeRegistry).forEach( (named) -> {
             
-            Stream<Holder<BiomeBase>> values;
+            Stream<Holder<Biome>> values;
             try {
                 values = ReflectionManager.get(Stream.class, named);
             } catch (InvocationTargetException | IllegalAccessException e) {
@@ -156,7 +158,7 @@ public abstract class AdaptiveBiomeTP extends AdaptiveFeatureTP {
             }
             
             List<String> biomes = values.map(holder -> {
-                MinecraftKey key;
+                Identifier key;
                 try {
                     key = getKeyFromRegistry(biomeRegistry, holder);
                 } catch (InvocationTargetException | IllegalAccessException e) {

@@ -30,7 +30,7 @@ public class Reload extends SubCommand {
     }
     
     public static void reloadTPort() {
-        for (String file : Arrays.asList("TPortConfig.yml", "Permissions.txt")) {
+        for (String file : Arrays.asList("TPortConfig.yml")) {
             if (!new File(Main.getInstance().getDataFolder(), file).exists()) {
                 InputStream inputStream = Main.getInstance().getResource(file);
                 try {

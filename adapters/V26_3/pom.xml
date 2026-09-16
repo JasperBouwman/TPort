@@ -10,12 +10,12 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>adaptive</artifactId>
+    <artifactId>V26_3</artifactId>
     <version>${TPortVersion}</version>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>24</maven.compiler.source>
+        <maven.compiler.target>24</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -27,14 +27,12 @@
     </repositories>
 
     <dependencies>
-        <!--suppress VulnerableLibrariesLocal -->
+        <!--suppress VulnerableLibrariesLocal, MavenPackageUpdate -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-<!--            <version>1.20.5-R0.1-SNAPSHOT</version>-->
-<!--            <version>${MainSpigotVersion}</version>-->
+            <!--suppress MavenPackageUpdate -->
             <version>26.3-R0.1-SNAPSHOT</version>
-<!--            todo fix with MainSpigotVersion (1.20.5)-->
             <scope>provided</scope>
         </dependency>
         <!--suppress VulnerableLibrariesLocal -->
@@ -49,20 +47,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-<!--        <dependency>-->
-<!--            <groupId>org.spigotmc</groupId>-->
-<!--            <artifactId>minecraft-server</artifactId>-->
-<!--            <version>${MainSpigotVersion}</version>-->
-<!--            <scope>provided</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>io.netty</groupId>-->
-<!--            <artifactId>netty-transport</artifactId>-->
-<!--            <version>4.1.97.Final</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-
     </dependencies>
 
 </project>

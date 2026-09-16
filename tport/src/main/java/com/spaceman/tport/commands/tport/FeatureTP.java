@@ -3,6 +3,7 @@ package com.spaceman.tport.commands.tport;
 import com.google.gson.JsonObject;
 import com.spaceman.tport.Glow;
 import com.spaceman.tport.Main;
+import com.spaceman.tport.Pair;
 import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.CommandTemplate;
 import com.spaceman.tport.commandHandler.EmptyCommand;
@@ -132,6 +133,25 @@ public class FeatureTP extends SubCommand {
             case "trail_ruins" -> "SUSPICIOUS_GRAVEL";
             case "trial_chambers" -> "COPPER_GRATE";
             
+            case "abandoned_camp_bamboo_jungle" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_forest" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_sparse_jungle" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_wooded_badlands" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_windswept_forest" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_cherry_grove" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_flower_forest" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_savanna" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_snowy_taiga" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_old_growth_birch_forest" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_pale_garden" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_meadow" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_taiga" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_birch_forest" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_swamp" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_old_growth_pine_taiga" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_old_growth_spruce_taiga" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp_dappled_forest" -> "WHITE_WOOL_STAIRS";
+            
             case "village_taiga", "village_snowy" -> "SPRUCE_DOOR";
             case "village_desert" -> "BIRCH_DOOR";
             case "village_plains" -> "OAK_DOOR";
@@ -149,6 +169,38 @@ public class FeatureTP extends SubCommand {
             default -> "DIAMOND_BLOCK";
         };
         return Main.getOrDefault(Material.getMaterial(materialName), Material.DIAMOND_BLOCK);
+    }
+    public static Material getTagListMaterial(com.spaceman.tport.Pair<String, List<String>> pair) {
+        String m = switch (pair.getLeft().substring(1)) { //remove #
+            case "ruined_portal" -> "CRYING_OBSIDIAN";
+            case "dolphin_located" -> "DOLPHIN_SPAWN_EGG";
+            case "on_woodland_explorer_maps", "on_ocean_explorer_maps", "on_treasure_maps", "on_trial_chambers_maps",
+                 "on_snowy_village_maps", "on_taiga_village_maps", "on_swamp_village_maps",
+                 "on_savanna_village_maps", "on_desert_village_maps", "on_jungle_village_maps",
+                 "on_plains_village_maps", "on_jungle_explorer_maps", "on_swamp_explorer_maps", "on_swamp_hut_maps",
+                 "on_ancient_city_maps", "on_ocean_ruin_warm_maps", "on_buried_trial_chambers_maps",
+                 "on_woodland_mansion_maps", "on_ocean_monument_maps", "on_jungle_pyramid_maps", "on_desert_pyramid_maps",
+                 "on_mineshaft_maps" -> "MAP";
+            case "ocean_ruin" -> "TRIDENT";
+            case "village" -> "EMERALD";
+            case "eye_of_ender_located" -> "ENDER_EYE";
+            case "mineshaft" -> "CHEST_MINECART";
+            case "shipwreck" -> "OAK_BOAT";
+            case "cats_spawn_as_black", "cats_spawn_in" -> "CAT_SPAWN_EGG";
+            
+            case "on_abandoned_camp_windswept_forest" -> "WHITE_WOOL_STAIRS";
+            case "on_abandoned_camp_dappled_forest" -> "WHITE_WOOL_STAIRS";
+            case "on_abandoned_camp_cherry_grove" -> "WHITE_WOOL_STAIRS";
+            case "on_abandoned_camp_swamp" -> "WHITE_WOOL_STAIRS";
+            case "on_abandoned_camp_flower_forest" -> "WHITE_WOOL_STAIRS";
+            case "abandoned_camp" -> "WHITE_WOOL_STAIRS";
+            case "on_abandoned_camp_birch_forest" -> "WHITE_WOOL_STAIRS";
+            case "on_abandoned_camp_bamboo_jungle" -> "WHITE_WOOL_STAIRS";
+            case "on_abandoned_camp_pale_garden" -> "WHITE_WOOL_STAIRS";
+            
+            default -> "DIAMOND_BLOCK";
+        };
+        return Main.getOrDefault(Material.getMaterial(m), Material.DIAMOND_BLOCK);
     }
     public static List<ItemStack> getItems(Player player, Set<String> featureSelection) {
         ColorTheme theme = ColorTheme.getTheme(player);
@@ -201,23 +253,7 @@ public class FeatureTP extends SubCommand {
             else features.add(item);
         }
         for (com.spaceman.tport.Pair<String, List<String>> pair : FeatureTP.getTags(player.getWorld())) {
-            String m = switch (pair.getLeft().substring(1)) { //remove #
-                case "ruined_portal" -> "CRYING_OBSIDIAN";
-                case "dolphin_located" -> "DOLPHIN_SPAWN_EGG";
-                case "on_woodland_explorer_maps", "on_ocean_explorer_maps", "on_treasure_maps", "on_trial_chambers_maps",
-                     "on_snowy_village_maps", "on_taiga_village_maps", "on_swamp_village_maps",
-                     "on_savanna_village_maps", "on_desert_village_maps", "on_jungle_village_maps",
-                     "on_plains_village_maps", "on_jungle_explorer_maps", "on_swamp_explorer_maps" -> "MAP";
-                case "ocean_ruin" -> "TRIDENT";
-                case "village" -> "EMERALD";
-                case "eye_of_ender_located" -> "ENDER_EYE";
-                case "mineshaft" -> "CHEST_MINECART";
-                case "shipwreck" -> "OAK_BOAT";
-                case "cats_spawn_as_black", "cats_spawn_in" -> "CAT_SPAWN_EGG";
-                default -> "DIAMOND_BLOCK";
-            };
-            Material material = Main.getOrDefault(Material.getMaterial(m), Material.DIAMOND_BLOCK);
-            ItemStack is = new ItemStack(material);
+            ItemStack is = new ItemStack(getTagListMaterial(pair));
             
             List<String> featureList = pair.getRight();
             

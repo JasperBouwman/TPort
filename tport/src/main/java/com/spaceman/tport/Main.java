@@ -3,7 +3,6 @@ package com.spaceman.tport;
 import com.spaceman.tport.adapters.TPortAdapter;
 import com.spaceman.tport.commands.TPortCommand;
 import com.spaceman.tport.commands.tport.*;
-import com.spaceman.tport.commands.tport.Tag;
 import com.spaceman.tport.commands.tport.backup.Auto;
 import com.spaceman.tport.commands.tport.resourcePack.ResolutionCommand;
 import com.spaceman.tport.events.*;
@@ -14,13 +13,11 @@ import com.spaceman.tport.fancyMessage.inventories.FancyInventory;
 import com.spaceman.tport.fancyMessage.inventories.keyboard.QuickType;
 import com.spaceman.tport.history.HistoryEvents;
 import com.spaceman.tport.history.TeleportHistory;
-import com.spaceman.tport.inventories.ItemFactory;
 import com.spaceman.tport.inventories.TPortInventories;
 import com.spaceman.tport.metrics.BiomeSearchCounter;
 import com.spaceman.tport.metrics.CommandCounter;
 import com.spaceman.tport.metrics.FeatureSearchCounter;
 import com.spaceman.tport.metrics.Metrics;
-import com.spaceman.tport.playerUUID.PlayerUUID;
 import com.spaceman.tport.tpEvents.ParticleAnimation;
 import com.spaceman.tport.tpEvents.TPEManager;
 import com.spaceman.tport.tpEvents.TPRestriction;
@@ -35,7 +32,10 @@ import com.spaceman.tport.tport.TPortManager;
 import com.spaceman.tport.waypoint.WaypointManager;
 import com.spaceman.tport.webMaps.BlueMapHandler;
 import com.spaceman.tport.webMaps.DynmapHandler;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.entity.Player;
@@ -48,8 +48,8 @@ import java.awt.*;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,8 +58,6 @@ import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTra
 import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendInfoTranslation;
 import static com.spaceman.tport.fileHander.Files.tportConfig;
 import static com.spaceman.tport.fileHander.Files.tportData;
-import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.ADD_OWNER;
-import static com.spaceman.tport.inventories.ItemFactory.TPortItemAttributes.CLICK_TO_OPEN;
 
 public class Main extends JavaPlugin {
     
@@ -192,7 +190,7 @@ public class Main extends JavaPlugin {
          * add Defaults.yml
          * In here are all defaults stored, so that admins can change the defaults
          *
-         *
+         * /tport edit <TPort> waypoint icon
          *
          * /tport location ~ ~ ~
          * /tport location 0 0 0
@@ -312,6 +310,7 @@ public class Main extends JavaPlugin {
         Adapter.registerAdapter("26.1.1", "com.spaceman.tport.adapters.V26_1_Adapter");
         Adapter.registerAdapter("26.1.2", "com.spaceman.tport.adapters.V26_1_Adapter");
         Adapter.registerAdapter("26.2", "com.spaceman.tport.adapters.V26_1_Adapter");
+        Adapter.registerAdapter("26.3", "com.spaceman.tport.adapters.V26_3_Adapter");
         
         ConfigurationSerialization.registerClass(ColorTheme.class, "ColorTheme");
         ConfigurationSerialization.registerClass(TPort.class, "TPort");

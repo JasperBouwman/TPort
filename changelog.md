@@ -1,3 +1,43 @@
+# Version 26.3
+
+### Docs
+
+Added the `docs` command to TPort.
+Usage: `/tport docs <file> book [volume]`.
+
+- `<file>`  
+  Currently only the quickStart guide is available.  
+  In the future all available docs and information about TPort will be accessible in game.
+
+- `book`  
+  Currently only the book method is available.
+  The document will open in a written book window.  
+  In the future the chat method will come.  
+  This opens the document in chat.
+
+-  `[volume]`   
+  The book renderer allows the document to be split into separate volumes.
+  Most documents will only have 1 volume
+
+### Adapters
+
+Created the adapter for Minecraft 26.3.
+The `adaptive` adapter is having some issues.
+
+### BiomeTP
+
+Added the poplar log to the dapples forest biome.
+
+### FeatureTP
+
+Added the white wool stairs icon to the abandoned camp sites.
+And added the map icon to the remaining `#on_feature_maps` 
+
+### Permissions.txt
+
+This file has been removed and completely replaced by `/tport generatePermFile`
+
+
 # Version 26.2
 
 ### Cooldown
@@ -1391,7 +1431,7 @@ Why this took so long is that I didn't thought that all the new featueres would 
 
 ---
 
-# Changelog hangelog 1.15.2 update:
+# Changelog 1.15.2 update:
 
 fixed TPort back: when teleporting back to a TPort it did not store the correct location
 

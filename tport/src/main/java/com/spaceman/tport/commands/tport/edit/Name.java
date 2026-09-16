@@ -23,7 +23,7 @@ public class Name extends SubCommand {
     
     public Name() {
         emptyName = new EmptyCommand();
-        emptyName.setCommandName("new TPort name", ArgumentType.REQUIRED);
+        emptyName.setCommandName("new name", ArgumentType.REQUIRED);
         emptyName.setCommandDescription(formatInfoTranslation("tport.command.edit.name.commandDescription"));
         emptyName.setPermissions("TPort.edit.name", "TPort.basic");
         addAction(emptyName);
@@ -31,10 +31,10 @@ public class Name extends SubCommand {
     
     @Override
     public void run(String[] args, Player player) {
-        // tport edit <TPort name> name <new TPort name>
+        // tport edit <TPort name> name <new name>
     
         if (args.length != 4) {
-            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> name <new TPort name>");
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> name <new name>");
             return;
         }
         if (!emptyName.hasPermissionToRun(player, true)) {

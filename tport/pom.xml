@@ -94,7 +94,7 @@
 <!--            <artifactId>spigot-api</artifactId>-->
             <artifactId>spigot</artifactId>
             <version>${MainSpigotVersion}</version>
-<!--            <version>1.21-R0.1-SNAPSHOT</version>-->
+<!--            <version>26.2-R0.1-SNAPSHOT</version>-->
             <scope>provided</scope>
         </dependency>
 

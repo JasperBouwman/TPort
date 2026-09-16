@@ -2,19 +2,23 @@ package com.spaceman.tport.fancyMessage.book;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.spaceman.tport.adapters.ReflectionManager;
+import com.spaceman.tport.Main;
+import com.spaceman.tport.commands.tport.Features;
+import com.spaceman.tport.fancyMessage.MessageUtils;
 import com.spaceman.tport.fancyMessage.TextComponent;
 import com.spaceman.tport.fancyMessage.colorTheme.ColorTheme;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import com.spaceman.tport.fancyMessage.language.Language;
+import net.minecraft.network.chat.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.inventory.CraftMetaBookSigned;
+import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
@@ -49,6 +53,17 @@ public class Book {
     @SuppressWarnings("deprecation")
     public ItemStack getWritableBook() {
         ItemStack stack = new ItemStack(Material.WRITABLE_BOOK);
+        
+        BookMeta meta = (BookMeta) stack.getItemMeta();
+        meta.setAuthor(author);
+        meta.setTitle(title);
+        
+        meta.addPage("test");
+        
+        stack.setItemMeta(meta);
+        
+        if (true) return stack;
+        
         try {
             return Bukkit.getUnsafe().modifyItemStack(stack, translateString());
         } catch (Throwable localThrowable) {
@@ -56,15 +71,41 @@ public class Book {
         }
     }
     
-    @SuppressWarnings("deprecation")
     public ItemStack getWrittenBook(@Nullable Player player) {
+        return getWrittenBook(player, false);
+    }
+    
+    public ItemStack getWrittenBook(@Nullable Player player, boolean translate) {
         ItemStack stack = new ItemStack(Material.WRITTEN_BOOK);
-        try {
-            return Bukkit.getUnsafe().modifyItemStack(stack, translateJSON(
-                    player == null ? ColorTheme.getDefaultTheme(ColorTheme.getDefaultThemes().get(0)) : ColorTheme.getTheme(player)));
-        } catch (Throwable localThrowable) {
-            return stack;
+        
+        ColorTheme colorTheme = player == null ? ColorTheme.getDefaultTheme(ColorTheme.getDefaultThemes().get(0)) : ColorTheme.getTheme(player);
+        JsonObject playerLang = null;
+        if (player != null) {
+            playerLang = Language.getPlayerLang(player);
         }
+        
+        CraftMetaBookSigned meta = (CraftMetaBookSigned) stack.getItemMeta();
+        meta.setAuthor(author);
+        meta.setTitle(title);
+        
+        try {
+            Method s = CraftMetaBookSigned.class.getDeclaredMethod("internalAddPage", Component.class);
+            s.setAccessible(true);
+            for (BookPage page : pages) {
+                if (translate) {
+                    s.invoke(meta, CraftChatMessage.fromJSON(page.translatePage(playerLang).translateJSON(colorTheme)));
+                } else {
+                    s.invoke(meta, CraftChatMessage.fromJSON(page.translateJSON(colorTheme)));
+                }
+            }
+        } catch (Exception e) {
+            Features.Feature.printSmallNMSErrorInConsole("Create book", false);
+            if (Features.Feature.PrintErrorsInConsole.isEnabled()) e.printStackTrace();
+        }
+        
+        stack.setItemMeta(meta);
+        
+        return stack;
     }
     
     @SuppressWarnings("All")
@@ -74,91 +115,15 @@ public class Book {
             throw new IllegalArgumentException("Given item is not a written book");
         }
         
-        int slot = player.getInventory().getHeldItemSlot();
-        ItemStack old = player.getInventory().getItem(slot);
-        player.getInventory().setItem(slot, book);
-        
-        ByteBuf buf = Unpooled.buffer(256);
-        buf.setByte(0, (byte) 0);
-        buf.writerIndex(1);
-        
-        try {
-            String version = ReflectionManager.getServerClassesVersion();
-            Object nmsPlayer = player.getClass().getMethod("getHandle").invoke(player);
-            Object connection = nmsPlayer.getClass().getField("b").get(nmsPlayer);
-            
-            if (Integer.parseInt(version.split("_")[1]) >= 18) {
-                Class enumHandClass = Class.forName("net.minecraft.world.EnumHand");
-                Field mainHand = enumHandClass.getDeclaredField("a");
-                mainHand.setAccessible(true);
-                
-                Object openBook = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenBook")
-                        .getConstructor(enumHandClass)
-                        .newInstance(mainHand.get(null));
-                
-                connection.getClass().getMethod("a", Class.forName("net.minecraft.network.protocol.Packet"))
-                        .invoke(connection, openBook);
-                
-            } else if (Integer.parseInt(version.split("_")[1]) >= 17) {
-                Class enumHandClass = Class.forName("net.minecraft.world.EnumHand");
-                Field mainHand = enumHandClass.getDeclaredField("a");
-                mainHand.setAccessible(true);
-                
-                Object openBook = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutOpenBook")
-                        .getConstructor(enumHandClass)
-                        .newInstance(mainHand.get(null));
-                
-                connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.network.protocol.Packet"))
-                        .invoke(connection, openBook);
-            } else if (Integer.parseInt(version.split("_")[1]) >= 14) {
-//                ((CraftPlayer)player).getHandle().a(new net.minecraft.server.v1_14_R1.ItemStack(Items.WRITTEN_BOOK), EnumHand.MAIN_HAND);
-//                ((CraftPlayer)player).getHandle().playerConnection.sendPacket(new PacketPlayOutOpenBook(EnumHand.MAIN_HAND));
-                
-                Field mainHand = Class.forName("net.minecraft.server." + version + "EnumHand").getDeclaredField("MAIN_HAND");
-                mainHand.setAccessible(true);
-                
-                Object openBook = Class.forName("net.minecraft.server." + version + "PacketPlayOutOpenBook")
-                        .getConstructor(Class.forName("net.minecraft.server." + version + "EnumHand"))
-                        .newInstance(mainHand.get(null));
-                
-                connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + version + "Packet"))
-                        .invoke(connection, openBook);
-                
-            } else if (Integer.parseInt(version.split("_")[1]) > 12) {
-                Class<?> packetDataSerializer = Class.forName("net.minecraft.server." + version + "PacketDataSerializer");
-                Constructor<?> packetDataSerializerConstructor = packetDataSerializer.getConstructor(ByteBuf.class);
-                Class<?> packetPlayOutCustomPayload = Class.forName("net.minecraft.server." + version + "PacketPlayOutCustomPayload");
-                
-                Constructor<?> minecraftKeyConstructor = Class.forName("net.minecraft.server." + version + "MinecraftKey").getConstructor(String.class);
-                
-                Constructor packetPlayOutCustomPayloadConstructor = packetPlayOutCustomPayload.getConstructor(
-                        Class.forName("net.minecraft.server." + version + "MinecraftKey"), Class.forName("net.minecraft.server." + version + "PacketDataSerializer"));
-                
-                connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + version + "Packet"))
-                        .invoke(connection, packetPlayOutCustomPayloadConstructor.newInstance(minecraftKeyConstructor.newInstance("minecraft:book_open"),
-                                packetDataSerializerConstructor.newInstance(buf)));
-            } else {
-                Class<?> packetDataSerializer = Class.forName("net.minecraft.server." + version + "PacketDataSerializer");
-                Constructor<?> packetDataSerializerConstructor = packetDataSerializer.getConstructor(ByteBuf.class);
-                Class<?> packetPlayOutCustomPayload = Class.forName("net.minecraft.server." + version + "PacketPlayOutCustomPayload");
-                
-                Constructor packetPlayOutCustomPayloadConstructor = packetPlayOutCustomPayload.getConstructor(String.class,
-                        Class.forName("net.minecraft.server." + version + "PacketDataSerializer"));
-                
-                connection.getClass().getMethod("sendPacket", Class.forName("net.minecraft.server." + version + "Packet"))
-                        .invoke(connection, packetPlayOutCustomPayloadConstructor.newInstance("MC|BOpen", packetDataSerializerConstructor.newInstance(buf)));
-            }
-        } catch (Exception ex) {
-            player.getInventory().setItem(slot, old);
-            player.getInventory().addItem(book);
-            ex.printStackTrace();
-            return;
-        }
-        player.getInventory().setItem(slot, old);
+        player.openBook(book);
     }
     
     public void openBook(Player player) {
         openBook(getWrittenBook(player), player);
+    }
+    
+    public void openTranslatedBook(Player player) {
+        openBook(getWrittenBook(player, true), player);
     }
     
     public String translateString() {

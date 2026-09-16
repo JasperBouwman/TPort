@@ -116,7 +116,7 @@ public class TPortCommand extends CommandTemplate {
         addAction(new Look());
         addAction(new Adapter());
         addAction(new HistoryCommand());
-//        addAction(new Docs(this));
+        addAction(new Docs(this));
         addAction(new GeneratePermFile(this));
         addAction(new Waypoints());
         

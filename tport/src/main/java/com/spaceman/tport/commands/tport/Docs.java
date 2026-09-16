@@ -2,40 +2,60 @@ package com.spaceman.tport.commands.tport;
 
 import com.spaceman.tport.Main;
 import com.spaceman.tport.Pair;
+import com.spaceman.tport.commandHandler.ArgumentType;
 import com.spaceman.tport.commandHandler.CommandTemplate;
+import com.spaceman.tport.commandHandler.EmptyCommand;
 import com.spaceman.tport.commandHandler.SubCommand;
-import com.spaceman.tport.commands.TPortCommand;
-import com.spaceman.tport.fancyMessage.Message;
+import com.spaceman.tport.commands.tport.docs.Chat;
 import com.spaceman.tport.fancyMessage.MessageUtils;
+import com.spaceman.tport.fancyMessage.book.Book;
+import com.spaceman.tport.fancyMessage.markdown.FancyNodeRenderer;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
+import java.util.stream.IntStream;
+
+import static com.spaceman.tport.commandHandler.CommandTemplate.convertToArgs;
+import static com.spaceman.tport.commandHandler.CommandTemplate.runCommands;
+import static com.spaceman.tport.fancyMessage.colorTheme.ColorTheme.sendErrorTranslation;
 
 public class Docs extends SubCommand {
     
     // String:              markdown file name
     // ArrayList<String>:   markdown chapter names
     // ArrayList<Message>:  markdown chapters
-    private final HashMap<String, Pair<ArrayList<String>, ArrayList<Message>>> docs = new HashMap<>();
+    public static final HashMap<String, Pair<List<Book>, Book>> docs = new HashMap<>();
+    
+    EmptyCommand emptyFile;
     
     public Docs(CommandTemplate mainTemplate) {
         loadMD("quickStart.md", "/docs/quickStart.md", mainTemplate);
-        loadMD("readme.md", "/docs/readme.md", mainTemplate);
-        loadMD("changelog.md", "/docs/changelog.md", mainTemplate);
+//        loadMD("readme.md", "/docs/readme.md", mainTemplate);
+//        loadMD("changelog.md", "/docs/changelog.md", mainTemplate);
+
+//        loadMD("testMarkdown.md", "/testMarkdown.md", mainTemplate);
+        //loadMD("book.md", "/book.md", mainTemplate);
+        
+        emptyFile = new EmptyCommand();
+        emptyFile.setCommandName("file", ArgumentType.OPTIONAL);
+        emptyFile.addAction(new com.spaceman.tport.commands.tport.docs.Book());
+//        emptyFile.addAction(new Chat());
+        
+        addAction(emptyFile);
     }
     
     private void loadMD(String name, String mdFile, CommandTemplate mainTemplate) {
         try (InputStream md = Main.class.getResourceAsStream(mdFile)) {
             if (md != null) {
                 String mdText = IOUtils.toString(md, StandardCharsets.UTF_8);
-                docs.put(name, MessageUtils.fromSplitMarkdown(mdText, mainTemplate));
+                FancyNodeRenderer nodeRenderer = MessageUtils.fromSplitMarkdown(mdText, mainTemplate);
+                nodeRenderer.markdownName = name;
+                
+                docs.put(name, new Pair<>(MessageUtils.renderVolumes(nodeRenderer), MessageUtils.renderChatPages(nodeRenderer)));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -49,41 +69,19 @@ public class Docs extends SubCommand {
     
     @Override
     public void run(String[] args, Player player) {
-        // tport docs <markdown file> [chapter]
+        // tport docs <file> <book> [volume]
+        // tport docs <file> <chat> [page]
         
         if (args.length == 1) {
             // todo open docs GUI
-        } else if (args.length == 2) {
-            
-            Pair<ArrayList<String>, ArrayList<Message>> chapters = docs.getOrDefault(args[1], null);
-            if (chapters == null) {
-                player.sendMessage("no chapters found");
-            } else {
-                //todo
-                // list chapters (table of content)
-                //  or
-                // start at first chapter, and add navigation
-//                chapters.forEach(message -> message.sendMessage(player));
-                chapters.getLeft().forEach(player::sendMessage);
-            }
-            
-        } else {
-            Pair<ArrayList<String>, ArrayList<Message>> chapters = docs.getOrDefault(args[1], null);
-            if (chapters == null) {
-                player.sendMessage("no chapters found");
-            } else {
-                String chapterInput = StringUtils.join(args, " ", 2, args.length);
-                
-                ArrayList<String> left = chapters.getLeft();
-                for (int i = 0; i < left.size(); i++) {
-                    String chapterName = left.get(i);
-                    if (chapterName.equalsIgnoreCase(chapterInput)) {
-                    
-                    }
-                }
-                
+            sendErrorTranslation(player, "tport.command.wrongUsage", "/tport docs <file> " + convertToArgs(emptyFile.getActions(), false));
+            return;
+        } else if (args.length > 2) {
+            if (runCommands(emptyFile.getActions(), args[2], args, player)) {
+                return;
             }
         }
         
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport docs <file> " + convertToArgs(emptyFile.getActions(), false));
     }
 }

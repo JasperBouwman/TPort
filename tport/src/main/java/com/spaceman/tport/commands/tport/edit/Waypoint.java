@@ -15,7 +15,7 @@ public class Waypoint extends SubCommand {
     public Waypoint() {
         
         addAction(new Show());
-        addAction(new Icon());
+        //addAction(new Icon());
         addAction(new Color());
         
     }
@@ -37,6 +37,6 @@ public class Waypoint extends SubCommand {
                 return;
             }
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> waypoint <show | icon | color>");
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> waypoint <show | color>");
     }
 }

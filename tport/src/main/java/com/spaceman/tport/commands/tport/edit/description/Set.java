@@ -21,7 +21,7 @@ public class Set extends SubCommand {
         emptySetDescription = new EmptyCommand();
         emptySetDescription.setCommandName("description", ArgumentType.REQUIRED);
         emptySetDescription.setCommandDescription(formatInfoTranslation("tport.command.edit.description.set.commandDescription",
-                "\\n", "&", "0-9,a-f,k-o,r", "#123456", "$RRR$GGG$BBB"));
+                "\\n", "&", "0-9,a-f", "#123456", "$RRR$GGG$BBB"));
         emptySetDescription.setPermissions("TPort.edit.description", "TPort.basic");
         emptySetDescription.setLooped(true);
         

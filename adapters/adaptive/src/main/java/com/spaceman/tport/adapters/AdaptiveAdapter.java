@@ -1,12 +1,14 @@
 package com.spaceman.tport.adapters;
 
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.server.network.PlayerConnection;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+
+import static com.spaceman.tport.adapters.ReflectionManager.getField;
 
 public class AdaptiveAdapter extends AdaptiveFancyMessage {
     
@@ -15,9 +17,13 @@ public class AdaptiveAdapter extends AdaptiveFancyMessage {
         return "adaptive";
     }
     
+    public /*PlayerConnection*/ Object getPlayerConnection(Player player) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
+        return getField(Class.forName("net.minecraft.server.network.ServerGamePacketListenerImpl"), getEntityPlayer(player));
+    }
+    
     @Override
     public void sendPlayerPacket(Player player, Object packet) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
-        PlayerConnection pc = (PlayerConnection) getPlayerConnection(player);
+        ServerGamePacketListenerImpl pc = (ServerGamePacketListenerImpl) getPlayerConnection(player);
         
         try {
             pc.sendPacket((Packet<?>) packet);

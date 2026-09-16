@@ -82,6 +82,6 @@ public class Edit extends SubCommand {
             QuickEditInventories.openQuickEditSelection(player, 0, tport.getTportID());
             return;
         }
-        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> " + convertToArgs(getActions().get(0).getActions(), false));
+        sendErrorTranslation(player, "tport.command.wrongUsage", "/tport edit <TPort name> " + convertToArgs(emptyOwnTPort.getActions(), false));
     }
 }

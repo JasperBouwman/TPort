@@ -6,18 +6,20 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.chat.IChatBaseComponent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.Connection;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.*;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.server.network.PlayerConnection;
+import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
+import net.minecraft.network.protocol.game.ClientboundOpenSignEditorPacket;
+import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
+import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
-import net.minecraft.world.entity.player.EntityHuman;
-import net.minecraft.world.inventory.Container;
-import net.minecraft.world.inventory.Containers;
-import org.bukkit.Bukkit;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.block.entity.SignTextSlot;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -39,8 +41,8 @@ import static com.spaceman.tport.fancyMessage.inventories.keyboard.QuickType.onS
 
 public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
     
-    private BlockPosition newBlockPosition(Location l) {
-        return new BlockPosition(l.getBlockX(), l.getBlockY(), l.getBlockZ());
+    private BlockPos newBlockPosition(Location l) {
+        return new BlockPos(l.getBlockX(), l.getBlockY(), l.getBlockZ());
     }
     
     @Override
@@ -55,9 +57,9 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
         displayNameField.setAccessible(true);
         
         ItemMeta im = itemStack.getItemMeta();
-        if (displayNameField.getType().equals(IChatBaseComponent.class)) { // components
+        if (displayNameField.getType().equals(Component.class)) { // components
             Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + "util.CraftChatMessage");
-            IChatBaseComponent chatComponent = (IChatBaseComponent) craftChatMessageClass.getMethod("fromJSON", String.class).invoke(null, title.translateJSON(theme));
+            Component chatComponent = (Component) craftChatMessageClass.getMethod("fromJSON", String.class).invoke(null, title.translateJSON(theme));
             displayNameField.set(im, chatComponent);
         } else if (displayNameField.getType().equals(String.class)) { // nbt
             displayNameField.set(im, title.translateJSON(theme));
@@ -73,13 +75,13 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
         loreField.setAccessible(true);
         
         ItemMeta im = itemStack.getItemMeta();
-        if (displayNameField.getType().equals(IChatBaseComponent.class)) { // components
+        if (displayNameField.getType().equals(Component.class)) { // components
             Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + "util.CraftChatMessage");
             Method fromJSONMethod = craftChatMessageClass.getMethod("fromJSON", String.class);
-            List<IChatBaseComponent> l = new ArrayList<>();
+            List<Component> l = new ArrayList<>();
             for (Message line : lore) {
                 if (line != null) {
-                    l.add((IChatBaseComponent) fromJSONMethod.invoke(null, line.translateJSON(theme)));
+                    l.add((Component) fromJSONMethod.invoke(null, line.translateJSON(theme)));
                 }
             }
             
@@ -97,17 +99,18 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
     public void sendMessage(Player player, String message) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException, NoSuchFieldException {
         String version = ReflectionManager.getServerClassesVersion();
         Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + "util.CraftChatMessage");
-        IChatBaseComponent chatComponent = (IChatBaseComponent) craftChatMessageClass.getMethod("fromJSON", String.class).invoke(null, message);
+        Component chatComponent = (Component) craftChatMessageClass.getMethod("fromJSON", String.class).invoke(null, message);
 //      @Nullable IChatMutableComponent chatComponent = IChatBaseComponent.ChatSerializer.a(message);
         
         try {
             Class<?> packetClass = Class.forName("net.minecraft.network.protocol.game.ClientboundSystemChatPacket", false, this.getClass().getClassLoader());
-            Packet<?> packet = (Packet<?>) packetClass.getConstructor(IChatBaseComponent.class, boolean.class).newInstance(chatComponent, false);
+            Packet<?> packet = (Packet<?>) packetClass.getConstructor(Component.class, boolean.class).newInstance(chatComponent, false);
             sendPlayerPacket(player, packet);
         } catch (ClassNotFoundException cnfe) { //1.18 versions
+            cnfe.printStackTrace();
             Class<?> packetClass = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutChat");
             Object messageType = Class.forName("net.minecraft.network.chat.ChatMessageType").getDeclaredField("a").get(null);
-            Packet<?> packet = (Packet<?>) packetClass.getConstructor(IChatBaseComponent.class, messageType.getClass(), UUID.class).newInstance(chatComponent, messageType, player.getUniqueId());
+            Packet<?> packet = (Packet<?>) packetClass.getConstructor(Component.class, messageType.getClass(), UUID.class).newInstance(chatComponent, messageType, player.getUniqueId());
             sendPlayerPacket(player, packet);
         }
     }
@@ -116,7 +119,7 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
     public void sendTitle(Player player, String message, Message.TitleTypes titleType, int fadeIn, int displayTime, int fadeOut) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException, InstantiationException {
         String version = ReflectionManager.getServerClassesVersion();
         Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + "util.CraftChatMessage");
-        IChatBaseComponent text = (IChatBaseComponent) craftChatMessageClass.getMethod("fromJSON", String.class).invoke(null, message);
+        Component text = (Component) craftChatMessageClass.getMethod("fromJSON", String.class).invoke(null, message);
 //      @Nullable IChatMutableComponent text = IChatBaseComponent.ChatSerializer.a(message);
         
         Class<?> packetClass = Class.forName("net.minecraft.network.protocol.game." + titleType.getMCClass());
@@ -135,44 +138,49 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
         
         String version = ReflectionManager.getServerClassesVersion();
         Class<?> craftChatMessageClass = Class.forName("org.bukkit.craftbukkit." + version + "util.CraftChatMessage");
-        IChatBaseComponent chatSerializer = (IChatBaseComponent) craftChatMessageClass.getMethod("fromJSON", String.class).invoke(null, stringTitle);
+        Component chatSerializer = (Component) craftChatMessageClass.getMethod("fromJSON", String.class).invoke(null, stringTitle);
 //      IChatMutableComponent chatSerializer = IChatBaseComponent.ChatSerializer.a(stringTitle);
         
-        EntityPlayer entityPlayer = (EntityPlayer) getEntityPlayer(player);
+        ServerPlayer entityPlayer = (ServerPlayer) getEntityPlayer(player);
         
 //      Container c = new CraftContainer(inventory, entityPlayer, entityPlayer.nextContainerCounter());
         Class<?> craftContainer = Class.forName("org.bukkit.craftbukkit." + version + "inventory.CraftContainer");
-        Container container = (Container) craftContainer
+        AbstractContainerMenu container = (AbstractContainerMenu) craftContainer
                 .getConstructor(Class.forName("org.bukkit.inventory.Inventory"), entityPlayer.getClass().getSuperclass(), int.class)
                 .newInstance(inventory, entityPlayer, entityPlayer.nextContainerCounter());
 
 //      Containers<?> windowType = CraftContainer.getNotchInventoryType(inventory);
-        Containers<?> windowType = (Containers<?>) craftContainer.getMethod("getNotchInventoryType", Inventory.class).invoke(null, inventory);
+        MenuType<?> windowType = (MenuType<?>) craftContainer.getMethod("getNotchInventoryType", Inventory.class).invoke(null, inventory);
 //      getPlayerConnection(entityPlayer).a(new PacketPlayOutOpenWindow(container.j, windowType, chatSerializer));
-        sendPlayerPacket(player, new PacketPlayOutOpenWindow(container.l, windowType, chatSerializer));
-
-//      entityPlayer.bR = container;
-        for (Field f : EntityHuman.class.getFields()) {
-            if (f.getType().equals(Container.class)) {
-                f.set(entityPlayer, container);
-                break;
-            }
-        }
+        sendPlayerPacket(player, new ClientboundOpenScreenPacket(container.containerId, windowType, chatSerializer));
         
-        entityPlayer.a(container); //todo reflection
+        entityPlayer.containerMenu = container;
+//      entityPlayer.bR = container;
+//        for (Field f : EntityHuman.class.getFields()) {
+//            if (f.getType().equals(Container.class)) {
+//                f.set(entityPlayer, container);
+//                break;
+//            }
+//        }
+        
+        entityPlayer.initMenu(container); //todo reflection
     }
     
     @Override
     public void sendSignEditor(Player player, Location loc) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, ClassNotFoundException {
-        PacketPlayOutOpenSignEditor packet;
-        BlockPosition blockPos = newBlockPosition(loc);
+        ClientboundOpenSignEditorPacket packet;
+        BlockPos blockPos = newBlockPosition(loc);
         
-        Class<?> packetClass = PacketPlayOutOpenSignEditor.class;
+        Class<?> packetClass = ClientboundOpenSignEditorPacket.class;
         try {
-            packet = (PacketPlayOutOpenSignEditor) packetClass.getConstructor(BlockPosition.class, boolean.class).newInstance(blockPos, false);
+            try {
+                packet = (ClientboundOpenSignEditorPacket) packetClass.getConstructor(BlockPos.class, SignTextSlot.class).newInstance(blockPos, SignTextSlot.BACK);
+            } catch (NoSuchMethodException nfe) {
+                packet = (ClientboundOpenSignEditorPacket) packetClass.getConstructor(BlockPos.class, boolean.class).newInstance(blockPos, false);
+            }
         } catch (NoSuchMethodException nsme) { //pre 1.20
             //noinspection JavaReflectionMemberAccess
-            packet = (PacketPlayOutOpenSignEditor) packetClass.getConstructor(BlockPosition.class).newInstance(blockPos);
+            packet = (ClientboundOpenSignEditorPacket) packetClass.getConstructor(BlockPos.class).newInstance(blockPos);
         }
         this.sendPlayerPacket(player, packet);
     }
@@ -181,10 +189,10 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
     public void setQuickTypeSignHandler(Player player) throws IllegalAccessException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException {
         ChannelDuplexHandler channelDuplexHandler = getChannelDuplexHandler(player);
         
-        PlayerConnection playerConnection = (PlayerConnection) getPlayerConnection(player);
-        NetworkManager networkManager = getPrivateField(NetworkManager.class, playerConnection);
+        ServerGamePacketListenerImpl playerConnection = (ServerGamePacketListenerImpl) getPlayerConnection(player);
+        Connection networkManager = getPrivateField(Connection.class, playerConnection);
         if (networkManager == null) {
-            networkManager = getPrivateField(NetworkManager.class, playerConnection, ServerCommonPacketListenerImpl.class);
+            networkManager = getPrivateField(Connection.class, playerConnection, ServerCommonPacketListenerImpl.class);
         }
         Channel channel = getField(Channel.class, networkManager);
         ChannelPipeline pipeline = channel.pipeline();
@@ -200,7 +208,7 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
         return new ChannelDuplexHandler() {
             @Override
             public void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
-                if (packet instanceof PacketPlayInUpdateSign inUpdateSign) {
+                if (packet instanceof ServerboundSignUpdatePacket inUpdateSign) {
                     String[] lines = ReflectionManager.get(String[].class, inUpdateSign);
                     if (onSignEdit(lines, uuid)) {
                         return;
@@ -213,10 +221,10 @@ public abstract class AdaptiveFancyMessage extends AdaptiveBiomeTP {
     
     @Override
     public void removeQuickTypeSignHandler(Player player) throws IllegalAccessException, ClassNotFoundException, InvocationTargetException, NoSuchMethodException {
-        PlayerConnection playerConnection = (PlayerConnection) getPlayerConnection(player);
-        NetworkManager networkManager = getPrivateField(NetworkManager.class, playerConnection);
+        ServerGamePacketListenerImpl playerConnection = (ServerGamePacketListenerImpl) getPlayerConnection(player);
+        Connection networkManager = getPrivateField(Connection.class, playerConnection);
         if (networkManager == null) {
-            networkManager = getPrivateField(NetworkManager.class, playerConnection, ServerCommonPacketListenerImpl.class);
+            networkManager = getPrivateField(Connection.class, playerConnection, ServerCommonPacketListenerImpl.class);
         }
         Channel channel = getField(Channel.class, networkManager);
         channel.eventLoop().submit(() -> channel.pipeline().remove("fancyMessage_quickType"));
